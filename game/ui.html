@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NOVARIA UI — дизайн-система</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=PT+Sans+Narrow:wght@400;700&family=PT+Sans:ital,wght@0,400;0,700;1,400&family=PT+Serif:wght@400;700&family=PT+Mono&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   NOVARIA UI · токены
+   Единственный источник правды для цвета, шрифта, отступов и движения.
+   Всё остальное в системе собрано только из этих значений.
+   ═══════════════════════════════════════════════════════════════ */
+:root{
+  /* 01 · бумага и чернила */
+  --bg:        #E3DDCE;   /* холст приложения */
+  --surface:   #FBF8F1;   /* лист: панель, модальное окно */
+  --surface-2: #F2EDE1;   /* подложка: шапка таблицы, неактивная вкладка */
+  --surface-3: #E9E2D2;   /* вдавленный блок, дорожка индикатора */
+  --band:      #1B1813;   /* тёмная полоса: шапка приложения */
+  --band-2:    #2E2820;   /* разделители внутри полосы */
+
+  --ink:       #17130E;   /* основной текст */
+  --ink-2:     #554E3F;   /* вторичный: подписи строк, лиды */
+  --ink-3:     #8A8271;   /* третичный: пояснения, единицы, «нет данных» */
+  --ink-inv:   #F2ECDC;   /* текст на тёмном */
+  --ink-inv-2: #A99C7C;
+
+  --line:      #C6BCA4;   /* основная линейка: рамка панели, низ шапки таблицы */
+  --line-2:    #DCD4C0;   /* слабая линейка: строки таблицы */
+
+  /* 02 · смысловые цвета. Роли не пересекаются:
+     чёрный — действие, золото — «вы здесь», красный — плохо, зелёный — хорошо. */
+  --act:    #17130E;      /* основное действие */
+  --mark:   #8A5A0E;      /* активный раздел, метка внимания, штамп бюллетеня */
+  --bad:    #93261E;      /* убыль, провал, угроза */
+  --good:   #2C6547;      /* прибыль, принято, поддержка */
+  --info:   #23456B;      /* нейтральная справка, вторая палата */
+  --mark-bg:#F1E7CE;      /* заливка под меткой */
+  --bad-bg: #F5E3DF;
+  --good-bg:#E2EDE4;
+
+  /* 03 · палитра фракций. Шесть различимых тонов, не пересекаются
+     со смысловыми: партия — это идентичность, а не оценка. */
+  --p1:#9A7211;  --p2:#93261E;  --p3:#23456B;
+  --p4:#14675F;  --p5:#4C6A22;  --p6:#5A3868;
+
+  /* 04 · шкалы данных. Расходящаяся — для поддержки, последовательная —
+     для напряжённости. В графиках используются только они. */
+  --d1:#7B2018; --d2:#B4744A; --d3:#C9B98F; --d4:#6E8F5E; --d5:#2C6547;
+  --s1:#E7E0CE; --s2:#D9C08A; --s3:#C08A3E; --s4:#A85A2A; --s5:#7B2018;
+
+  /* 05 · шаг сетки. Всё кратно 4, мелкие подгонки — 2. */
+  --x1:2px; --x2:4px; --x3:6px; --x4:8px; --x5:12px; --x6:16px;
+  --x7:20px; --x8:24px; --x9:32px; --x10:40px;
+
+  /* 06 · геометрия. Скруглений нет: документ, а не приложение. */
+  --r:0;
+  --hair:1px solid var(--line);
+  --hair-2:1px solid var(--line-2);
+  --rule:3px solid var(--mark);
+  --shadow:0 14px 40px rgba(20,16,10,.34);   /* только для перекрытий */
+
+  /* 07 · шрифт */
+  --f-display:'PT Serif',Georgia,serif;
+  --f-text:'PT Sans',system-ui,sans-serif;
+  --f-cond:'PT Sans Narrow',sans-serif;
+  --f-num:'PT Mono',ui-monospace,monospace;
+
+  /* 08 · движение. Три длительности, одна кривая, и не более. */
+  --t-fast:90ms; --t:150ms; --t-slow:240ms;
+  --ease:cubic-bezier(.2,.7,.3,1);
+
+  /* 09 · плотность */
+  --row:30px;        /* строка таблицы, обычная плотность */
+  --row-tight:24px;  /* плотная */
+  --rail:190px;      /* ширина бокового меню */
+  --page:1380px;     /* предельная ширина полосы набора */
+}
+
+/* ═══ типографика ═══════════════════════════════════════════════
+   Шесть ролей. Заголовок — засечный, служебная надпись — узкий гротеск
+   в разрядку, цифра — только моноширинная с табличными знаками. */
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font:400 14px/1.45 var(--f-text);
+  background-image:repeating-linear-gradient(180deg,rgba(0,0,0,.013) 0 1px,transparent 1px 4px);
+}
+.t-display{font:700 28px/1.1 var(--f-display)}
+.t-title{font:700 21px/1.15 var(--f-display)}
+.t-sub{font:700 17px/1.2 var(--f-display)}
+.t-sec{font:700 12.5px/1.2 var(--f-cond);text-transform:uppercase;letter-spacing:.1em}
+.t-micro{font:400 10px/1.2 var(--f-cond);text-transform:uppercase;letter-spacing:.14em;color:var(--ink-3)}
+.t-body{font:400 14px/1.45 var(--f-text)}
+.t-small{font:400 12.5px/1.4 var(--f-text);color:var(--ink-2)}
+.t-num{font-family:var(--f-num);font-variant-numeric:tabular-nums;letter-spacing:-.03em}
+.num-l{font:400 21px/1 var(--f-num);letter-spacing:-.04em}
+.num{font:400 15px/1.2 var(--f-num);letter-spacing:-.03em}
+.num-s{font:400 12.5px/1.2 var(--f-num);letter-spacing:-.03em}
+.good{color:var(--good)} .bad{color:var(--bad)} .dim{color:var(--ink-3)}
+
+/* ═══ каркас самого стайлгайда ═════════════════════════════════ */
+#gh{position:sticky;top:0;z-index:50;background:var(--band);color:var(--ink-inv);
+  border-bottom:var(--rule);display:flex;align-items:baseline;gap:var(--x6);padding:var(--x5) var(--x6)}
+#gh b{font:700 17px/1 var(--f-display);letter-spacing:.06em}
+#gh span{font:400 10px/1 var(--f-cond);text-transform:uppercase;letter-spacing:.16em;color:var(--ink-inv-2)}
+#gh em{margin-left:auto;font-style:normal;font:400 11px var(--f-num);color:var(--ink-inv-2)}
+#gw{display:flex;align-items:flex-start;max-width:var(--page);margin:0 auto}
+#toc{position:sticky;top:57px;width:var(--rail);flex:none;padding:var(--x5) 0 var(--x10);
+  border-right:var(--hair);min-height:calc(100vh - 57px)}
+#toc a{display:block;padding:5px var(--x5);color:var(--ink-2);text-decoration:none;
+  font:400 12.5px var(--f-cond);text-transform:uppercase;letter-spacing:.07em;border-left:3px solid transparent}
+#toc a:hover{background:var(--mark-bg);color:var(--ink)}
+#toc a b{font-family:var(--f-num);font-weight:400;font-size:10.5px;color:var(--ink-3);margin-right:6px}
+#doc{flex:1;min-width:0;padding:var(--x6) var(--x7) 80px}
+section{margin-bottom:var(--x10);scroll-margin-top:70px}
+section>h2{font:700 21px/1.15 var(--f-display);margin:0 0 var(--x2);
+  padding-bottom:var(--x3);border-bottom:2px solid var(--ink)}
+section>h2 i{font-style:normal;font-family:var(--f-num);font-size:13px;color:var(--ink-3);margin-right:var(--x4)}
+section>.why{font-size:13.5px;color:var(--ink-2);max-width:74ch;margin:var(--x4) 0 var(--x6)}
+h3.sub{font:700 11px var(--f-cond);text-transform:uppercase;letter-spacing:.12em;color:var(--ink-2);
+  margin:var(--x7) 0 var(--x4);padding-bottom:3px;border-bottom:var(--hair-2)}
+.spec{background:var(--surface);border:var(--hair);padding:var(--x6);margin-bottom:var(--x5)}
+.spec.dark{background:var(--band)}
+.grid{display:grid;gap:var(--x5)}
+.g2{grid-template-columns:1fr 1fr} .g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)} .g6{grid-template-columns:repeat(6,1fr)}
+.note{font-size:11.5px;color:var(--ink-3);margin-top:var(--x3)}
+code{font:400 12px var(--f-num);background:var(--surface-2);padding:1px 4px;border:var(--hair-2)}
+.row{display:flex;gap:var(--x4);flex-wrap:wrap;align-items:center}
+
+/* образцы цвета */
+.sw{border:var(--hair)}
+.sw i{display:block;height:52px}
+.sw div{padding:5px 7px;background:var(--surface);border-top:var(--hair)}
+.sw b{display:block;font:700 11px var(--f-cond);text-transform:uppercase;letter-spacing:.08em}
+.sw span{font:400 10.5px var(--f-num);color:var(--ink-3)}
+.ramp{display:flex;height:34px;border:var(--hair)}
+.ramp i{flex:1}
+.ramp-l{display:flex;justify-content:space-between;font:400 10px var(--f-cond);
+  text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);margin-top:3px}
+
+/* ═══════════════════════════════════════════════════════════════
+   КОМПОНЕНТЫ. Ниже — то, что переносится в игру как есть.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* --- панель ---------------------------------------------------- */
+.panel{background:var(--surface);border:var(--hair);margin-bottom:var(--x5)}
+.panel>header{display:flex;align-items:center;gap:var(--x4);padding:6px var(--x5);
+  background:var(--surface-2);border-bottom:var(--hair)}
+.panel>header h4{margin:0;font:700 12.5px var(--f-cond);text-transform:uppercase;letter-spacing:.1em}
+.panel>header .meta{margin-left:auto;font-size:11.5px;color:var(--ink-3)}
+.panel>.body{padding:var(--x5)}
+.panel>footer{padding:var(--x4) var(--x5);border-top:var(--hair);background:var(--surface-2)}
+.panel.lead{border-top:var(--rule)}                 /* главное на экране */
+.panel.warn{border-top:3px solid var(--bad)}
+.panel.calm{border-top:3px solid var(--good)}
+.panel.info{border-top:3px solid var(--info)}
+.panel.inset{background:var(--surface-3);border-style:dashed}
+
+/* --- кнопки ---------------------------------------------------- */
+.btn{font:400 12.5px var(--f-cond);text-transform:uppercase;letter-spacing:.08em;
+  background:var(--surface);color:var(--ink);border:1px solid var(--ink-2);
+  padding:5px 12px;cursor:pointer;transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease)}
+.btn:hover{background:var(--ink);color:var(--ink-inv)}
+.btn:active{transform:translate(1px,1px)}
+.btn:focus-visible{outline:2px solid var(--mark);outline-offset:1px}
+.btn.pri{background:var(--act);color:var(--ink-inv);border-color:var(--act)}
+.btn.pri:hover{background:#000}
+.btn.danger{border-color:var(--bad);color:var(--bad)}
+.btn.danger:hover{background:var(--bad);color:#fff}
+.btn.ghost{border-color:var(--line);color:var(--ink-2)}
+.btn.ghost:hover{background:var(--surface-2);color:var(--ink)}
+.btn.sel{background:var(--mark);border-color:var(--mark);color:#fff}
+.btn[disabled]{background:var(--surface-2);border-color:var(--line);color:var(--ink-3);cursor:not-allowed}
+.btn[disabled]:active{transform:none}
+.btn.sm{font-size:11px;padding:3px 8px}
+.btn.lg{font-size:14px;padding:9px 18px}
+.btn.block{display:block;width:100%;text-align:center}
+.btn .cost{font-family:var(--f-num);font-size:11px;opacity:.75;margin-left:6px}
+.btn.busy{position:relative;color:transparent}
+.btn.busy::after{content:'';position:absolute;inset:0;margin:auto;width:11px;height:11px;
+  border:2px solid var(--ink-3);border-top-color:transparent;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* --- таблицы --------------------------------------------------- */
+table.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{font:700 9.5px var(--f-cond);text-transform:uppercase;letter-spacing:.11em;color:var(--ink-2);
+  text-align:left;padding:4px 7px;background:var(--surface-2);border-bottom:var(--hair);white-space:nowrap}
+.tbl td{padding:0 7px;height:var(--row);border-bottom:var(--hair-2);vertical-align:middle}
+.tbl tbody tr:last-child td{border-bottom:0}
+.tbl tbody tr:hover{background:var(--mark-bg)}
+.tbl tr.sel td{background:var(--mark-bg);box-shadow:inset 3px 0 0 var(--mark)}
+.tbl td.n,.tbl th.n{text-align:right;font-family:var(--f-num);font-size:12.5px;letter-spacing:-.03em;white-space:nowrap}
+.tbl.tight td{height:var(--row-tight);padding:0 6px}
+.tbl caption{caption-side:bottom;text-align:left;font-size:11.5px;color:var(--ink-3);padding-top:var(--x3)}
+.scrollx{overflow-x:auto}
+
+/* --- индикаторы и данные --------------------------------------- */
+.meter{height:8px;background:var(--surface-3);border:var(--hair);display:flex;position:relative}
+.meter i{height:100%}
+.meter .mid{position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--ink)}
+.meter.tall{height:15px}
+.bar-s{display:inline-block;width:66px;height:6px;background:var(--surface-3);border:var(--hair);vertical-align:middle}
+.bar-s i{display:block;height:100%;background:var(--ink-2)}
+.stat{border:var(--hair);background:var(--surface);padding:var(--x4) var(--x5)}
+.stat .k{font:400 10px var(--f-cond);text-transform:uppercase;letter-spacing:.14em;color:var(--ink-3)}
+.stat .v{font:400 21px/1.1 var(--f-num);letter-spacing:-.04em;margin-top:2px}
+.stat .v u{text-decoration:none;font:400 11px var(--f-text);color:var(--ink-3);margin-left:3px}
+.stat .d{font-size:11.5px;color:var(--ink-3);margin-top:1px}
+.stat.alert{border-color:#D9B7AF;background:var(--bad-bg)}
+.stat.alert .v{color:var(--bad)}
+.est{border-bottom:1px dotted var(--ink-3);cursor:help}   /* оценка без опроса */
+
+/* --- фишки, метки, штампы -------------------------------------- */
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;white-space:nowrap}
+.chip s{width:9px;height:9px;flex:none;text-decoration:none;display:inline-block}
+.tag{display:inline-block;font:700 9px var(--f-cond);text-transform:uppercase;letter-spacing:.1em;
+  border:1px solid currentColor;padding:1px 5px;white-space:nowrap}
+.tag.g{color:var(--good)} .tag.r{color:var(--bad)} .tag.b{color:var(--info)} .tag.y{color:var(--mark)}
+.stamp{display:inline-block;font:700 15px var(--f-cond);text-transform:uppercase;letter-spacing:.16em;
+  border:2px solid currentColor;box-shadow:inset 0 0 0 1px currentColor;padding:4px 13px;
+  transform:rotate(-4deg);opacity:.9}
+.stamp.yes{color:var(--good)} .stamp.no{color:var(--bad)}
+
+/* --- формы ----------------------------------------------------- */
+.field{margin-bottom:var(--x5)}
+.field>label{display:block;font:400 10px var(--f-cond);text-transform:uppercase;
+  letter-spacing:.14em;color:var(--ink-2);margin-bottom:3px}
+input[type=text],select{font:400 14px var(--f-text);background:#fff;border:var(--hair);
+  padding:6px 8px;color:var(--ink);width:100%;border-radius:0}
+input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset:-1px}
+.scale{display:flex;gap:2px}
+.scale button{flex:1;height:28px;border:var(--hair);background:var(--surface-2);cursor:pointer;
+  font:400 11px var(--f-num);color:var(--ink-3);transition:background var(--t-fast) var(--ease)}
+.scale button:hover{background:var(--mark-bg)}
+.scale button.on{background:var(--act);border-color:var(--act);color:var(--ink-inv)}
+.scale-l{display:flex;justify-content:space-between;font:400 10px var(--f-cond);
+  text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);margin-bottom:3px}
+.steps{display:flex;gap:2px}
+.steps button{width:30px;height:24px;border:var(--hair);background:var(--surface-2);cursor:pointer;
+  font:400 11px var(--f-num);color:var(--ink-3)}
+.steps button.on{background:var(--mark);border-color:var(--mark);color:#fff}
+
+/* --- сообщения ------------------------------------------------- */
+.pin{border-left:3px solid var(--mark);background:var(--mark-bg);padding:var(--x4) var(--x5);font-size:13px}
+.pin.warn{border-left-color:var(--bad);background:var(--bad-bg)}
+.pin b{display:block;font:700 10px var(--f-cond);text-transform:uppercase;letter-spacing:.12em;color:var(--ink-2)}
+.toast{background:var(--band);color:var(--ink-inv);padding:6px 12px;font-size:12.5px;
+  border-left:3px solid var(--mark);display:inline-block;animation:tin var(--t) var(--ease)}
+@keyframes tin{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:none}}
+.log div{padding:4px 0;border-bottom:1px dotted var(--line);font-size:12.5px}
+.log div.key{background:var(--mark-bg);padding:4px 6px;margin:0 -6px}
+.log s{text-decoration:none;font:400 10.5px var(--f-num);color:var(--ink-3);margin-right:7px}
+
+/* --- состояния ------------------------------------------------- */
+.skel{background:linear-gradient(90deg,var(--surface-3) 25%,var(--surface-2) 50%,var(--surface-3) 75%);
+  background-size:200% 100%;animation:sk 1.2s linear infinite;height:12px}
+@keyframes sk{to{background-position:-200% 0}}
+.empty{padding:var(--x8);text-align:center;color:var(--ink-3);font-size:13px;border:1px dashed var(--line)}
+
+/* --- модальное окно -------------------------------------------- */
+.modal{background:var(--surface);border:1px solid var(--ink-2);border-top:4px solid var(--mark);
+  box-shadow:var(--shadow);max-width:600px;animation:rise var(--t-slow) var(--ease)}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.modal .mh{padding:var(--x4) var(--x6);background:var(--surface-2);border-bottom:var(--hair)}
+.modal .mh i{display:block;font:400 9.5px var(--f-cond);text-transform:uppercase;
+  letter-spacing:.14em;color:var(--ink-3);font-style:normal}
+.modal .mh h3{margin:1px 0 0;font:700 19px/1.15 var(--f-display)}
+.modal .mb{padding:var(--x5) var(--x6);font-size:13.5px}
+.modal .mf{padding:var(--x4) var(--x6);border-top:var(--hair);background:var(--surface-2);
+  display:flex;gap:var(--x3);justify-content:flex-end;flex-wrap:wrap}
+.opt{display:block;width:100%;text-align:left;background:var(--surface-2);border:var(--hair);
+  padding:8px 11px;margin-bottom:6px;cursor:pointer;font:400 13px var(--f-text);color:var(--ink);
+  transition:border-color var(--t-fast) var(--ease),background var(--t-fast) var(--ease)}
+.opt:hover{border-color:var(--ink-2);background:var(--mark-bg)}
+.opt b{display:block} .opt span{font-size:11.5px;color:var(--ink-3)}
+.res{display:grid;grid-template-columns:1fr auto;gap:3px var(--x6);font-size:13px;
+  border-top:var(--hair-2);border-bottom:var(--hair-2);padding:var(--x4) 0;margin:var(--x4) 0}
+.res b{font-family:var(--f-num);font-weight:400;text-align:right;letter-spacing:-.03em}
+
+/* --- политические компоненты ----------------------------------- */
+.seatbar{display:flex;height:15px;border:var(--hair);position:relative;background:var(--surface-3)}
+.seatbar i{height:100%}
+.seatbar .maj{position:absolute;left:50%;top:-3px;bottom:-3px;width:2px;background:var(--ink)}
+.whip{display:grid;grid-template-columns:repeat(3,1fr);border:var(--hair)}
+.whip div{padding:5px 9px;border-right:var(--hair)}
+.whip div:last-child{border-right:0}
+.whip i{display:block;font:400 9.5px var(--f-cond);text-transform:uppercase;
+  letter-spacing:.12em;color:var(--ink-3);font-style:normal}
+.whip b{font:400 19px var(--f-num);letter-spacing:-.04em}
+.dep{display:flex;align-items:center;gap:var(--x5);padding:5px 0;border-bottom:var(--hair-2)}
+.dep .who{flex:1;min-width:0}
+.dep .who b{display:block;font-size:13.5px}
+.dep .who span{font-size:11.5px;color:var(--ink-3)}
+.hemi{width:100%;display:block}
+.axis-row{padding:var(--x4) 0;border-bottom:var(--hair-2)}
+.axis-row:last-child{border-bottom:0}
+
+/* --- экономические компоненты ---------------------------------- */
+.bline{display:grid;grid-template-columns:1fr 56px 160px;gap:var(--x5);align-items:center;
+  padding:5px 0;border-bottom:var(--hair-2)}
+.bline b{font-size:13.5px}
+.bline .who{font-size:11.5px;color:var(--ink-3)}
+.gauge{display:flex;align-items:center;gap:var(--x4)}
+.gauge .track{flex:1;height:8px;background:var(--surface-3);border:var(--hair);position:relative}
+.gauge .track i{position:absolute;top:-3px;width:2px;height:14px;background:var(--ink)}
+.spark{display:block;width:100%;height:46px}
+
+/* --- шапка приложения ------------------------------------------ */
+.appbar{background:var(--band);color:var(--ink-inv);display:flex;align-items:stretch;
+  border-bottom:var(--rule);min-height:52px}
+.appbar .brand{display:flex;align-items:center;gap:9px;padding:6px var(--x5);flex:none}
+.appbar .brand b{font:700 15px/1.05 var(--f-display);letter-spacing:.06em;display:block}
+.appbar .brand span{font:400 9.5px/1.2 var(--f-cond);text-transform:uppercase;
+  letter-spacing:.14em;color:var(--ink-inv-2)}
+.appbar .strip{margin-left:auto;display:flex}
+.sv{padding:6px 13px;border-left:1px solid var(--band-2);display:flex;flex-direction:column;
+  justify-content:center;min-width:76px;flex:none}
+.sv i{font:400 9px var(--f-cond);text-transform:uppercase;letter-spacing:.12em;
+  color:var(--ink-inv-2);font-style:normal}
+.sv b{font:400 15px var(--f-num);letter-spacing:-.03em;color:var(--ink-inv);white-space:nowrap}
+.sv b.warn{color:#E0A24C} .sv b.bad{color:#DE8375} .sv b.good{color:#8FC0A0}
+.sv.act{background:var(--band-2);box-shadow:inset 0 -3px 0 var(--mark)}
+
+/* --- навигация -------------------------------------------------- */
+.rail{width:var(--rail);border-right:var(--hair);background:rgba(255,255,255,.2);padding:var(--x4) 0}
+.rail .cap{font:400 9.5px var(--f-cond);text-transform:uppercase;letter-spacing:.16em;color:var(--ink-3);
+  padding:var(--x4) var(--x5) var(--x2);border-bottom:var(--hair-2);margin-bottom:var(--x2)}
+.nav{display:flex;align-items:baseline;gap:7px;width:100%;text-align:left;background:none;border:0;
+  border-left:3px solid transparent;padding:6px var(--x5);cursor:pointer;color:var(--ink-2);
+  font:400 13px var(--f-cond);text-transform:uppercase;letter-spacing:.08em;transition:background var(--t-fast) var(--ease)}
+.nav:hover{background:var(--mark-bg);color:var(--ink)}
+.nav.on{background:var(--surface);border-left-color:var(--mark);color:var(--ink);font-weight:700}
+.nav u{margin-left:auto;text-decoration:none;font:400 11px var(--f-num);color:var(--ink-3)}
+.nav.on u{color:var(--mark)}
+.nav .dot{width:6px;height:6px;background:var(--bad);display:inline-block;margin-left:5px}
+
+/* --- экран загрузки --------------------------------------------- */
+.splash{background:var(--band);color:var(--ink-inv);padding:var(--x10) var(--x8);text-align:center}
+.splash .em{width:64px;height:70px;margin:0 auto var(--x5);background:var(--band-2);
+  border:1px solid var(--band-2)}
+.splash h3{font:700 26px var(--f-display);letter-spacing:.1em;margin:0}
+.splash p{color:var(--ink-inv-2);font:400 11px var(--f-cond);text-transform:uppercase;
+  letter-spacing:.2em;margin:var(--x3) 0 var(--x6)}
+.splash .load{width:220px;height:3px;background:var(--band-2);margin:0 auto;overflow:hidden}
+.splash .load i{display:block;height:100%;width:40%;background:var(--mark);animation:slide 1.1s var(--ease) infinite}
+@keyframes slide{from{transform:translateX(-100%)}to{transform:translateX(250%)}}
+
+/* --- макеты экранов --------------------------------------------- */
+.board{border:1px solid var(--ink-2);background:var(--bg);margin-bottom:var(--x6);overflow:hidden}
+.board>.cap{background:var(--ink);color:var(--ink-inv);padding:5px var(--x5);
+  font:700 11px var(--f-cond);text-transform:uppercase;letter-spacing:.12em;display:flex;gap:var(--x5)}
+.board>.cap span{margin-left:auto;font-weight:400;color:var(--ink-inv-2);letter-spacing:.06em}
+.frame{transform-origin:0 0;width:1360px}
+.wrap{overflow:hidden}
+.screen{display:flex;align-items:stretch;min-height:620px}
+.screen .work{flex:1;min-width:0;padding:var(--x5) var(--x6)}
+.cols{display:grid;gap:var(--x5)}
+.c21{grid-template-columns:2fr 1fr} .c11{grid-template-columns:1fr 1fr}
+.c12{grid-template-columns:1fr 2fr} .c111{grid-template-columns:repeat(3,1fr)}
+
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(max-width:900px){
+  #toc{display:none} #doc{padding:var(--x5) var(--x5) 60px}
+  .g4,.g6,.g3,.g2{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+<header id="gh">
+  <b>NOVARIA UI</b><span>дизайн-система · версия 1</span>
+  <em>черновик к утверждению</em>
+</header>
+<div id="gw">
+<nav id="toc">
+  <a href="#c01"><b>01</b>Цвет</a>
+  <a href="#c02"><b>02</b>Типографика</a>
+  <a href="#c03"><b>03</b>Сетка</a>
+  <a href="#c04"><b>04</b>Навигация</a>
+  <a href="#c05"><b>05</b>Кнопки</a>
+  <a href="#c06"><b>06</b>Панели</a>
+  <a href="#c07"><b>07</b>Таблицы</a>
+  <a href="#c08"><b>08</b>Графики</a>
+  <a href="#c09"><b>09</b>Формы</a>
+  <a href="#c10"><b>10</b>Модальные</a>
+  <a href="#c11"><b>11</b>Сообщения</a>
+  <a href="#c12"><b>12</b>Политика</a>
+  <a href="#c13"><b>13</b>Экономика</a>
+  <a href="#c14"><b>14</b>Выборы</a>
+  <a href="#c15"><b>15</b>Состояния</a>
+  <a href="#c16"><b>16</b>Движение</a>
+  <a href="#c17"><b>17</b>Мобильный</a>
+  <a href="#scr"><b>—</b>Экраны</a>
+</nav>
+<main id="doc">
+<section id="c01">
+<h2><i>01</i>Цвет</h2>
+<p class="why">Четыре набора, которые не смешиваются. Бумага и чернила держат весь интерфейс.
+Смысловые цвета отвечают только за оценку: чёрный — действие, золото — «вы здесь» и требует внимания,
+красный — убыль и провал, зелёный — прибыль и принятое решение. Палитра фракций — это опознавательный знак,
+а не оценка: красная фракция не «плохая». Шкалы данных живут отдельно, чтобы карта и графики не спорили
+с интерфейсом. Правило простое: если цвет что-то значит, рядом всегда есть слово или число, которое значит то же самое.</p>
+
+<h3 class="sub">Бумага и чернила</h3>
+<div class="grid g6">
+  <div class="sw"><i style="background:#E3DDCE"></i><div><b>холст</b><span>--bg</span></div></div>
+  <div class="sw"><i style="background:#FBF8F1"></i><div><b>лист</b><span>--surface</span></div></div>
+  <div class="sw"><i style="background:#F2EDE1"></i><div><b>подложка</b><span>--surface-2</span></div></div>
+  <div class="sw"><i style="background:#E9E2D2"></i><div><b>вдавленное</b><span>--surface-3</span></div></div>
+  <div class="sw"><i style="background:#1B1813"></i><div><b>полоса</b><span>--band</span></div></div>
+  <div class="sw"><i style="background:#C6BCA4"></i><div><b>линейка</b><span>--line</span></div></div>
+</div>
+<div class="grid g4" style="margin-top:var(--x5)">
+  <div class="sw"><i style="background:#17130E"></i><div><b>текст</b><span>--ink</span></div></div>
+  <div class="sw"><i style="background:#554E3F"></i><div><b>вторичный</b><span>--ink-2</span></div></div>
+  <div class="sw"><i style="background:#8A8271"></i><div><b>третичный</b><span>--ink-3</span></div></div>
+  <div class="sw"><i style="background:#DCD4C0"></i><div><b>слабая линия</b><span>--line-2</span></div></div>
+</div>
+
+<h3 class="sub">Смысловые</h3>
+<div class="grid g4">
+  <div class="sw"><i style="background:#17130E"></i><div><b>действие</b><span>--act</span></div></div>
+  <div class="sw"><i style="background:#8A5A0E"></i><div><b>внимание, «вы здесь»</b><span>--mark</span></div></div>
+  <div class="sw"><i style="background:#93261E"></i><div><b>убыль, провал</b><span>--bad</span></div></div>
+  <div class="sw"><i style="background:#2C6547"></i><div><b>прибыль, принято</b><span>--good</span></div></div>
+</div>
+<p class="note">Красный не используется для «активного раздела» и не красит партии в оценку — иначе игрок читает
+любую красную фракцию как враждебную.</p>
+
+<h3 class="sub">Фракции</h3>
+<div class="grid g6">
+  <div class="sw"><i style="background:#9A7211"></i><div><b>П1</b><span>#9A7211</span></div></div>
+  <div class="sw"><i style="background:#93261E"></i><div><b>П2</b><span>#93261E</span></div></div>
+  <div class="sw"><i style="background:#23456B"></i><div><b>П3</b><span>#23456B</span></div></div>
+  <div class="sw"><i style="background:#14675F"></i><div><b>П4</b><span>#14675F</span></div></div>
+  <div class="sw"><i style="background:#4C6A22"></i><div><b>П5</b><span>#4C6A22</span></div></div>
+  <div class="sw"><i style="background:#5A3868"></i><div><b>П6</b><span>#5A3868</span></div></div>
+</div>
+<p class="note">Тона различаются и по светлоте, поэтому полоса мандатов читается в оттенках серого и при
+дальтонизме. Фракцию всегда сопровождает буквенное сокращение — цвет один никогда не несёт смысла.</p>
+
+<h3 class="sub">Шкалы данных</h3>
+<div class="grid g2">
+  <div>
+    <div class="ramp"><i style="background:#7B2018"></i><i style="background:#B4744A"></i><i style="background:#C9B98F"></i><i style="background:#6E8F5E"></i><i style="background:#2C6547"></i></div>
+    <div class="ramp-l"><span>ниже 38%</span><span>поддержка</span><span>выше 60%</span></div>
+  </div>
+  <div>
+    <div class="ramp"><i style="background:#E7E0CE"></i><i style="background:#D9C08A"></i><i style="background:#C08A3E"></i><i style="background:#A85A2A"></i><i style="background:#7B2018"></i></div>
+    <div class="ramp-l"><span>спокойно</span><span>напряжённость</span><span>на грани</span></div>
+  </div>
+</div>
+</section>
+
+<section id="c02">
+<h2><i>02</i>Типографика</h2>
+<p class="why">Четыре начертания с разными обязанностями. Засечный PT Serif — только заголовки:
+он даёт документу голос. Узкий PT Sans Narrow в разрядку — служебные надписи: рубрики, шапки таблиц,
+кнопки. Обычный PT Sans — весь связный текст. Моноширинный PT Mono — все числа без исключения,
+чтобы столбцы выравнивались по разряду, а цифра не прыгала при смене значения.</p>
+<div class="spec">
+  <div class="t-display">Народное собрание</div>
+  <p class="note">display · PT Serif 700 · 28/1.1 — заголовок экрана, итог правления</p>
+  <div class="t-title" style="margin-top:var(--x5)">Законопроект № 14</div>
+  <p class="note">title · PT Serif 700 · 21/1.15 — заголовок модального окна</p>
+  <div class="t-sub" style="margin-top:var(--x5)">Реформа школы</div>
+  <p class="note">sub · PT Serif 700 · 17/1.2 — подзаголовок внутри длинного текста</p>
+  <div class="t-sec" style="margin-top:var(--x5)">Предварительный расклад</div>
+  <p class="note">section · PT Sans Narrow 700 · 12,5 · +0,1em — шапка панели, пункт меню</p>
+  <div class="t-micro" style="margin-top:var(--x5)">оценка секретариата</div>
+  <p class="note">micro · PT Sans Narrow · 10 · +0,14em — подпись над числом, служебная пометка</p>
+  <p class="t-body" style="margin-top:var(--x5);max-width:70ch">Депутат складывает близость закона к своим
+    взглядам, указание фракции и личное отношение к вам. Основной текст живёт на 14 пунктах с интерлиньяжем 1,45
+    и не растягивается шире семидесяти знаков в строке.</p>
+  <p class="note">body · PT Sans · 14/1.45 · строка не длиннее 70 знаков</p>
+  <div style="margin-top:var(--x5)"><span class="num-l">61</span> <span class="num">−2,4 млрд</span>
+    <span class="num-s">2032/III</span></div>
+  <p class="note">num-l 21 · num 15 · num-s 12,5 — PT Mono, табличные знаки, отрицательное трекинг-смещение −0,03em</p>
+</div>
+</section>
+
+<section id="c03">
+<h2><i>03</i>Сетка</h2>
+<p class="why">Шаг четыре пикселя, полоса набора не шире 1380, боковое меню 190. Рабочее поле делится
+на два-три столбца, и это единственные допустимые дробления: 2:1 для «главное плюс справка», 1:1 для
+сравнения, три равных — для сводок. Панели не вкладываются друг в друга глубже одного уровня.</p>
+<div class="spec">
+  <div class="cols c21" style="margin-bottom:var(--x5)">
+    <div class="panel lead" style="margin:0"><header><h4>2 : 1 — главное и справка</h4></header><div class="body t-small">Разбор законопроекта, расклад голосов, карта.</div></div>
+    <div class="panel" style="margin:0"><header><h4>вспомогательное</h4></header><div class="body t-small">Эффекты, реакция групп.</div></div>
+  </div>
+  <div class="cols c11" style="margin-bottom:var(--x5)">
+    <div class="panel" style="margin:0"><header><h4>1 : 1 — сравнение</h4></header><div class="body t-small">Доходы против расходов.</div></div>
+    <div class="panel" style="margin:0"><header><h4>вторая половина</h4></header><div class="body t-small">Симметричная пара.</div></div>
+  </div>
+  <div class="cols c111">
+    <div class="panel" style="margin:0"><header><h4>три равных</h4></header><div class="body t-small">Сводные показатели.</div></div>
+    <div class="panel" style="margin:0"><header><h4>—</h4></header><div class="body t-small">—</div></div>
+    <div class="panel" style="margin:0"><header><h4>—</h4></header><div class="body t-small">—</div></div>
+  </div>
+  <p class="note">Отбивка между панелями 12, внутренние поля 12—16, между разделами 32. Переломы: 520 · 900 · 1200.</p>
+</div>
+</section>
+
+<section id="c04">
+<h2><i>04</i>Навигация</h2>
+<p class="why">Три уровня. Тёмная полоса сверху — постоянные показатели: где мы во времени, сколько
+осталось действий, что с рейтингом и казной. Боковое меню — разделы, у каждого счётчик, чтобы решение
+«куда идти» принималось не заходя внутрь. Красная точка в меню — там ждёт решение. На узком экране
+меню уезжает вниз, полоса переносится второй строкой.</p>
+<div class="spec" style="padding:0;overflow:hidden">
+  <div class="appbar">
+    <div class="brand"><div style="width:26px;height:29px;background:var(--band-2)"></div>
+      <div><b>НОВАРИЯ</b><span>кабинет · народное возрождение</span></div></div>
+    <div class="strip">
+      <div class="sv"><i>квартал</i><b>Лето 2031 · 7/16</b></div>
+      <div class="sv act"><i>действия</i><b>2 из 3</b></div>
+      <div class="sv"><i>одобрение</i><b class="good">54%</b></div>
+      <div class="sv"><i>мандаты</i><b>32 · коалиция 77</b></div>
+      <div class="sv"><i>казна</i><b class="warn">18 млрд</b></div>
+      <div class="sv"><i>баланс</i><b class="bad">−4</b></div>
+    </div>
+  </div>
+  <div style="display:flex">
+    <nav class="rail">
+      <div class="cap">Разделы</div>
+      <button class="nav on">Кабинет<u>2/3</u></button>
+      <button class="nav">Собрание<u>32/120</u></button>
+      <button class="nav">Законопроект<span class="dot"></span><u>14</u></button>
+      <button class="nav">Бюджет<u>−4</u></button>
+      <button class="nav">Регионы<u>21</u></button>
+      <button class="nav">Общество<u>54%</u></button>
+      <button class="nav" disabled style="opacity:.45">Кампания<u>—</u></button>
+    </nav>
+    <div style="flex:1;padding:var(--x5)">
+      <p class="t-small">Активный раздел держит золотую метку слева и белый фон — он визуально «выдвинут»
+        из меню на рабочее поле. Недоступный раздел приглушён, но не спрятан: игрок должен знать, что он есть.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section id="c05">
+<h2><i>05</i>Кнопки</h2>
+<p class="why">Одна форма, четыре роли, три размера. Цена действия всегда стоит на самой кнопке —
+игрок не должен считать в уме, хватит ли ему веса и денег. Заблокированная кнопка остаётся видимой:
+она объясняет, чего не хватает, а не исчезает.</p>
+<div class="spec">
+  <h3 class="sub" style="margin-top:0">Роли</h3>
+  <div class="row">
+    <button class="btn pri">Внести на голосование</button>
+    <button class="btn">Работать с депутатами</button>
+    <button class="btn ghost">Отложить</button>
+    <button class="btn danger">Отозвать проект</button>
+    <button class="btn sel">Поддержка</button>
+  </div>
+  <h3 class="sub">Размеры и цена</h3>
+  <div class="row">
+    <button class="btn lg pri">Завершить квартал<span class="cost">Лето 2031</span></button>
+    <button class="btn">Поездка<span class="cost">6 млрд</span></button>
+    <button class="btn sm">Назначить<span class="cost">6</span></button>
+  </div>
+  <h3 class="sub">Состояния</h3>
+  <div class="row">
+    <button class="btn">обычная</button>
+    <button class="btn" style="background:var(--ink);color:var(--ink-inv)">наведение</button>
+    <button class="btn" style="outline:2px solid var(--mark);outline-offset:1px">фокус с клавиатуры</button>
+    <button class="btn busy">загрузка</button>
+    <button class="btn" disabled>нет действий</button>
+    <button class="btn" disabled>не хватает веса · 11</button>
+  </div>
+  <p class="note">Ширина кнопки не подгоняется под сетку: она равна тексту плюс поля. Ряд кнопок выравнивается
+    по левому краю, в модальном окне — по правому.</p>
+</div>
+</section>
+
+<section id="c06">
+<h2><i>06</i>Панели</h2>
+<p class="why">Панель — единица содержания. Верхняя линейка задаёт её вес на экране: золотая — главное,
+красная — требует вмешательства, зелёная — благополучие, синяя — справка. Без линейки — рядовая панель.
+На одном экране золотая линейка допускается только одна, иначе главного не видно.</p>
+<div class="grid g2">
+  <div class="panel lead" style="margin:0">
+    <header><h4>Положение дел</h4><span class="meta">Лето 2031</span></header>
+    <div class="body">
+      <div class="res" style="margin:0;border:0;padding:0">
+        <span>Одобрение по стране</span><b class="good">54%</b>
+        <span>Рост ВВП за квартал</span><b class="bad">−0,4%</b>
+        <span>Напряжённость</span><b>21 · ропот</b>
+      </div>
+    </div>
+    <footer><button class="btn sm">Заказать социологию<span class="cost">9 млн</span></button></footer>
+  </div>
+  <div class="panel warn" style="margin:0">
+    <header><h4>Правительственный кризис</h4><span class="meta">требует решения</span></header>
+    <div class="body t-small">Фракция «Земля и воля» вышла из коалиции. В коалиции 57 мандатов из 61 нужных.</div>
+  </div>
+  <div class="panel calm" style="margin:0">
+    <header><h4>Бюджет сведён</h4></header><div class="body t-small">Профицит 6 млрд, долг сокращается.</div>
+  </div>
+  <div class="panel inset" style="margin:0">
+    <header style="background:transparent"><h4>Черновик</h4></header>
+    <div class="body t-small">Вдавленная панель для незавершённого: проект без внесения, отложенное решение.</div>
+  </div>
+</div>
+</section>
+
+<section id="c07">
+<h2><i>07</i>Таблицы</h2>
+<p class="why">Основной способ показать данные: игра про списки — депутатов, статей, регионов, партий.
+Числа выровнены вправо и набраны моноширинным, подпись строки — слева. Зебра не используется: работают
+волосяные линейки и подсветка строки под курсором. Выбранная строка помечена золотой планкой слева.
+Оценка без свежего опроса подчёркнута точками — это единственный способ отличить измеренное от прикинутого.</p>
+<div class="panel">
+  <header><h4>Депутаты</h4><span class="meta">сортировка: кто ближе к перемене мнения</span></header>
+  <div class="body" style="padding:0">
+    <table class="tbl">
+      <thead><tr><th>Депутат</th><th>Фракция</th><th class="n">Дисциплина</th><th class="n">Отношение</th><th>По проекту</th><th></th></tr></thead>
+      <tbody>
+        <tr class="sel"><td><b>Дарья Устинова</b><div class="dim" style="font-size:11.5px">Волжская область · получила комитет</div></td>
+          <td><span class="chip"><s style="background:var(--p5)"></s>ЗВ</span></td>
+          <td class="n">74</td><td class="n">63 <span class="bar-s"><i style="width:63%"></i></span></td>
+          <td><span class="tag g">за</span></td><td style="text-align:right"><button class="btn sm">Работать</button></td></tr>
+        <tr><td><b>Никита Ремизов</b><div class="dim" style="font-size:11.5px">Поволжский регион</div></td>
+          <td><span class="chip"><s style="background:var(--p3)"></s>ДРЖ</span></td>
+          <td class="n">86</td><td class="n">48 <span class="bar-s"><i style="width:48%"></i></span></td>
+          <td><span class="tag y">колеблется</span></td><td style="text-align:right"><button class="btn sm">Работать</button></td></tr>
+        <tr><td><b>Юлия Фадеева</b><div class="dim" style="font-size:11.5px">Балтийская область</div></td>
+          <td><span class="chip"><s style="background:var(--p6)"></s>НР</span></td>
+          <td class="n">62</td><td class="n">31 <span class="bar-s"><i style="width:31%"></i></span></td>
+          <td><span class="tag r">против</span></td><td style="text-align:right"><button class="btn sm">Работать</button></td></tr>
+      </tbody>
+      <caption>Показаны 3 из 120. Дисциплина — насколько депутат идёт за фракцией, отношение — как он относится лично к вам.</caption>
+    </table>
+  </div>
+</div>
+<div class="panel">
+  <header><h4>Плотная таблица</h4><span class="meta">для сводов и кросс-таблиц</span></header>
+  <div class="body" style="padding:0"><div class="scrollx">
+    <table class="tbl tight">
+      <thead><tr><th>Субъект</th><th class="n">РАБ</th><th class="n">СЕЛ</th><th class="n">ГОР</th><th class="n">БИЗ</th><th class="n">ПАТ</th><th class="n">ИНТ</th><th class="n">МОЛ</th><th class="n">ПЕН</th><th class="n">Итог</th></tr></thead>
+      <tbody>
+        <tr><td>Центральный регион</td><td class="n">59</td><td class="n">65</td><td class="n">54</td><td class="n bad">41</td><td class="n">61</td><td class="n bad">39</td><td class="n">57</td><td class="n good">61</td><td class="n"><b>53</b></td></tr>
+        <tr><td>Уральский регион</td><td class="n good">63</td><td class="n good">69</td><td class="n">58</td><td class="n">53</td><td class="n good">65</td><td class="n bad">42</td><td class="n">59</td><td class="n good">66</td><td class="n"><b>59</b></td></tr>
+        <tr><td>Арктический край</td><td class="n">54</td><td class="n">61</td><td class="n bad">44</td><td class="n">48</td><td class="n">59</td><td class="n bad">40</td><td class="n">51</td><td class="n good">62</td><td class="n"><b><span class="est" title="оценка без опроса">51</span></b></td></tr>
+      </tbody>
+    </table>
+  </div></div>
+</div>
+</section>
+
+<section id="c08">
+<h2><i>08</i>Графики</h2>
+<p class="why">Пять форм на всю игру, и ни одной новой без крайней надобности. Спарклайн — динамика
+показателя; полоса мандатов — состав палаты; полоса голосования — исход с порогом; полукруг — зал
+заседаний; картограмма — страна. У каждой формы подпись с последним значением: график показывает
+направление, число отвечает на вопрос «сколько».</p>
+<div class="grid g2">
+  <div class="panel" style="margin:0"><header><h4>Спарклайн</h4><span class="meta">12 кварталов</span></header>
+  <div class="body">
+    <div style="display:flex;justify-content:space-between;align-items:baseline">
+      <span class="t-micro">Одобрение, %</span><b class="num">54%</b></div>
+    <svg class="spark" viewBox="0 0 320 46" preserveAspectRatio="none">
+      <path d="M6 30 L34 26 L62 28 L90 20 L118 24 L146 16 L174 22 L202 12 L230 18 L258 14 L286 20 L314 17"
+        fill="none" stroke="#93261E" stroke-width="1.6"/>
+      <circle cx="314" cy="17" r="2.6" fill="#93261E"/></svg>
+    <div style="display:flex;justify-content:space-between" class="t-micro"><span>2029/I</span><span>мин 41 · макс 58</span></div>
+  </div></div>
+  <div class="panel" style="margin:0"><header><h4>Полоса мандатов</h4><span class="meta">большинство 61</span></header>
+  <div class="body">
+    <div class="seatbar">
+      <i style="width:26.6%;background:var(--p1)"></i><i style="width:19.1%;background:var(--p2)"></i>
+      <i style="width:18.3%;background:var(--p5)"></i><i style="width:14.1%;background:var(--p3);opacity:.45"></i>
+      <i style="width:16.6%;background:var(--p6);opacity:.45"></i><i style="width:5%;background:var(--p4);opacity:.45"></i>
+      <span class="maj"></span></div>
+    <p class="note">Ярким — коалиция, приглушённым — оппозиция. Чёрная риска — порог большинства.</p>
+    <div class="row" style="margin-top:var(--x4)">
+      <span class="chip"><s style="background:var(--p1)"></s>НВ 32</span>
+      <span class="chip"><s style="background:var(--p2)"></s>СТ 23</span>
+      <span class="chip"><s style="background:var(--p5)"></s>ЗВ 22</span>
+      <span class="chip"><s style="background:var(--p3)"></s>ДРЖ 17</span>
+    </div>
+  </div></div>
+  <div class="panel" style="margin:0"><header><h4>Полоса голосования</h4></header>
+  <div class="body">
+    <div class="meter tall"><i style="width:62%;background:var(--good)"></i><i style="width:38%;background:var(--bad)"></i><span class="mid"></span></div>
+    <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:4px">
+      <span class="good">за 74</span><span class="dim">порог 61</span><span class="bad">против 46</span></div>
+  </div></div>
+  <div class="panel" style="margin:0"><header><h4>Зал заседаний</h4><span class="meta">120 мандатов</span></header>
+  <div class="body">
+    <svg class="hemi" viewBox="0 0 300 108">
+      <g id="seats"></g>
+    </svg>
+    <p class="note">Кресла расставлены по углу: слева направо — от левых фракций к правым.</p>
+  </div></div>
+</div>
+</section>
+
+<section id="c09">
+<h2><i>09</i>Формы</h2>
+<p class="why">Ввода в игре мало, и почти весь он — выбор из шкалы. Шкала позиции от −2 до +2 и уровень
+расхода от 0 до 4 — одна и та же конструкция в двух размерах: подпись слева и справа объясняет,
+что означают края.</p>
+<div class="grid g2">
+  <div class="spec" style="margin:0">
+    <div class="field"><label>Название партии</label><input type="text" value="Народное возрождение"></div>
+    <div class="field"><label>Фракция</label>
+      <select><option>Народное возрождение</option><option>Союз труда</option></select></div>
+    <div class="field" style="margin-bottom:0"><label>Позиция по теме «Экономика»</label>
+      <div class="scale-l"><span>госплан</span><span>рынок</span></div>
+      <div class="scale"><button>−2</button><button>−1</button><button class="on">0</button><button>+1</button><button>+2</button></div>
+      <p class="note">Трудовой кодекс — гарантии работникам, умеренно.</p></div>
+  </div>
+  <div class="spec" style="margin:0">
+    <h3 class="sub" style="margin-top:0">Уровень расхода</h3>
+    <div class="bline"><div><b>Соцвыплаты</b><div class="who">ждут: рабочие, пенсионеры</div></div>
+      <div class="num-s" style="text-align:right">14</div>
+      <div><div class="steps"><button>0</button><button>1</button><button class="on">2</button><button>3</button><button>4</button></div>
+        <div class="note">норма</div></div></div>
+    <div class="bline"><div><b>Оборона</b><div class="who">ждут: патриоты</div></div>
+      <div class="num-s" style="text-align:right">10</div>
+      <div><div class="steps"><button>0</button><button class="on">1</button><button>2</button><button>3</button><button>4</button></div>
+        <div class="note">урезано</div></div></div>
+    <div class="bline" style="border:0"><div><b>Инфраструктура</b><div class="who">ждут: село, предприниматели</div></div>
+      <div class="num-s" style="text-align:right">8</div>
+      <div><div class="steps"><button>0</button><button>1</button><button>2</button><button class="on">3</button><button>4</button></div>
+        <div class="note">щедро</div></div></div>
+  </div>
+</div>
+</section>
+<section id="c10">
+<h2><i>10</i>Модальные окна</h2>
+<p class="why">Окно появляется только тогда, когда игра ждёт решения или сообщает исход. Три вида:
+выбор из вариантов, итог с печатью, и подтверждение. Заголовок всегда с надзаголовком — он говорит,
+откуда пришло сообщение: Собрание, пресса, мировые рынки. Печать ставится один раз и по центру:
+это точка в истории события.</p>
+<div class="grid g2">
+  <div class="modal">
+    <div class="mh"><i>Мировые рынки</i><h3>Обвал цен на сырьё</h3></div>
+    <div class="mb">
+      <p>Экспортная выручка падает: цены на наше сырьё рухнули до 68 пунктов. Бюджет недосчитается
+        доходов уже в этом квартале.</p>
+      <button class="opt"><b>Урезать расходы</b><span>быстро и непопулярно</span></button>
+      <button class="opt"><b>Занять на рынке</b><span>долг вырастет на 40 млрд</span></button>
+      <button class="opt"><b>Ничего не менять</b><span>дыра сама себя не закроет</span></button>
+    </div>
+  </div>
+  <div class="modal">
+    <div class="mh"><i>Народное собрание · Лето 2031</i><h3>Полномочия полиции</h3></div>
+    <div class="mb">
+      <p class="t-small">Полномочия полиции — широкие полномочия, решительно. Поправки: транш региону.</p>
+      <div class="meter tall" style="margin:var(--x4) 0 4px"><i style="width:64%;background:var(--good)"></i><i style="width:36%;background:var(--bad)"></i><span class="mid"></span></div>
+      <div style="display:flex;justify-content:space-between;font-size:12px">
+        <span class="good">за 77</span><span class="dim">порог 61</span><span class="bad">против 43</span></div>
+      <div style="text-align:center;margin:var(--x6) 0 var(--x4)"><span class="stamp yes">принят</span></div>
+      <p class="note">Закон вступает в силу с начала следующего квартала.</p>
+    </div>
+    <div class="mf"><button class="btn">Закрыть</button><button class="btn pri">К следующему делу</button></div>
+  </div>
+</div>
+</section>
+
+<section id="c11">
+<h2><i>11</i>Сообщения</h2>
+<p class="why">Четыре канала, по убыванию настойчивости. Записка помощника — постоянная подсказка
+наверху экрана. Красная записка — то, что горит. Всплывающая плашка — подтверждение того, что кнопка
+сработала: живёт три секунды и не требует закрытия. Журнал — полная память, в нём выделены только
+поворотные события.</p>
+<div class="grid g2">
+  <div>
+    <div class="pin" style="margin-bottom:var(--x5)"><b>Записка помощника</b>
+      Правительство меньшинства. В коалиции 57 из 61 нужных мандатов — отдайте портфель фракции или готовьтесь к вотуму.</div>
+    <div class="pin warn"><b>Срочно</b>
+      Долг превысил 300 млрд. При 430 кредиторы закроют рынки и объявят дефолт.</div>
+    <div style="margin-top:var(--x5)"><span class="toast">Обработано колеблющихся: 14</span></div>
+  </div>
+  <div class="panel" style="margin:0"><header><h4>Журнал</h4><span class="meta">последние события</span></header>
+    <div class="body"><div class="log">
+      <div class="key"><s>2031/III</s>Принят закон «Полномочия полиции» (77 против 43).</div>
+      <div><s>2031/III</s>Поездка в Каменьск: поддержка в регионе выросла.</div>
+      <div><s>2031/II</s>Сбор средств: касса пополнена на 21 млн.</div>
+      <div class="key"><s>2031/II</s>Фракция «Земля и воля» вышла из коалиции: разошлись по курсу.</div>
+      <div><s>2031/I</s>Квартал закрыт. Бюджет −4 млрд, в казне 18 млрд.</div>
+    </div></div></div>
+</div>
+</section>
+
+<section id="c12">
+<h2><i>12</i>Политические компоненты</h2>
+<p class="why">Собраны из общих кирпичей, но встречаются на трёх экранах и потому описаны отдельно:
+счётчик голосов, строка депутата, шкала позиции, строка комитета, полоса коалиции.</p>
+<div class="grid g2">
+  <div class="panel" style="margin:0"><header><h4>Счётчик голосов</h4></header><div class="body">
+    <div class="whip"><div><i>за</i><b class="good">58</b></div><div><i>колеблются</i><b>19</b></div><div><i>против</i><b class="bad">43</b></div></div>
+    <div class="meter" style="margin-top:var(--x4)"><i style="width:48%;background:var(--good)"></i><i style="width:16%;background:var(--line)"></i><i style="width:36%;background:var(--bad)"></i></div>
+    <p class="note">Нужно 61 голос. Колеблющиеся решают в зале — их можно перетянуть работой с депутатами.</p>
+  </div></div>
+  <div class="panel" style="margin:0"><header><h4>Комитеты</h4><span class="meta">председатель ведёт фракцию</span></header>
+    <div class="body" style="padding:0"><table class="tbl tight">
+      <tbody>
+        <tr><td><b>Экономика</b></td><td>Дарья Устинова</td><td><span class="chip"><s style="background:var(--p5)"></s>ЗВ</span></td>
+          <td style="text-align:right"><button class="btn sm">Заменить</button></td></tr>
+        <tr><td><b>Налоги</b></td><td class="dim">вакансия</td><td></td>
+          <td style="text-align:right"><button class="btn sm">Назначить</button></td></tr>
+      </tbody></table></div></div>
+  <div class="panel" style="margin:0"><header><h4>Курс партии</h4></header><div class="body">
+    <div class="axis-row"><div class="scale-l"><span>госплан</span><span>Экономика</span><span>рынок</span></div>
+      <div class="scale"><button>−2</button><button class="on">−1</button><button>0</button><button>+1</button><button>+2</button></div></div>
+    <div class="axis-row"><div class="scale-l"><span>мягкая рука</span><span>Порядок</span><span>твёрдая рука</span></div>
+      <div class="scale"><button>−2</button><button>−1</button><button>0</button><button class="on">+1</button><button>+2</button></div></div>
+    <p class="note">Сдвиг позиции стоит политического веса и злит тех, кто голосовал за прежний курс.</p>
+  </div></div>
+  <div class="panel" style="margin:0"><header><h4>Коалиция</h4><span class="meta">77 из 61 нужных</span></header><div class="body">
+    <div class="dep"><div class="who"><b>Союз труда</b><span>23 мандата · два портфеля</span></div><span class="tag g">лояльны</span></div>
+    <div class="dep"><div class="who"><b>Земля и воля</b><span>22 мандата · один портфель</span></div><span class="tag y">недовольны</span></div>
+    <div class="dep" style="border:0"><div class="who"><b>Держава</b><span>17 мандатов · оппозиция</span></div><span class="tag r">против вас</span></div>
+  </div></div>
+</div>
+</section>
+
+<section id="c13">
+<h2><i>13</i>Экономические компоненты</h2>
+<p class="why">Показатель без направления бесполезен, поэтому у каждой цифры есть либо изменение за
+квартал, либо место на шкале. Конъюнктура — единственный блок, помеченный как неуправляемый: игрок
+должен сразу видеть, где кончается его влияние.</p>
+<div class="grid g4">
+  <div class="stat"><div class="k">Казна</div><div class="v">18<u>млрд</u></div><div class="d">−4 за квартал</div></div>
+  <div class="stat alert"><div class="k">Долг</div><div class="v">312<u>млрд</u></div><div class="d">проценты 5 млрд/квартал</div></div>
+  <div class="stat"><div class="k">Инфляция</div><div class="v">6,4<u>%</u></div><div class="d">выше нормы</div></div>
+  <div class="stat"><div class="k">Безработица</div><div class="v">9,1<u>%</u></div><div class="d">растёт третий квартал</div></div>
+</div>
+<div class="grid g2" style="margin-top:var(--x5)">
+  <div class="panel" style="margin:0"><header><h4>Свод бюджета</h4></header><div class="body">
+    <div class="res" style="margin:0;border:0;padding:0">
+      <span>Доходы</span><b class="good">62,5</b>
+      <span>Расходы</span><b class="bad">−66,0</b>
+      <span>Проценты по долгу</span><b class="bad">−5,0</b>
+      <span>Итог квартала</span><b class="bad">−8,5 млрд</b></div>
+  </div></div>
+  <div class="panel info" style="margin:0"><header><h4>Конъюнктура</h4><span class="meta">на это вы не влияете</span></header>
+    <div class="body">
+      <div class="gauge" style="margin-bottom:var(--x4)"><span class="t-micro" style="width:96px">фаза цикла</span>
+        <div class="track"><i style="left:72%"></i></div><b class="num-s" style="width:80px;text-align:right">охлаждение</b></div>
+      <div class="gauge" style="margin-bottom:var(--x4)"><span class="t-micro" style="width:96px">внешний спрос</span>
+        <div class="track"><i style="left:38%"></i></div><b class="num-s" style="width:80px;text-align:right">88</b></div>
+      <div class="gauge"><span class="t-micro" style="width:96px">цены на сырьё</span>
+        <div class="track"><i style="left:24%"></i></div><b class="num-s bad" style="width:80px;text-align:right">68</b></div>
+    </div></div>
+</div>
+</section>
+
+<section id="c14">
+<h2><i>14</i>Выборы</h2>
+<p class="why">Кампания и подсчёт — единственное место, где допустима крупная типографика и цвет во
+всю ширину: это событие, а не рутина. Результат подаётся тремя слоями: полоса голосов, таблица по
+фракциям, карта победителей по субъектам.</p>
+<div class="panel lead">
+  <header><h4>Всеобщие выборы · Осень 2032</h4><span class="meta">явка 61%</span></header>
+  <div class="body">
+    <div class="seatbar" style="height:20px">
+      <i style="width:31%;background:var(--p1)"></i><i style="width:21%;background:var(--p2)"></i>
+      <i style="width:17%;background:var(--p5)"></i><i style="width:13%;background:var(--p3)"></i>
+      <i style="width:12%;background:var(--p6)"></i><i style="width:6%;background:var(--p4)"></i>
+      <span class="maj"></span></div>
+    <div class="cols c11" style="margin-top:var(--x5)">
+      <table class="tbl tight">
+        <thead><tr><th>Партия</th><th class="n">Голоса</th><th class="n">Мандаты</th><th class="n">±</th></tr></thead>
+        <tbody>
+          <tr class="sel"><td><span class="chip"><s style="background:var(--p1)"></s>Народное возрождение</span></td>
+            <td class="n">31%</td><td class="n">42</td><td class="n good">+10</td></tr>
+          <tr><td><span class="chip"><s style="background:var(--p2)"></s>Союз труда</span></td>
+            <td class="n">21%</td><td class="n">26</td><td class="n bad">−3</td></tr>
+          <tr><td><span class="chip"><s style="background:var(--p5)"></s>Земля и воля</span></td>
+            <td class="n">17%</td><td class="n">20</td><td class="n bad">−2</td></tr>
+          <tr><td><span class="chip"><s style="background:var(--p3)"></s>Держава</span></td>
+            <td class="n">13%</td><td class="n">15</td><td class="n bad">−2</td></tr>
+        </tbody></table>
+      <div>
+        <div class="t-micro" style="margin-bottom:4px">Штаб кампании</div>
+        <div class="dep"><div class="who"><b>Ролики для рабочих</b><span>4 закупки · 64 млн</span></div><b class="num-s">+4,2</b></div>
+        <div class="dep"><div class="who"><b>Митинг в Новарграде</b><span>1 выезд · 11 млн</span></div><b class="num-s">+1,5</b></div>
+        <div class="dep" style="border:0"><div class="who"><b>Дебаты</b><span>выиграны</span></div><b class="num-s good">+2,6</b></div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:var(--x6)"><span class="stamp yes">второй срок</span></div>
+  </div>
+</div>
+</section>
+
+<section id="c15">
+<h2><i>15</i>Состояния</h2>
+<p class="why">Пустота, ожидание и отказ выглядят по-разному и всегда объясняют причину. Числа,
+полученные без опроса, помечены пунктиром — игрок должен отличать измеренное от прикинутого,
+это часть игры, а не оформление.</p>
+<div class="grid g3">
+  <div class="panel" style="margin:0"><header><h4>Загрузка</h4></header><div class="body">
+    <div class="skel" style="width:70%;margin-bottom:8px"></div>
+    <div class="skel" style="width:100%;margin-bottom:8px"></div>
+    <div class="skel" style="width:45%"></div></div></div>
+  <div class="panel" style="margin:0"><header><h4>Пусто</h4></header><div class="body">
+    <div class="empty">Голосований ещё не было.<br><button class="btn sm" style="margin-top:8px">Внести законопроект</button></div></div></div>
+  <div class="panel" style="margin:0"><header><h4>Недоступно</h4></header><div class="body">
+    <p class="t-small">Казной распоряжается правительство Игоря Кострова. Оппозиция видит цифры, но не двигает ставки.</p>
+    <button class="btn" disabled>Изменить ставку</button></div></div>
+</div>
+<div class="spec" style="margin-top:var(--x5)">
+  <div class="row">
+    <span>Свежий опрос: <b class="num">54%</b></span>
+    <span style="margin-left:var(--x8)">Без опроса: <b class="num est" title="оценка штаба">51%</b> <span class="dim">± 3</span></span>
+  </div>
+  <p class="note">Пунктир под числом — оценка. Наведение объясняет, откуда она взялась.</p>
+</div>
+</section>
+
+<section id="c16">
+<h2><i>16</i>Движение</h2>
+<p class="why">Три длительности и одна кривая. Движение допускается там, где что-то появляется
+или подтверждается, и нигде больше: списки не разъезжаются, числа не крутятся, панели не всплывают
+при переключении раздела. При системной настройке «меньше движения» анимации выключаются полностью.</p>
+<div class="spec">
+  <table class="tbl tight">
+    <thead><tr><th>Токен</th><th class="n">Длительность</th><th>Где</th></tr></thead>
+    <tbody>
+      <tr><td><code>--t-fast</code></td><td class="n">90 мс</td><td>наведение на кнопку и строку, смена состояния переключателя</td></tr>
+      <tr><td><code>--t</code></td><td class="n">150 мс</td><td>всплывающая плашка, появление подсказки</td></tr>
+      <tr><td><code>--t-slow</code></td><td class="n">240 мс</td><td>модальное окно, экран итогов</td></tr>
+      <tr><td><code>--ease</code></td><td class="n">cubic-bezier(.2,.7,.3,1)</td><td>всё вышеперечисленное</td></tr>
+    </tbody></table>
+</div>
+</section>
+
+<section id="c17">
+<h2><i>17</i>Мобильная версия</h2>
+<p class="why">Правила переноса, а не отдельный дизайн. Меню уезжает вниз лентой, полоса показателей
+переносится второй строкой и прокручивается вбок, двухколоночные раскладки схлопываются в одну,
+из широких таблиц уходят второстепенные столбцы, кнопка «завершить квартал» прилипает к низу.</p>
+<div class="spec" style="max-width:420px">
+  <div class="appbar" style="flex-wrap:wrap;min-height:0">
+    <div class="brand" style="padding:6px 10px"><div style="width:22px;height:24px;background:var(--band-2)"></div>
+      <div><b style="font-size:14px">НОВАРИЯ</b></div></div>
+    <div class="strip" style="width:100%;margin:0;border-top:1px solid var(--band-2)">
+      <div class="sv" style="padding:5px 10px"><i>квартал</i><b style="font-size:13px">Лето 2031</b></div>
+      <div class="sv" style="padding:5px 10px"><i>действия</i><b style="font-size:13px">2 из 3</b></div>
+      <div class="sv" style="padding:5px 10px"><i>одобрение</i><b style="font-size:13px" class="good">54%</b></div>
+    </div>
+  </div>
+  <div style="padding:var(--x5) var(--x4);background:var(--bg)">
+    <div class="pin" style="margin-bottom:var(--x4)"><b>Записка помощника</b>Казна на исходе.</div>
+    <div class="panel lead" style="margin:0"><header><h4>Положение дел</h4></header>
+      <div class="body"><div class="res" style="margin:0;border:0;padding:0">
+        <span>Одобрение</span><b class="good">54%</b><span>Казна</span><b class="bad">18 млрд</b></div></div></div>
+  </div>
+  <div style="display:flex;overflow:hidden;border-top:var(--hair);background:var(--surface)">
+    <button class="nav on" style="border-left:0;border-top:3px solid var(--mark);flex:none">Кабинет</button>
+    <button class="nav" style="border-left:0;border-top:3px solid transparent;flex:none">Собрание</button>
+    <button class="nav" style="border-left:0;border-top:3px solid transparent;flex:none">Бюджет</button>
+    <button class="nav" style="border-left:0;border-top:3px solid transparent;flex:none">Ст…</button>
+  </div>
+</div>
+</section>
+
+<section id="c18">
+<h2><i>18</i>Экран загрузки</h2>
+<p class="why">Первое, что видит игрок. Герб, название республики, полоса — и ничего больше:
+пять секунд, за которые грузятся шрифты и собирается созыв.</p>
+<div class="splash">
+  <div class="em"></div>
+  <h3>НОВАРИЯ</h3>
+  <p>правительственный терминал</p>
+  <div class="load"><i></i></div>
+</div>
+</section>
+<section id="scr">
+<h2>Ключевые экраны</h2>
+<p class="why">Семь макетов собраны из компонентов выше — ни одного нового стиля. Показаны в масштабе;
+данные вымышленные, но правдоподобные для середины второго созыва. Это и есть предмет утверждения:
+если раскладка согласована, перенос в игру — механическая работа, логика при этом не меняется.</p>
+
+<!-- 1 · КАБИНЕТ -->
+<div class="board"><div class="cap">01 · Кабинет главы правительства<span>первый экран каждого хода</span></div>
+<div class="wrap"><div class="frame">
+  <div class="appbar">
+    <div class="brand"><div style="width:26px;height:29px;background:var(--band-2)"></div>
+      <div><b>НОВАРИЯ</b><span>кабинет · народное возрождение</span></div></div>
+    <div class="strip">
+      <div class="sv"><i>квартал</i><b>Лето 2031 · 7/16</b></div>
+      <div class="sv act"><i>действия</i><b>2 из 3</b></div>
+      <div class="sv"><i>одобрение</i><b class="good">54%</b></div>
+      <div class="sv"><i>мандаты</i><b>32 · коалиция 77</b></div>
+      <div class="sv"><i>казна</i><b class="warn">18 млрд</b></div>
+      <div class="sv"><i>баланс</i><b class="bad">−4</b></div>
+      <div class="sv"><i>вес</i><b>41</b></div>
+      <div class="sv"><i>касса</i><b>73 млн</b></div>
+    </div>
+  </div>
+  <div class="screen">
+    <nav class="rail"><div class="cap">Разделы</div>
+      <button class="nav on">Кабинет<u>2/3</u></button>
+      <button class="nav">Собрание<u>32/120</u></button>
+      <button class="nav">Законопроект<u>14</u></button>
+      <button class="nav">Бюджет<u>−4</u></button>
+      <button class="nav">Регионы<u>21</u></button>
+      <button class="nav">Общество<u>54%</u></button>
+      <button class="nav">Правительство<u>6</u></button>
+      <button class="nav">Летопись<u>18</u></button>
+    </nav>
+    <div class="work">
+      <div class="pin" style="margin-bottom:var(--x5)"><b>Записка помощника</b>
+        Казна на исходе: дефицит 4 млрд в квартал. Поднимите налог, срежьте статью или ждите долга.</div>
+      <div class="cols c21">
+        <div>
+          <div class="panel lead" style="margin-bottom:var(--x5)">
+            <header><h4>Положение дел</h4><span class="meta">Лето 2031</span></header>
+            <div class="body"><div class="grid g4" style="gap:var(--x4)">
+              <div class="stat"><div class="k">Одобрение</div><div class="v good">54<u>%</u></div><div class="d">+2 за квартал</div></div>
+              <div class="stat"><div class="k">Рост ВВП</div><div class="v bad">−0,4<u>%</u></div><div class="d">охлаждение</div></div>
+              <div class="stat"><div class="k">Инфляция</div><div class="v">6,4<u>%</u></div><div class="d">выше нормы</div></div>
+              <div class="stat"><div class="k">Напряжённость</div><div class="v">21</div><div class="d">ропот</div></div>
+            </div>
+            <div style="margin-top:var(--x5)">
+              <div class="t-micro" style="margin-bottom:4px">Опора и слабое место</div>
+              <div class="dep"><div class="who"><b>Патриоты</b><span>11,7% страны · опора</span></div>
+                <span class="bar-s" style="width:120px"><i style="width:69%;background:var(--good)"></i></span><b class="num-s">69</b></div>
+              <div class="dep" style="border:0"><div class="who"><b>Интеллигенция</b><span>6,9% страны · враждебна</span></div>
+                <span class="bar-s" style="width:120px"><i style="width:28%;background:var(--bad)"></i></span><b class="num-s">28</b></div>
+            </div></div>
+          </div>
+          <div class="panel">
+            <header><h4>Действия квартала</h4><span class="meta">осталось 2 из 3</span></header>
+            <div class="body" style="padding:0"><table class="tbl">
+              <tbody>
+                <tr><td><b>Поездка в регион</b><div class="dim" style="font-size:11.5px">поддержка и спокойствие в одном субъекте</div></td>
+                  <td style="text-align:right;width:150px"><button class="btn sm">Выбрать<span class="cost">6 млрд</span></button></td></tr>
+                <tr><td><b>Обращение к нации</b><div class="dim" style="font-size:11.5px">плюс одной группе, минус её противникам</div></td>
+                  <td style="text-align:right"><button class="btn sm">Выбрать<span class="cost">6 веса</span></button></td></tr>
+                <tr><td><b>Работа с колеблющимися</b><div class="dim" style="font-size:11.5px">разом обработать всех сомневающихся по проекту</div></td>
+                  <td style="text-align:right"><button class="btn sm">Сделать<span class="cost">11 веса</span></button></td></tr>
+                <tr><td><b>Сбор средств</b><div class="dim" style="font-size:11.5px">деньги в кассу, интеллигенция морщится</div></td>
+                  <td style="text-align:right"><button class="btn sm">Сделать</button></td></tr>
+              </tbody></table></div>
+          </div>
+          <button class="btn pri lg block">Завершить квартал · Лето 2031</button>
+        </div>
+        <div>
+          <div class="panel warn" style="margin-bottom:var(--x5)">
+            <header><h4>Коалиция</h4><span class="meta">77 из 61</span></header>
+            <div class="body">
+              <div class="seatbar" style="margin-bottom:var(--x4)">
+                <i style="width:26.6%;background:var(--p1)"></i><i style="width:19.1%;background:var(--p2)"></i>
+                <i style="width:18.3%;background:var(--p5)"></i><i style="width:14.1%;background:var(--p3);opacity:.45"></i>
+                <i style="width:16.6%;background:var(--p6);opacity:.45"></i><i style="width:5.3%;background:var(--p4);opacity:.45"></i>
+                <span class="maj"></span></div>
+              <div class="dep"><div class="who"><b>Союз труда</b><span>23 мандата</span></div><span class="tag g">лояльны</span></div>
+              <div class="dep" style="border:0"><div class="who"><b>Земля и воля</b><span>22 мандата</span></div><span class="tag r">на грани выхода</span></div>
+            </div>
+            <footer><button class="btn sm">Переговоры<span class="cost">5 веса</span></button>
+              <button class="btn sm ghost">Отдать портфель</button></footer>
+          </div>
+          <div class="panel">
+            <header><h4>На столе</h4></header>
+            <div class="body">
+              <div class="t-sub" style="margin-bottom:4px">Пенсионная реформа</div>
+              <p class="t-small" style="margin-bottom:var(--x4)">поздний выход, накопления · умеренно</p>
+              <div class="whip"><div><i>за</i><b class="good">52</b></div><div><i>?</i><b>18</b></div><div><i>против</i><b class="bad">50</b></div></div>
+              <p class="note">Не хватает девяти голосов.</p>
+            </div>
+            <footer><button class="btn sm pri">К проекту</button></footer>
+          </div>
+          <div class="panel">
+            <header><h4>Журнал</h4></header>
+            <div class="body"><div class="log">
+              <div class="key"><s>2031/II</s>«Земля и воля» требует второй портфель.</div>
+              <div><s>2031/II</s>Обвал цен на сырьё: доходы казны просели.</div>
+              <div><s>2031/I</s>Принят закон «Полномочия полиции».</div>
+            </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div></div></div>
+
+<!-- 2 · ПАРЛАМЕНТ -->
+<div class="board"><div class="cap">02 · Парламент<span>зал, поимённый список, комитеты</span></div>
+<div class="wrap"><div class="frame">
+  <div class="appbar"><div class="brand"><div style="width:26px;height:29px;background:var(--band-2)"></div>
+    <div><b>НОВАРИЯ</b><span>кабинет · народное возрождение</span></div></div>
+    <div class="strip"><div class="sv"><i>квартал</i><b>Лето 2031 · 7/16</b></div>
+      <div class="sv"><i>действия</i><b>2 из 3</b></div><div class="sv"><i>вес</i><b>41</b></div>
+      <div class="sv"><i>мандаты</i><b>32 · коалиция 77</b></div></div></div>
+  <div class="screen">
+    <nav class="rail"><div class="cap">Разделы</div>
+      <button class="nav">Кабинет<u>2/3</u></button>
+      <button class="nav on">Собрание<u>32/120</u></button>
+      <button class="nav">Законопроект<u>14</u></button>
+      <button class="nav">Бюджет<u>−4</u></button>
+      <button class="nav">Регионы<u>21</u></button></nav>
+    <div class="work">
+      <div class="panel info">
+        <header><h4>Народное собрание</h4><span class="meta">120 мандатов · большинство 61 · коалиция 77</span></header>
+        <div class="body">
+          <svg class="hemi" viewBox="0 0 760 210" style="max-height:210px"><g id="seats2"></g></svg>
+          <div class="row" style="margin-top:var(--x4)">
+            <span class="chip"><s style="background:var(--p1)"></s>Народное возрождение — 32 · коалиция</span>
+            <span class="chip"><s style="background:var(--p2)"></s>Союз труда — 23 · коалиция</span>
+            <span class="chip"><s style="background:var(--p5)"></s>Земля и воля — 22 · коалиция</span>
+            <span class="chip"><s style="background:var(--p3)"></s>Держава — 17</span>
+            <span class="chip"><s style="background:var(--p6)"></s>Новый рассвет — 20</span>
+            <span class="chip"><s style="background:var(--p4)"></s>Свободный курс — 6</span>
+          </div>
+        </div>
+      </div>
+      <div class="cols c21">
+        <div class="panel">
+          <header><h4>Депутаты</h4><span class="meta">по проекту «Пенсионная реформа»</span></header>
+          <div class="body" style="padding:0">
+            <div style="padding:var(--x4) var(--x5);border-bottom:var(--hair-2)" class="row">
+              <button class="btn sm sel">Все</button><button class="btn sm">НВ 32</button>
+              <button class="btn sm">СТ 23</button><button class="btn sm">ЗВ 22</button>
+              <button class="btn sm">ДРЖ 17</button><button class="btn sm">НР 20</button>
+              <span class="dim" style="margin-left:auto;font-size:11.5px">колеблются 18</span></div>
+            <table class="tbl">
+              <thead><tr><th>Депутат</th><th>Фракция</th><th class="n">Дисц.</th><th class="n">Отношение</th><th>Позиция</th><th></th></tr></thead>
+              <tbody>
+                <tr class="sel"><td><b>Никита Ремизов</b><div class="dim" style="font-size:11.5px">Поволжский регион · беседовал с вами</div></td>
+                  <td><span class="chip"><s style="background:var(--p3)"></s>ДРЖ</span></td><td class="n">86</td>
+                  <td class="n">51 <span class="bar-s"><i style="width:51%"></i></span></td><td><span class="tag y">колеблется</span></td>
+                  <td style="text-align:right"><button class="btn sm">Работать</button></td></tr>
+                <tr><td><b>Юлия Фадеева</b><div class="dim" style="font-size:11.5px">Волжская область</div></td>
+                  <td><span class="chip"><s style="background:var(--p3)"></s>ДРЖ</span></td><td class="n">87</td>
+                  <td class="n">48 <span class="bar-s"><i style="width:48%"></i></span></td><td><span class="tag y">колеблется</span></td>
+                  <td style="text-align:right"><button class="btn sm">Работать</button></td></tr>
+                <tr><td><b>Лидия Юркова</b><div class="dim" style="font-size:11.5px">Поволжский регион</div></td>
+                  <td><span class="chip"><s style="background:var(--p6)"></s>НР</span></td><td class="n">66</td>
+                  <td class="n">44 <span class="bar-s"><i style="width:44%"></i></span></td><td><span class="tag y">колеблется</span></td>
+                  <td style="text-align:right"><button class="btn sm">Работать</button></td></tr>
+                <tr><td><b>Геннадий Чернов</b><div class="dim" style="font-size:11.5px">Южный регион · обойдён при дележе</div></td>
+                  <td><span class="chip"><s style="background:var(--p6)"></s>НР</span></td><td class="n">89</td>
+                  <td class="n">33 <span class="bar-s"><i style="width:33%"></i></span></td><td><span class="tag r">против</span></td>
+                  <td style="text-align:right"><button class="btn sm">Работать</button></td></tr>
+                <tr><td><b>Дарья Устинова</b><div class="dim" style="font-size:11.5px">Волжская область · возглавила комитет</div></td>
+                  <td><span class="chip"><s style="background:var(--p5)"></s>ЗВ</span></td><td class="n">74</td>
+                  <td class="n">71 <span class="bar-s"><i style="width:71%"></i></span></td><td><span class="tag g">за</span></td>
+                  <td style="text-align:right"><button class="btn sm">Работать</button></td></tr>
+              </tbody>
+              <caption>Показаны 5 из 120. Сортировка — кто ближе к перемене мнения.</caption>
+            </table>
+          </div>
+        </div>
+        <div>
+          <div class="panel lead">
+            <header><h4>Расклад по проекту</h4></header>
+            <div class="body">
+              <div class="whip"><div><i>за</i><b class="good">52</b></div><div><i>?</i><b>18</b></div><div><i>против</i><b class="bad">50</b></div></div>
+              <div class="meter" style="margin-top:var(--x4)"><i style="width:43%;background:var(--good)"></i><i style="width:15%;background:var(--line)"></i><i style="width:42%;background:var(--bad)"></i></div>
+              <p class="note">Нужно 61. Колеблющихся 18 — их хватит, если перетянуть половину.</p>
+              <div class="row" style="margin-top:var(--x4)">
+                <button class="btn pri sm">Обработать колеблющихся<span class="cost">11</span></button></div>
+            </div>
+          </div>
+          <div class="panel">
+            <header><h4>Комитеты</h4></header>
+            <div class="body" style="padding:0"><table class="tbl tight"><tbody>
+              <tr><td><b>Экономика</b></td><td>Д. Устинова</td><td><span class="chip"><s style="background:var(--p5)"></s>ЗВ</span></td><td style="text-align:right"><button class="btn sm">Заменить</button></td></tr>
+              <tr><td><b>Налоги</b></td><td>Л. Беляев</td><td><span class="chip"><s style="background:var(--p2)"></s>СТ</span></td><td style="text-align:right"><button class="btn sm">Заменить</button></td></tr>
+              <tr><td><b>Порядок</b></td><td>Ж. Уварова</td><td><span class="chip"><s style="background:var(--p1)"></s>НВ</span></td><td style="text-align:right"><button class="btn sm">Заменить</button></td></tr>
+              <tr><td><b>Права</b></td><td class="dim">вакансия</td><td></td><td style="text-align:right"><button class="btn sm">Назначить</button></td></tr>
+            </tbody></table></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div></div></div>
+
+<!-- 3 · ЭКОНОМИКА -->
+<div class="board"><div class="cap">03 · Экономика и бюджет<span>ставки, статьи, конъюнктура</span></div>
+<div class="wrap"><div class="frame">
+  <div class="appbar"><div class="brand"><div style="width:26px;height:29px;background:var(--band-2)"></div>
+    <div><b>НОВАРИЯ</b><span>кабинет · народное возрождение</span></div></div>
+    <div class="strip"><div class="sv"><i>казна</i><b class="warn">18 млрд</b></div>
+      <div class="sv"><i>баланс</i><b class="bad">−8,5</b></div><div class="sv"><i>долг</i><b class="bad">312</b></div>
+      <div class="sv"><i>инфляция</i><b class="warn">6,4%</b></div></div></div>
+  <div class="screen">
+    <nav class="rail"><div class="cap">Разделы</div>
+      <button class="nav">Кабинет<u>2/3</u></button><button class="nav">Собрание<u>32/120</u></button>
+      <button class="nav on">Бюджет<u>−8</u></button><button class="nav">Регионы<u>21</u></button></nav>
+    <div class="work">
+      <div class="cols c11">
+        <div class="panel calm"><header><h4>Доходы</h4><span class="meta">62,5 млрд за квартал</span></header>
+          <div class="body" style="padding:0"><table class="tbl">
+            <thead><tr><th>Налог</th><th class="n">Сбор</th><th>Ставка</th></tr></thead>
+            <tbody>
+              <tr><td><b>Подоходный</b><div class="dim" style="font-size:11.5px">недовольны: рабочие, горожане</div></td>
+                <td class="n">20</td><td><div class="steps"><button>0</button><button>1</button><button class="on">2</button><button>3</button><button>4</button></div></td></tr>
+              <tr><td><b>На прибыль</b><div class="dim" style="font-size:11.5px">недовольны: предприниматели</div></td>
+                <td class="n">16</td><td><div class="steps"><button>0</button><button class="on">1</button><button>2</button><button>3</button><button>4</button></div></td></tr>
+              <tr><td><b>НДС</b><div class="dim" style="font-size:11.5px">недовольны: пенсионеры, село</div></td>
+                <td class="n">24</td><td><div class="steps"><button>0</button><button>1</button><button class="on">2</button><button>3</button><button>4</button></div></td></tr>
+            </tbody></table></div></div>
+        <div class="panel warn"><header><h4>Расходы</h4><span class="meta">66,0 млрд за квартал</span></header>
+          <div class="body">
+            <div class="bline"><div><b>Оборона</b><div class="who">ждут: патриоты</div></div><div class="num-s" style="text-align:right">10</div>
+              <div><div class="steps"><button>0</button><button>1</button><button class="on">2</button><button>3</button><button>4</button></div></div></div>
+            <div class="bline"><div><b>Полиция</b><div class="who">ждут: патриоты, пенсионеры</div></div><div class="num-s" style="text-align:right">7</div>
+              <div><div class="steps"><button>0</button><button>1</button><button class="on">2</button><button>3</button><button>4</button></div></div></div>
+            <div class="bline"><div><b>Здравоохранение</b><div class="who">ждут: пенсионеры, горожане</div></div><div class="num-s" style="text-align:right">18</div>
+              <div><div class="steps"><button>0</button><button>1</button><button>2</button><button class="on">3</button><button>4</button></div></div></div>
+            <div class="bline"><div><b>Соцвыплаты</b><div class="who">ждут: рабочие, пенсионеры</div></div><div class="num-s" style="text-align:right">14</div>
+              <div><div class="steps"><button>0</button><button>1</button><button class="on">2</button><button>3</button><button>4</button></div></div></div>
+            <div class="bline" style="border:0"><div><b>Инфраструктура</b><div class="who">ждут: село, предприниматели</div></div><div class="num-s" style="text-align:right">8</div>
+              <div><div class="steps"><button>0</button><button>1</button><button class="on">2</button><button>3</button><button>4</button></div></div></div>
+          </div></div>
+      </div>
+      <div class="cols c21">
+        <div class="panel"><header><h4>Динамика</h4><span class="meta">18 кварталов</span></header>
+          <div class="body"><div class="grid g2">
+            <div><div style="display:flex;justify-content:space-between;align-items:baseline">
+              <span class="t-micro">ВВП, индекс</span><b class="num">118</b></div>
+              <svg class="spark" viewBox="0 0 320 46" preserveAspectRatio="none">
+                <path d="M6 36 L34 34 L62 31 L90 30 L118 26 L146 24 L174 25 L202 20 L230 18 L258 21 L286 16 L314 18" fill="none" stroke="#2C6547" stroke-width="1.6"/>
+                <circle cx="314" cy="18" r="2.6" fill="#2C6547"/></svg></div>
+            <div><div style="display:flex;justify-content:space-between;align-items:baseline">
+              <span class="t-micro">Инфляция, %</span><b class="num bad">6,4</b></div>
+              <svg class="spark" viewBox="0 0 320 46" preserveAspectRatio="none">
+                <path d="M6 30 L34 32 L62 29 L90 27 L118 28 L146 24 L174 22 L202 19 L230 21 L258 16 L286 13 L314 10" fill="none" stroke="#93261E" stroke-width="1.6"/>
+                <circle cx="314" cy="10" r="2.6" fill="#93261E"/></svg></div>
+          </div></div></div>
+        <div>
+          <div class="panel"><header><h4>Свод</h4></header><div class="body">
+            <div class="res" style="margin:0;border:0;padding:0">
+              <span>Доходы</span><b class="good">62,5</b><span>Расходы</span><b class="bad">−66,0</b>
+              <span>Проценты по долгу</span><b class="bad">−5,0</b><span>Итог квартала</span><b class="bad">−8,5</b></div>
+          </div></div>
+          <div class="panel info"><header><h4>Конъюнктура</h4><span class="meta">на это вы не влияете</span></header>
+            <div class="body">
+              <div class="gauge" style="margin-bottom:var(--x4)"><span class="t-micro" style="width:92px">фаза цикла</span>
+                <div class="track"><i style="left:72%"></i></div><b class="num-s" style="width:74px;text-align:right">охлаждение</b></div>
+              <div class="gauge" style="margin-bottom:var(--x4)"><span class="t-micro" style="width:92px">внешний спрос</span>
+                <div class="track"><i style="left:38%"></i></div><b class="num-s" style="width:74px;text-align:right">88</b></div>
+              <div class="gauge"><span class="t-micro" style="width:92px">цены на сырьё</span>
+                <div class="track"><i style="left:24%"></i></div><b class="num-s bad" style="width:74px;text-align:right">68</b></div>
+            </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div></div></div>
+<!-- 4 · РЕГИОНЫ -->
+<div class="board"><div class="cap">04 · Регионы<span>карта, режимы, карточка субъекта</span></div>
+<div class="wrap"><div class="frame">
+  <div class="appbar"><div class="brand"><div style="width:26px;height:29px;background:var(--band-2)"></div>
+    <div><b>НОВАРИЯ</b><span>кабинет · народное возрождение</span></div></div>
+    <div class="strip"><div class="sv"><i>напряжённость</i><b class="warn">21</b></div>
+      <div class="sv"><i>одобрение</i><b class="good">54%</b></div><div class="sv"><i>опрос</i><b>устарел</b></div></div></div>
+  <div class="screen">
+    <nav class="rail"><div class="cap">Разделы</div>
+      <button class="nav">Кабинет<u>2/3</u></button><button class="nav">Собрание<u>32/120</u></button>
+      <button class="nav">Бюджет<u>−8</u></button><button class="nav on">Регионы<u>21</u></button>
+      <button class="nav">Общество<u>54%</u></button></nav>
+    <div class="work">
+      <div class="cols c21">
+        <div class="panel"><header><h4>Карта Республики</h4><span class="meta">оценка без опроса, ±3 пункта</span></header>
+          <div class="body">
+            <div class="row" style="margin-bottom:var(--x4)">
+              <button class="btn sm sel">Поддержка</button><button class="btn sm">Напряжённость</button>
+              <button class="btn sm">Мандаты</button><button class="btn sm">Развитие</button>
+              <button class="btn sm ghost" style="margin-left:auto">Заказать опрос<span class="cost">9 млн</span></button></div>
+            <div style="background:#141C26;border:var(--hair);padding:6px">
+              <div style="display:grid;grid-template-columns:repeat(6,1fr);grid-auto-rows:52px;gap:3px">
+                <div style="background:#6E8F5E;grid-column:2/4;display:flex;align-items:center;justify-content:center;color:#fff;font:700 11px var(--f-cond)">НОРДСК</div>
+                <div style="background:#2C6547;grid-column:4/7;display:flex;align-items:center;justify-content:center;color:#fff;font:700 11px var(--f-cond)">ТИХООКЕАНСК</div>
+                <div style="background:#C9B98F;grid-column:1/3;display:flex;align-items:center;justify-content:center;font:700 11px var(--f-cond)">ЛЕСОГОРСК</div>
+                <div style="background:#6E8F5E;grid-column:3/5;display:flex;align-items:center;justify-content:center;color:#fff;font:700 11px var(--f-cond)">НОВАРГРАД ★</div>
+                <div style="background:#B4744A;grid-column:5/7;display:flex;align-items:center;justify-content:center;color:#fff;font:700 11px var(--f-cond)">СИБИРСК</div>
+                <div style="background:#2C6547;grid-column:1/2;display:flex;align-items:center;justify-content:center;color:#fff;font:700 10px var(--f-cond)">ПРИОЗЕРСК</div>
+                <div style="background:#C9B98F;grid-column:2/4;display:flex;align-items:center;justify-content:center;font:700 11px var(--f-cond)">РЕЧНОЙ</div>
+                <div style="background:#7B2018;grid-column:4/5;display:flex;align-items:center;justify-content:center;color:#fff;font:700 10px var(--f-cond);outline:2px solid #fff">КАМЕНЬСК</div>
+                <div style="background:#6E8F5E;grid-column:5/7;display:flex;align-items:center;justify-content:center;color:#fff;font:700 11px var(--f-cond)">ГОРНЫЙ</div>
+                <div style="background:#B4744A;grid-column:1/3;display:flex;align-items:center;justify-content:center;color:#fff;font:700 11px var(--f-cond)">ВОЛЖСК</div>
+                <div style="background:#2C6547;grid-column:3/6;display:flex;align-items:center;justify-content:center;color:#fff;font:700 11px var(--f-cond)">СОЛНЕЧНОГОРСК</div>
+              </div>
+            </div>
+            <p class="note">Схема на месте настоящей карты: геометрия одиннадцати субъектов уже есть в игре
+              и переносится без изменений. Выделенный субъект обведён белым.</p>
+            <div class="row" style="margin-top:var(--x4)">
+              <span class="chip"><s style="background:#7B2018"></s>ниже 38%</span>
+              <span class="chip"><s style="background:#C9B98F"></s>около половины</span>
+              <span class="chip"><s style="background:#2C6547"></s>выше 60%</span></div>
+          </div></div>
+        <div class="panel lead"><header><h4>Уральский регион</h4><span class="meta">Каменьск</span></header>
+          <div class="body">
+            <div class="res" style="margin-top:0">
+              <span>Поддержка правительства</span><b class="bad est">37%</b>
+              <span>Напряжённость</span><b class="bad">44 · митинги</b>
+              <span>Население</span><b>13,3 млн</b>
+              <span>Мандатов от субъекта</span><b>11</b>
+              <span>Даёт бюджету</span><b class="good">+4,1</b></div>
+            <h3 class="sub">Состав избирателей</h3>
+            <table class="tbl tight"><tbody>
+              <tr><td>Рабочие</td><td class="n">30%</td><td class="n bad">34</td></tr>
+              <tr><td>Патриоты</td><td class="n">14%</td><td class="n">48</td></tr>
+              <tr><td>Горожане</td><td class="n">15%</td><td class="n bad">36</td></tr>
+            </tbody></table>
+            <div class="row" style="margin-top:var(--x5)">
+              <button class="btn pri sm">Поехать туда<span class="cost">6 млрд</span></button>
+              <button class="btn sm">Транш<span class="cost">16 млрд</span></button></div>
+          </div></div>
+      </div>
+      <div class="panel"><header><h4>Субъекты</h4><span class="meta">по напряжённости</span></header>
+        <div class="body" style="padding:0"><table class="tbl">
+          <thead><tr><th>Субъект</th><th class="n">Поддержка</th><th class="n">Напряжённость</th><th>Крупнейшая делегация</th><th></th></tr></thead>
+          <tbody>
+            <tr class="sel"><td><b>Уральский регион</b><div class="dim" style="font-size:11.5px">Каменьск · 13,3 млн · 11 мандатов</div></td>
+              <td class="n bad est">37%</td><td class="n bad">44 · митинги</td><td><span class="chip"><s style="background:var(--p2)"></s>СТ 5</span></td>
+              <td style="text-align:right"><button class="btn sm">Карточка</button></td></tr>
+            <tr><td><b>Поволжский регион</b><div class="dim" style="font-size:11.5px">Речной · 14,8 млн · 12 мандатов</div></td>
+              <td class="n est">49%</td><td class="n">28 · тревожно</td><td><span class="chip"><s style="background:var(--p2)"></s>СТ 4</span></td>
+              <td style="text-align:right"><button class="btn sm">Карточка</button></td></tr>
+            <tr><td><b>Центральный регион</b><div class="dim" style="font-size:11.5px">Новарград · 23,6 млн · 19 мандатов</div></td>
+              <td class="n good est">61%</td><td class="n">12 · спокойно</td><td><span class="chip"><s style="background:var(--p1)"></s>НВ 7</span></td>
+              <td style="text-align:right"><button class="btn sm">Карточка</button></td></tr>
+          </tbody></table></div></div>
+    </div>
+  </div>
+</div></div></div>
+
+<!-- 5 · ПРАВИТЕЛЬСТВО -->
+<div class="board"><div class="cap">05 · Правительство<span>портфели, министры, союзники</span></div>
+<div class="wrap"><div class="frame">
+  <div class="appbar"><div class="brand"><div style="width:26px;height:29px;background:var(--band-2)"></div>
+    <div><b>НОВАРИЯ</b><span>кабинет · народное возрождение</span></div></div>
+    <div class="strip"><div class="sv"><i>коалиция</i><b class="good">77</b></div>
+      <div class="sv"><i>портфелей отдано</i><b>3 из 6</b></div><div class="sv"><i>вес</i><b>41</b></div></div></div>
+  <div class="screen">
+    <nav class="rail"><div class="cap">Разделы</div>
+      <button class="nav">Кабинет<u>2/3</u></button><button class="nav">Собрание<u>32/120</u></button>
+      <button class="nav">Бюджет<u>−8</u></button><button class="nav on">Правительство<u>6</u></button></nav>
+    <div class="work">
+      <div class="cols c21">
+        <div class="panel lead"><header><h4>Портфели</h4><span class="meta">отданный портфель покупает голоса фракции</span></header>
+          <div class="body" style="padding:0"><table class="tbl">
+            <thead><tr><th>Министерство</th><th>Держит</th><th>Что даёт</th><th></th></tr></thead>
+            <tbody>
+              <tr><td><b>Финансы</b></td><td><span class="chip"><s style="background:var(--p1)"></s>НВ</span> Народное возрождение</td>
+                <td class="dim" style="font-size:12px">сборы выше на десятую часть</td><td style="text-align:right"><button class="btn sm">Передать</button></td></tr>
+              <tr><td><b>Внутренние дела</b></td><td><span class="chip"><s style="background:var(--p1)"></s>НВ</span> Народное возрождение</td>
+                <td class="dim" style="font-size:12px">напряжённость гаснет быстрее</td><td style="text-align:right"><button class="btn sm">Передать</button></td></tr>
+              <tr class="sel"><td><b>Соцзащита</b></td><td><span class="chip"><s style="background:var(--p2)"></s>СТ</span> Союз труда</td>
+                <td class="dim" style="font-size:12px">соцвыплаты доходят полнее</td><td style="text-align:right"><button class="btn sm">Передать</button></td></tr>
+              <tr><td><b>Иностранные дела</b></td><td><span class="chip"><s style="background:var(--p5)"></s>ЗВ</span> Земля и воля</td>
+                <td class="dim" style="font-size:12px">внешние займы дешевле</td><td style="text-align:right"><button class="btn sm">Передать</button></td></tr>
+              <tr><td><b>Оборона</b></td><td class="dim">вакансия</td>
+                <td class="dim" style="font-size:12px">патриоты спокойнее</td><td style="text-align:right"><button class="btn sm pri">Назначить</button></td></tr>
+            </tbody></table></div></div>
+        <div>
+          <div class="panel warn"><header><h4>Союзники</h4><span class="meta">терпение на исходе</span></header>
+            <div class="body">
+              <div class="dep"><div class="who"><b>Союз труда</b><span>23 мандата · 1 портфель · расхождение 1,2</span></div><span class="tag g">лояльны</span></div>
+              <div class="dep" style="border:0"><div class="who"><b>Земля и воля</b><span>22 мандата · 1 портфель · расхождение 1,9</span></div><span class="tag r">на грани</span></div>
+              <p class="note">«Земля и воля» просит второй портфель. Отказ — минус 22 мандата в коалиции.</p>
+              <div class="row" style="margin-top:var(--x4)">
+                <button class="btn sm pri">Отдать портфель</button>
+                <button class="btn sm">Переговоры<span class="cost">5 веса</span></button></div>
+            </div></div>
+          <div class="panel"><header><h4>Устойчивость</h4></header><div class="body">
+            <div class="res" style="margin:0;border:0;padding:0">
+              <span>Коалиция</span><b class="good">77 из 61</b>
+              <span>Вотум недоверия</span><b>не собран</b>
+              <span>Возраст кабинета</span><b>7 кварталов</b>
+              <span>Усталость избирателя</span><b class="warn">2,2</b></div>
+          </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div></div></div>
+
+<!-- 6 · ВЫБОРЫ -->
+<div class="board"><div class="cap">06 · Выборы<span>штаб и подсчёт</span></div>
+<div class="wrap"><div class="frame">
+  <div class="appbar"><div class="brand"><div style="width:26px;height:29px;background:var(--band-2)"></div>
+    <div><b>НОВАРИЯ</b><span>кампания · народное возрождение</span></div></div>
+    <div class="strip"><div class="sv act"><i>до выборов</i><b>2 квартала</b></div>
+      <div class="sv"><i>касса</i><b>73 млн</b></div><div class="sv"><i>прогноз</i><b class="good">42 мандата</b></div></div></div>
+  <div class="screen">
+    <nav class="rail"><div class="cap">Разделы</div>
+      <button class="nav">Кабинет<u>1/3</u></button><button class="nav">Собрание<u>32/120</u></button>
+      <button class="nav on">Кампания<u>73</u></button><button class="nav">Общество<u>54%</u></button></nav>
+    <div class="work">
+      <div class="panel lead"><header><h4>Предвыборный штаб</h4><span class="meta">до выборов 2 квартала</span></header>
+        <div class="body"><div class="grid g4" style="gap:var(--x4)">
+          <div class="stat"><div class="k">Касса</div><div class="v">73<u>млн</u></div><div class="d">потрачено 96</div></div>
+          <div class="stat"><div class="k">Прогноз</div><div class="v good">42</div><div class="d">из 120 мандатов</div></div>
+          <div class="stat"><div class="k">Ролики</div><div class="v">6</div><div class="d">рабочие, пенсионеры</div></div>
+          <div class="stat"><div class="k">Дебаты</div><div class="v">—</div><div class="d">через квартал</div></div>
+        </div></div></div>
+      <div class="cols c11">
+        <div class="panel"><header><h4>Реклама по группам</h4><span class="meta">деньги без действия</span></header>
+          <div class="body" style="padding:0"><table class="tbl tight">
+            <thead><tr><th>Группа</th><th class="n">Роликов</th><th class="n">Настроение</th><th></th></tr></thead>
+            <tbody>
+              <tr><td>Рабочие</td><td class="n">4</td><td class="n">57</td><td style="text-align:right"><button class="btn sm">Ролики<span class="cost">16</span></button></td></tr>
+              <tr><td>Пенсионеры</td><td class="n">2</td><td class="n good">62</td><td style="text-align:right"><button class="btn sm">Ролики<span class="cost">16</span></button></td></tr>
+              <tr><td>Молодёжь</td><td class="n">0</td><td class="n bad">31</td><td style="text-align:right"><button class="btn sm">Ролики<span class="cost">16</span></button></td></tr>
+            </tbody></table></div></div>
+        <div class="panel"><header><h4>Митинги по субъектам</h4><span class="meta">1 действие и 11 млн</span></header>
+          <div class="body" style="padding:0"><table class="tbl tight">
+            <thead><tr><th>Субъект</th><th class="n">Митингов</th><th class="n">Поддержка</th><th></th></tr></thead>
+            <tbody>
+              <tr><td>Центральный регион</td><td class="n">1</td><td class="n good est">61%</td><td style="text-align:right"><button class="btn sm">Митинг</button></td></tr>
+              <tr><td>Уральский регион</td><td class="n">0</td><td class="n bad est">37%</td><td style="text-align:right"><button class="btn sm">Митинг</button></td></tr>
+              <tr><td>Южный регион</td><td class="n">0</td><td class="n est">52%</td><td style="text-align:right"><button class="btn sm">Митинг</button></td></tr>
+            </tbody></table></div></div>
+      </div>
+      <div class="panel info"><header><h4>Итоги прошлых выборов</h4><span class="meta">Осень 2028</span></header>
+        <div class="body">
+          <div class="seatbar" style="height:18px">
+            <i style="width:27%;background:var(--p1)"></i><i style="width:19%;background:var(--p2)"></i>
+            <i style="width:18%;background:var(--p5)"></i><i style="width:14%;background:var(--p3)"></i>
+            <i style="width:17%;background:var(--p6)"></i><i style="width:5%;background:var(--p4)"></i><span class="maj"></span></div>
+        </div></div>
+    </div>
+  </div>
+</div></div></div>
+
+<!-- 7 · СОБЫТИЕ -->
+<div class="board"><div class="cap">07 · Событие и кризис<span>окно поверх затемнённого экрана</span></div>
+<div class="wrap"><div class="frame">
+  <div style="position:relative">
+    <div class="appbar"><div class="brand"><div style="width:26px;height:29px;background:var(--band-2)"></div>
+      <div><b>НОВАРИЯ</b><span>кабинет · народное возрождение</span></div></div>
+      <div class="strip"><div class="sv"><i>квартал</i><b>Осень 2031 · 8/16</b></div>
+        <div class="sv"><i>одобрение</i><b class="warn">48%</b></div><div class="sv"><i>казна</i><b class="bad">9 млрд</b></div></div></div>
+    <div class="screen" style="min-height:560px">
+      <nav class="rail"><div class="cap">Разделы</div>
+        <button class="nav on">Кабинет<u>1/3</u></button><button class="nav">Собрание<u>32/120</u></button>
+        <button class="nav">Бюджет<u>−11</u></button></nav>
+      <div class="work"><div class="panel"><header><h4>Положение дел</h4></header><div class="body t-small">…</div></div></div>
+    </div>
+    <div style="position:absolute;inset:0;background:rgba(20,16,10,.55);display:flex;align-items:flex-start;justify-content:center;padding-top:60px">
+      <div class="modal" style="max-width:620px">
+        <div class="mh"><i>Конституционный суд</i><h3>Иск против закона «Полномочия полиции»</h3></div>
+        <div class="mb">
+          <p>Группа депутатов оспорила закон в суде: слишком резкая редакция, говорят они.
+            Суд запросил позицию правительства.</p>
+          <div class="res">
+            <span>Закон принят</span><b>2031/I · 77 против 43</b>
+            <span>Позиция</span><b>+2 · решительно</b>
+            <span>Кто оспаривает</span><b class="w">НР, СВК · 26 мандатов</b></div>
+          <button class="opt"><b>Отстаивать закон · 9 веса</b><span>если проиграете, отменят целиком</span></button>
+          <button class="opt"><b>Смягчить самим</b><span>сила закона падает вдвое, зато он останется</span></button>
+          <button class="opt"><b>Не вмешиваться</b><span>пусть решают судьи</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div></div></div>
+
+<section style="margin-top:var(--x9)">
+<h2>Что дальше</h2>
+<p class="why">Если направление согласовано, следующий шаг — перенос: токены и компоненты уходят в
+<code>game/index.html</code> как есть, разметка экранов пересобирается по этим макетам, игровая логика
+не трогается. Спорные места отмечайте прямо по разделам — правки в системе дешевле правок в игре.</p>
+</section>
+</main>
+</div>
+<script>
+/* Полукруг зала. Кресел ровно столько, сколько мандатов: ряды получают места
+   пропорционально длине дуги, остаток раздаётся с внешнего ряда.
+   Это эталонная реализация — в игру переносится как есть. */
+function hemiSlots(n,rows,r0,dr,cx,cy){
+  const rad=[],ws=[];let sum=0;
+  for(let k=0;k<rows;k++){ const r=r0+k*dr; rad.push(r); ws.push(r); sum+=r; }
+  const cnt=ws.map(w=>Math.max(1,Math.floor(n*w/sum)));
+  let diff=n-cnt.reduce((a,b)=>a+b,0), k=rows-1;
+  while(diff>0){ cnt[k]++; diff--; k=(k-1+rows)%rows; }
+  while(diff<0){ if(cnt[k]>1){cnt[k]--;diff++;} k=(k-1+rows)%rows; }
+  const slots=[];
+  cnt.forEach((m,i)=>{ for(let j=0;j<m;j++){
+    const a=Math.PI*(0.045+0.91*(m===1?0.5:j/(m-1)));
+    slots.push({a,r:rad[i],x:cx-Math.cos(a)*rad[i],y:cy-Math.sin(a)*rad[i]});
+  }});
+  return slots.sort((p,q)=>p.a-q.a||p.r-q.r);
+}
+function hemi(id,W,H,r,rows,seats){
+  const el=document.getElementById(id); if(!el)return;
+  const list=[];
+  [['var(--p2)',23],['var(--p5)',22],['var(--p1)',32],['var(--p6)',20],['var(--p3)',17],['var(--p4)',6]]
+    .forEach(([c,n])=>{for(let i=0;i<n;i++)list.push(c);});
+  const slots=hemiSlots(list.length,rows,r,r*0.30,W/2,H-6);
+  el.innerHTML=list.map((c,i)=>{const s=slots[i];
+    return `<circle cx="${s.x.toFixed(1)}" cy="${s.y.toFixed(1)}" r="${(r*0.072).toFixed(1)}" fill="${c}" stroke="#FBF8F1" stroke-width="0.8"/>`;}).join('');
+}
+hemi('seats',300,108,38,4,120);
+hemi('seats2',760,210,84,6,120);
+
+/* Макеты экранов нарисованы в натуральную ширину и ужимаются под колонку. */
+function fit(){
+  document.querySelectorAll('.wrap').forEach(w=>{
+    const f=w.querySelector('.frame'); if(!f)return;
+    f.style.transform='none'; w.style.height='auto';
+    const k=Math.min(1,w.clientWidth/f.offsetWidth);
+    f.style.transform='scale('+k+')';
+    w.style.height=(f.offsetHeight*k)+'px';
+  });
+}
+addEventListener('resize',fit);
+addEventListener('load',fit);
+document.fonts&&document.fonts.ready.then(fit);
+fit();
+</script>
+</body>
+</html>
