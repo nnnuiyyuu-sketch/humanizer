@@ -14,7 +14,7 @@ The `game/` directory is separate from the skill: a standalone browser game in a
 - `README.md` — for humans: installation, usage, a summary table of the patterns, and a version history.
 - `.claude-plugin/plugin.json` — optional Claude Code plugin manifest.
 - `.claude-plugin/marketplace.json` — optional single-repo marketplace entry so `/plugin marketplace add blader/humanizer` works.
-- `game/index.html` — «Кабинет», a browser game unrelated to the skill. Styles and logic live in that one file; see `game/README.md`.
+- `game/index.html` — «Новария», a browser game unrelated to the skill. Styles and logic live in that one file; see `game/README.md`.
 
 ## The maintenance contract
 
