@@ -522,6 +522,9 @@ function initState(pl){
     tax:{inc:2,corp:2,vat:2},
     spend:{def:2,pol:2,med:2,edu:2,soc:2,inf:2},
     econ:{gdp:100,gdp0:100,growth:1.2,inf:4.2,unemp:8.1,invest:100},
+    cyc:{ph:Math.random(),len:ri(13,19)},      // фаза хозяйственного цикла
+    world:{demand:100,res:100},                // внешний спрос и цены на сырьё
+    comm:{}, rec:0,                            // комитеты и длина спада
     stab:58,
     mood:{}, rmod:{}, unrest:{},
     deputies:[], seats:{}, regSeats:{},
@@ -530,7 +533,7 @@ function initState(pl){
     bill:null, billNo:0, laws:[], votes:[],
     pending:[], log:[], chron:[], hist:[],
     poll:0, camp:null, tab:'brief', sel:null, filter:'all',
-    ev:{seen:[],cool:0}, role:'pm', noConfCool:0, moodShock:{}, fatigue:0, govAge:0,
+    ev:{seen:[],cool:0}, shockCool:0, role:'pm', noConfCool:0, moodShock:{}, fatigue:0, govAge:0,
   };
   GROUPS.forEach(g=>S.mood[g.id]=clamp(fitOf(g,player.st)*0.5+20+rnd(-4,4),20,70));
   REGIONS.forEach(r=>{ S.rmod[r.id]=r1((r.dev-2)*1.5+rnd(-3,3)); S.unrest[r.id]=ri(6,18); });
@@ -576,8 +579,13 @@ function dhondt(shares,n){
 }
 
 function depName(){
-  const f=Math.random()<0.34;
-  return (f?pick(NAME_F)+' '+pick(SURN_F):pick(NAME_M)+' '+pick(SURN_M));
+  const used=S.deputies?S.deputies.map(d=>d.name):[];
+  for(let i=0;i<40;i++){
+    const f=Math.random()<0.34;
+    const n=f?pick(NAME_F)+' '+pick(SURN_F):pick(NAME_M)+' '+pick(SURN_M);
+    if(used.indexOf(n)<0)return n;
+  }
+  return pick(NAME_M)+' '+pick(SURN_M);
 }
 function makeDep(party,region,i){
   const p=P(party), st={};
@@ -635,9 +643,10 @@ function formCoalition(initial){
 
 /* ─── экономика ──────────────────────────────────────────────── */
 function taxLoad(){ return (S.tax.inc+S.tax.corp+S.tax.vat)/3; }
+function resIncome(){ return r1(((S.world?S.world.res:100)-100)*0.11*S.econ.gdp/100); }
 function revenue(){
   const g=S.econ.gdp/100;
-  let v=TAXES.reduce((a,t)=>a+t.yield*(S.tax[t.id]/2),0)*g;
+  let v=TAXES.reduce((a,t)=>a+t.yield*(S.tax[t.id]/2),0)*g+resIncome();
   if(S.gov.posts.fin===PL||inCoal(S.gov.posts.fin))v*=1.06;
   v*=clamp(1-avgUnrest()*0.004,0.7,1);
   return r1(v);
@@ -651,26 +660,40 @@ function balance(){ return r1(revenue()-outlay()-interest()+lawSum('money')); }
 function avgUnrest(){ let s=0,t=0; REGIONS.forEach(r=>{s+=S.unrest[r.id]*r.pop;t+=r.pop;}); return s/t; }
 function lawSum(key){ return S.laws.reduce((a,l)=>a+(l.sum[key]||0),0); }
 
+function cycleImpulse(){ return Math.sin((S.cyc?S.cyc.ph:0)*Math.PI*2)*2.0; }
+function cyclePhase(){
+  const v=cycleImpulse();
+  return v>0.7?'подъём':v>0.2?'оживление':v>-0.2?'ровно':v>-0.7?'охлаждение':'спад';
+}
 function econTick(){
-  const e=S.econ;
-  const invT = 100 + (2-S.tax.corp)*9 + (2-S.tax.inc)*3 + (S.stab-55)*0.45
+  const e=S.econ, W=S.world;
+  // хозяйственный цикл идёт сам по себе, что бы вы ни делали
+  S.cyc.ph+=1/S.cyc.len; if(S.cyc.ph>1){S.cyc.ph-=1;S.cyc.len=ri(13,19);}
+  W.demand=clamp(W.demand+(100-W.demand)*0.06+rnd(-6.5,6.5),55,142);
+  W.res=clamp(W.res+(100-W.res)*0.05+rnd(-9,9),45,168);
+  const cyc=cycleImpulse();
+  const invT = 100 + (W.demand-100)*0.16 + cyc*7 + (2-S.tax.corp)*9 + (2-S.tax.inc)*3 + (S.stab-55)*0.45
              + lawSum('invest') + S.spend.inf*3 - e.inf*1.6 - avgUnrest()*0.35;
   e.invest = clamp(e.invest+(invT-e.invest)*0.3+rnd(-2,2),25,190);
-  const gT = 0.5 + (e.invest-100)*0.016 - (S.tax.corp-2)*0.16 + S.spend.inf*0.14 + S.spend.edu*0.05
+  const gT = 0.5 + cyc + (W.demand-100)*0.014 + (e.invest-100)*0.016 - (S.tax.corp-2)*0.16 + S.spend.inf*0.14 + S.spend.edu*0.05
            + lawSum('growth') - Math.max(0,e.inf-6)*0.12 - avgUnrest()*0.018
-           - (e.gdp/100-1)*0.42;               // догоняющий рост выдыхается
+           - (e.gdp/100-1)*0.55;               // догоняющий рост выдыхается
   e.growth = r2(clamp(e.growth+(gT-e.growth)*0.4+rnd(-0.2,0.2),-6,7));
   e.gdp = r1(Math.max(45,e.gdp*(1+e.growth/100)));
-  const uT = 8.4 - e.growth*0.75 - S.spend.inf*0.35 - S.spend.edu*0.1 + (S.tax.inc-2)*0.22 + lawSum('unemp')*4;
+  const uT = 8.4 - e.growth*1.05 - S.spend.inf*0.35 - S.spend.edu*0.1 + (S.tax.inc-2)*0.22 + lawSum('unemp')*4
+           + (S.rec>1?1.4:0);                  // затяжной спад ломает рынок труда
   e.unemp = r1(clamp(e.unemp+(uT-e.unemp)*0.3+rnd(-0.2,0.2),2.5,26));
   const bal=balance(), defc=Math.max(0,-bal);
-  const iT = 2.6 + defc*0.10 + (S.tax.vat-2)*0.45 + Math.max(0,(e.invest-130))*0.025
+  const iT = 2.6 + Math.max(0,cyc)*0.55 + defc*0.10 + (S.tax.vat-2)*0.45 + (W.res-100)*0.022 + Math.max(0,(e.invest-130))*0.025
            + Math.max(0,e.growth-2)*0.55 + lawSum('inf') - (S.tax.corp-2)*0.05;
   e.inf = r1(clamp(e.inf+(iT-e.inf)*0.34+rnd(-0.25,0.25),0,32));
   S.treasury = r1(S.treasury+bal);
   if(S.treasury<0){ S.debt=r1(S.debt-S.treasury); S.treasury=0; }
   else if(S.treasury>90&&S.debt>0){ const pay=Math.min(S.debt,(S.treasury-90)*0.5);
     S.debt=r1(S.debt-pay); S.treasury=r1(S.treasury-pay); }
+  S.rec = e.growth<0 ? (S.rec||0)+1 : 0;
+  if(S.rec===2){ logMsg('Второй квартал падения подряд: в стране рецессия.',1);
+    chron('Началась рецессия.','b'); shiftAll(-2.2); }
   S.stab = clamp(S.stab+(52-S.stab)*0.07-avgUnrest()*0.05+lawSum('stab')*0.6+rnd(-1.2,1.2),0,100);
 }
 
@@ -718,13 +741,23 @@ function polled(){ return S.poll===S.q; }
 function shown(v,key){ return polled()?v:v+noise(key+S.q,3.2); }
 
 /* ─── депутаты и голосование ─────────────────────────────────── */
+function bigOpp(){
+  return S.parties.filter(p=>p.id!==PL&&!inCoal(p.id)).sort((a,b)=>seatsOf(b.id)-seatsOf(a.id))[0];
+}
 function leaderLine(pid,bill){
   const p=P(pid), d=Math.abs((p.st[T(bill.topic).ax]||0)-bill.stance);
   if(pid===PL) return d>2.3?-1:1;
   let line = d<1.15?1:d>2.25?-1:0;
   if(inCoal(pid)&&line<1) line++;
-  if(!inCoal(pid)&&isPM()&&line>-1&&S.rel&&false) line--;
-  return line;
+  // оппозиционные фракции, стоящие рядом, держатся вместе против правительства
+  if(!inCoal(pid)&&(bill.by||PL)===PL){
+    const lead=bigOpp();
+    if(lead&&lead.id!==pid&&axDist(lead.st,p.st)<1.3){
+      const ld=Math.abs((lead.st[T(bill.topic).ax]||0)-bill.stance);
+      if(ld>2.25)line=Math.min(line,0)-1;
+    }
+  }
+  return clamp(line,-1,1);
 }
 function riderPull(dep,bill){
   let v=0;
@@ -743,12 +776,16 @@ function support(dep,bill){
   v+=(dep.rel-50)*0.30;
   v+=riderPull(dep,bill);
   if(inCoal(dep.party))v+=5;
+  // профильный комитет: его председатель ведёт за собой однопартийцев
+  const ch=S.comm&&S.comm[ax]?S.deputies.find(d=>d.id===S.comm[ax]):null;
+  if(ch){ if(ch.id===dep.id)v+=7;
+    if(ch.party===dep.party)v+=leaderLine(ch.party,bill)>=0?7:-3; }
   // чужой проект — повод его завалить, кто бы его ни вносил
   const mine=(bill.by||PL)===PL;
   if(mine&&!inCoal(dep.party))v-=9;
   if(!mine&&dep.party===PL)v-=9;
   if(!mine&&inCoal(dep.party)&&dep.party!==PL)v-=4;
-  if(dep.pledge&&dep.pledgeNo===S.billNo)v+=dep.pledge;
+  if(dep.pledge&&bill.id&&dep.pledgeNo===bill.id)v+=dep.pledge;
   v+=noise(dep.id+'|'+bill.topic+bill.stance+bill.riders.join('')+S.billNo,7);
   if(T(bill.topic).local&&bill.stance>0&&R(dep.region).capital)v-=6;
   return v;
@@ -810,7 +847,7 @@ function shortDate(q){ q=q||S.q; return (2029+Math.floor((q-1)/4))+'/'+QUARTERS[
 function logMsg(t,key){ S.log.unshift({d:shortDate(),t,key:!!key}); if(S.log.length>240)S.log.pop(); }
 function chron(t,kind){ S.chron.push({y:2029+Math.floor((S.q-1)/4),t,kind:kind||''}); }
 function snapshot(){
-  S.hist.push({q:S.q,ap:r1(approval()),gdp:r1(S.econ.gdp),tr:Math.round(S.treasury),
+  S.hist.push({q:S.q,ap:r1(approval()),gdp:r1(S.econ.gdp),gr:S.econ.growth,tr:Math.round(S.treasury),
     un:S.econ.unemp,inf:S.econ.inf,seats:seatsOf(PL),debt:Math.round(S.debt)});
   if(S.hist.length>90)S.hist.shift();
 }
@@ -877,6 +914,16 @@ const ACT = {
     if(!useAP(1)||!payCap(22))return;
     confidenceVote(true);
   },
+  whip(){
+    if(!S.bill){toast('На столе нет проекта');return;}
+    if(!useAP(1)||!payCap(11))return;
+    const t=tally(S.bill);let n=0;
+    t.list.forEach(x=>{ if(x.st!=='und')return;
+      const g=inCoal(x.d.party)?ri(7,13):ri(2,7);
+      x.d.pledge=(x.d.pledge||0)+g; x.d.pledgeNo=S.bill.id; n++; });
+    logMsg('Работа с колеблющимися: обработано '+n+' депутатов.');
+    toast(n?'Обработано: '+n:'Колеблющихся нет');
+  },
   talk(pid){
     if(!useAP(1)||!payCap(5))return;
     const p=P(pid), n=S.deputies.filter(d=>d.party===pid);
@@ -894,6 +941,8 @@ const LOBBY = [
   {id:'comm', name:'Место в комитете', cap:8, gold:0, txt:'Пост в профильном комитете. Однопартийцы заметят.'},
   {id:'cash', name:'Деньги округу', cap:0, gold:9, txt:'Стройка в его округе за счёт казны.'},
   {id:'dirt', name:'Разговор по-плохому', cap:6, gold:0, txt:'Намёк на папку. Сработает не со всяким.'},
+  {id:'join', name:'Позвать во фракцию', cap:16, gold:10, need:d=>d.party!==PL&&d.rel>=64,
+   txt:'Мандат переходит к вам. Его партия этого не забудет.'},
 ];
 function lobby(depId,kind){
   const d=S.deputies.find(x=>x.id===depId), l=LOBBY.find(x=>x.id===kind);
@@ -921,6 +970,23 @@ function lobby(depId,kind){
     }
     d.rel=clamp(d.rel+ri(18,30),0,100); d.note='стал сговорчивее';
   }
+  if(kind==='join'){
+    const from=d.party;
+    const ch=clamp((d.rel-55)/58+(70-d.loyal)/150,0.08,0.82);
+    if(Math.random()<ch){
+      d.party=PL; d.rel=clamp(d.rel+6,0,100); d.loyal=ri(55,80); d.note='перешёл к вам';
+      S.seats[from]--; S.seats[PL]=(S.seats[PL]||0)+1;
+      S.deputies.filter(x=>x.party===from).forEach(x=>x.rel=clamp(x.rel-6,0,100));
+      if(S.partners[from])S.partners[from].anger=clamp(S.partners[from].anger+1.5,0,6);
+      logMsg('Депутат '+d.name+' перешёл из «'+P(from).name+'» в вашу фракцию.',1);
+      chron('Депутат '+d.name+' сменил фракцию на вашу.','g');
+    } else {
+      d.rel=clamp(d.rel-15,0,100); d.note='отказал вам';
+      S.deputies.filter(x=>x.party===from).forEach(x=>x.rel=clamp(x.rel-4,0,100));
+      logMsg('Депутат '+d.name+' отказался переходить и рассказал об этом своим.',1);
+    }
+    render();return;
+  }
   logMsg('Работа с депутатом: '+d.name+' ('+P(d.party).short+'), отношение '+Math.round(d.rel)+'.');
   toast('Отношение: '+Math.round(d.rel));
   render();
@@ -928,7 +994,18 @@ function lobby(depId,kind){
 
 /* ─── законопроект ───────────────────────────────────────────── */
 function newBill(topic){
-  S.bill={topic,stance:1,riders:[],regTarget:REGIONS[0].id,by:PL};
+  S.bill={topic,stance:1,riders:[],regTarget:REGIONS[0].id,by:PL,id:S.billNo+1};
+}
+/* ─── комитеты ───────────────────────────────────────────────── */
+function setChair(ax,depId){
+  if(!useAP(1)||!payCap(6))return;
+  const old=S.comm[ax]?S.deputies.find(d=>d.id===S.comm[ax]):null;
+  if(old){ old.rel=clamp(old.rel-9,0,100); old.note='потерял комитет'; }
+  const d=S.deputies.find(x=>x.id===depId);
+  S.comm[ax]=depId; d.rel=clamp(d.rel+11,0,100); d.note='возглавил комитет';
+  logMsg('Комитет по теме «'+AXNAME[ax]+'» возглавил '+d.name+' ('+P(d.party).short+').');
+  toast('Комитет закреплён');
+  render();
 }
 function submitBill(){
   const b=S.bill; if(!b)return;
@@ -1059,6 +1136,11 @@ function aiBudget(){
     if(lead.st.tax>0){ const t=pick(TAXES.filter(x=>S.tax[x.id]>0)); if(t)S.tax[t.id]--; }
     else { const sp=pick(SPEND.filter(x=>S.spend[x.id]<4)); if(sp)S.spend[sp.id]++; }
   }
+  if(S.treasury>200){                          // излишек не лежит мёртвым грузом
+    S.treasury=r1(S.treasury-45); S.econ.invest+=5;
+    const r=pick(REGIONS); S.rmod[r.id]=clamp(S.rmod[r.id]+2,-22,22);
+    logMsg('Правительство пустило накопленный профицит на стройки в регионе '+R(r.id).name+'.');
+  }
 }
 
 function govBill(){
@@ -1071,6 +1153,84 @@ function govBill(){
     enact(bill);
     logMsg('Правительство провело закон «'+t.name+'» ('+res.yes+':'+res.no+').',1);
   } else logMsg('Правительственный проект «'+t.name+'» провалился ('+res.yes+':'+res.no+').');
+}
+
+/* ─── партии живут своей жизнью ──────────────────────────────── */
+function popularStance(){
+  const pop={};
+  AX.forEach(a=>{ let s=0,w=0;
+    GROUPS.forEach(g=>{ const ww=g.w[a]*(0.4+S.mood[g.id]/100); s+=g.pref[a]*ww; w+=ww; });
+    pop[a]=s/w; });
+  return pop;
+}
+function partiesTick(){
+  const pop=popularStance();
+  S.parties.forEach(p=>{
+    if(p.id===PL)return;
+    const base=(AIPARTIES.find(x=>x.id===p.id)||p);
+    AX.forEach(a=>{                                  // партия чует, куда идёт страна
+      const v=p.st[a]+(pop[a]-p.st[a])*0.035;
+      p.st[a]=r2(clamp(clamp(v,base.st[a]-0.8,base.st[a]+0.8),-2,2));
+    });
+    p.bad=p.mom<-6?(p.bad||0)+1:0;                   // затяжной провал стоит лидеру кресла
+    if(p.bad>=3){
+      p.leader=(Math.random()<0.4?pick(NAME_F)+' '+pick(SURN_F):pick(NAME_M)+' '+pick(SURN_M));
+      p.bad=0; p.mom=r1(p.mom+4);
+      logMsg('Во фракции «'+p.name+'» сменился лидер: теперь это '+p.leader+'.');
+      chron('«'+p.name+'» сменила лидера.','');
+    }
+  });
+}
+function defections(){
+  S.deputies.slice().forEach(d=>{
+    if(d.party===PL&&d.rel<28&&Math.random()<0.07){
+      const to=S.parties.filter(x=>x.id!==PL).sort((a,b)=>axDist(a.st,d.st)-axDist(b.st,d.st))[0];
+      d.party=to.id; S.seats[PL]--; S.seats[to.id]=(S.seats[to.id]||0)+1; d.note='ушёл из вашей фракции';
+      logMsg('Депутат '+d.name+' вышел из фракции и перешёл к «'+to.name+'».',1);
+      chron('Депутат '+d.name+' покинул вашу фракцию.','b');
+    }
+  });
+}
+
+/* ─── внешние потрясения ─────────────────────────────────────── */
+const SHOCKS=[
+  {id:'resdown', w:3, cond:()=>S.world.res>85, make(){ S.world.res=clamp(S.world.res-ri(22,34),45,168);
+    return {eye:'Мировые рынки',title:'Обвал цен на сырьё',
+      body:'<p>Экспортная выручка падает: цены на наше сырьё рухнули до '+Math.round(S.world.res)+' пунктов. Бюджет недосчитается доходов уже в этом квартале.</p>',
+      opts:[{l:'Урезать расходы',h:'быстро и непопулярно',fn(){const sp=SPEND.filter(x=>S.spend[x.id]>0)
+          .sort((a,b)=>S.mood[b.likes[0]||'work']-S.mood[a.likes[0]||'work'])[0];
+          if(sp){S.spend[sp.id]--;logMsg('Статья «'+sp.name+'» урезана из-за падения цен.');}}},
+        {l:'Занять на рынке',h:'долг вырастет',fn(){S.debt=r1(S.debt+40);S.treasury=r1(S.treasury+40);}},
+        {l:'Ничего не менять',h:'дыра сама себя не закроет',fn(){shiftMood('biz',-3);}}]};}},
+  {id:'resup', w:2, cond:()=>S.world.res<118, make(){ S.world.res=clamp(S.world.res+ri(20,32),45,168);
+    return {eye:'Мировые рынки',title:'Сырьевой бум',
+      body:'<p>Цены на наш экспорт взлетели до '+Math.round(S.world.res)+' пунктов. В казну пошли незапланированные деньги.</p>',
+      opts:[{l:'Отложить в казну',h:'подушка на чёрный день',fn(){S.treasury=r1(S.treasury+25);}},
+        {l:'Поднять соцвыплаты',h:'люди заметят сразу',fn(){S.spend.soc=clamp(S.spend.soc+1,0,4);shiftMood('work',4);shiftMood('pens',4);}},
+        {l:'Погасить долг',h:'скучно и правильно',fn(){S.debt=r1(Math.max(0,S.debt-35));shiftMood('biz',3);}}]};}},
+  {id:'slump', w:3, cond:()=>S.world.demand>80, make(){ S.world.demand=clamp(S.world.demand-ri(16,26),55,142);
+    return {eye:'Внешний спрос',title:'Кризис у торговых партнёров',
+      body:'<p>Соседи вошли в спад, заказы на наши товары сокращаются. Внешний спрос упал до '+Math.round(S.world.demand)+' пунктов.</p>',
+      opts:[{l:'Поддержать заводы · 18 млрд',h:'рабочие места дороже дефицита',fn(){payGold(18);shiftMood('work',4);S.econ.invest+=6;}},
+        {l:'Открыть новые рынки',h:'даст эффект не сразу',fn(){later(3,'newMarkets',{});shiftMood('biz',2);}},
+        {l:'Переждать',h:'бесплатно',fn(){S.econ.unemp=r1(S.econ.unemp+0.6);shiftMood('work',-3);}}]};}},
+  {id:'boom', w:2, cond:()=>S.world.demand<120, make(){ S.world.demand=clamp(S.world.demand+ri(14,24),55,142);
+    return {eye:'Внешний спрос',title:'Заказы из-за рубежа',
+      body:'<p>Партнёры наращивают закупки: внешний спрос вырос до '+Math.round(S.world.demand)+' пунктов. Заводы просят разрешить сверхурочные.</p>',
+      opts:[{l:'Разрешить',h:'рост сейчас, усталость потом',fn(){S.econ.growth=r2(S.econ.growth+0.5);shiftMood('biz',3);shiftMood('work',-2);}},
+        {l:'Держать нормы',h:'профсоюзы оценят',fn(){shiftMood('work',4);shiftMood('biz',-2);}}]};}},
+];
+function worldShock(){
+  if(S.shockCool>0){S.shockCool--;return;}
+  if(Math.random()>0.16)return;
+  const pool=SHOCKS.filter(x=>x.cond());
+  if(!pool.length)return;
+  const bag=[];pool.forEach(e=>{for(let i=0;i<e.w;i++)bag.push(e);});
+  const m=pick(bag).make();
+  S.shockCool=3;
+  logMsg(m.title+'.',1);
+  sheetOpen({eye:m.eye,title:m.title,body:m.body,
+    opts:m.opts.map(o=>({label:o.l,hint:o.h,fn:()=>{o.fn();render();}}))});
 }
 
 /* ─── события ────────────────────────────────────────────────── */
@@ -1163,6 +1323,94 @@ const EVENTS=[
           const to=pick(S.parties.filter(p=>p.id!==PL));
           d.party=to.id;S.seats[PL]--;S.seats[to.id]=(S.seats[to.id]||0)+1;
           logMsg('Депутат '+d.name+' перешёл в «'+to.name+'».');}}]};}},
+
+  {id:'court', w:2, cond:()=>S.laws.some(l=>Math.abs(l.stance)>1), make(){
+    const l=pick(S.laws.filter(x=>Math.abs(x.stance)>1));
+    return {eye:'Конституционный суд', title:'Иск против закона «'+l.name+'»',
+      body:'<p>Группа депутатов оспорила закон в суде: слишком резкая редакция, говорят они. Суд запросил позицию правительства.</p>',
+      opts:[
+        {l:'Отстаивать закон · 9 веса',h:'если проиграете, отменят целиком',fn(){
+          if(!payCap(9))return;
+          if(Math.random()<0.62){ addCap(6); shiftMood('patr',2);
+            logMsg('Суд оставил закон «'+l.name+'» в силе.',1); }
+          else { S.laws=S.laws.filter(x=>x.no!==l.no); shiftAll(-2.5);
+            logMsg('Суд отменил закон «'+l.name+'».',1); chron('Суд отменил закон «'+l.name.toLowerCase()+'».','b'); }}},
+        {l:'Смягчить самим',h:'сила закона падает вдвое',fn(){
+          Object.keys(l.sum).forEach(k=>{ if(typeof l.sum[k]==='number')l.sum[k]=r2(l.sum[k]/2); });
+          Object.keys(l.sum.gr||{}).forEach(k=>l.sum.gr[k]=r2(l.sum.gr[k]/2));
+          l.stance=l.stance>0?1:-1; shiftMood('intel',2);
+          logMsg('Закон «'+l.name+'» переписан в мягкой редакции.');}},
+        {l:'Не вмешиваться',h:'пусть решают судьи',fn(){
+          if(Math.random()<0.5){ S.laws=S.laws.filter(x=>x.no!==l.no); shiftAll(-1.5);
+            logMsg('Суд отменил закон «'+l.name+'» без сопротивления правительства.',1); }
+          else logMsg('Суд не нашёл нарушений в законе «'+l.name+'».');}}]};}},
+
+  {id:'chair', w:2, cond:()=>Object.keys(S.comm||{}).length>0, make(){
+    const ax=pick(Object.keys(S.comm));
+    const d=S.deputies.find(x=>x.id===S.comm[ax]);
+    if(!d)return {eye:'Комитеты',title:'Место председателя свободно',
+      body:'<p>Профильный комитет остался без руководителя.</p>',opts:[{l:'Принять к сведению',h:'',fn(){}}]};
+    return {eye:'Комитет по теме «'+AXNAME[ax]+'»', title:'Председатель торгуется',
+      body:'<p>'+d.name+' ('+P(d.party).short+') намекает, что комитет работает тяжело, а благодарности не видно.</p>',
+      opts:[
+        {l:'Дать денег округу · 8 млрд',h:'дёшево и надёжно',fn(){ if(!payGold(8))return;
+          d.rel=clamp(d.rel+14,0,100); S.rmod[d.region]=clamp(S.rmod[d.region]+1.5,-22,22);}},
+        {l:'Пообещать на будущее',h:'бесплатно, но помнить будет',fn(){ later(4,'promiseChair',{id:d.id,name:d.name});}},
+        {l:'Снять с комитета',h:'обидится он и его фракция',fn(){ delete S.comm[ax];
+          d.rel=clamp(d.rel-18,0,100);
+          S.deputies.filter(x=>x.party===d.party).forEach(x=>x.rel=clamp(x.rel-3,0,100));}}]};}},
+
+  {id:'region', w:3, cond:()=>REGIONS.some(r=>S.unrest[r.id]>36), make(){
+    const r=pick(REGIONS.filter(x=>S.unrest[x.id]>36));
+    return {eye:'Регион · '+r.cap, title:'Субъект выходит из берегов',
+      body:'<p>В '+r.cap+' напряжённость дошла до '+Math.round(S.unrest[r.id])+'. Местные требуют денег и внимания, часть депутатов от региона поддерживает их публично.</p>',
+      opts:[
+        {l:'Экстренный транш · 16 млрд',h:'сбивает волну, но не причину',fn(){ if(!payGold(16))return;
+          S.unrest[r.id]=clamp(S.unrest[r.id]-18,0,100); S.rmod[r.id]=clamp(S.rmod[r.id]+3,-22,22);
+          later(3,'moneyGone',{r:r.id});}},
+        {l:'Отправить полицию',h:'порядок ценой доверия',fn(){
+          S.unrest[r.id]=clamp(S.unrest[r.id]-11,0,100); S.rmod[r.id]=clamp(S.rmod[r.id]-4,-22,22);
+          shiftMood('patr',3); shiftMood('intel',-4); shiftMood('youth',-3);}},
+        {l:'Пообещать автономию',h:'центру это не понравится',fn(){
+          S.unrest[r.id]=clamp(S.unrest[r.id]-14,0,100);
+          S.deputies.filter(d=>d.region===r.id).forEach(d=>d.rel=clamp(d.rel+9,0,100));
+          shiftMood('patr',-5); later(4,'autonomy',{r:r.id});}}]};}},
+
+  {id:'leak', w:2, cond:()=>S.deputies.some(d=>d.deals>1), make(){
+    const d=pick(S.deputies.filter(x=>x.deals>1));
+    return {eye:'Пресса', title:'Газеты пишут о торговле голосами',
+      body:'<p>Журналисты сопоставили ваши встречи с депутатом '+d.name+' и его голосования. Вывод очевиден любому читателю.</p>',
+      opts:[
+        {l:'Всё отрицать',h:'сработает, если поверят',fn(){
+          if(Math.random()<0.5){shiftAll(-1);} else {shiftAll(-3.5);addCap(-6);
+            chron('Скандал вокруг торговли голосами.','b');}}},
+        {l:'Признать и объяснить',h:'честно и невыгодно',fn(){shiftAll(-2);shiftMood('intel',3);addCap(-2);}},
+        {l:'Свалить на депутата',h:'он этого не простит',fn(){shiftAll(-1);d.rel=clamp(d.rel-30,0,100);
+          S.deputies.filter(x=>x.party===d.party).forEach(x=>x.rel=clamp(x.rel-5,0,100));}}]};}},
+
+  {id:'union', w:2, cond:()=>S.mood.work<44&&S.econ.unemp>8, make:()=>({eye:'Профсоюзы',title:'Требование всеобщей стачки',
+    body:'<p>Федерация профсоюзов грозит остановить транспорт и заводы по всей стране, если не будет индексации.</p>',
+    opts:[
+      {l:'Сесть за стол',h:'уступки в обмен на тишину',fn(){ S.spend.soc=clamp(S.spend.soc+1,0,4);
+        shiftMood('work',7); shiftMood('biz',-4); }},
+      {l:'Объявить стачку незаконной',h:'жёстко и рискованно',fn(){
+        shiftMood('work',-8); shiftMood('patr',3); shiftMood('intel',-4);
+        REGIONS.forEach(r=>S.unrest[r.id]=clamp(S.unrest[r.id]+7,0,100)); later(2,'strikeAfter',{r:pick(REGIONS).id});}},
+      {l:'Тянуть время',h:'ничего не решает',fn(){ shiftMood('work',-3); later(2,'unionBack',{});}}]})},
+
+  {id:'gift', w:2, cond:()=>S.mood.biz>52, make:()=>({eye:'Партийная касса',title:'Крупное пожертвование',
+    body:'<p>Промышленная группа предлагает 45 млн в кассу партии. Без условий, разумеется, — просто симпатия к вашему курсу.</p>',
+    opts:[
+      {l:'Взять',h:'деньги нужны, вопросы потом',fn(){ S.funds=r1(S.funds+45); later(4,'giftLeak',{}); }},
+      {l:'Взять и объявить публично',h:'меньше денег, чище руки',fn(){ S.funds=r1(S.funds+45);
+        shiftMood('intel',2); shiftMood('work',-2); }},
+      {l:'Отказаться',h:'дорого стоит',fn(){ shiftMood('intel',4); shiftMood('biz',-4); addCap(3); }}]})},
+
+  {id:'poll', w:1, cond:()=>true, make:()=>({eye:'Социология',title:'Утечка чужого опроса',
+    body:'<p>В прессу попал опрос, заказанный не вами. Цифры расходятся с тем, что докладывает ваш штаб.</p>',
+    opts:[
+      {l:'Заказать свой немедленно',h:'9 млн из кассы',fn(){ if(payFunds(9))S.poll=S.q; }},
+      {l:'Игнорировать',h:'',fn(){ shiftAll(-0.8); }}]})},
 ];
 function fireEvent(){
   if(S.ev.cool>0){S.ev.cool--;return;}
@@ -1176,6 +1424,26 @@ function fireEvent(){
 }
 function later(n,key,data){ S.pending.push({at:S.q+n,key,data}); }
 const AFTER={
+  newMarkets(){ S.world.demand=clamp(S.world.demand+14,55,142); shiftMood('biz',3);
+    return 'Новые рынки сбыта открылись: внешний спрос отчасти восстановлен.'; },
+  promiseChair(d){ const x=S.deputies.find(y=>y.id===d.id);
+    if(x){ x.rel=clamp(x.rel-16,0,100); x.note='не дождался обещанного'; }
+    return 'Председатель комитета '+d.name+' так и не дождался обещанного.'; },
+  moneyGone(d){ if(Math.random()<0.45){ S.unrest[d.r]=clamp(S.unrest[d.r]+12,0,100); shiftAll(-1.5);
+      return 'Транш региону '+R(d.r).name+' разошёлся неизвестно куда.'; }
+    S.rmod[d.r]=clamp(S.rmod[d.r]+2,-22,22);
+    return 'Деньги, отправленные в '+R(d.r).name+', дошли до строек.'; },
+  autonomy(d){ S.deputies.filter(x=>x.region===d.r).forEach(x=>x.rel=clamp(x.rel-12,0,100));
+    shiftMood('patr',-2);
+    return 'Обещанной автономии регион '+R(d.r).name+' не увидел.'; },
+  unionBack(){ shiftMood('work',-5); REGIONS.forEach(r=>S.unrest[r.id]=clamp(S.unrest[r.id]+5,0,100));
+    return 'Профсоюзы вернулись к требованиям, теперь жёстче.'; },
+  giftLeak(){ if(Math.random()<0.55){ shiftAll(-3); addCap(-7);
+      return 'Пресса раскопала происхождение пожертвования в кассу партии.'; }
+    return ''; },
+  probe(d){ if(Math.random()<0.5){ shiftMood('intel',4); shiftMood('urban',3); addCap(5);
+      return 'Комиссия по делу «'+d.t+'» довела расследование до конца.'; }
+    shiftAll(-2); return 'Комиссия по делу «'+d.t+'» тихо самораспустилась.'; },
   strikeAfter(d){ S.unrest[d.r]=clamp(S.unrest[d.r]+14,0,100); shiftMood('work',-4);
     return 'Забастовка в '+R(d.r).cap+' переросла в затяжной конфликт.'; },
   freezeAfter(){ S.econ.inf=r1(S.econ.inf+3.2); shiftMood('biz',-3); shiftMood('urban',-3);
@@ -1217,9 +1485,12 @@ function endQuarter(){
     const opp=!inCoal(p.id);
     p.mom=r1(clamp(p.mom*0.84+(opp?(48-going)*0.10:(going-48)*0.05),-14,14)); });
   partnersTick();
+  partiesTick();
+  defections();
   pendingTick();
   if(!isPM()){govBill();aiBudget();}
   else if(Math.random()<0.35)oppositionBill();
+  worldShock();
   fireEvent();
 
   logMsg('Квартал закрыт. Бюджет '+sign(bal)+' млрд, в казне '+Math.round(S.treasury)+' млрд.');
@@ -1308,7 +1579,8 @@ function partyScore(p,r){
   const mine=p.id===PL?coreGroups(me().st):null;
   GROUPS.forEach(g=>{
     let a;
-    if(p.id===PL) a=fitOf(G(g.id),me().st)*0.62+approvalIn(g.id,r.id)*0.40+campBoost(g.id,r.id)
+    // у вас идеология работает вместе с делами: провал в глазах группы стоит мандатов
+    if(p.id===PL) a=fitOf(G(g.id),me().st)*0.55+30+(approvalIn(g.id,r.id)-50)*1.15+campBoost(g.id,r.id)
                       +(isPM()?(stateOfThings()-48)*0.22:incumbencySwing(PL))+(mine.indexOf(g.id)>=0?7:0);
     else{
       a=fitOf(G(g.id),p.st)*0.92+p.mom*1.2+incumbencySwing(p.id);
@@ -1641,6 +1913,7 @@ function tabBrief(){
     ['address','Обращение к нации','6 веса · плюс одной группе, минус её противникам'],
     ['fundraise','Сбор средств','деньги в партийную кассу, интеллигенция морщится'],
     ['poll','Заказать социологию','9 млн · точные цифры вместо оценок'],
+    ['whip','Работа с колеблющимися','11 веса · разом обработать всех сомневающихся по проекту'],
   ];
   const partners=coalition().filter(x=>x!==PL).map(id=>{
     const st=S.partners[id]||{anger:0};
@@ -1658,6 +1931,8 @@ function tabBrief(){
       <div class="kv"><span>Инфляция · безработица</span><b>${S.econ.inf}% · ${S.econ.unemp}%</b></div>
       <div class="kv"><span>Напряжённость</span><b>${Math.round(avgUnrest())} · ${unrestWord(avgUnrest())}</b></div>
       <div class="kv"><span>Государственный долг</span><b class="${S.debt>300?'neg':''}">${Math.round(S.debt)} млрд</b></div>
+      <div class="kv"><span>Хозяйственный цикл</span><b class="w">${cyclePhase()}${S.rec>1?' · рецессия':''}</b></div>
+      <div class="kv"><span>Внешний спрос · сырьё</span><b>${Math.round(S.world.demand)} · ${Math.round(S.world.res)}</b></div>
     </div></div>
     <div class="sh"><div class="hd"><h2>Собрание</h2><span class="note">большинство — ${MAJ}</span></div><div class="bd">
       ${bar(S.parties.slice().sort((x,y)=>(inCoal(y.id)?1:0)-(inCoal(x.id)?1:0)).map(p=>
@@ -1766,6 +2041,7 @@ function tabBill(){
         <tbody>${byParty}</tbody></table>
       <div class="brow" style="margin-top:10px">
         <button class="b p" onclick="submitBill()" ${S.ap&&S.cap>=8?'':'disabled'}>Внести на голосование</button>
+        <button class="b" data-act="whip" ${S.ap&&S.cap>=11&&tl.und?'':'disabled'}>Обработать колеблющихся · 11</button>
         <button class="b" data-go="parl">Работать с депутатами</button>
         <button class="b d" onclick="S.bill=null;render()">Отозвать</button></div>
     </div></div>
@@ -1843,6 +2119,18 @@ function tabParl(){
       <div class="hint" style="margin-top:7px">Показаны ${Math.min(26,deps.length)} из ${deps.length}. Дисциплина — насколько депутат идёт за своей фракцией; отношение — как он относится лично к вам.</div>
     </div></div>
 
+  <div class="sh"><div class="hd"><h2>Комитеты</h2>
+      <span class="note">председатель ведёт за собой однопартийцев</span></div><div class="bd">
+    <table class="tight"><thead><tr><th>Комитет</th><th>Председатель</th><th>Фракция</th><th></th></tr></thead><tbody>
+    ${AXES.map(a=>{const id=S.comm[a.id], d=id?S.deputies.find(x=>x.id===id):null;
+      return `<tr><td><b>${a.name}</b></td>
+        <td>${d?d.name:'<span class="dim">вакансия</span>'}</td>
+        <td>${d?chip(P(d.party)):''}</td>
+        <td class="r"><button class="b sm" onclick="askChair('${a.id}')" ${S.ap&&S.cap>=6?'':'disabled'}>${d?'Заменить':'Назначить'}</button></td></tr>`;}).join('')}
+    </tbody></table>
+    <p class="hint" style="margin-top:7px">Комитет по теме законопроекта прибавляет голоса фракции своего председателя — и отнимает, если она против. Назначение стоит действие и 6 веса, снятый председатель обижается.</p>
+  </div></div>
+
   <div class="sh"><div class="hd"><h2>Прошедшие голосования</h2></div><div class="bd">
     <table class="tight"><tbody>${votes}</tbody></table></div></div>`;
 }
@@ -1858,8 +2146,20 @@ function openDep(id){
         ${b?`<span>По проекту «${T(b.topic).name}»</span><b class="${v>8?'pos':v<-8?'neg':''}">${v>8?'за':v<-8?'против':'колеблется'}</b>`:''}
       </div>
       <p class="hint">Взгляды: ${AXES.map(a=>a.name.toLowerCase()+' '+STEP[Math.round(d.st[a.id])+2]).join(', ')}.</p>`,
-    opts:LOBBY.map(l=>({label:l.name+' · '+(l.cap?l.cap+' веса':l.gold+' млрд'),hint:l.txt,
-      fn:()=>lobby(d.id,l.id)}))});
+    opts:LOBBY.filter(l=>!l.need||l.need(d)).map(l=>({
+      label:l.name+' · '+[l.cap?l.cap+' веса':'',l.gold?l.gold+' млрд':''].filter(Boolean).join(' и '),
+      hint:l.txt, fn:()=>lobby(d.id,l.id)}))});
+}
+
+function askChair(ax){
+  const cand=S.deputies.slice()
+    .sort((a,b)=>(Math.abs(a.st[ax]-me().st[ax])-Math.abs(b.st[ax]-me().st[ax]))+(b.rel-a.rel)*0.01)
+    .slice(0,10);
+  sheetOpen({eye:'Комитет по теме «'+AXNAME[ax]+'» · 1 действие и 6 веса',title:'Кого поставить',
+    body:'<p class="lead">Председатель тянет за собой свою фракцию, когда Собрание рассматривает проекты по этой теме. Список отсортирован по близости взглядов к вашим.</p>',
+    opts:cand.map(d=>({label:d.name+' · '+P(d.party).short,
+      hint:'позиция '+STEP[Math.round(d.st[ax])+2]+' · отношение '+Math.round(d.rel)+' · '+R(d.region).name,
+      fn:()=>setChair(ax,d.id)}))});
 }
 
 /* ─── 4. Бюджет ──────────────────────────────────────────────── */
@@ -1902,6 +2202,15 @@ function tabBudget(){
         <div class="kv"><span>Налоговая нагрузка</span><b>${r1(taxLoad())} из 4</b></div></div>
     </div>
     <p class="hint" style="margin-top:9px">Дефицит уходит в долг и разгоняет инфляцию. Профицит выше 90 млрд автоматически идёт на погашение.</p>
+  </div></div>
+  <div class="sh"><div class="hd"><h2>Конъюнктура</h2><span class="note">на это вы не влияете</span></div><div class="bd">
+    <div class="grid2">
+      <div><div class="kv"><span>Фаза цикла</span><b class="w">${cyclePhase()}</b></div>
+        <div class="kv"><span>Внешний спрос</span><b class="${S.world.demand<90?'neg':S.world.demand>110?'pos':''}">${Math.round(S.world.demand)}</b></div></div>
+      <div><div class="kv"><span>Цены на сырьё</span><b class="${S.world.res<90?'neg':S.world.res>110?'pos':''}">${Math.round(S.world.res)}</b></div>
+        <div class="kv"><span>Сырьевые доходы</span><b class="${resIncome()<0?'neg':'pos'}">${sign(resIncome())} млрд</b></div></div>
+    </div>
+    <p class="hint" style="margin-top:8px">Цикл идёт сам: подъём сменяется охлаждением независимо от вашей политики. Внешний спрос тянет заводы, цены на сырьё — казну и инфляцию.</p>
   </div></div>
   <div class="sh"><div class="hd"><h2>Портфели</h2><span class="note">отданный портфель покупает голоса фракции</span></div><div class="bd">
     <table class="tight"><tbody>${POSTS.map(p=>{
@@ -2109,6 +2418,7 @@ function tabArch(){
       ${spark('ap','#94271F','Одобрение, %',v=>Math.round(v)+'%')}
       ${spark('seats','#28496F','Мандаты фракции')}
       ${spark('gdp','#2A6144','ВВП, индекс')}
+      ${spark('gr','#17706B','Рост ВВП, %',v=>sign(v)+'%')}
       ${spark('inf','#9A7211','Инфляция, %')}
       ${spark('un','#6B4A1E','Безработица, %')}
       ${spark('debt','#5C3A6E','Долг, млрд')}
