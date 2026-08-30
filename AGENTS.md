@@ -6,12 +6,15 @@ Guidance for AI coding agents (Claude Code, Codex, Warp, etc.) working in this r
 
 A portable agent skill implemented entirely as Markdown. The runtime artifact is `SKILL.md`: the agent reads its YAML frontmatter (metadata + allowed tools) followed by the editor prompt. There is no build step and no code to run, and the repo should avoid wording that limits support to one or two harnesses.
 
+The `game/` directory is separate from the skill: a standalone browser game in a single HTML file. It shares nothing with `SKILL.md` — changes on one side never require changes on the other.
+
 ## Key files
 
 - `SKILL.md` — the skill itself. YAML frontmatter (`name`, `version`, `description`, `compatibility`, `allowed-tools`) followed by the canonical, numbered pattern list with before/after examples. **This is the source of truth.**
 - `README.md` — for humans: installation, usage, a summary table of the patterns, and a version history.
 - `.claude-plugin/plugin.json` — optional Claude Code plugin manifest.
 - `.claude-plugin/marketplace.json` — optional single-repo marketplace entry so `/plugin marketplace add blader/humanizer` works.
+- `game/index.html` — «Кабинет», a browser game unrelated to the skill. Styles and logic live in that one file; see `game/README.md`.
 
 ## The maintenance contract
 
