@@ -8,221 +8,311 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=PT+Sans+Narrow:wght@400;700&family=PT+Sans:ital,wght@0,400;0,700;1,400&family=PT+Serif:wght@700&family=PT+Mono&display=swap" rel="stylesheet">
 <style>
+/* ═══════════════════════════════════════════════════════════════
+   NOVARIA UI · токены. Полное описание системы — в game/ui.html.
+   Здесь те же значения; менять их следует сначала там.
+   ═══════════════════════════════════════════════════════════════ */
 :root{
-  --paper:#E4DED0; --sheet:#FAF7EF; --sheet2:#F1ECE0; --band:#1D1A15;
-  --ink:#191510; --ink2:#57503f; --ink3:#8b8371;
-  --rule:#C7BEA8; --rule2:#DED6C3;
-  --red:#94271F; --green:#2A6144; --blue:#28496F; --gold:#9A7211; --violet:#5C3A6E;
-  --hl:#EFE7D2;
+  --bg:#E3DDCE; --surface:#FBF8F1; --surface-2:#F2EDE1; --surface-3:#E9E2D2;
+  --band:#1B1813; --band-2:#2E2820;
+  --ink:#17130E; --ink-2:#554E3F; --ink-3:#8A8271; --ink-inv:#F2ECDC; --ink-inv-2:#A99C7C;
+  --line:#C6BCA4; --line-2:#DCD4C0;
+  --act:#17130E; --mark:#8A5A0E; --bad:#93261E; --good:#2C6547; --info:#23456B;
+  --mark-bg:#F1E7CE; --bad-bg:#F5E3DF; --good-bg:#E2EDE4;
+  --p1:#9A7211; --p2:#93261E; --p3:#23456B; --p4:#14675F; --p5:#4C6A22; --p6:#5A3868;
+  --x1:2px; --x2:4px; --x3:6px; --x4:8px; --x5:12px; --x6:16px; --x7:20px; --x8:24px; --x9:32px; --x10:40px;
+  --hair:1px solid var(--line); --hair-2:1px solid var(--line-2); --rule:3px solid var(--mark);
+  --shadow:0 14px 40px rgba(20,16,10,.34);
+  --f-display:'PT Serif',Georgia,serif; --f-text:'PT Sans',system-ui,sans-serif;
+  --f-cond:'PT Sans Narrow',sans-serif; --f-num:'PT Mono',ui-monospace,monospace;
+  --t-fast:90ms; --t:150ms; --t-slow:240ms; --ease:cubic-bezier(.2,.7,.3,1);
+  --row:30px; --row-tight:24px; --rail:190px; --page:1380px;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0}
-body{
-  background:var(--paper);color:var(--ink);
-  font:400 14px/1.42 'PT Sans',system-ui,sans-serif;
-  background-image:repeating-linear-gradient(180deg,rgba(0,0,0,.014) 0 1px,transparent 1px 4px);
-  min-height:100vh;
-}
-b,strong{font-weight:700}
-.n{font-family:'PT Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
-.up{font-family:'PT Sans Narrow',sans-serif;text-transform:uppercase;letter-spacing:.09em}
-.pos{color:var(--green)} .neg{color:var(--red)} .dim{color:var(--ink3)}
+body{background:var(--bg);color:var(--ink);font:400 14px/1.45 var(--f-text);
+  background-image:repeating-linear-gradient(180deg,rgba(0,0,0,.013) 0 1px,transparent 1px 4px);
+  min-height:100vh;overscroll-behavior-y:none}
+p{margin:0 0 var(--x4)} p:last-child{margin-bottom:0}
 
-/* ── шапка ───────────────────────────────── */
-#top{position:sticky;top:0;z-index:40;background:var(--band);color:#EDE6D4;
-  display:flex;align-items:stretch;gap:14px;padding:0 12px;border-bottom:3px solid var(--gold);min-height:52px}
-#top .brand{display:flex;align-items:center;gap:9px;padding:6px 0;flex:none}
+/* типографика */
+.t-sec{font:700 12.5px/1.2 var(--f-cond);text-transform:uppercase;letter-spacing:.1em}
+.t-micro,.up{font:400 10px/1.2 var(--f-cond);text-transform:uppercase;letter-spacing:.14em;color:var(--ink-3)}
+.n,.num{font-family:var(--f-num);font-variant-numeric:tabular-nums;letter-spacing:-.03em}
+.num-l{font:400 21px/1 var(--f-num);letter-spacing:-.04em}
+.num-s{font:400 12.5px/1.2 var(--f-num);letter-spacing:-.03em}
+.good,.pos{color:var(--good)} .bad,.neg{color:var(--bad)} .dim{color:var(--ink-3)}
+.lead{font-size:13.5px;color:var(--ink-2)}
+.hint,.note{font-size:12px;line-height:1.4;color:var(--ink-3)}
+h3.sub{font:700 11px var(--f-cond);text-transform:uppercase;letter-spacing:.12em;color:var(--ink-2);
+  margin:var(--x6) 0 var(--x3);padding-bottom:3px;border-bottom:var(--hair-2)}
+h3.sub:first-child{margin-top:0}
+.est{border-bottom:1px dotted var(--ink-3);cursor:help}
+
+/* ── шапка ─────────────────────────────────────────────────── */
+#top{position:sticky;top:0;z-index:40;background:var(--band);color:var(--ink-inv);
+  display:flex;align-items:stretch;border-bottom:var(--rule);min-height:52px}
+#top .brand{display:flex;align-items:center;gap:9px;padding:6px var(--x5);flex:none}
 #top .brand img{width:26px;height:29px;display:block;filter:saturate(.2) brightness(1.6)}
-#top .brand b{font:700 15px/1.05 'PT Serif',serif;letter-spacing:.06em;display:block}
-#top .brand span{font:400 9.5px/1.2 'PT Sans Narrow',sans-serif;text-transform:uppercase;letter-spacing:.14em;color:#A99C7C}
-#strip{margin-left:auto;display:flex;align-items:stretch;overflow-x:auto;scrollbar-width:none}
+#top .brand b{font:700 15px/1.05 var(--f-display);letter-spacing:.06em;display:block}
+#top .brand span{font:400 9.5px/1.2 var(--f-cond);text-transform:uppercase;letter-spacing:.14em;color:var(--ink-inv-2)}
+#strip{margin-left:auto;display:flex;overflow-x:auto;scrollbar-width:none}
 #strip::-webkit-scrollbar{display:none}
-.sv{padding:7px 13px;border-left:1px solid #3a352a;display:flex;flex-direction:column;justify-content:center;min-width:74px;flex:none}
-.sv i{font:400 9px/1.2 'PT Sans Narrow',sans-serif;text-transform:uppercase;letter-spacing:.12em;color:#A99C7C;font-style:normal}
-.sv b{font-family:'PT Mono',monospace;font-size:15px;font-weight:400;color:#F3ECD9;letter-spacing:-.03em;white-space:nowrap}
-.sv b.warn{color:#E5A24A} .sv b.bad{color:#DE7B6C} .sv b.good{color:#8FC0A0}
+.sv{padding:6px 13px;border-left:1px solid var(--band-2);display:flex;flex-direction:column;
+  justify-content:center;min-width:76px;flex:none}
+.sv i{font:400 9px var(--f-cond);text-transform:uppercase;letter-spacing:.12em;color:var(--ink-inv-2);font-style:normal}
+.sv b{font:400 15px var(--f-num);letter-spacing:-.03em;color:var(--ink-inv);white-space:nowrap}
+.sv b.warn{color:#E0A24C} .sv b.bad{color:#DE8375} .sv b.good{color:#8FC0A0}
+.sv.act{background:var(--band-2);box-shadow:inset 0 -3px 0 var(--mark)}
 
-/* ── каркас ──────────────────────────────── */
-#shell{display:flex;align-items:flex-start;gap:0;max-width:1360px;margin:0 auto}
-#side{position:sticky;top:52px;width:186px;flex:none;padding:10px 0 40px;
-  border-right:1px solid var(--rule);min-height:calc(100vh - 52px);background:rgba(255,255,255,.22)}
-.navb{display:flex;align-items:baseline;gap:7px;width:100%;text-align:left;background:none;border:0;
-  border-left:3px solid transparent;padding:7px 12px 7px 13px;cursor:pointer;color:var(--ink2);
-  font:400 13px 'PT Sans Narrow',sans-serif;text-transform:uppercase;letter-spacing:.08em}
-.navb:hover{background:var(--hl);color:var(--ink)}
-.navb.on{background:var(--sheet);border-left-color:var(--red);color:var(--ink);font-weight:700}
-.navb u{margin-left:auto;text-decoration:none;font-family:'PT Mono',monospace;font-size:11px;letter-spacing:-.03em;color:var(--ink3)}
-.navb.on u{color:var(--red)}
-.navsec{font:400 9.5px 'PT Sans Narrow',sans-serif;text-transform:uppercase;letter-spacing:.16em;color:var(--ink3);
-  padding:14px 13px 5px;border-bottom:1px solid var(--rule2);margin-bottom:4px}
-#view{flex:1;min-width:0;padding:14px 16px 90px}
+/* ── каркас ────────────────────────────────────────────────── */
+#shell{display:flex;align-items:flex-start;max-width:var(--page);margin:0 auto}
+#side{position:sticky;top:52px;width:var(--rail);flex:none;padding:var(--x4) 0 var(--x10);
+  border-right:var(--hair);min-height:calc(100vh - 52px);background:rgba(255,255,255,.2)}
+.navsec{font:400 9.5px var(--f-cond);text-transform:uppercase;letter-spacing:.16em;color:var(--ink-3);
+  padding:var(--x4) var(--x5) var(--x2);border-bottom:var(--hair-2);margin-bottom:var(--x2)}
+.nav{display:flex;align-items:baseline;gap:7px;width:100%;text-align:left;background:none;border:0;
+  border-left:3px solid transparent;padding:6px var(--x5);cursor:pointer;color:var(--ink-2);
+  font:400 13px var(--f-cond);text-transform:uppercase;letter-spacing:.08em;
+  transition:background var(--t-fast) var(--ease)}
+.nav:hover{background:var(--mark-bg);color:var(--ink)}
+.nav.on{background:var(--surface);border-left-color:var(--mark);color:var(--ink);font-weight:700}
+.nav u{margin-left:auto;text-decoration:none;font:400 11px var(--f-num);color:var(--ink-3)}
+.nav.on u{color:var(--mark)}
+.nav .dot{width:6px;height:6px;background:var(--bad);display:inline-block;margin-left:5px}
+#view{flex:1;min-width:0;padding:var(--x5) var(--x6) 90px}
 
-/* ── листы и заголовки ───────────────────── */
-.sh{background:var(--sheet);border:1px solid var(--rule);margin-bottom:12px}
-.sh>.hd{display:flex;align-items:center;gap:10px;padding:7px 11px;border-bottom:1px solid var(--rule);
-  background:var(--sheet2)}
-.sh>.hd h2{margin:0;font:700 12.5px 'PT Sans Narrow',sans-serif;text-transform:uppercase;letter-spacing:.1em}
-.sh>.hd .note{margin-left:auto;font-size:11.5px;color:var(--ink3);text-align:right}
-.sh>.bd{padding:11px}
-.sh.acc{border-top:3px solid var(--red)}
-.sh.accg{border-top:3px solid var(--green)}
-.sh.accb{border-top:3px solid var(--blue)}
-.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
-.cols3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;align-items:start}
-h3.rule{font:700 11px 'PT Sans Narrow',sans-serif;text-transform:uppercase;letter-spacing:.12em;color:var(--ink2);
-  margin:14px 0 6px;padding-bottom:3px;border-bottom:1px solid var(--rule2)}
-h3.rule:first-child{margin-top:0}
-p{margin:0 0 8px} p:last-child{margin-bottom:0}
-.lead{font-size:13.5px;color:var(--ink2)}
-.hint{font-size:12px;color:var(--ink3);line-height:1.4}
-.pin{border-left:3px solid var(--gold);background:#F3EBD6;padding:8px 10px;font-size:13px;margin-bottom:10px}
-.pin b{font:700 10px 'PT Sans Narrow',sans-serif;text-transform:uppercase;letter-spacing:.12em;display:block;color:var(--ink2)}
+/* ── панели ────────────────────────────────────────────────── */
+.panel{background:var(--surface);border:var(--hair);margin-bottom:var(--x5)}
+.panel>header{display:flex;align-items:center;gap:var(--x4);padding:6px var(--x5);
+  background:var(--surface-2);border-bottom:var(--hair)}
+.panel>header h4{margin:0;font:700 12.5px var(--f-cond);text-transform:uppercase;letter-spacing:.1em}
+.panel>header .meta{margin-left:auto;font-size:11.5px;color:var(--ink-3);text-align:right}
+.panel>.body{padding:var(--x5)}
+.panel>.body.flush{padding:0}
+.panel>footer{padding:var(--x4) var(--x5);border-top:var(--hair);background:var(--surface-2);
+  display:flex;gap:var(--x3);flex-wrap:wrap;align-items:center}
+.panel.lead-p{border-top:var(--rule)}
+.panel.warn{border-top:3px solid var(--bad)}
+.panel.calm{border-top:3px solid var(--good)}
+.panel.info{border-top:3px solid var(--info)}
+.panel.inset{background:var(--surface-3);border-style:dashed}
+.cols{display:grid;gap:var(--x5);align-items:start}
+.c21{grid-template-columns:2fr 1fr} .c11{grid-template-columns:1fr 1fr}
+.c12{grid-template-columns:1fr 2fr} .c111{grid-template-columns:repeat(3,1fr)}
+.grid{display:grid;gap:var(--x4)} .g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:repeat(3,1fr)} .g4{grid-template-columns:repeat(4,1fr)}
+.row,.brow{display:flex;gap:var(--x3);flex-wrap:wrap;align-items:center}
+.pin{border-left:3px solid var(--mark);background:var(--mark-bg);padding:var(--x4) var(--x5);
+  font-size:13px;margin-bottom:var(--x5)}
+.pin.warn{border-left-color:var(--bad);background:var(--bad-bg)}
+.pin b{display:block;font:700 10px var(--f-cond);text-transform:uppercase;letter-spacing:.12em;color:var(--ink-2)}
 
-/* ── таблицы ─────────────────────────────── */
+/* ── кнопки ────────────────────────────────────────────────── */
+.btn,.b{font:400 12.5px var(--f-cond);text-transform:uppercase;letter-spacing:.08em;
+  background:var(--surface);color:var(--ink);border:1px solid var(--ink-2);padding:5px 12px;cursor:pointer;
+  transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease)}
+.btn:hover,.b:hover{background:var(--ink);color:var(--ink-inv)}
+.btn:active,.b:active{transform:translate(1px,1px)}
+.btn:focus-visible,.b:focus-visible{outline:2px solid var(--mark);outline-offset:1px}
+.btn.pri,.b.p{background:var(--act);color:var(--ink-inv);border-color:var(--act)}
+.btn.pri:hover,.b.p:hover{background:#000}
+.btn.danger,.b.d{border-color:var(--bad);color:var(--bad)}
+.btn.danger:hover,.b.d:hover{background:var(--bad);color:#fff}
+.btn.ghost{border-color:var(--line);color:var(--ink-2)}
+.btn.ghost:hover{background:var(--surface-2);color:var(--ink)}
+.btn.sel,.b.on{background:var(--mark);border-color:var(--mark);color:#fff}
+.btn[disabled],.b[disabled]{background:var(--surface-2);border-color:var(--line);color:var(--ink-3);cursor:not-allowed}
+.btn[disabled]:active,.b[disabled]:active{transform:none}
+.btn.sm,.b.sm{font-size:11px;padding:3px 8px}
+.btn.lg{font-size:14px;padding:9px 18px}
+.btn.block,.b.wide{display:block;width:100%;text-align:center}
+.btn .cost{font-family:var(--f-num);font-size:11px;opacity:.75;margin-left:6px}
+
+/* ── таблицы ───────────────────────────────────────────────── */
 table{width:100%;border-collapse:collapse;font-size:13px}
-th{font:700 9.5px 'PT Sans Narrow',sans-serif;text-transform:uppercase;letter-spacing:.11em;color:var(--ink2);
-  text-align:left;padding:4px 7px;border-bottom:1px solid var(--rule);white-space:nowrap;background:var(--sheet2)}
-td{padding:5px 7px;border-bottom:1px solid var(--rule2);vertical-align:middle}
-tr:last-child td{border-bottom:none}
-tbody tr:hover{background:var(--hl)}
+th{font:700 9.5px var(--f-cond);text-transform:uppercase;letter-spacing:.11em;color:var(--ink-2);
+  text-align:left;padding:4px 7px;background:var(--surface-2);border-bottom:var(--hair);white-space:nowrap}
+td{padding:0 7px;height:var(--row);border-bottom:var(--hair-2);vertical-align:middle}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:var(--mark-bg)}
+tr.sel td{background:var(--mark-bg);box-shadow:inset 3px 0 0 var(--mark)}
+td.n,th.n,td.num{text-align:right;font-family:var(--f-num);font-size:12.5px;letter-spacing:-.03em;white-space:nowrap}
 td.r,th.r{text-align:right}
-td.num{font-family:'PT Mono',monospace;text-align:right;font-size:12.5px;letter-spacing:-.03em;white-space:nowrap}
-table.tight td,table.tight th{padding:3px 6px}
+table.tight td{height:var(--row-tight);padding:0 6px}
+table.tight th{padding:3px 6px}
+caption{caption-side:bottom;text-align:left;font-size:11.5px;color:var(--ink-3);padding-top:var(--x3)}
 .scrollx{overflow-x:auto}
+.sub2{font-size:11.5px;color:var(--ink-3)}
 
-/* ── кнопки ──────────────────────────────── */
-.b{font:400 12.5px 'PT Sans Narrow',sans-serif;text-transform:uppercase;letter-spacing:.08em;
-  background:var(--sheet);color:var(--ink);border:1px solid var(--ink2);padding:5px 11px;cursor:pointer}
-.b:hover{background:var(--ink);color:var(--sheet)}
-.b:active{transform:translate(1px,1px)}
-.b.p{background:var(--ink);color:var(--sheet);border-color:var(--ink)}
-.b.p:hover{background:#000}
-.b.d{border-color:var(--red);color:var(--red)}
-.b.d:hover{background:var(--red);color:#fff}
-.b.on{background:var(--red);border-color:var(--red);color:#fff}
-.b[disabled]{border-color:var(--rule);color:var(--ink3);background:var(--sheet2);cursor:not-allowed;transform:none}
-.b.sm{font-size:11px;padding:3px 7px}
-.b.wide{width:100%;padding:9px;font-size:14px}
-.brow{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-.b:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
-
-/* ── индикаторы ──────────────────────────── */
-.bar{height:9px;background:var(--rule2);display:flex;position:relative;border:1px solid var(--rule)}
-.bar i{display:block;height:100%}
-.bar .mid{position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--ink)}
-.mini{height:6px;background:var(--rule2);border:1px solid var(--rule);width:70px;display:inline-block;vertical-align:middle}
-.mini i{display:block;height:100%;background:var(--ink2)}
+/* ── индикаторы ────────────────────────────────────────────── */
+.meter,.bar{height:8px;background:var(--surface-3);border:var(--hair);display:flex;position:relative}
+.meter i,.bar i{display:block;height:100%}
+.meter .mid,.bar .mid{position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--ink)}
+.meter.tall{height:15px}
+.mini{display:inline-block;width:60px;height:6px;background:var(--surface-3);border:var(--hair);vertical-align:middle}
+.mini i{display:block;height:100%;background:var(--ink-2)}
+.stat{border:var(--hair);background:var(--surface);padding:var(--x4) var(--x5)}
+.stat .k{font:400 10px var(--f-cond);text-transform:uppercase;letter-spacing:.14em;color:var(--ink-3);white-space:nowrap}
+.stat .v{font:400 21px/1.1 var(--f-num);letter-spacing:-.04em;margin-top:2px}
+.stat .v u{text-decoration:none;font:400 11px var(--f-text);color:var(--ink-3);margin-left:3px}
+.stat .d{font-size:11.5px;color:var(--ink-3);margin-top:1px}
+.stat.alert{border-color:#D9B7AF;background:var(--bad-bg)} .stat.alert .v{color:var(--bad)}
 .chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;white-space:nowrap}
-.chip s{width:9px;height:9px;flex:none;display:inline-block;text-decoration:none}
-.tag{font:700 9px 'PT Sans Narrow',sans-serif;text-transform:uppercase;letter-spacing:.1em;
-  border:1px solid currentColor;padding:1px 4px;white-space:nowrap}
-.tag.g{color:var(--green)} .tag.r{color:var(--red)} .tag.b{color:var(--blue)} .tag.y{color:var(--gold)}
-.stamp{display:inline-block;font:700 15px 'PT Sans Narrow',sans-serif;text-transform:uppercase;letter-spacing:.16em;
-  border:2px solid currentColor;padding:4px 12px;transform:rotate(-4deg);opacity:.88;box-shadow:inset 0 0 0 1px currentColor}
-.stamp.y{color:var(--green)} .stamp.n{color:var(--red)}
-.kv{display:flex;justify-content:space-between;gap:12px;padding:4px 0;border-bottom:1px dotted var(--rule);font-size:13px}
+.chip s{width:9px;height:9px;flex:none;text-decoration:none;display:inline-block}
+.tag{display:inline-block;font:700 9px var(--f-cond);text-transform:uppercase;letter-spacing:.1em;
+  border:1px solid currentColor;padding:1px 5px;white-space:nowrap}
+.tag.g{color:var(--good)} .tag.r{color:var(--bad)} .tag.b{color:var(--info)} .tag.y{color:var(--mark)}
+.stamp{display:inline-block;font:700 15px var(--f-cond);text-transform:uppercase;letter-spacing:.16em;
+  border:2px solid currentColor;box-shadow:inset 0 0 0 1px currentColor;padding:4px 13px;
+  transform:rotate(-4deg);opacity:.9}
+.stamp.yes,.stamp.y{color:var(--good)} .stamp.no,.stamp.n{color:var(--bad)}
+.kv{display:flex;justify-content:space-between;gap:var(--x5);padding:4px 0;border-bottom:1px dotted var(--line);font-size:13px}
 .kv:last-child{border-bottom:none}
-.kv b{font-family:'PT Mono',monospace;font-weight:400;letter-spacing:-.03em}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.kv b{font-family:var(--f-num);font-weight:400;letter-spacing:-.03em}
+.res{display:grid;grid-template-columns:1fr auto;gap:3px var(--x6);font-size:13px;
+  border-top:var(--hair-2);border-bottom:var(--hair-2);padding:var(--x4) 0;margin:var(--x4) 0}
+.res b{font-family:var(--f-num);font-weight:400;text-align:right;letter-spacing:-.03em}
+.res b.w{font-family:var(--f-text);font-weight:700}
 
-/* ── шкала позиции ───────────────────────── */
-.ax{margin-bottom:11px}
-.ax .axh{display:flex;justify-content:space-between;font:400 10px 'PT Sans Narrow',sans-serif;
-  text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);margin-bottom:3px}
-.ax .axr{display:flex;gap:2px}
-.ax .axr button{flex:1;height:26px;border:1px solid var(--rule);background:var(--sheet2);cursor:pointer;
-  font:400 11px 'PT Mono',monospace;color:var(--ink3);padding:0}
-.ax .axr button:hover{background:var(--hl)}
-.ax .axr button.on{background:var(--ink);border-color:var(--ink);color:var(--sheet)}
-.ax .now{font-size:11.5px;color:var(--ink2);margin-top:3px}
+/* ── формы и шкалы ─────────────────────────────────────────── */
+input[type=text],select{font:400 14px var(--f-text);background:#fff;border:var(--hair);
+  padding:6px 8px;color:var(--ink);width:100%;border-radius:0}
+input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset:-1px}
+.field{margin-bottom:var(--x5)}
+.field>label{display:block;font:400 10px var(--f-cond);text-transform:uppercase;
+  letter-spacing:.14em;color:var(--ink-2);margin-bottom:3px}
+.ax{margin-bottom:var(--x5)}
+.axh,.scale-l{display:flex;justify-content:space-between;font:400 10px var(--f-cond);
+  text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);margin-bottom:3px}
+.axr,.scale{display:flex;gap:2px}
+.axr button,.scale button{flex:1;height:28px;border:var(--hair);background:var(--surface-2);cursor:pointer;
+  font:400 11px var(--f-num);color:var(--ink-3);transition:background var(--t-fast) var(--ease)}
+.axr button:hover,.scale button:hover{background:var(--mark-bg)}
+.axr button.on,.scale button.on{background:var(--act);border-color:var(--act);color:var(--ink-inv)}
+.steps{display:flex;gap:2px}
+.steps button{width:30px;height:24px;border:var(--hair);background:var(--surface-2);cursor:pointer;
+  font:400 11px var(--f-num);color:var(--ink-3)}
+.steps button:hover{background:var(--mark-bg)}
+.steps button.on{background:var(--mark);border-color:var(--mark);color:#fff}
+.now{font-size:11.5px;color:var(--ink-2);margin-top:3px}
 
-/* ── карта ───────────────────────────────── */
-.mapbox{background:#141C26;border:1px solid var(--rule);padding:4px;max-width:860px;margin:0 auto}
+/* ── политические и экономические блоки ────────────────────── */
+.whip{display:grid;grid-template-columns:repeat(3,1fr);border:var(--hair)}
+.whip div{padding:5px 9px;border-right:var(--hair)}
+.whip div:last-child{border-right:0}
+.whip i{display:block;font:400 9.5px var(--f-cond);text-transform:uppercase;
+  letter-spacing:.12em;color:var(--ink-3);font-style:normal}
+.whip b{font:400 19px var(--f-num);letter-spacing:-.04em}
+.dep{display:flex;align-items:center;gap:var(--x5);padding:5px 0;border-bottom:var(--hair-2)}
+.dep:last-child{border-bottom:0}
+.dep .who{flex:1;min-width:0}
+.dep .who b{display:block;font-size:13.5px}
+.dep .who span{font-size:11.5px;color:var(--ink-3)}
+.hemi{width:100%;display:block;max-height:250px}
+.bline{display:grid;grid-template-columns:1fr 54px 168px;gap:var(--x5);align-items:center;
+  padding:5px 0;border-bottom:var(--hair-2)}
+.bline:last-child{border-bottom:0}
+.bline .who{font-size:11.5px;color:var(--ink-3)}
+.gauge{display:flex;align-items:center;gap:var(--x4);margin-bottom:var(--x4)}
+.gauge:last-child{margin-bottom:0}
+.gauge .track{flex:1;height:8px;background:var(--surface-3);border:var(--hair);position:relative}
+.gauge .track i{position:absolute;top:-3px;width:2px;height:14px;background:var(--ink)}
+.spark{display:block;width:100%;height:46px}
+
+/* ── карта ─────────────────────────────────────────────────── */
+.mapbox{background:#141C26;border:var(--hair);padding:5px;max-width:860px;margin:0 auto}
 .mapsvg{width:100%;display:block}
-.rgn{stroke:#0C1219;stroke-width:1.4;cursor:pointer}
-.rgn:hover{stroke:#F0E6CC;stroke-width:2.4}
+.rgn{stroke:#0C1219;stroke-width:1.4;cursor:pointer;transition:filter var(--t-fast) var(--ease)}
+.rgn:hover{filter:brightness(1.18)}
 .rgn.sel{stroke:#fff;stroke-width:2.8}
-.caplbl{fill:#fff;font:700 15px 'PT Sans Narrow',sans-serif;pointer-events:none;
-  paint-order:stroke;stroke:rgba(10,14,20,.92);stroke-width:4px;stroke-linejoin:round;letter-spacing:.04em}
-.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:11.5px;color:var(--ink2);margin-top:7px}
+.caplbl{fill:#fff;font:700 15px var(--f-cond);pointer-events:none;paint-order:stroke;
+  stroke:rgba(10,14,20,.92);stroke-width:4px;stroke-linejoin:round;letter-spacing:.04em}
+.legend{display:flex;flex-wrap:wrap;gap:var(--x2) var(--x6);font-size:11.5px;color:var(--ink-2);margin-top:var(--x4)}
 
-/* ── парламент ───────────────────────────── */
-.hemi{width:100%;display:block;max-height:270px}
-.dep{cursor:pointer}
-.dep:hover{stroke:var(--ink);stroke-width:1.4}
-.whip{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--rule);margin-bottom:9px}
-.whip div{padding:6px 9px;border-right:1px solid var(--rule)}
-.whip div:last-child{border-right:none}
-.whip i{display:block;font:400 9.5px 'PT Sans Narrow',sans-serif;text-transform:uppercase;letter-spacing:.12em;color:var(--ink3);font-style:normal}
-.whip b{font-family:'PT Mono',monospace;font-size:19px;font-weight:400}
+/* ── журнал, состояния ─────────────────────────────────────── */
+.log div{padding:4px 0;border-bottom:1px dotted var(--line);font-size:12.5px}
+.log div:last-child{border-bottom:0}
+.log div.key{background:var(--mark-bg);padding:4px 6px;margin:0 -6px}
+.log s{text-decoration:none;font:400 10.5px var(--f-num);color:var(--ink-3);margin-right:7px}
+.empty{padding:var(--x8);text-align:center;color:var(--ink-3);font-size:13px;border:1px dashed var(--line)}
+.chron{display:flex;gap:var(--x5);padding:5px 0;border-bottom:var(--hair-2);font-size:13px}
+.chron:last-child{border-bottom:0}
+.chron .y{font:400 11.5px var(--f-num);color:var(--ink-3);width:40px;flex:none;padding-top:2px}
+.chron.g{color:var(--good)} .chron.b{color:var(--bad)}
 
-/* ── диалог ──────────────────────────────── */
-#modal{position:fixed;inset:0;z-index:60;background:rgba(20,17,12,.55);display:none;
-  align-items:flex-start;justify-content:center;padding:24px 12px;overflow-y:auto}
+/* ── модальное окно ────────────────────────────────────────── */
+#modal{position:fixed;inset:0;z-index:60;background:rgba(20,16,10,.55);display:none;
+  align-items:flex-start;justify-content:center;padding:var(--x8) var(--x5);overflow-y:auto}
 #modal.show{display:flex}
-#modal .sheet{background:var(--sheet);border:1px solid var(--ink2);box-shadow:0 18px 50px rgba(0,0,0,.35);
-  width:100%;max-width:620px;border-top:4px solid var(--red)}
-#modal .sheet .mh{padding:9px 14px;border-bottom:1px solid var(--rule);background:var(--sheet2)}
-#modal .sheet .mh i{font:400 9.5px 'PT Sans Narrow',sans-serif;text-transform:uppercase;letter-spacing:.14em;
-  color:var(--ink3);font-style:normal;display:block}
-#modal .sheet .mh h2{margin:1px 0 0;font:700 19px 'PT Serif',serif;line-height:1.15}
-#modal .sheet .mb{padding:13px 14px;font-size:13.5px}
-#modal .sheet .mf{padding:10px 14px;border-top:1px solid var(--rule);display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end;background:var(--sheet2)}
-.res{display:grid;grid-template-columns:1fr auto;gap:3px 14px;font-size:13px;margin:9px 0;
-  border-top:1px solid var(--rule2);border-bottom:1px solid var(--rule2);padding:7px 0}
-.res b{font-family:'PT Mono',monospace;font-weight:400;text-align:right;letter-spacing:-.03em}
-.res b.w{font-family:'PT Sans',sans-serif;font-weight:700}
-.opt{display:block;width:100%;text-align:left;background:var(--sheet2);border:1px solid var(--rule);
-  padding:8px 10px;margin-bottom:6px;cursor:pointer;font:400 13px 'PT Sans',sans-serif;color:var(--ink)}
-.opt:hover{border-color:var(--ink2);background:var(--hl)}
-.opt b{display:block;font:700 13px 'PT Sans',sans-serif}
-.opt span{font-size:11.5px;color:var(--ink3)}
-input[type=text]{font:400 14px 'PT Sans',sans-serif;background:#fff;border:1px solid var(--rule);
-  padding:6px 8px;color:var(--ink);width:100%}
-input[type=text]:focus{outline:2px solid var(--gold);outline-offset:-1px}
+#msheet{background:var(--surface);border:1px solid var(--ink-2);border-top:4px solid var(--mark);
+  box-shadow:var(--shadow);width:100%;max-width:620px;animation:rise var(--t-slow) var(--ease)}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+#msheet .mh{padding:var(--x4) var(--x6);background:var(--surface-2);border-bottom:var(--hair)}
+#msheet .mh i{display:block;font:400 9.5px var(--f-cond);text-transform:uppercase;
+  letter-spacing:.14em;color:var(--ink-3);font-style:normal}
+#msheet .mh h2{margin:1px 0 0;font:700 19px/1.15 var(--f-display)}
+#msheet .mb{padding:var(--x5) var(--x6);font-size:13.5px}
+#msheet .mf{padding:var(--x4) var(--x6);border-top:var(--hair);background:var(--surface-2);
+  display:flex;gap:var(--x3);justify-content:flex-end;flex-wrap:wrap}
+.opt{display:block;width:100%;text-align:left;background:var(--surface-2);border:var(--hair);
+  padding:8px 11px;margin-bottom:6px;cursor:pointer;font:400 13px var(--f-text);color:var(--ink);
+  transition:border-color var(--t-fast) var(--ease),background var(--t-fast) var(--ease)}
+.opt:hover{border-color:var(--ink-2);background:var(--mark-bg)}
+.opt b{display:block} .opt span{font-size:11.5px;color:var(--ink-3)}
 
-/* ── журнал ──────────────────────────────── */
-.log{font-size:12.5px}
-.log div{padding:4px 0;border-bottom:1px dotted var(--rule)}
-.log div:last-child{border-bottom:none}
-.log s{text-decoration:none;font-family:'PT Mono',monospace;font-size:10.5px;color:var(--ink3);margin-right:7px}
-.log div.k{background:#F3EBD6;padding:4px 6px;margin:0 -6px;border-bottom:1px dotted var(--rule)}
-
-#toasts{position:fixed;right:12px;bottom:12px;z-index:70;display:flex;flex-direction:column;gap:5px;align-items:flex-end}
-.toast{background:var(--band);color:#F0E9D7;padding:6px 11px;font-size:12.5px;border-left:3px solid var(--gold);
-  animation:tin .15s ease, tout .3s ease 2.4s forwards}
+/* ── плашки ────────────────────────────────────────────────── */
+#toasts{position:fixed;right:var(--x5);bottom:var(--x5);z-index:70;display:flex;
+  flex-direction:column;gap:5px;align-items:flex-end}
+.toast{background:var(--band);color:var(--ink-inv);padding:6px 12px;font-size:12.5px;
+  border-left:3px solid var(--mark);animation:tin var(--t) var(--ease),tout var(--t-slow) var(--ease) 2.4s forwards}
 @keyframes tin{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:none}}
 @keyframes tout{to{opacity:0}}
 
-/* ── мобильная раскладка ─────────────────── */
-@media(max-width:860px){
-  #top{flex-wrap:wrap;padding:0 8px;gap:0}
-  #top .brand{min-height:44px}
-  #strip{width:100%;margin-left:0;order:3;border-top:1px solid #3a352a}
-  .sv{padding:5px 10px;min-width:0}
-  .sv:first-child{padding-left:0}
-  .sv b{font-size:13.5px}
-  #side{top:auto}
+/* ── экран загрузки ────────────────────────────────────────── */
+#splash{position:fixed;inset:0;z-index:80;background:var(--band);color:var(--ink-inv);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity var(--t-slow) var(--ease)}
+#splash.hide{opacity:0;pointer-events:none}
+#splash img{width:64px;height:70px;margin-bottom:var(--x5);filter:saturate(.2) brightness(1.6)}
+#splash h1{font:700 26px var(--f-display);letter-spacing:.1em;margin:0}
+#splash p{color:var(--ink-inv-2);font:400 11px var(--f-cond);text-transform:uppercase;
+  letter-spacing:.2em;margin:var(--x3) 0 var(--x6)}
+#splash .load{width:220px;height:3px;background:var(--band-2);overflow:hidden}
+#splash .load i{display:block;height:100%;width:40%;background:var(--mark);animation:slide 1.1s var(--ease) infinite}
+@keyframes slide{from{transform:translateX(-100%)}to{transform:translateX(250%)}}
+
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(max-width:900px){
+  #top{flex-wrap:wrap} #top .brand{min-height:44px}
+  #strip{width:100%;margin-left:0;order:3;border-top:1px solid var(--band-2)}
+  .sv{padding:5px 10px;min-width:0} .sv:first-child{padding-left:var(--x5)} .sv b{font-size:13.5px}
   #shell{display:block}
-  #side{position:fixed;left:0;right:0;bottom:0;top:auto;width:auto;min-height:0;display:flex;overflow-x:auto;
-    border-right:none;border-top:1px solid var(--rule);background:var(--sheet);padding:0;z-index:35;scrollbar-width:none}
+  #side{position:fixed;left:0;right:0;bottom:0;top:auto;width:auto;min-height:0;display:flex;
+    overflow-x:auto;border-right:0;border-top:var(--hair);background:var(--surface);padding:0;z-index:35;scrollbar-width:none}
   #side::-webkit-scrollbar{display:none}
   .navsec{display:none}
-  .navb{flex:none;border-left:none;border-top:3px solid transparent;padding:9px 10px;white-space:nowrap;font-size:12px;letter-spacing:.05em}
-  .navb.on{border-left:none;border-top-color:var(--red)}
-  .navb u{display:none}
-  #view{padding:11px 10px 74px}
-  .cols,.cols3{grid-template-columns:1fr}
-  #top .brand span{display:none}
+  .nav{flex:none;border-left:0;border-top:3px solid transparent;padding:9px 10px;
+    white-space:nowrap;font-size:12px;letter-spacing:.05em}
+  .nav.on{border-left:0;border-top-color:var(--mark)}
+  .nav u{display:none}
+  #view{padding:var(--x4) var(--x4) 74px}
+  .cols,.c21,.c11,.c12,.c111,.g4,.g3{grid-template-columns:1fr}
+  .g4{grid-template-columns:1fr 1fr}
 }
-@media(max-width:520px){
-  .grid2{grid-template-columns:1fr}
-  #modal{padding:10px 6px}
-  .hide-s{display:none}
+@media(max-width:560px){
+  .g2,.g4{grid-template-columns:1fr 1fr}
+  .hide-s,.mini{display:none}
+  td,th{padding:0 5px}
+  .stat .v{font-size:18px}
+  #modal{padding:var(--x4) var(--x2)}
+  .bline{grid-template-columns:1fr 44px;row-gap:var(--x2)}
+  .bline>div:last-child{grid-column:1/3}
 }
 </style>
 </head>
 <body>
+<div id="splash"><img id="splash-em" alt=""><h1>НОВАРИЯ</h1><p>правительственный терминал</p>
+  <div class="load"><i></i></div></div>
 <header id="top">
   <div class="brand"><img id="emb" alt="Герб Республики Новария"><div>
     <b>НОВАРИЯ</b><span id="subtitle">правительственный терминал</span></div></div>
@@ -232,7 +322,7 @@ input[type=text]:focus{outline:2px solid var(--gold);outline-offset:-1px}
   <nav id="side"></nav>
   <main id="view"></main>
 </div>
-<div id="modal"><div class="sheet" id="msheet"></div></div>
+<div id="modal"><div id="msheet"></div></div>
 <div id="toasts"></div>
 <script>
 'use strict';
@@ -629,12 +719,12 @@ function formCoalition(initial){
     const order=S.parties.filter(p=>p.id!==PL).sort((a,b)=>axDist(a.st,me().st)-axDist(b.st,me().st));
     S.gov={lead:PL,coal:[PL],posts:{}};
     POSTS.forEach(p=>S.gov.posts[p.id]=PL);
+    let tail=POSTS.length-1;                 // портфели союзникам раздаются с конца списка
     for(const p of order){
       if(coalSeats()>=MAJ)break;
       if(axDist(p.st,me().st)<1.9){
         S.gov.coal.push(p.id);
-        const give=POSTS.slice(0,partyPrice(p.id)).map(x=>x.id);
-        give.forEach((x,i)=>S.gov.posts[POSTS[POSTS.length-1-i].id]=p.id);
+        for(let i=0;i<partyPrice(p.id)&&tail>0;i++,tail--)S.gov.posts[POSTS[tail].id]=p.id;
         S.partners[p.id]={patience:3,anger:0};
       }
     }
@@ -1764,13 +1854,21 @@ function load(){
   try{ const raw=localStorage.getItem(SAVE); if(!raw)return false;
     const d=JSON.parse(raw); if(!d||!d.parties)return false;
     S=d;
+    // сохранение из более ранней версии: дополняем недостающие поля
+    S.world=S.world||{demand:100,res:100};
+    S.cyc=S.cyc||{ph:Math.random(),len:ri(13,19)};
+    S.comm=S.comm||{}; S.rec=S.rec||0; S.fatigue=S.fatigue||0;
+    S.govAge=S.govAge||0; S.shockCool=S.shockCool||0; S.role=S.role||(S.gov.lead===PL?'pm':'opp');
+    if(!TABS.some(t=>t.id===S.tab))S.tab='brief';
     REGIONS.forEach(r=>{ const s=Object.values(r.mix).reduce((a,b)=>a+b,0);
       r.share={};GROUPS.forEach(g=>r.share[g.id]=(r.mix[g.id]||0)/s); });
     return true;
   }catch(e){ return false; }
 }
 /* ════════════════════════════════════════════════════════════════
-   Интерфейс.
+   Интерфейс. Вся разметка собрана из компонентов дизайн-системы
+   (game/ui.html): panel, btn, table, stat, meter, chip, tag, stamp.
+   Игровая логика в этот файл не заходит.
    ════════════════════════════════════════════════════════════════ */
 
 /* ─── диалоги ────────────────────────────────────────────────── */
@@ -1782,7 +1880,7 @@ function mnext(){
   if(!m){ mopen=false; wrap.classList.remove('show'); return; }
   mopen=true;
   const acts=(m.acts||[{label:'Закрыть'}]).map((a,i)=>
-    `<button class="b ${i===0?'p':''}" data-a="${i}">${a.label}</button>`).join('');
+    `<button class="btn ${i===0?'pri':''}" data-a="${i}">${a.label}</button>`).join('');
   const opts=(m.opts||[]).map((o,i)=>
     `<button class="opt" data-o="${i}"><b>${o.label}</b>${o.hint?`<span>${o.hint}</span>`:''}</button>`).join('');
   sh.innerHTML=`<div class="mh"><i>${m.eye||''}</i><h2>${m.title||''}</h2></div>
@@ -1806,21 +1904,32 @@ function mnext(){
 }
 function modalClose(){ mopen=false; document.getElementById('modal').classList.remove('show'); }
 
-/* ─── мелкие блоки ───────────────────────────────────────────── */
+/* ─── кирпичи разметки ───────────────────────────────────────── */
+function panel(o){
+  return `<div class="panel ${o.cls||''}">`+
+    (o.title?`<header><h4>${o.title}</h4>${o.meta?`<span class="meta">${o.meta}</span>`:''}</header>`:'')+
+    `<div class="body${o.flush?' flush':''}">${o.body}</div>`+
+    (o.foot?`<footer>${o.foot}</footer>`:'')+`</div>`;
+}
+function stat(k,v,d,cls){
+  return `<div class="stat ${cls||''}"><div class="k">${k}</div><div class="v">${v}</div>`+
+    (d?`<div class="d">${d}</div>`:'')+`</div>`;
+}
 function bar(parts,h){
-  return `<div class="bar" style="height:${h||9}px">${parts.map(p=>
+  return `<div class="meter" style="height:${h||8}px">${parts.map(p=>
     `<i style="width:${p[0]}%;background:${p[1]}"></i>`).join('')}<span class="mid"></span></div>`;
 }
 function voteBar(yes,no){
   const t=yes+no||1;
-  return `<div class="bar" style="height:15px;margin:8px 0 4px">
-      <i style="width:${yes/t*100}%;background:var(--green)"></i>
-      <i style="width:${no/t*100}%;background:var(--red)"></i><span class="mid"></span></div>
+  return `<div class="meter tall" style="margin:8px 0 4px">
+      <i style="width:${yes/t*100}%;background:var(--good)"></i>
+      <i style="width:${no/t*100}%;background:var(--bad)"></i><span class="mid"></span></div>
     <div style="display:flex;justify-content:space-between;font-size:12px">
-      <span class="pos">за ${yes}</span><span class="dim">порог ${Math.floor(t/2)+1}</span><span class="neg">против ${no}</span></div>`;
+      <span class="good">за ${yes}</span><span class="dim">порог ${Math.floor(t/2)+1}</span><span class="bad">против ${no}</span></div>`;
 }
-function mini(v,color){ return `<span class="mini"><i style="width:${clamp(v,0,100)}%;background:${color||'var(--ink2)'}"></i></span>`; }
+function mini(v,color){ return `<span class="mini"><i style="width:${clamp(v,0,100)}%;background:${color||'var(--ink-2)'}"></i></span>`; }
 function chip(p){ return `<span class="chip"><s style="background:${p.color}"></s>${p.short}</span>`; }
+function est(v,exact){ return exact?v:`<span class="est" title="оценка без свежего опроса">${v}</span>`; }
 function stanceLine(b){
   const t=T(b.topic);
   const word=b.stance===0?'без изменений':(b.stance<0?t.l:t.r)+(Math.abs(b.stance)>1?', решительно':', умеренно');
@@ -1828,24 +1937,34 @@ function stanceLine(b){
 }
 function moodWord(v){ return v>=66?'опора':v>=56?'скорее за':v>=46?'колеблется':v>=34?'скорее против':'враждебна'; }
 function unrestWord(v){ return v<12?'спокойно':v<24?'ропот':v<38?'тревожно':v<55?'митинги':'на грани'; }
+function partyRow(p){ return chip(p)+' '+p.name; }
+/* склонение: 21 мандат, 22 мандата, 25 мандатов */
+function plural(n,one,few,many){
+  const a=Math.abs(n)%100, b=a%10;
+  return n+' '+(a>10&&a<20?many:b===1?one:b>1&&b<5?few:many);
+}
+const mandates=n=>plural(n,'мандат','мандата','мандатов');
+const posts=n=>plural(n,'портфель','портфеля','портфелей');
+const quarters=n=>plural(n,'квартал','квартала','кварталов');
 
 /* ─── шапка и меню ───────────────────────────────────────────── */
 const TABS=[
-  {id:'brief', name:'Сводка',      n:()=>S.ap+'/3'},
-  {id:'bill',  name:'Законопроект',n:()=>S.laws.length},
-  {id:'parl',  name:'Собрание',    n:()=>seatsOf(PL)+'/'+SEATS},
-  {id:'budget',name:'Бюджет',      n:()=>sign(Math.round(balance()))},
-  {id:'country',name:'Страна',     n:()=>Math.round(avgUnrest())},
-  {id:'society',name:'Общество',   n:()=>Math.round(approval())+'%'},
-  {id:'camp',  name:'Кампания',    n:()=>S.camp?Math.round(S.funds):'—', only:()=>!!S.camp},
-  {id:'arch',  name:'Летопись',    n:()=>S.chron.length},
-  {id:'help',  name:'Справка',     n:()=>''},
+  {id:'brief',  name:'Кабинет',      n:()=>S.ap+'/3'},
+  {id:'parl',   name:'Собрание',     n:()=>seatsOf(PL)+'/'+SEATS},
+  {id:'bill',   name:'Законопроект', n:()=>S.laws.length, dot:()=>!!S.bill},
+  {id:'budget', name:'Бюджет',       n:()=>sign(Math.round(balance()))},
+  {id:'gov',    name:'Правительство',n:()=>coalSeats(),   dot:()=>isPM()&&coalSeats()<MAJ},
+  {id:'country',name:'Регионы',      n:()=>Math.round(avgUnrest())},
+  {id:'society',name:'Общество',     n:()=>Math.round(approval())+'%'},
+  {id:'camp',   name:'Кампания',     n:()=>Math.round(S.funds), only:()=>!!S.camp},
+  {id:'arch',   name:'Летопись',     n:()=>S.chron.length},
+  {id:'help',   name:'Справка',      n:()=>''},
 ];
 function renderStrip(){
   const ap=approval(), bal=balance();
   const cells=[
     ['квартал',dateLabel()+' · '+(S.q-S.termStart+1)+'/'+TERM,''],
-    ['действия',S.ap+' из 3',S.ap?'':'warn'],
+    ['действия',S.ap+' из 3',S.ap?'act':'warn'],
     ['одобрение',Math.round(shown(ap,'nat'))+'%',ap<35?'bad':ap>55?'good':''],
     ['мандаты',seatsOf(PL)+' · коалиция '+coalSeats(),coalSeats()>=MAJ?'good':'warn'],
     ['казна',Math.round(S.treasury)+' млрд',S.treasury<25?'bad':''],
@@ -1854,25 +1973,24 @@ function renderStrip(){
     ['касса',Math.round(S.funds)+' млн',''],
   ];
   document.getElementById('strip').innerHTML=cells.map(c=>
-    `<div class="sv"><i>${c[0]}</i><b class="${c[2]}">${c[1]}</b></div>`).join('');
+    `<div class="sv ${c[2]==='act'?'act':''}"><i>${c[0]}</i><b class="${c[2]==='act'?'':c[2]}">${c[1]}</b></div>`).join('');
   document.getElementById('subtitle').textContent =
-    isPM()?'кабинет · '+me().name : S.role==='junior'?'младший партнёр · '+me().name : 'оппозиция · '+me().name;
+    (isPM()?'кабинет · ':S.role==='junior'?'младший партнёр · ':'оппозиция · ')+me().name;
 }
 function renderNav(){
   const items=TABS.filter(t=>!t.only||t.only());
-  document.getElementById('side').innerHTML=
-    '<div class="navsec">Разделы</div>'+items.map(t=>
-      `<button class="navb ${S.tab===t.id?'on':''}" data-t="${t.id}">${t.name}<u>${t.n()}</u></button>`).join('');
+  document.getElementById('side').innerHTML='<div class="navsec">Разделы</div>'+items.map(t=>
+    `<button class="nav ${S.tab===t.id?'on':''}" data-t="${t.id}">${t.name}${
+      t.dot&&t.dot()?'<span class="dot"></span>':''}<u>${t.n()}</u></button>`).join('');
   document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{
     S.tab=b.dataset.t; window.scrollTo(0,0); render(); });
 }
 function render(){
   if(!S)return;
   renderStrip(); renderNav();
-  const v=document.getElementById('view');
-  const f=({brief:tabBrief,bill:tabBill,parl:tabParl,budget:tabBudget,country:tabCountry,
-             society:tabSociety,camp:tabCamp,arch:tabArch,help:tabHelp})[S.tab]||tabBrief;
-  v.innerHTML=f();
+  const f=({brief:tabBrief,parl:tabParl,bill:tabBill,budget:tabBudget,gov:tabGov,country:tabCountry,
+            society:tabSociety,camp:tabCamp,arch:tabArch,help:tabHelp})[S.tab]||tabBrief;
+  document.getElementById('view').innerHTML=f();
   bindActions();
 }
 function bindActions(){
@@ -1883,84 +2001,101 @@ function bindActions(){
   const e=document.getElementById('endq'); if(e)e.onclick=()=>endQuarter();
 }
 
-/* ─── 1. Сводка ──────────────────────────────────────────────── */
+/* ─── 1 · Кабинет ────────────────────────────────────────────── */
 function advice(){
   const ap=approval();
-  if(S.over)return['Правление окончено','Откройте летопись и начните заново.'];
+  if(S.over)return['Правление окончено','Летопись открыта, начать заново можно из итогов.'];
   if(isPM()&&coalSeats()<MAJ)return['Правительство меньшинства',
     'В коалиции '+coalSeats()+' из '+MAJ+' нужных мандатов. Отдайте портфель фракции или готовьтесь к вотуму.'];
   if(S.treasury<20&&balance()<0)return['Казна на исходе',
-    'Дефицит '+Math.round(balance())+' млрд в квартал. Поднимите налог или срежьте статью расходов.'];
+    'Дефицит '+Math.round(balance())+' млрд в квартал. Поднимите ставку, срежьте статью или ждите долга.'];
+  if(S.rec>1)return['Рецессия',
+    'Второй квартал падения подряд. Инфраструктура и низкий налог на прибыль вытягивают быстрее прочего.'];
   if(S.econ.inf>8)return['Инфляция',
-    'Цены растут на '+S.econ.inf+'% — по пенсионерам и селу это бьёт сильнее всего. Помогает сокращение дефицита и снижение НДС.'];
+    'Цены растут на '+S.econ.inf+'% — сильнее всего бьёт по пенсионерам и селу. Помогает сокращение дефицита и снижение НДС.'];
   if(S.econ.unemp>11)return['Безработица',
-    S.econ.unemp+'% без работы. Инфраструктура и рост инвестиций дают рабочие места быстрее прочего.'];
+    S.econ.unemp+'% без работы. Рабочие места даёт инфраструктура и рост инвестиций.'];
   if(avgUnrest()>34)return['Регионы кипят',
     'Средняя напряжённость '+Math.round(avgUnrest())+'. Поездки, соцвыплаты и полиция сбивают её по-разному.'];
   if(ap<40)return['Рейтинг у черты',
-    'Одобрение '+Math.round(ap)+'%. Посмотрите, какие группы ушли, и работайте с ними адресно.'];
-  if(S.camp)return['Идёт кампания','До выборов '+(TERM-(S.q-S.termStart))+' кварталов. Касса тратится только на штаб.'];
+    'Одобрение '+Math.round(ap)+'%. Посмотрите на вкладке «Общество», какие группы ушли, и работайте адресно.'];
+  if(S.camp)return['Идёт кампания','До выборов '+(TERM-(S.q-S.termStart))+' кварталов. Штаб тратит кассу, а не казну.'];
   if(!S.bill)return['Собрание ждёт',
     'Внесите законопроект: подберите позицию так, чтобы её приняли, но она ещё что-то меняла.'];
   return['Курс держится','Пользуйтесь спокойным кварталом: договаривайтесь с фракциями впрок.'];
 }
 function tabBrief(){
-  const a=advice(), ap=approval();
-  const groups=GROUPS.slice().sort((x,y)=>S.mood[y.id]-S.mood[x.id]);
-  const best=groups[0], worst=groups[groups.length-1];
+  const a=advice(), ap=approval(), ordered=GROUPS.slice().sort((x,y)=>S.mood[y.id]-S.mood[x.id]);
+  const best=ordered[0], worst=ordered[ordered.length-1];
   const acts=[
-    ['visit','Поездка в регион','6 млрд · поддержка и спокойствие в одном субъекте'],
-    ['address','Обращение к нации','6 веса · плюс одной группе, минус её противникам'],
-    ['fundraise','Сбор средств','деньги в партийную кассу, интеллигенция морщится'],
-    ['poll','Заказать социологию','9 млн · точные цифры вместо оценок'],
-    ['whip','Работа с колеблющимися','11 веса · разом обработать всех сомневающихся по проекту'],
+    ['visit','Поездка в регион','поддержка и спокойствие в одном субъекте','6 млрд','askRegion()'],
+    ['address','Обращение к нации','плюс одной группе, минус её противникам','6 веса','askGroup()'],
+    ['whip','Работа с колеблющимися','разом обработать всех сомневающихся по проекту','11 веса',''],
+    ['fundraise','Сбор средств','деньги в партийную кассу, интеллигенция морщится','',''],
+    ['poll','Заказать социологию','точные цифры вместо оценок','9 млн',''],
   ];
+  if(!isPM())acts.push(['noconf','Вотум недоверия','свалить кабинет и получить мандат на формирование','22 веса','']);
+  const actRows=acts.map(x=>`<tr><td><b>${x[1]}</b><div class="sub2">${x[2]}</div></td>
+    <td class="r" style="width:160px">${x[4]
+      ? `<button class="btn sm" onclick="${x[4]}" ${S.ap?'':'disabled'}>Выбрать${x[3]?`<span class="cost">${x[3]}</span>`:''}</button>`
+      : `<button class="btn sm" data-act="${x[0]}" ${S.ap?'':'disabled'}>Сделать${x[3]?`<span class="cost">${x[3]}</span>`:''}</button>`}</td></tr>`).join('');
+
   const partners=coalition().filter(x=>x!==PL).map(id=>{
     const st=S.partners[id]||{anger:0};
-    return `<tr><td>${chip(P(id))} ${P(id).name}</td><td class="num">${seatsOf(id)}</td>
-      <td>${st.anger>=3?'<span class="tag r">на грани выхода</span>':st.anger>=2?'<span class="tag y">недовольны</span>':'<span class="tag g">лояльны</span>'}</td></tr>`;}).join('')
-    ||'<tr><td colspan="3" class="dim">Однопартийное правительство.</td></tr>';
+    return `<div class="dep"><div class="who"><b>${P(id).name}</b><span>${mandates(seatsOf(id))} · ${
+      posts(Object.values(S.gov.posts).filter(x=>x===id).length)}</span></div>${
+      st.anger>=3?'<span class="tag r">на грани выхода</span>':
+      st.anger>=2?'<span class="tag y">недовольны</span>':'<span class="tag g">лояльны</span>'}</div>`;}).join('')
+    ||'<p class="hint">Однопартийное правительство: делить портфели не с кем.</p>';
 
-  return `<div class="pin"><b>Записка помощника</b>${a[0]}. ${a[1]}</div>
-  <div class="cols">
-    <div class="sh acc"><div class="hd"><h2>Положение дел</h2><span class="note">${dateLabel()}</span></div><div class="bd">
-      <div class="kv"><span>Одобрение по стране</span><b>${Math.round(shown(ap,'nat'))}%${polled()?'':' ± 3'}</b></div>
-      <div class="kv"><span>Опора</span><b class="w">${best.name} · ${Math.round(S.mood[best.id])}</b></div>
-      <div class="kv"><span>Слабое место</span><b class="w">${worst.name} · ${Math.round(S.mood[worst.id])}</b></div>
-      <div class="kv"><span>Рост ВВП за квартал</span><b class="${S.econ.growth<0?'neg':'pos'}">${sign(S.econ.growth)}%</b></div>
-      <div class="kv"><span>Инфляция · безработица</span><b>${S.econ.inf}% · ${S.econ.unemp}%</b></div>
-      <div class="kv"><span>Напряжённость</span><b>${Math.round(avgUnrest())} · ${unrestWord(avgUnrest())}</b></div>
-      <div class="kv"><span>Государственный долг</span><b class="${S.debt>300?'neg':''}">${Math.round(S.debt)} млрд</b></div>
-      <div class="kv"><span>Хозяйственный цикл</span><b class="w">${cyclePhase()}${S.rec>1?' · рецессия':''}</b></div>
-      <div class="kv"><span>Внешний спрос · сырьё</span><b>${Math.round(S.world.demand)} · ${Math.round(S.world.res)}</b></div>
-    </div></div>
-    <div class="sh"><div class="hd"><h2>Собрание</h2><span class="note">большинство — ${MAJ}</span></div><div class="bd">
-      ${bar(S.parties.slice().sort((x,y)=>(inCoal(y.id)?1:0)-(inCoal(x.id)?1:0)).map(p=>
-        [seatsOf(p.id)/SEATS*100, inCoal(p.id)?p.color:p.color+'66']),14)}
-      <div class="hint" style="margin:6px 0 10px">Ярким выделены фракции коалиции: ${coalSeats()} мандатов.</div>
-      <table class="tight"><tbody>${partners}</tbody></table>
-      <div class="brow" style="margin-top:9px">
-        <button class="b sm" data-go="parl">Список депутатов</button>
-        <button class="b sm" data-go="bill">Внести закон</button></div>
-    </div></div>
-  </div>
+  const billBlock=S.bill?(()=>{ const tl=tally(S.bill);
+    return panel({title:'На столе',body:
+      `<div style="font:700 17px/1.2 var(--f-display);margin-bottom:3px">${T(S.bill.topic).name}</div>
+       <p class="lead">${stanceLine(S.bill)}</p>
+       <div class="whip"><div><i>за</i><b class="good">${tl.yes}</b></div><div><i>?</i><b>${tl.und}</b></div>
+         <div><i>против</i><b class="bad">${tl.no}</b></div></div>
+       <p class="hint" style="margin-top:6px">${tl.yes>=MAJ?'Голосов хватает.':'Не хватает '+(MAJ-tl.yes)+' голосов.'}</p>`,
+      foot:`<button class="btn sm pri" data-go="bill">К проекту</button>
+            <button class="btn sm" data-go="parl">Депутаты</button>`});})()
+    : panel({title:'На столе',body:'<div class="empty">Законопроект не подготовлен.<br>'+
+        '<button class="btn sm" data-go="bill" style="margin-top:8px">Выбрать тему</button></div>'});
 
-  <div class="sh"><div class="hd"><h2>Действия квартала</h2><span class="note">осталось ${S.ap} из 3</span></div><div class="bd">
-    <table><tbody>${acts.map(a=>`<tr><td><b>${a[1]}</b><div class="hint">${a[2]}</div></td>
-      <td class="r" style="width:120px">${actBtn(a[0],a[1]==='Поездка в регион'?'ask-region':a[1]==='Обращение к нации'?'ask-group':'')}</td></tr>`).join('')}
-    </tbody></table>
-  </div></div>
-
-  <div class="sh"><div class="hd"><h2>Журнал</h2><span class="note">последние события</span></div><div class="bd">
-    <div class="log">${S.log.slice(0,9).map(l=>`<div class="${l.key?'k':''}"><s>${l.d}</s>${l.t}</div>`).join('')||'<div class="dim">Пока тихо.</div>'}</div>
-  </div></div>
-
-  <button class="b p wide" id="endq" ${S.over?'disabled':''}>Завершить квартал · ${dateLabel()}</button>`;
-}
-function actBtn(act,mode){
-  if(mode==='ask-region')return `<button class="b sm" onclick="askRegion()" ${S.ap?'':'disabled'}>Выбрать</button>`;
-  if(mode==='ask-group') return `<button class="b sm" onclick="askGroup()" ${S.ap?'':'disabled'}>Выбрать</button>`;
-  return `<button class="b sm" data-act="${act}" ${S.ap?'':'disabled'}>Сделать</button>`;
+  return `<div class="pin ${a[0]==='Рецессия'||a[0]==='Казна на исходе'?'warn':''}">
+      <b>Записка помощника</b>${a[0]}. ${a[1]}</div>
+  <div class="cols c21">
+    <div>
+      ${panel({cls:'lead-p',title:'Положение дел',meta:dateLabel(),body:
+        `<div class="grid g4">
+          ${stat('Одобрение',Math.round(shown(ap,'nat'))+'<u>%</u>','',ap<38?'alert':'')}
+          ${stat('Рост ВВП',sign(S.econ.growth)+'<u>%</u>',cyclePhase())}
+          ${stat('Инфляция',S.econ.inf+'<u>%</u>',S.econ.inf>7?'выше нормы':'в норме',S.econ.inf>9?'alert':'')}
+          ${stat('Напряжённость',Math.round(avgUnrest()),unrestWord(avgUnrest()))}
+        </div>
+        <h3 class="sub">Опора и слабое место</h3>
+        <div class="dep"><div class="who"><b>${best.name}</b><span>${moodWord(S.mood[best.id])}</span></div>
+          ${mini(S.mood[best.id],'var(--good)')}<b class="num-s">${Math.round(S.mood[best.id])}</b></div>
+        <div class="dep"><div class="who"><b>${worst.name}</b><span>${moodWord(S.mood[worst.id])}</span></div>
+          ${mini(S.mood[worst.id],'var(--bad)')}<b class="num-s">${Math.round(S.mood[worst.id])}</b></div>`,
+        foot:`<button class="btn sm" data-go="society">Разбор по группам</button>
+              <span class="hint">${polled()?'цифры из свежего опроса':'оценка штаба, ±3 пункта'}</span>`})}
+      ${panel({title:'Действия квартала',meta:'осталось '+S.ap+' из 3',flush:true,
+        body:`<table><tbody>${actRows}</tbody></table>`})}
+      <button class="btn pri lg block" id="endq" ${S.over?'disabled':''}>Завершить квартал · ${dateLabel()}</button>
+    </div>
+    <div>
+      ${panel({cls:coalSeats()<MAJ&&isPM()?'warn':'',title:'Собрание',meta:'большинство '+MAJ,body:
+        bar(S.parties.slice().sort((x,y)=>(inCoal(y.id)?1:0)-(inCoal(x.id)?1:0)).map(p=>
+          [seatsOf(p.id)/SEATS*100,inCoal(p.id)?p.color:p.color+'70']),15)+
+        `<p class="hint" style="margin:6px 0 10px">Ярким — коалиция: ${coalSeats()} мандатов.</p>`+partners,
+        foot:`<button class="btn sm" data-go="gov">Правительство</button>
+              <button class="btn sm" data-go="parl">Список депутатов</button>`})}
+      ${billBlock}
+      ${panel({title:'Журнал',meta:'последнее',body:'<div class="log">'+
+        (S.log.slice(0,7).map(l=>`<div class="${l.key?'key':''}"><s>${l.d}</s>${l.t}</div>`).join('')
+         ||'<div class="dim">Пока тихо.</div>')+'</div>',
+        foot:`<button class="btn sm ghost" data-go="arch">Вся летопись</button>`})}
+    </div>
+  </div>`;
 }
 function askRegion(){
   sheetOpen({eye:'Поездка · 1 действие и 6 млрд',title:'Куда поедете',
@@ -1977,162 +2112,83 @@ function askGroup(){
       fn:()=>ACT.address(g.id)}))});
 }
 
-/* ─── 2. Законопроект ────────────────────────────────────────── */
-function tabBill(){
-  const b=S.bill;
-  if(!b){
-    const rows=TOPICS.map(t=>{const l=lawOn(t.id);
-      return `<tr><td><b>${t.name}</b><div class="hint">${AXNAME[t.ax]}: ${t.l} ↔ ${t.r}</div></td>
-      <td class="num">${l?STEP[l.stance+2]:'<span class="dim">нет</span>'}</td>
-      <td class="r"><button class="b sm" onclick="newBill('${t.id}');render()">${l?'Переписать':'Готовить'}</button></td></tr>`;}).join('');
-    const done=S.laws.slice().reverse().slice(0,10).map(l=>
-      `<tr><td>${l.name}</td><td class="num">${STEP[l.stance+2]}</td><td>${l.by===PL?'<span class="tag g">ваш</span>':'<span class="tag">чужой</span>'}</td>
-       <td class="num">${shortDate(l.q)}</td></tr>`).join('')||'<tr><td colspan="4" class="dim">Законов пока нет.</td></tr>';
-    return `<div class="sh acc"><div class="hd"><h2>Внести законопроект</h2><span class="note">внесение — 1 действие и 8 веса</span></div><div class="bd">
-        <p class="hint" style="margin-bottom:9px">Выберите тему. По каждой теме действует только последняя редакция: новый закон отменяет прежний.</p>
-        <table><thead><tr><th>Тема</th><th class="r">Действует</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>
-      <div class="sh"><div class="hd"><h2>Действующие законы</h2><span class="note">${S.laws.length} всего</span></div><div class="bd">
-        <table class="tight"><thead><tr><th>Закон</th><th class="r">Позиция</th><th>Автор</th><th class="r">Принят</th></tr></thead>
-        <tbody>${done}</tbody></table></div></div>`;
-  }
-  const t=T(b.topic), tl=tally(b), sum=billSum(b);
-  const eff=[];
-  if(sum.money)eff.push(['Бюджет','казна '+sign(r1(sum.money))+' млрд в квартал',sum.money>0]);
-  if(sum.once)eff.push(['Разовые расходы',r1(sum.once)+' млрд',false]);
-  if(sum.growth)eff.push(['Рост ВВП',sign(r2(sum.growth))+' п.п.',sum.growth>0]);
-  if(sum.inf)eff.push(['Инфляция',sign(r2(sum.inf))+' п.п.',sum.inf<0]);
-  if(sum.unemp)eff.push(['Безработица',sign(r2(sum.unemp*4))+' п.п.',sum.unemp<0]);
-  if(sum.invest)eff.push(['Инвестиции',sign(r1(sum.invest)),sum.invest>0]);
-  if(sum.unrest)eff.push(['Напряжённость',sign(r1(sum.unrest*2)),sum.unrest<0]);
-  if(sum.stab)eff.push(['Устойчивость власти',sign(r1(sum.stab)),sum.stab>0]);
-  const gr=Object.entries(sum.gr||{}).filter(([,v])=>Math.abs(v)>0.2)
-    .sort((a,c)=>c[1]-a[1]).map(([g,v])=>
-      `<tr><td>${G(g).name}</td><td class="num ${v>0?'pos':'neg'}">${sign(r1(v*1.5))}</td>
-       <td class="num">${Math.round(S.mood[g])}</td></tr>`).join('');
-  const byParty=S.parties.map(p=>{
-    const l=tl.list.filter(x=>x.d.party===p.id);
-    const y=l.filter(x=>x.st==='yes').length,n=l.filter(x=>x.st==='no').length,u=l.length-y-n;
-    return `<tr><td>${chip(p)}</td><td class="num pos">${y}</td><td class="num">${u}</td><td class="num neg">${n}</td>
-      <td style="width:90px">${bar([[y/(l.length||1)*100,'var(--green)'],[u/(l.length||1)*100,'var(--rule)'],[n/(l.length||1)*100,'var(--red)']],7)}</td></tr>`;}).join('');
-
-  return `<div class="sh acc"><div class="hd"><h2>Проект закона № ${S.billNo+1}</h2>
-      <span class="note">${t.name}</span></div><div class="bd">
-    <div class="ax"><div class="axh"><span>${t.l}</span><span>${AXNAME[t.ax]}</span><span>${t.r}</span></div>
-      <div class="axr">${[-2,-1,0,1,2].map(v=>
-        `<button class="${b.stance===v?'on':''}" onclick="S.bill.stance=${v};render()">${STEP[v+2]}</button>`).join('')}</div>
-      <div class="now">${stanceLine(b)}</div></div>
-    <h3 class="rule">Поправки</h3>
-    <div class="brow">${RIDERS.map(rd=>{
-      const on=b.riders.indexOf(rd.id)>=0;
-      return `<button class="b sm ${on?'on':''}" onclick="toggleRider('${rd.id}')">${rd.name}${rd.cost?' · '+rd.cost+' млрд':''}</button>`;}).join('')}</div>
-    <div class="hint" style="margin-top:6px">${RIDERS.map(rd=>b.riders.indexOf(rd.id)>=0?rd.desc:'').filter(Boolean).join(' ')||'Поправки покупают голоса ценой денег или силы закона.'}</div>
-    ${b.riders.indexOf('money')>=0?`<div style="margin-top:8px"><span class="hint">Транш уходит в: </span>
-      <select onchange="S.bill.regTarget=this.value;render()" style="font:400 13px 'PT Sans';padding:3px">
-      ${REGIONS.map(r=>`<option value="${r.id}" ${b.regTarget===r.id?'selected':''}>${r.name}</option>`).join('')}</select></div>`:''}
-  </div></div>
-
-  <div class="cols">
-    <div class="sh"><div class="hd"><h2>Предварительный расклад</h2><span class="note">оценка секретариата</span></div><div class="bd">
-      <div class="whip"><div><i>за</i><b class="pos">${tl.yes}</b></div><div><i>колеблются</i><b>${tl.und}</b></div>
-        <div><i>против</i><b class="neg">${tl.no}</b></div></div>
-      ${bar([[tl.yes/SEATS*100,'var(--green)'],[tl.und/SEATS*100,'var(--rule)'],[tl.no/SEATS*100,'var(--red)']],12)}
-      <div class="hint" style="margin:6px 0 10px">Нужно ${MAJ} голосов. Колеблющиеся решают в зале — их можно перетянуть работой с депутатами.</div>
-      <table class="tight"><thead><tr><th>Фракция</th><th class="r">За</th><th class="r">?</th><th class="r">Против</th><th></th></tr></thead>
-        <tbody>${byParty}</tbody></table>
-      <div class="brow" style="margin-top:10px">
-        <button class="b p" onclick="submitBill()" ${S.ap&&S.cap>=8?'':'disabled'}>Внести на голосование</button>
-        <button class="b" data-act="whip" ${S.ap&&S.cap>=11&&tl.und?'':'disabled'}>Обработать колеблющихся · 11</button>
-        <button class="b" data-go="parl">Работать с депутатами</button>
-        <button class="b d" onclick="S.bill=null;render()">Отозвать</button></div>
-    </div></div>
-    <div class="sh"><div class="hd"><h2>Что изменит закон</h2></div><div class="bd">
-      <table class="tight"><tbody>${eff.map(e=>
-        `<tr><td>${e[0]}</td><td class="num ${e[2]?'pos':'neg'}">${e[1]}</td></tr>`).join('')||'<tr><td class="dim">Нейтральная редакция: ничего не меняет.</td></tr>'}</tbody></table>
-      <h3 class="rule">Реакция групп</h3>
-      <table class="tight"><thead><tr><th>Группа</th><th class="r">Сдвиг</th><th class="r">Сейчас</th></tr></thead>
-        <tbody>${gr||'<tr><td colspan="3" class="dim">Обществу всё равно.</td></tr>'}</tbody></table>
-    </div></div>
-  </div>`;
-}
-function toggleRider(id){
-  const b=S.bill,i=b.riders.indexOf(id);
-  if(i>=0)b.riders.splice(i,1); else b.riders.push(id);
-  render();
-}
-
-/* ─── 3. Собрание ────────────────────────────────────────────── */
-function hemicycle(){
-  const rows=6,W=760,H=250,cx=W/2,cy=H-8;
-  const list=[];
-  S.parties.forEach(p=>{ for(let i=0;i<seatsOf(p.id);i++)list.push(p); });
-  list.sort((a,b)=>(a.st.econ+a.st.tax+a.st.free)-(b.st.econ+b.st.tax+b.st.free));
-  // сначала раскладываем кресла по углу, потом рассаживаем фракции слева направо
+/* ─── 2 · Собрание ───────────────────────────────────────────── */
+/* Кресел ровно столько, сколько мандатов: ряды берут места пропорционально
+   длине дуги, остаток уходит во внешний ряд. */
+function hemiSlots(n,rows,r0,dr,cx,cy){
+  const rad=[],ws=[];let sum=0;
+  for(let k=0;k<rows;k++){ const r=r0+k*dr; rad.push(r); ws.push(r); sum+=r; }
+  const cnt=ws.map(w=>Math.max(1,Math.floor(n*w/sum)));
+  let diff=n-cnt.reduce((a,b)=>a+b,0), k=rows-1;
+  while(diff>0){ cnt[k]++; diff--; k=(k-1+rows)%rows; }
+  while(diff<0){ if(cnt[k]>1){cnt[k]--;diff++;} k=(k-1+rows)%rows; }
   const slots=[];
-  for(let r=0;r<rows;r++){
-    const rad=84+r*26, n=Math.round(list.length/rows*(0.82+r*0.07));
-    for(let i=0;i<n;i++){
-      const a=Math.PI*(0.04+0.92*(n===1?0.5:i/(n-1)));
-      slots.push({a,rad,x:cx-Math.cos(a)*rad,y:cy-Math.sin(a)*rad});
-    }
-  }
-  slots.sort((p,q)=>p.a-q.a||p.rad-q.rad);
-  const step=slots.length/list.length;
-  const out=list.map((p,i)=>{ const s=slots[Math.min(slots.length-1,Math.round(i*step))];
-    return `<circle cx="${r1(s.x)}" cy="${r1(s.y)}" r="6" fill="${p.color}" stroke="#FAF7EF" stroke-width="0.9"/>`;});
-  return `<svg class="hemi" viewBox="0 0 ${W} ${H}">${out.join('')}</svg>`;
+  cnt.forEach((m,i)=>{ for(let j=0;j<m;j++){
+    const a=Math.PI*(0.045+0.91*(m===1?0.5:j/(m-1)));
+    slots.push({a,r:rad[i],x:cx-Math.cos(a)*rad[i],y:cy-Math.sin(a)*rad[i]});
+  }});
+  return slots.sort((p,q)=>p.a-q.a||p.r-q.r);
+}
+function hemicycle(){
+  const W=760,H=225,list=[];
+  S.parties.slice().sort((a,b)=>(a.st.econ+a.st.tax+a.st.free)-(b.st.econ+b.st.tax+b.st.free))
+    .forEach(p=>{ for(let i=0;i<seatsOf(p.id);i++)list.push(p.color); });
+  const slots=hemiSlots(list.length,6,80,24,W/2,H-8);
+  return `<svg class="hemi" viewBox="0 0 ${W} ${H}">${list.map((c,i)=>{const s=slots[i];
+    return `<circle cx="${s.x.toFixed(1)}" cy="${s.y.toFixed(1)}" r="6" fill="${c}" stroke="var(--surface)" stroke-width="0.9"/>`;}).join('')}</svg>`;
 }
 function tabParl(){
   const b=S.bill;
   let deps=S.deputies.slice();
   if(S.filter!=='all')deps=deps.filter(d=>d.party===S.filter);
-  if(b){ deps.sort((x,y)=>Math.abs(support(x,b))-Math.abs(support(y,b))); }
+  if(b)deps.sort((x,y)=>Math.abs(support(x,b))-Math.abs(support(y,b)));
   else deps.sort((x,y)=>x.rel-y.rel);
-  const rows=deps.slice(0,26).map(d=>{
+  const rows=deps.slice(0,24).map(d=>{
     const v=b?support(d,b):null;
-    const st=v===null?'':v>8?'<span class="tag g">за</span>':v<-8?'<span class="tag r">против</span>':'<span class="tag y">колеблется</span>';
-    return `<tr><td><b>${d.name}</b><div class="hint">${R(d.region).name}${d.note?' · '+d.note:''}</div></td>
-      <td>${chip(P(d.party))}</td>
-      <td class="num hide-s">${d.loyal}</td>
-      <td class="num">${Math.round(d.rel)} ${mini(d.rel)}</td>
-      <td>${st}</td>
-      <td class="r"><button class="b sm" onclick="openDep('${d.id}')" ${S.ap?'':'disabled'}>Работать</button></td></tr>`;}).join('');
-  const fr=S.parties.map(p=>`<button class="b sm ${S.filter===p.id?'on':''}" onclick="S.filter='${p.id}';render()">${p.short} ${seatsOf(p.id)}</button>`).join('');
+    const st=v===null?'':v>10?'<span class="tag g">за</span>':v<-10?'<span class="tag r">против</span>':'<span class="tag y">колеблется</span>';
+    return `<tr><td><b>${d.name}</b><div class="sub2">${R(d.region).name}${d.note?' · '+d.note:''}</div></td>
+      <td>${chip(P(d.party))}</td><td class="n hide-s">${d.loyal}</td>
+      <td class="n">${Math.round(d.rel)} ${mini(d.rel)}</td><td>${st}</td>
+      <td class="r"><button class="btn sm" onclick="openDep('${d.id}')" ${S.ap?'':'disabled'}>Работать</button></td></tr>`;}).join('');
+  const filters=S.parties.map(p=>
+    `<button class="btn sm ${S.filter===p.id?'sel':''}" onclick="S.filter='${p.id}';render()">${p.short} ${seatsOf(p.id)}</button>`).join('');
   const votes=S.votes.slice(0,8).map(v=>
-    `<tr><td>${v.name} <span class="dim">${STEP[v.stance+2]}</span></td><td class="num pos">${v.yes}</td><td class="num neg">${v.no}</td>
-     <td>${v.pass?'<span class="tag g">принят</span>':'<span class="tag r">отклонён</span>'}</td><td class="num">${shortDate(v.q)}</td></tr>`).join('')
+    `<tr><td>${v.name} <span class="dim">${STEP[v.stance+2]}</span></td><td class="n good">${v.yes}</td>
+     <td class="n bad">${v.no}</td><td>${v.pass?'<span class="tag g">принят</span>':'<span class="tag r">отклонён</span>'}</td>
+     <td class="n">${shortDate(v.q)}</td></tr>`).join('')
     ||'<tr><td colspan="5" class="dim">Голосований ещё не было.</td></tr>';
+  const tl=b?tally(b):null;
 
-  return `<div class="sh accb"><div class="hd"><h2>Народное собрание</h2>
-      <span class="note">${SEATS} мандатов · большинство ${MAJ} · коалиция ${coalSeats()}</span></div>
-    <div class="bd">${hemicycle()}
-      <div class="legend">${S.parties.map(p=>`<span class="chip"><s style="background:${p.color}"></s>${p.name} — ${seatsOf(p.id)}${inCoal(p.id)?' · коалиция':''}</span>`).join('')}</div>
-    </div></div>
-
-  <div class="sh"><div class="hd"><h2>Депутаты</h2>
-      <span class="note">${b?'сортировка: кто ближе к перемене мнения':'сортировка: кто хуже к вам относится'}</span></div>
-    <div class="bd">
-      <div class="brow" style="margin-bottom:9px">
-        <button class="b sm ${S.filter==='all'?'on':''}" onclick="S.filter='all';render()">Все</button>${fr}</div>
-      ${b?'<div class="hint" style="margin-bottom:7px">Идёт подготовка проекта «'+T(b.topic).name+'». Позиция депутата показана по нему.</div>':''}
-      <div class="scrollx"><table><thead><tr><th>Депутат</th><th>Фракция</th><th class="r hide-s">Дисциплина</th>
-        <th class="r">Отношение</th><th>По проекту</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
-      <div class="hint" style="margin-top:7px">Показаны ${Math.min(26,deps.length)} из ${deps.length}. Дисциплина — насколько депутат идёт за своей фракцией; отношение — как он относится лично к вам.</div>
-    </div></div>
-
-  <div class="sh"><div class="hd"><h2>Комитеты</h2>
-      <span class="note">председатель ведёт за собой однопартийцев</span></div><div class="bd">
-    <table class="tight"><thead><tr><th>Комитет</th><th>Председатель</th><th>Фракция</th><th></th></tr></thead><tbody>
-    ${AXES.map(a=>{const id=S.comm[a.id], d=id?S.deputies.find(x=>x.id===id):null;
-      return `<tr><td><b>${a.name}</b></td>
-        <td>${d?d.name:'<span class="dim">вакансия</span>'}</td>
+  return panel({cls:'info',title:'Народное собрание',
+    meta:mandates(SEATS)+' · большинство '+MAJ+' · коалиция '+coalSeats(),
+    body:hemicycle()+'<div class="legend">'+S.parties.map(p=>
+      `<span class="chip"><s style="background:${p.color}"></s>${p.name} — ${seatsOf(p.id)}${inCoal(p.id)?' · коалиция':''}</span>`).join('')+'</div>'})
+  +`<div class="cols c21"><div>`
+  +panel({title:'Депутаты',meta:b?'по проекту «'+T(b.topic).name+'»':'сортировка: кто хуже к вам относится',flush:true,
+    body:`<div style="padding:var(--x4) var(--x5);border-bottom:var(--hair-2)" class="row">
+        <button class="btn sm ${S.filter==='all'?'sel':''}" onclick="S.filter='all';render()">Все</button>${filters}
+        ${tl?`<span class="dim" style="margin-left:auto;font-size:11.5px">колеблются ${tl.und}</span>`:''}</div>
+      <div class="scrollx"><table><thead><tr><th>Депутат</th><th>Фракция</th><th class="n hide-s">Дисц.</th>
+        <th class="n">Отношение</th><th>Позиция</th><th></th></tr></thead><tbody>${rows}</tbody>
+        <caption>Показаны ${Math.min(24,deps.length)} из ${deps.length}. Дисциплина — насколько депутат идёт за фракцией, отношение — как он относится лично к вам.</caption></table></div>`})
+  +`</div><div>`
+  +(b?panel({cls:'lead-p',title:'Расклад по проекту',body:
+      `<div class="whip"><div><i>за</i><b class="good">${tl.yes}</b></div><div><i>?</i><b>${tl.und}</b></div>
+        <div><i>против</i><b class="bad">${tl.no}</b></div></div>
+       ${bar([[tl.yes/SEATS*100,'var(--good)'],[tl.und/SEATS*100,'var(--line)'],[tl.no/SEATS*100,'var(--bad)']],12)}
+       <p class="hint" style="margin-top:6px">Нужно ${MAJ}. Колеблющихся ${tl.und} — их и стоит перетягивать.</p>`,
+      foot:`<button class="btn sm pri" data-act="whip" ${S.ap&&S.cap>=11&&tl.und?'':'disabled'}>Обработать колеблющихся<span class="cost">11</span></button>
+            <button class="btn sm" data-go="bill">К проекту</button>`})
+    :panel({title:'Расклад по проекту',body:'<div class="empty">Проект не внесён — позиции депутатов покажутся, когда он появится.</div>'}))
+  +panel({title:'Комитеты',meta:'председатель ведёт фракцию',flush:true,
+    body:`<table class="tight"><tbody>${AXES.map(a=>{
+      const id=S.comm[a.id], d=id?S.deputies.find(x=>x.id===id):null;
+      return `<tr><td><b>${a.name}</b></td><td>${d?d.name:'<span class="dim">вакансия</span>'}</td>
         <td>${d?chip(P(d.party)):''}</td>
-        <td class="r"><button class="b sm" onclick="askChair('${a.id}')" ${S.ap&&S.cap>=6?'':'disabled'}>${d?'Заменить':'Назначить'}</button></td></tr>`;}).join('')}
-    </tbody></table>
-    <p class="hint" style="margin-top:7px">Комитет по теме законопроекта прибавляет голоса фракции своего председателя — и отнимает, если она против. Назначение стоит действие и 6 веса, снятый председатель обижается.</p>
-  </div></div>
-
-  <div class="sh"><div class="hd"><h2>Прошедшие голосования</h2></div><div class="bd">
-    <table class="tight"><tbody>${votes}</tbody></table></div></div>`;
+        <td class="r"><button class="btn sm" onclick="askChair('${a.id}')" ${S.ap&&S.cap>=6?'':'disabled'}>${d?'Заменить':'Назначить'}</button></td></tr>`;
+      }).join('')}</tbody></table>`})
+  +`</div></div>`
+  +panel({title:'Прошедшие голосования',flush:true,body:`<table class="tight"><tbody>${votes}</tbody></table>`});
 }
 function openDep(id){
   const d=S.deputies.find(x=>x.id===id); if(!d)return;
@@ -2140,101 +2196,207 @@ function openDep(id){
   sheetOpen({eye:P(d.party).name+' · '+R(d.region).name,title:d.name,
     body:`<div class="res">
         <span>Дисциплина фракции</span><b>${d.loyal}</b>
-        <span>Отношение к вам</span><b class="${d.rel<40?'neg':d.rel>62?'pos':''}">${Math.round(d.rel)}</b>
+        <span>Отношение к вам</span><b class="${d.rel<40?'bad':d.rel>62?'good':''}">${Math.round(d.rel)}</b>
         <span>Неподкупность</span><b>${d.integ}</b>
         <span>Сделок с вами</span><b>${d.deals}</b>
-        ${b?`<span>По проекту «${T(b.topic).name}»</span><b class="${v>8?'pos':v<-8?'neg':''}">${v>8?'за':v<-8?'против':'колеблется'}</b>`:''}
+        ${b?`<span>По проекту «${T(b.topic).name}»</span><b class="${v>10?'good':v<-10?'bad':''}">${v>10?'за':v<-10?'против':'колеблется'}</b>`:''}
       </div>
       <p class="hint">Взгляды: ${AXES.map(a=>a.name.toLowerCase()+' '+STEP[Math.round(d.st[a.id])+2]).join(', ')}.</p>`,
     opts:LOBBY.filter(l=>!l.need||l.need(d)).map(l=>({
       label:l.name+' · '+[l.cap?l.cap+' веса':'',l.gold?l.gold+' млрд':''].filter(Boolean).join(' и '),
       hint:l.txt, fn:()=>lobby(d.id,l.id)}))});
 }
-
 function askChair(ax){
-  const cand=S.deputies.slice()
-    .sort((a,b)=>(Math.abs(a.st[ax]-me().st[ax])-Math.abs(b.st[ax]-me().st[ax]))+(b.rel-a.rel)*0.01)
-    .slice(0,10);
+  const busy=Object.entries(S.comm||{}).filter(([k])=>k!==ax).map(([,v])=>v);
+  const cand=S.deputies.filter(d=>busy.indexOf(d.id)<0)
+    .sort((a,b)=>(Math.abs(a.st[ax]-me().st[ax])-Math.abs(b.st[ax]-me().st[ax]))+(b.rel-a.rel)*0.01).slice(0,10);
   sheetOpen({eye:'Комитет по теме «'+AXNAME[ax]+'» · 1 действие и 6 веса',title:'Кого поставить',
-    body:'<p class="lead">Председатель тянет за собой свою фракцию, когда Собрание рассматривает проекты по этой теме. Список отсортирован по близости взглядов к вашим.</p>',
+    body:'<p class="lead">Председатель тянет за собой свою фракцию на профильных проектах. Список отсортирован по близости взглядов к вашим.</p>',
     opts:cand.map(d=>({label:d.name+' · '+P(d.party).short,
       hint:'позиция '+STEP[Math.round(d.st[ax])+2]+' · отношение '+Math.round(d.rel)+' · '+R(d.region).name,
       fn:()=>setChair(ax,d.id)}))});
 }
 
-/* ─── 4. Бюджет ──────────────────────────────────────────────── */
+/* ─── 3 · Законопроект ───────────────────────────────────────── */
+function tabBill(){
+  const b=S.bill;
+  if(!b){
+    const rows=TOPICS.map(t=>{const l=lawOn(t.id);
+      return `<tr><td><b>${t.name}</b><div class="sub2">${AXNAME[t.ax]}: ${t.l} ↔ ${t.r}</div></td>
+        <td class="n">${l?STEP[l.stance+2]:'<span class="dim">нет</span>'}</td>
+        <td class="r"><button class="btn sm" onclick="newBill('${t.id}');render()">${l?'Переписать':'Готовить'}</button></td></tr>`;}).join('');
+    return panel({cls:'lead-p',title:'Внести законопроект',meta:'внесение — 1 действие и 8 веса',flush:true,
+      body:`<p class="hint" style="padding:var(--x4) var(--x5) 0">По каждой теме действует только последняя редакция: новый закон отменяет прежний.</p>
+        <table><thead><tr><th>Тема</th><th class="n">Действует</th><th></th></tr></thead><tbody>${rows}</tbody></table>`});
+  }
+  const t=T(b.topic), tl=tally(b), sum=billSum(b);
+  const eff=[];
+  if(sum.money)eff.push(['Бюджет каждый квартал',sign(r1(sum.money))+' млрд',sum.money>0]);
+  if(sum.once)eff.push(['Разовые расходы',r1(sum.once)+' млрд',false]);
+  if(sum.growth)eff.push(['Рост ВВП',sign(r2(sum.growth))+' п.п.',sum.growth>0]);
+  if(sum.inf)eff.push(['Инфляция',sign(r2(sum.inf))+' п.п.',sum.inf<0]);
+  if(sum.unemp)eff.push(['Безработица',sign(r2(sum.unemp*4))+' п.п.',sum.unemp<0]);
+  if(sum.invest)eff.push(['Инвестиции',sign(r1(sum.invest)),sum.invest>0]);
+  if(sum.unrest)eff.push(['Напряжённость',sign(r1(sum.unrest*2)),sum.unrest<0]);
+  if(sum.stab)eff.push(['Устойчивость власти',sign(r1(sum.stab)),sum.stab>0]);
+  const gr=Object.entries(sum.gr||{}).filter(([,v])=>Math.abs(v)>0.2).sort((a,c)=>c[1]-a[1]).map(([g,v])=>
+    `<tr><td>${G(g).name}</td><td class="n ${v>0?'good':'bad'}">${sign(r1(v*1.5))}</td>
+     <td class="n">${Math.round(S.mood[g])}</td></tr>`).join('');
+  const byParty=S.parties.map(p=>{
+    const l=tl.list.filter(x=>x.d.party===p.id), n=l.length||1;
+    const y=l.filter(x=>x.st==='yes').length, no=l.filter(x=>x.st==='no').length, u=l.length-y-no;
+    return `<tr><td>${chip(p)}</td><td class="n good">${y}</td><td class="n">${u}</td><td class="n bad">${no}</td>
+      <td style="width:90px">${bar([[y/n*100,'var(--good)'],[u/n*100,'var(--line)'],[no/n*100,'var(--bad)']],7)}</td></tr>`;}).join('');
+
+  return panel({cls:'lead-p',title:'Проект закона № '+(S.billNo+1),meta:t.name,body:
+    `<div class="ax"><div class="axh"><span>${t.l}</span><span>${AXNAME[t.ax]}</span><span>${t.r}</span></div>
+      <div class="axr">${[-2,-1,0,1,2].map(v=>
+        `<button class="${b.stance===v?'on':''}" onclick="S.bill.stance=${v};render()">${STEP[v+2]}</button>`).join('')}</div>
+      <div class="now">${stanceLine(b)}</div></div>
+     <h3 class="sub">Поправки</h3>
+     <div class="row">${RIDERS.map(rd=>{const on=b.riders.indexOf(rd.id)>=0;
+       return `<button class="btn sm ${on?'sel':''}" onclick="toggleRider('${rd.id}')">${rd.name}${rd.cost?`<span class="cost">${rd.cost} млрд</span>`:''}</button>`;}).join('')}</div>
+     <p class="hint" style="margin-top:6px">${b.riders.map(id=>RIDERS.find(x=>x.id===id).desc).join(' ')
+       ||'Поправки покупают голоса ценой денег или силы закона.'}</p>
+     ${b.riders.indexOf('money')>=0?`<div style="margin-top:8px" class="row"><span class="hint">Транш уходит в:</span>
+       <select style="width:auto" onchange="S.bill.regTarget=this.value;render()">
+       ${REGIONS.map(r=>`<option value="${r.id}" ${b.regTarget===r.id?'selected':''}>${r.name}</option>`).join('')}</select></div>`:''}`})
+  +`<div class="cols c11"><div>`
+  +panel({title:'Предварительный расклад',meta:'оценка секретариата',body:
+    `<div class="whip"><div><i>за</i><b class="good">${tl.yes}</b></div><div><i>колеблются</i><b>${tl.und}</b></div>
+      <div><i>против</i><b class="bad">${tl.no}</b></div></div>
+     ${bar([[tl.yes/SEATS*100,'var(--good)'],[tl.und/SEATS*100,'var(--line)'],[tl.no/SEATS*100,'var(--bad)']],12)}
+     <p class="hint" style="margin:6px 0 10px">Нужно ${MAJ} голосов. Колеблющиеся решают в зале.</p>
+     <table class="tight"><thead><tr><th>Фракция</th><th class="n">За</th><th class="n">?</th><th class="n">Против</th><th></th></tr></thead>
+       <tbody>${byParty}</tbody></table>`,
+    foot:`<button class="btn pri" onclick="submitBill()" ${S.ap&&S.cap>=8?'':'disabled'}>Внести на голосование<span class="cost">8</span></button>
+          <button class="btn" data-act="whip" ${S.ap&&S.cap>=11&&tl.und?'':'disabled'}>Обработать колеблющихся<span class="cost">11</span></button>
+          <button class="btn danger" onclick="S.bill=null;render()">Отозвать</button>`})
+  +`</div><div>`
+  +panel({title:'Что изменит закон',body:
+    `<table class="tight"><tbody>${eff.map(e=>
+      `<tr><td>${e[0]}</td><td class="n ${e[2]?'good':'bad'}">${e[1]}</td></tr>`).join('')
+      ||'<tr><td class="dim">Нейтральная редакция: ничего не меняет.</td></tr>'}</tbody></table>
+     <h3 class="sub">Реакция групп</h3>
+     <table class="tight"><thead><tr><th>Группа</th><th class="n">Сдвиг</th><th class="n">Сейчас</th></tr></thead>
+       <tbody>${gr||'<tr><td colspan="3" class="dim">Обществу всё равно.</td></tr>'}</tbody></table>`})
+  +`</div></div>`;
+}
+function toggleRider(id){
+  const b=S.bill,i=b.riders.indexOf(id);
+  if(i>=0)b.riders.splice(i,1); else b.riders.push(id);
+  render();
+}
+
+/* ─── 4 · Бюджет ─────────────────────────────────────────────── */
 function tabBudget(){
-  if(!isPM())return `<div class="sh acc"><div class="hd"><h2>Бюджет</h2><span class="note">не ваш</span></div><div class="bd">
-    <p class="lead">Казной распоряжается правительство ${P(S.gov.lead).leader}. Оппозиция видит цифры, но не двигает ставки.</p>
-    <div class="kv"><span>Доходы</span><b>${revenue()} млрд</b></div>
-    <div class="kv"><span>Расходы</span><b>${outlay()} млрд</b></div>
-    <div class="kv"><span>Обслуживание долга</span><b class="neg">−${interest()} млрд</b></div>
-    <div class="kv"><span>Итог квартала</span><b class="${balance()<0?'neg':'pos'}">${sign(balance())} млрд</b></div>
-    <p class="hint" style="margin-top:9px">Чтобы вернуть бюджет себе, нужно большинство в Собрании.</p></div></div>`;
-  const taxRows=TAXES.map(t=>`<tr><td><b>${t.name}</b><div class="hint">недовольны: ${t.hates.map(h=>G(h).name.toLowerCase()).join(', ')}</div></td>
-    <td class="num">${r1(t.yield*(S.tax[t.id]/2)*S.econ.gdp/100)}</td>
-    <td style="width:210px"><div class="axr" style="display:flex;gap:2px">${[0,1,2,3,4].map(v=>
-      `<button class="b sm ${S.tax[t.id]===v?'on':''}" style="flex:1;padding:3px 0" onclick="setTax('${t.id}',${v})">${v}</button>`).join('')}</div>
-      <div class="hint">${RATE_NAME[S.tax[t.id]]}</div></td></tr>`).join('');
-  const spRows=SPEND.map(s=>`<tr><td><b>${s.name}</b><div class="hint">ждут: ${s.likes.map(h=>G(h).name.toLowerCase()).join(', ')||'—'}</div></td>
-    <td class="num">${r1(s.base*(S.spend[s.id]/2)*(0.55+S.econ.gdp/100*0.45))}</td>
-    <td style="width:210px"><div style="display:flex;gap:2px">${[0,1,2,3,4].map(v=>
-      `<button class="b sm ${S.spend[s.id]===v?'on':''}" style="flex:1;padding:3px 0" onclick="setSpend('${s.id}',${v})">${v}</button>`).join('')}</div>
-      <div class="hint">${['нет','урезано','норма','щедро','максимум'][S.spend[s.id]]}</div></td></tr>`).join('');
+  if(!isPM())return panel({cls:'info',title:'Бюджет',meta:'не ваш',body:
+    `<p class="lead">Казной распоряжается правительство ${P(S.gov.lead).leader}. Оппозиция видит цифры, но не двигает ставки.</p>
+     <div class="res"><span>Доходы</span><b class="good">${revenue()}</b>
+       <span>Расходы</span><b class="bad">−${outlay()}</b>
+       <span>Проценты по долгу</span><b class="bad">−${interest()}</b>
+       <span>Итог квартала</span><b class="${balance()<0?'bad':'good'}">${sign(balance())} млрд</b></div>
+     <p class="hint">Чтобы вернуть бюджет себе, нужно большинство в Собрании или вотум недоверия.</p>`});
   const bal=balance();
-  return `<div class="cols">
-    <div class="sh accg"><div class="hd"><h2>Доходы</h2><span class="note">${revenue()} млрд за квартал</span></div>
-      <div class="bd"><table class="tight"><thead><tr><th>Налог</th><th class="r">Сбор</th><th>Ставка 0—4</th></tr></thead>
-        <tbody>${taxRows}</tbody></table></div></div>
-    <div class="sh acc"><div class="hd"><h2>Расходы</h2><span class="note">${outlay()} млрд за квартал</span></div>
-      <div class="bd"><table class="tight"><thead><tr><th>Статья</th><th class="r">Смета</th><th>Уровень 0—4</th></tr></thead>
-        <tbody>${spRows}</tbody></table></div></div>
+  const taxRows=TAXES.map(t=>`<tr><td><b>${t.name}</b><div class="sub2">недовольны: ${t.hates.map(h=>G(h).name.toLowerCase()).join(', ')}</div></td>
+    <td class="n">${r1(t.yield*(S.tax[t.id]/2)*S.econ.gdp/100)}</td>
+    <td style="width:190px"><div class="steps">${[0,1,2,3,4].map(v=>
+      `<button class="${S.tax[t.id]===v?'on':''}" onclick="setTax('${t.id}',${v})">${v}</button>`).join('')}</div>
+      <div class="sub2">${RATE_NAME[S.tax[t.id]]}</div></td></tr>`).join('');
+  const spRows=SPEND.map(s=>`<div class="bline"><div><b>${s.name}</b><div class="who">ждут: ${
+      s.likes.map(h=>G(h).name.toLowerCase()).join(', ')||'—'}</div></div>
+    <div class="num-s" style="text-align:right">${r1(s.base*(S.spend[s.id]/2)*(0.55+S.econ.gdp/100*0.45))}</div>
+    <div><div class="steps">${[0,1,2,3,4].map(v=>
+      `<button class="${S.spend[s.id]===v?'on':''}" onclick="setSpend('${s.id}',${v})">${v}</button>`).join('')}</div>
+      <div class="sub2">${['нет','урезано','норма','щедро','максимум'][S.spend[s.id]]}</div></div></div>`).join('');
+
+  return `<div class="cols c11">
+    ${panel({cls:'calm',title:'Доходы',meta:revenue()+' млрд за квартал',flush:true,
+      body:`<table><thead><tr><th>Налог</th><th class="n">Сбор</th><th>Ставка 0—4</th></tr></thead><tbody>${taxRows}</tbody></table>`})}
+    ${panel({cls:'warn',title:'Расходы',meta:outlay()+' млрд за квартал',body:spRows})}
   </div>
-  <div class="sh"><div class="hd"><h2>Свод</h2><span class="note">изменения ставок вступают в силу сразу</span></div><div class="bd">
-    <div class="grid2">
-      <div><div class="kv"><span>Доходы</span><b class="pos">${revenue()}</b></div>
-        <div class="kv"><span>Расходы</span><b class="neg">−${outlay()}</b></div>
-        <div class="kv"><span>Проценты по долгу</span><b class="neg">−${interest()}</b></div>
-        <div class="kv"><span>Итог</span><b class="${bal<0?'neg':'pos'}">${sign(bal)} млрд</b></div></div>
-      <div><div class="kv"><span>В казне</span><b>${Math.round(S.treasury)} млрд</b></div>
-        <div class="kv"><span>Долг</span><b class="${S.debt>300?'neg':''}">${Math.round(S.debt)} млрд</b></div>
-        <div class="kv"><span>Инвестиции, индекс</span><b>${Math.round(S.econ.invest)}</b></div>
-        <div class="kv"><span>Налоговая нагрузка</span><b>${r1(taxLoad())} из 4</b></div></div>
+  <div class="cols c21">
+    ${panel({title:'Динамика',meta:S.hist.length+' кварталов',body:
+      `<div class="grid g2">${spark('gdp','var(--good)','ВВП, индекс')}${spark('inf','var(--bad)','Инфляция, %')}
+        ${spark('un','#6B4A1E','Безработица, %')}${spark('debt','var(--p6)','Долг, млрд')}</div>`})}
+    <div>
+      ${panel({title:'Свод',body:`<div class="res" style="margin:0;border:0;padding:0">
+        <span>Доходы</span><b class="good">${revenue()}</b>
+        <span>в том числе сырьё</span><b class="${resIncome()<0?'bad':''}">${sign(resIncome())}</b>
+        <span>Расходы</span><b class="bad">−${outlay()}</b>
+        <span>Проценты по долгу</span><b class="bad">−${interest()}</b>
+        <span>Итог квартала</span><b class="${bal<0?'bad':'good'}">${sign(bal)} млрд</b>
+        <span>В казне</span><b>${Math.round(S.treasury)}</b>
+        <span>Долг</span><b class="${S.debt>300?'bad':''}">${Math.round(S.debt)}</b></div>
+        <p class="hint" style="margin-top:8px">Дефицит уходит в долг и разгоняет инфляцию. Профицит выше 90 млрд идёт на погашение.</p>`})}
+      ${panel({cls:'info',title:'Конъюнктура',meta:'на это вы не влияете',body:
+        gauge('фаза цикла',(cycleImpulse()+2)/4*100,cyclePhase())+
+        gauge('внешний спрос',(S.world.demand-55)/87*100,Math.round(S.world.demand),S.world.demand<90?'bad':S.world.demand>110?'good':'')+
+        gauge('цены на сырьё',(S.world.res-45)/123*100,Math.round(S.world.res),S.world.res<90?'bad':S.world.res>110?'good':'')+
+        `<p class="hint" style="margin-top:8px">Цикл идёт сам: подъём сменяется охлаждением независимо от вашей политики.</p>`})}
     </div>
-    <p class="hint" style="margin-top:9px">Дефицит уходит в долг и разгоняет инфляцию. Профицит выше 90 млрд автоматически идёт на погашение.</p>
-  </div></div>
-  <div class="sh"><div class="hd"><h2>Конъюнктура</h2><span class="note">на это вы не влияете</span></div><div class="bd">
-    <div class="grid2">
-      <div><div class="kv"><span>Фаза цикла</span><b class="w">${cyclePhase()}</b></div>
-        <div class="kv"><span>Внешний спрос</span><b class="${S.world.demand<90?'neg':S.world.demand>110?'pos':''}">${Math.round(S.world.demand)}</b></div></div>
-      <div><div class="kv"><span>Цены на сырьё</span><b class="${S.world.res<90?'neg':S.world.res>110?'pos':''}">${Math.round(S.world.res)}</b></div>
-        <div class="kv"><span>Сырьевые доходы</span><b class="${resIncome()<0?'neg':'pos'}">${sign(resIncome())} млрд</b></div></div>
-    </div>
-    <p class="hint" style="margin-top:8px">Цикл идёт сам: подъём сменяется охлаждением независимо от вашей политики. Внешний спрос тянет заводы, цены на сырьё — казну и инфляцию.</p>
-  </div></div>
-  <div class="sh"><div class="hd"><h2>Портфели</h2><span class="note">отданный портфель покупает голоса фракции</span></div><div class="bd">
-    <table class="tight"><tbody>${POSTS.map(p=>{
-      const h=S.gov.posts[p.id];
-      return `<tr><td><b>${p.name}</b><div class="hint">${p.eff}</div></td>
-        <td>${h?chip(P(h))+' '+P(h).name:'<span class="dim">вакансия</span>'}</td>
-        <td class="r"><button class="b sm" onclick="askPost('${p.id}')" ${S.ap?'':'disabled'}>Передать</button></td></tr>`;}).join('')}
-    </tbody></table></div></div>`;
+  </div>`;
+}
+function gauge(label,pos,val,cls){
+  return `<div class="gauge"><span class="t-micro" style="width:96px;flex:none">${label}</span>
+    <div class="track"><i style="left:${clamp(pos,0,99)}%"></i></div>
+    <b class="num-s ${cls||''}" style="width:82px;text-align:right">${val}</b></div>`;
 }
 function setTax(id,v){ if(!isPM())return; S.tax[id]=v; logMsg('Ставка «'+TAXES.find(t=>t.id===id).name+'» — '+RATE_NAME[v]+'.'); render(); }
 function setSpend(id,v){ if(!isPM())return; S.spend[id]=v; logMsg('Статья «'+SPEND.find(s=>s.id===id).name+'» — уровень '+v+'.'); render(); }
+
+/* ─── 5 · Правительство ──────────────────────────────────────── */
+function tabGov(){
+  const posts=POSTS.map(p=>{ const h=S.gov.posts[p.id];
+    return `<tr><td><b>${p.name}</b><div class="sub2">${p.eff}</div></td>
+      <td>${h?partyRow(P(h)):'<span class="dim">вакансия</span>'}</td>
+      <td class="r"><button class="btn sm ${h?'':'pri'}" onclick="askPost('${p.id}')" ${S.ap&&isPM()?'':'disabled'}>${h?'Передать':'Назначить'}</button></td></tr>`;}).join('');
+  const allies=coalition().filter(x=>x!==PL).map(id=>{
+    const st=S.partners[id]||{anger:0}, p=P(id);
+    const got=Object.values(S.gov.posts).filter(x=>x===id).length;
+    return `<div class="dep"><div class="who"><b>${p.name}</b><span>${mandates(seatsOf(id))} · ${got} из ${partyPrice(id)} портфелей · расхождение ${axDist(p.st,me().st).toFixed(1)}</span></div>
+      ${st.anger>=3?'<span class="tag r">на грани</span>':st.anger>=2?'<span class="tag y">недовольны</span>':'<span class="tag g">лояльны</span>'}</div>`;}).join('')
+    ||'<p class="hint">Союзников нет: правительство однопартийное.</p>';
+  const outside=S.parties.filter(p=>p.id!==PL&&!inCoal(p.id)).map(p=>
+    `<tr><td>${partyRow(p)}</td><td class="n">${seatsOf(p.id)}</td><td class="n">${axDist(p.st,me().st).toFixed(1)}</td>
+     <td>${axDist(p.st,me().st)<2.05?'<span class="tag y">сядут за стол</span>':'<span class="dim">не пойдут</span>'}</td>
+     <td class="r"><button class="btn sm" data-act="talk" data-arg="${p.id}" ${S.ap&&S.cap>=5?'':'disabled'}>Переговоры<span class="cost">5</span></button></td></tr>`).join('');
+
+  return `<div class="cols c21">
+    ${panel({cls:'lead-p',title:'Портфели',meta:'отданный портфель покупает голоса фракции',flush:true,
+      body:`<table><thead><tr><th>Министерство</th><th>Держит</th><th></th></tr></thead><tbody>${posts}</tbody></table>`})}
+    <div>
+      ${panel({cls:coalSeats()<MAJ&&isPM()?'warn':'',title:'Коалиция',meta:coalSeats()+' из '+MAJ,body:
+        bar(S.parties.slice().sort((x,y)=>(inCoal(y.id)?1:0)-(inCoal(x.id)?1:0)).map(p=>
+          [seatsOf(p.id)/SEATS*100,inCoal(p.id)?p.color:p.color+'70']),15)+
+        '<div style="margin-top:10px">'+allies+'</div>'})}
+      ${panel({title:'Устойчивость',body:`<div class="res" style="margin:0;border:0;padding:0">
+        <span>Роль</span><b class="w">${isPM()?'глава кабинета':S.role==='junior'?'младший партнёр':'оппозиция'}</b>
+        <span>Возраст кабинета</span><b>${quarters(S.govAge||0)}</b>
+        <span>Усталость избирателя</span><b class="${(S.fatigue||0)>6?'bad':''}">${r1(S.fatigue||0)}</b>
+        <span>Вотум недоверия</span><b class="w">${S.noConfCool>0?'не раньше чем через '+S.noConfCool:'возможен'}</b></div>`})}
+    </div>
+  </div>
+  ${panel({title:'Фракции вне правительства',flush:true,body:
+    `<table><thead><tr><th>Фракция</th><th class="n">Мандаты</th><th class="n">Расхождение</th><th>Готовность</th><th></th></tr></thead>
+      <tbody>${outside||'<tr><td class="dim">Все фракции в коалиции.</td></tr>'}</tbody>
+      <caption>Расхождение выше 2,0 — партия не сядет за стол ни за какие портфели.</caption></table>`})}`;
+}
 function askPost(post){
   sheetOpen({eye:'Кадровое решение · 1 действие',title:POSTS.find(p=>p.id===post).name,
     body:'<p class="lead">Портфель чужой фракции покупает её голоса и терпение. Свой человек надёжнее, но ничего не приносит сверх работы министерства.</p>',
     opts:S.parties.map(p=>({label:p.name+(p.id===PL?' (своя фракция)':''),
-      hint:p.id===PL?'без политической цены':'мандатов '+seatsOf(p.id)+' · расхождение '+r1(axDist(p.st,me().st)),
+      hint:p.id===PL?'без политической цены':mandates(seatsOf(p.id))+' · расхождение '+axDist(p.st,me().st).toFixed(1),
       fn:()=>offerPost(p.id,post)}))});
 }
 
-/* ─── 5. Страна ──────────────────────────────────────────────── */
-const MAPMODE=[['sup','Поддержка'],['unrest','Напряжённость'],['dev','Развитие'],['seats','Мандаты']];
+/* ─── 6 · Регионы ────────────────────────────────────────────── */
+const MAPMODE=[['sup','Поддержка'],['unrest','Напряжённость'],['seats','Мандаты'],['dev','Развитие']];
+const RAMP_SUP=['#7B2018','#B4744A','#C9B98F','#6E8F5E','#2C6547'];
+const RAMP_UNR=['#E7E0CE','#D9C08A','#C08A3E','#A85A2A','#7B2018'];
 function regionFill(r){
   if(S.mapMode==='unrest'){ const v=S.unrest[r.id];
-    return v<12?'#2A6144':v<24?'#7E8A3C':v<38?'#B0762A':v<55?'#94271F':'#5E1712'; }
+    return RAMP_UNR[v<12?0:v<24?1:v<38?2:v<55?3:4]; }
   if(S.mapMode==='dev')return ['#4A3B26','#6B5533','#9A7211','#C2A24A'][clamp(r.dev,0,3)];
   if(S.mapMode==='seats'){
     let best=null,bv=-1;
@@ -2243,95 +2405,95 @@ function regionFill(r){
     return best?best.color:'#3A4553';
   }
   const v=shown(regApproval(r.id),r.id);
-  return v<38?'#6E1D17':v<46?'#A8503C':v<52?'#8A7A4E':v<60?'#4F7A4E':'#2A6144';
+  return RAMP_SUP[v<38?0:v<46?1:v<52?2:v<60?3:4];
 }
 function mapSVG(){
-  const paths=REGIONS.map(r=>{
-    const g=GEO[r.id];
+  const paths=REGIONS.map(r=>{const g=GEO[r.id];
     return `<path class="rgn ${S.sel===r.id?'sel':''}" d="${g.d}" fill="${regionFill(r)}" data-r="${r.id}"><title>${r.name}</title></path>`;}).join('');
   const labels=REGIONS.map(r=>{const g=GEO[r.id];
     return `<text class="caplbl" x="${g.c[0]}" y="${g.c[1]+40}" text-anchor="middle">${r.cap}</text>`;}).join('');
   return `<div class="mapbox"><svg class="mapsvg" viewBox="0 0 920 ${MAP_H}">${paths}${labels}</svg></div>`;
 }
+function mapLegend(){
+  if(S.mapMode==='seats')return S.parties.map(p=>`<span class="chip"><s style="background:${p.color}"></s>${p.short}</span>`).join('');
+  if(S.mapMode==='unrest')return ['спокойно','ропот','тревожно','митинги','на грани'].map((t,i)=>
+    `<span class="chip"><s style="background:${RAMP_UNR[i]}"></s>${t}</span>`).join('');
+  if(S.mapMode==='dev')return ['слабое','среднее','высокое'].map((t,i)=>
+    `<span class="chip"><s style="background:${['#4A3B26','#6B5533','#9A7211'][i]}"></s>${t}</span>`).join('');
+  return ['ниже 38%','38—46%','около половины','52—60%','выше 60%'].map((t,i)=>
+    `<span class="chip"><s style="background:${RAMP_SUP[i]}"></s>${t}</span>`).join('');
+}
 function tabCountry(){
   if(!S.mapMode)S.mapMode='sup';
+  const sel=S.sel?R(S.sel):null;
   const rows=REGIONS.slice().sort((a,b)=>S.unrest[b.id]-S.unrest[a.id]).map(r=>{
     const sup=shown(regApproval(r.id),r.id);
     const dom=S.parties.map(p=>({p,n:S.deputies.filter(d=>d.region===r.id&&d.party===p.id).length}))
       .sort((a,b)=>b.n-a.n)[0];
-    return `<tr><td><b>${r.name}</b><div class="hint">${r.cap} · ${r.pop} млн · ${S.regSeats[r.id]} мандатов</div></td>
-      <td class="num ${sup<46?'neg':'pos'}">${Math.round(sup)}%</td>
-      <td class="num">${Math.round(S.unrest[r.id])} <span class="dim">${unrestWord(S.unrest[r.id])}</span></td>
+    return `<tr class="${S.sel===r.id?'sel':''}"><td><b>${r.name}</b><div class="sub2">${r.cap} · ${r.pop} млн · ${mandates(S.regSeats[r.id])}</div></td>
+      <td class="n ${sup<46?'bad':'good'}">${est(Math.round(sup)+'%',polled())}</td>
+      <td class="n">${Math.round(S.unrest[r.id])} <span class="dim">${unrestWord(S.unrest[r.id])}</span></td>
       <td>${dom?chip(dom.p)+' '+dom.n:''}</td>
-      <td class="r"><button class="b sm" onclick="openRegion('${r.id}')">Карточка</button></td></tr>`;}).join('');
-  return `<div class="sh"><div class="hd"><h2>Карта Республики</h2>
-      <span class="note">${polled()?'данные свежего опроса':'оценка без опроса, ±3 пункта'}</span></div><div class="bd">
-    <div class="brow" style="margin-bottom:8px">${MAPMODE.map(m=>
-      `<button class="b sm ${S.mapMode===m[0]?'on':''}" onclick="S.mapMode='${m[0]}';render()">${m[1]}</button>`).join('')}</div>
-    ${mapSVG()}
-    <div class="legend">${S.mapMode==='unrest'
-      ?'<span class="chip"><s style="background:#2A6144"></s>спокойно</span><span class="chip"><s style="background:#B0762A"></s>тревожно</span><span class="chip"><s style="background:#94271F"></s>митинги</span>'
-      :S.mapMode==='seats'?S.parties.map(p=>`<span class="chip"><s style="background:${p.color}"></s>${p.short}</span>`).join('')
-      :'<span class="chip"><s style="background:#6E1D17"></s>ниже 38%</span><span class="chip"><s style="background:#8A7A4E"></s>около половины</span><span class="chip"><s style="background:#2A6144"></s>выше 60%</span>'}</div>
-  </div></div>
-  <div class="sh"><div class="hd"><h2>Субъекты</h2><span class="note">по напряжённости</span></div><div class="bd">
-    <div class="scrollx"><table><thead><tr><th>Субъект</th><th class="r">Поддержка</th><th class="r">Напряжённость</th>
-      <th>Крупнейшая делегация</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div></div>`;
-}
-function openRegion(id){
-  const r=R(id);S.sel=id;
-  const gr=GROUPS.slice().sort((a,b)=>r.share[b.id]-r.share[a.id]).map(g=>
-    `<tr><td>${g.name}</td><td class="num">${Math.round(r.share[g.id]*100)}%</td>
-     <td class="num ${approvalIn(g.id,id)<46?'neg':'pos'}">${Math.round(shown(approvalIn(g.id,id),id+g.id))}</td></tr>`).join('');
-  const deps=S.deputies.filter(d=>d.region===id);
-  sheetOpen({eye:r.cap+(r.capital?' · столица':''),title:r.name,
-    body:`<div class="res"><span>Население</span><b>${r.pop} млн</b>
-        <span>Мандатов от субъекта</span><b>${S.regSeats[id]}</b>
-        <span>Поддержка правительства</span><b class="${regApproval(id)<46?'neg':'pos'}">${Math.round(shown(regApproval(id),id))}%</b>
-        <span>Напряжённость</span><b>${Math.round(S.unrest[id])} · ${unrestWord(S.unrest[id])}</b>
-        <span>Развитие</span><b>${['слабое','среднее','высокое','высокое'][r.dev-1]||'среднее'}</b></div>
-      <h3 class="rule">Состав избирателей</h3>
-      <table class="tight"><thead><tr><th>Группа</th><th class="r">Доля</th><th class="r">Настроение</th></tr></thead><tbody>${gr}</tbody></table>
-      <h3 class="rule">Делегация</h3>
-      <table class="tight"><tbody>${S.parties.filter(p=>deps.some(d=>d.party===p.id)).map(p=>
-        `<tr><td>${chip(p)} ${p.name}</td><td class="num">${deps.filter(d=>d.party===p.id).length}</td></tr>`).join('')}</tbody></table>`,
-    opts:[{label:'Поехать туда · 1 действие и 6 млрд',hint:'поддержка вверх, напряжённость вниз',fn:()=>ACT.visit(id)},
-          {label:'Закрыть',hint:'',fn:()=>{}}]});
-}
+      <td class="r"><button class="btn sm" onclick="openRegion('${r.id}')">Карточка</button></td></tr>`;}).join('');
 
-/* ─── 6. Общество ────────────────────────────────────────────── */
+  const card=sel?panel({cls:'lead-p',title:sel.name,meta:sel.cap+(sel.capital?' · столица':''),body:
+    `<div class="res" style="margin-top:0">
+      <span>Поддержка правительства</span><b class="${regApproval(sel.id)<46?'bad':'good'}">${est(Math.round(shown(regApproval(sel.id),sel.id))+'%',polled())}</b>
+      <span>Напряжённость</span><b class="${S.unrest[sel.id]>34?'bad':''}">${Math.round(S.unrest[sel.id])} · ${unrestWord(S.unrest[sel.id])}</b>
+      <span>Население</span><b>${sel.pop} млн</b>
+      <span>Мандатов от субъекта</span><b>${S.regSeats[sel.id]}</b></div>
+     <h3 class="sub">Состав избирателей</h3>
+     <table class="tight"><tbody>${GROUPS.slice().sort((a,b)=>sel.share[b.id]-sel.share[a.id]).slice(0,5).map(g=>
+       `<tr><td>${g.name}</td><td class="n">${Math.round(sel.share[g.id]*100)}%</td>
+        <td class="n ${approvalIn(g.id,sel.id)<46?'bad':'good'}">${Math.round(shown(approvalIn(g.id,sel.id),sel.id+g.id))}</td></tr>`).join('')}
+     </tbody></table>`,
+    foot:`<button class="btn sm pri" data-act="visit" data-arg="${sel.id}" ${S.ap&&S.treasury>=6?'':'disabled'}>Поехать туда<span class="cost">6 млрд</span></button>
+          <button class="btn sm ghost" onclick="S.sel=null;render()">Снять выделение</button>`})
+    :panel({title:'Субъект не выбран',body:'<div class="empty">Нажмите на карту или на строку в списке, чтобы открыть карточку.</div>'});
+
+  return `<div class="cols c21">
+    ${panel({title:'Карта Республики',meta:polled()?'данные свежего опроса':'оценка без опроса, ±3 пункта',body:
+      `<div class="row" style="margin-bottom:var(--x4)">${MAPMODE.map(m=>
+        `<button class="btn sm ${S.mapMode===m[0]?'sel':''}" onclick="S.mapMode='${m[0]}';render()">${m[1]}</button>`).join('')}
+        <button class="btn sm ghost" data-act="poll" style="margin-left:auto" ${S.ap&&S.funds>=9&&!polled()?'':'disabled'}>Заказать опрос<span class="cost">9 млн</span></button></div>
+       ${mapSVG()}<div class="legend">${mapLegend()}</div>`})}
+    ${card}
+  </div>
+  ${panel({title:'Субъекты',meta:'по напряжённости',flush:true,body:
+    `<div class="scrollx"><table><thead><tr><th>Субъект</th><th class="n">Поддержка</th><th class="n">Напряжённость</th>
+      <th>Крупнейшая делегация</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`})}`;
+}
+function openRegion(id){ S.sel=id; S.tab='country'; render(); window.scrollTo(0,0); }
+
+/* ─── 7 · Общество ───────────────────────────────────────────── */
 function tabSociety(){
   const rows=GROUPS.map(g=>{
     const w=REGIONS.reduce((a,r)=>a+r.pop*r.share[g.id],0)/REGIONS.reduce((a,r)=>a+r.pop,0)*100;
     const m=shown(S.mood[g.id],g.id), f=fitOf(g,me().st), pf=perfOf(g);
-    return `<tr><td><b>${g.name}</b><div class="hint">хочет: ${AXES.filter(a=>g.w[a.id]>=0.7).map(a=>
+    return `<tr><td><b>${g.name}</b><div class="sub2">хочет: ${AXES.filter(a=>g.w[a.id]>=0.7).map(a=>
         a.name.toLowerCase()+' '+(g.pref[a.id]>0.4?a.r:g.pref[a.id]<-0.4?a.l:'посередине')).join(', ')}</div></td>
-      <td class="num">${r1(w)}%</td>
-      <td class="num ${m<46?'neg':'pos'}">${Math.round(m)}</td>
-      <td>${mini(m,G(g.id).color)} <span class="dim">${moodWord(S.mood[g.id])}</span></td>
-      <td class="num ${f<50?'neg':'pos'}">${Math.round(f)}</td>
-      <td class="num ${pf<0?'neg':'pos'}">${sign(Math.round(pf))}</td></tr>`;}).join('');
+      <td class="n">${r1(w)}%</td>
+      <td class="n ${m<46?'bad':'good'}">${est(Math.round(m),polled())}</td>
+      <td>${mini(m,g.color)} <span class="dim">${moodWord(S.mood[g.id])}</span></td>
+      <td class="n ${f<50?'bad':'good'}">${Math.round(f)}</td>
+      <td class="n ${pf<0?'bad':'good'}">${sign(Math.round(pf))}</td></tr>`;}).join('');
   const cross=`<div class="scrollx"><table class="tight"><thead><tr><th>Субъект</th>
-    ${GROUPS.map(g=>`<th class="r">${g.short}</th>`).join('')}<th class="r">Итог</th></tr></thead><tbody>
+    ${GROUPS.map(g=>`<th class="n">${g.short}</th>`).join('')}<th class="n">Итог</th></tr></thead><tbody>
     ${REGIONS.map(r=>`<tr><td>${r.name}</td>${GROUPS.map(g=>{
       const v=shown(approvalIn(g.id,r.id),r.id+g.id);
-      return `<td class="num" style="color:${v<42?'var(--red)':v>58?'var(--green)':'inherit'}">${Math.round(v)}</td>`;}).join('')}
-      <td class="num"><b>${Math.round(shown(regApproval(r.id),r.id))}</b></td></tr>`).join('')}
+      return `<td class="n" style="color:${v<42?'var(--bad)':v>58?'var(--good)':'inherit'}">${Math.round(v)}</td>`;}).join('')}
+      <td class="n"><b>${Math.round(shown(regApproval(r.id),r.id))}</b></td></tr>`).join('')}
     </tbody></table></div>`;
-  return `<div class="sh accb"><div class="hd"><h2>Электоральные группы</h2>
-      <span class="note">${polled()?'свежая социология':'оценка штаба, ±3'}</span></div><div class="bd">
-    <div class="scrollx"><table><thead><tr><th>Группа</th><th class="r">Доля страны</th><th class="r">Настроение</th>
-      <th>Оценка</th><th class="r">Курс</th><th class="r">Дела</th></tr></thead><tbody>${rows}</tbody></table></div>
-    <p class="hint" style="margin-top:8px">«Курс» — насколько группе нравится ваша программа, «дела» — как на неё влияют экономика и бюджет. Настроение медленно ползёт к сумме этих двух.</p>
-  </div></div>
-  <div class="sh"><div class="hd"><h2>Настроение по субъектам</h2><span class="note">группы по столбцам</span></div>
-    <div class="bd">${cross}</div></div>
-  <div class="sh"><div class="hd"><h2>Курс партии</h2><span class="note">менять позиции можно, но избиратель помнит</span></div><div class="bd">
-    ${AXES.map(a=>`<div class="ax"><div class="axh"><span>${a.l}</span><span>${a.name}</span><span>${a.r}</span></div>
-      <div class="axr">${[-2,-1,0,1,2].map(v=>
-        `<button class="${Math.round(me().st[a.id])===v?'on':''}" onclick="moveAxis('${a.id}',${v})">${STEP[v+2]}</button>`).join('')}</div></div>`).join('')}
-    <p class="hint">Сдвиг позиции стоит 6 политического веса и злит тех, кто голосовал за прежний курс.</p>
-  </div></div>`;
+  return panel({cls:'info',title:'Электоральные группы',meta:polled()?'свежая социология':'оценка штаба, ±3',flush:true,
+      body:`<div class="scrollx"><table><thead><tr><th>Группа</th><th class="n">Доля страны</th><th class="n">Настроение</th>
+        <th>Оценка</th><th class="n">Курс</th><th class="n">Дела</th></tr></thead><tbody>${rows}</tbody>
+        <caption>«Курс» — насколько группе нравится программа, «дела» — как на неё влияют экономика и бюджет. Настроение медленно ползёт к сумме этих двух.</caption></table></div>`})
+    +panel({title:'Настроение по субъектам',meta:'группы по столбцам',flush:true,body:cross})
+    +panel({title:'Курс партии',meta:'менять позиции можно, но избиратель помнит',body:
+      AXES.map(a=>`<div class="ax"><div class="axh"><span>${a.l}</span><span>${a.name}</span><span>${a.r}</span></div>
+        <div class="axr">${[-2,-1,0,1,2].map(v=>
+          `<button class="${Math.round(me().st[a.id])===v?'on':''}" onclick="moveAxis('${a.id}',${v})">${STEP[v+2]}</button>`).join('')}</div></div>`).join('')+
+        '<p class="hint">Сдвиг позиции стоит 6 политического веса и злит тех, кто голосовал за прежний курс.</p>'});
 }
 function moveAxis(ax,v){
   if(Math.round(me().st[ax])===v)return;
@@ -2342,131 +2504,118 @@ function moveAxis(ax,v){
     const before=Math.abs(g.pref[ax]-old), after=Math.abs(g.pref[ax]-v);
     shiftMood(g.id,(before-after)*g.w[ax]*2.2);
   });
-  S.deputies.filter(d=>d.party===PL).forEach(d=>{
-    d.rel=clamp(d.rel-Math.abs(d.st[ax]-v)*3,0,100); });
+  S.deputies.filter(d=>d.party===PL).forEach(d=>{ d.rel=clamp(d.rel-Math.abs(d.st[ax]-v)*3,0,100); });
   logMsg('Партия сместила позицию по теме «'+AXNAME[ax]+'» на '+STEP[v+2]+'.',1);
   render();
 }
 
-/* ─── 7. Кампания ────────────────────────────────────────────── */
-function tabCamp(){
-  if(!S.camp)return '<div class="sh"><div class="bd"><p class="lead">Штаб развернётся за четыре квартала до выборов.</p></div></div>';
-  const left=TERM-(S.q-S.termStart);
-  const ads=GROUPS.map(g=>`<tr><td>${g.name}</td><td class="num">${S.camp.ads[g.id]||0}</td>
-    <td class="num">${Math.round(S.mood[g.id])}</td>
-    <td class="r"><button class="b sm" onclick="CAMPACT.ads('${g.id}')" ${S.funds>=16?'':'disabled'}>Ролики · 16 млн</button></td></tr>`).join('');
-  const ral=REGIONS.map(r=>`<tr><td>${r.name}</td><td class="num">${S.camp.rally[r.id]||0}</td>
-    <td class="num">${Math.round(shown(regApproval(r.id),r.id))}%</td>
-    <td class="r"><button class="b sm" onclick="CAMPACT.rally('${r.id}')" ${S.ap&&S.funds>=11?'':'disabled'}>Митинг · 11 млн</button></td></tr>`).join('');
-  const fc=forecast();
-  return `<div class="sh acc"><div class="hd"><h2>Предвыборный штаб</h2>
-      <span class="note">до выборов ${left} ${left===1?'квартал':left<5?'квартала':'кварталов'}</span></div><div class="bd">
-    <div class="grid2">
-      <div><div class="kv"><span>Касса партии</span><b>${Math.round(S.funds)} млн</b></div>
-        <div class="kv"><span>Потрачено на кампанию</span><b>${S.camp.spent} млн</b></div></div>
-      <div><div class="kv"><span>Прогноз мандатов</span><b class="${fc<MAJ?'neg':'pos'}">${fc} из ${SEATS}</b></div>
-        <div class="kv"><span>Дебаты</span><b>${S.camp.debate===null?'впереди':S.camp.debate>0?'выиграны':'проиграны'}</b></div></div>
-    </div>
-    ${S.camp.debate===null&&left<=2?`<div class="brow" style="margin-top:10px">
-      <span class="hint" style="width:100%">Эфир с лидером крупнейшей фракции. Тон выбираете вы:</span>
-      <button class="b" onclick="CAMPACT.debate('hard')">Идти в атаку</button>
-      <button class="b" onclick="CAMPACT.debate('calm')">Держаться спокойно</button>
-      <button class="b" onclick="CAMPACT.debate('numbers')">Говорить цифрами</button></div>`:''}
-  </div></div>
-  <div class="cols">
-    <div class="sh"><div class="hd"><h2>Реклама по группам</h2><span class="note">деньги без действия</span></div><div class="bd">
-      <table class="tight"><thead><tr><th>Группа</th><th class="r">Роликов</th><th class="r">Настроение</th><th></th></tr></thead>
-      <tbody>${ads}</tbody></table></div></div>
-    <div class="sh"><div class="hd"><h2>Митинги по субъектам</h2><span class="note">1 действие и 11 млн</span></div><div class="bd">
-      <table class="tight"><thead><tr><th>Субъект</th><th class="r">Митингов</th><th class="r">Поддержка</th><th></th></tr></thead>
-      <tbody>${ral}</tbody></table></div></div>
-  </div>`;
-}
+/* ─── 8 · Кампания ───────────────────────────────────────────── */
 function forecast(){
   let total=0;
   REGIONS.forEach(r=>{
-    const sc={};S.parties.forEach(p=>sc[p.id]=Math.pow(Math.max(partyScore(p,r)-30,1),1.7));
-    const sum=Object.values(sc).reduce((a,b)=>a+b,0), share={};
-    S.parties.forEach(p=>share[p.id]=sc[p.id]/sum*100);
-    total+=dhondt(share,S.regSeats[r.id])[PL]||0;
+    const sc={};S.parties.forEach(p=>sc[p.id]=partyScore(p,r));
+    total+=dhondt(shareFrom(sc),S.regSeats[r.id])[PL]||0;
   });
   return total;
 }
+function tabCamp(){
+  if(!S.camp)return panel({title:'Штаб',body:'<div class="empty">Штаб развернётся за четыре квартала до выборов.</div>'});
+  const left=TERM-(S.q-S.termStart), fc=forecast();
+  const ads=GROUPS.map(g=>`<tr><td>${g.name}</td><td class="n">${S.camp.ads[g.id]||0}</td>
+    <td class="n ${S.mood[g.id]<46?'bad':''}">${Math.round(S.mood[g.id])}</td>
+    <td class="r"><button class="btn sm" onclick="CAMPACT.ads('${g.id}')" ${S.funds>=16?'':'disabled'}>Ролики<span class="cost">16 млн</span></button></td></tr>`).join('');
+  const ral=REGIONS.map(r=>`<tr><td>${r.name}</td><td class="n">${S.camp.rally[r.id]||0}</td>
+    <td class="n">${est(Math.round(shown(regApproval(r.id),r.id))+'%',polled())}</td>
+    <td class="r"><button class="btn sm" onclick="CAMPACT.rally('${r.id}')" ${S.ap&&S.funds>=11?'':'disabled'}>Митинг<span class="cost">11 млн</span></button></td></tr>`).join('');
+  return panel({cls:'lead-p',title:'Предвыборный штаб',meta:'до выборов '+quarters(left),
+      body:`<div class="grid g4">
+        ${stat('Касса',Math.round(S.funds)+'<u>млн</u>','потрачено '+S.camp.spent)}
+        ${stat('Прогноз',fc,'из '+SEATS+' мандатов',fc<MAJ?'':'')}
+        ${stat('Ролики',Object.values(S.camp.ads).reduce((a,b)=>a+b,0),'по группам')}
+        ${stat('Дебаты',S.camp.debate===null?'—':S.camp.debate>0?'выиграны':'проиграны',
+          S.camp.debate===null?'впереди':'эфир прошёл')}</div>
+      ${S.camp.debate===null&&left<=2?`<h3 class="sub">Теледебаты</h3>
+        <p class="hint" style="margin-bottom:6px">Эфир с лидером крупнейшей фракции. Тон выбираете вы:</p>
+        <div class="row"><button class="btn" onclick="CAMPACT.debate('hard')">Идти в атаку</button>
+        <button class="btn" onclick="CAMPACT.debate('calm')">Держаться спокойно</button>
+        <button class="btn" onclick="CAMPACT.debate('numbers')">Говорить цифрами</button></div>`:''}`})
+    +`<div class="cols c11">
+      ${panel({title:'Реклама по группам',meta:'деньги без действия',flush:true,
+        body:`<table class="tight"><thead><tr><th>Группа</th><th class="n">Роликов</th><th class="n">Настроение</th><th></th></tr></thead><tbody>${ads}</tbody></table>`})}
+      ${panel({title:'Митинги по субъектам',meta:'1 действие и 11 млн',flush:true,
+        body:`<table class="tight"><thead><tr><th>Субъект</th><th class="n">Митингов</th><th class="n">Поддержка</th><th></th></tr></thead><tbody>${ral}</tbody></table>`})}
+    </div>`;
+}
 
-/* ─── 8. Летопись ────────────────────────────────────────────── */
+/* ─── 9 · Летопись ───────────────────────────────────────────── */
 function spark(key,color,title,fmt){
-  const d=S.hist.map(h=>h[key]); if(d.length<2)return '';
-  const W=320,H=54,mn=Math.min(...d),mx=Math.max(...d),rg=(mx-mn)||1;
+  const d=S.hist.map(h=>h[key]).filter(v=>v!==undefined);
+  if(d.length<2)return '';
+  const W=320,H=46,mn=Math.min(...d),mx=Math.max(...d),rg=(mx-mn)||1;
   const pts=d.map((v,i)=>[6+i/(d.length-1)*(W-12),H-8-((v-mn)/rg)*(H-18)]);
   const path=pts.map((p,i)=>(i?'L':'M')+r1(p[0])+' '+r1(p[1])).join(' ');
-  return `<div style="padding:7px 0;border-bottom:1px solid var(--rule2)">
-    <div style="display:flex;justify-content:space-between;font-size:12px">
-      <span class="up" style="font-size:10px;color:var(--ink2)">${title}</span>
-      <b class="n">${fmt?fmt(d[d.length-1]):d[d.length-1]}</b></div>
-    <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:54px;display:block">
+  return `<div style="padding:7px 0;border-bottom:var(--hair-2)">
+    <div style="display:flex;justify-content:space-between;align-items:baseline">
+      <span class="t-micro">${title}</span><b class="num">${fmt?fmt(d[d.length-1]):d[d.length-1]}</b></div>
+    <svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
       <path d="${path}" fill="none" stroke="${color}" stroke-width="1.6"/>
       <circle cx="${r1(pts[pts.length-1][0])}" cy="${r1(pts[pts.length-1][1])}" r="2.6" fill="${color}"/></svg>
-    <div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--ink3)">
+    <div style="display:flex;justify-content:space-between" class="t-micro">
       <span>${shortDate(S.hist[0].q)}</span><span>мин ${r1(mn)} · макс ${r1(mx)}</span></div></div>`;
 }
 function tabArch(){
   const ch=S.chron.slice().reverse().map(c=>
-    `<tr><td class="num" style="width:52px">${c.y}</td><td class="${c.kind==='g'?'pos':c.kind==='b'?'neg':''}">${c.t}</td></tr>`).join('')
-    ||'<tr><td class="dim">История ещё не написана.</td></tr>';
-  return `<div class="cols">
-    <div class="sh"><div class="hd"><h2>Показатели правления</h2><span class="note">${S.hist.length} кварталов</span></div><div class="bd">
-      ${spark('ap','#94271F','Одобрение, %',v=>Math.round(v)+'%')}
-      ${spark('seats','#28496F','Мандаты фракции')}
-      ${spark('gdp','#2A6144','ВВП, индекс')}
-      ${spark('gr','#17706B','Рост ВВП, %',v=>sign(v)+'%')}
-      ${spark('inf','#9A7211','Инфляция, %')}
-      ${spark('un','#6B4A1E','Безработица, %')}
-      ${spark('debt','#5C3A6E','Долг, млрд')}
-    </div></div>
-    <div class="sh"><div class="hd"><h2>Хроника</h2></div><div class="bd">
-      <table class="tight"><tbody>${ch}</tbody></table></div></div>
+    `<div class="chron ${c.kind}"><span class="y">${c.y}</span><span>${c.t}</span></div>`).join('')
+    ||'<div class="empty">История ещё не написана.</div>';
+  return `<div class="cols c11">
+    ${panel({title:'Показатели правления',meta:quarters(S.hist.length),body:
+      spark('ap','var(--bad)','Одобрение, %',v=>Math.round(v)+'%')+
+      spark('seats','var(--info)','Мандаты фракции')+
+      spark('gdp','var(--good)','ВВП, индекс')+
+      spark('gr','var(--p4)','Рост ВВП, %',v=>sign(v)+'%')})}
+    ${panel({title:'Хроника',meta:S.chron.length+' записей',body:ch})}
   </div>
-  <div class="sh"><div class="hd"><h2>Полный журнал</h2></div><div class="bd">
-    <div class="log">${S.log.slice(0,60).map(l=>`<div class="${l.key?'k':''}"><s>${l.d}</s>${l.t}</div>`).join('')}</div>
-  </div></div>
-  <div class="sh"><div class="hd"><h2>Личное решение</h2></div><div class="bd">
-    <div class="brow"><button class="b d" onclick="resign()">Подать в отставку и подвести итог</button>
-      <span class="hint">Созыв ${S.term} из 3. Дальше конституция не пускает.</span></div></div></div>`;
+  ${panel({title:'Полный журнал',body:'<div class="log">'+
+    S.log.slice(0,60).map(l=>`<div class="${l.key?'key':''}"><s>${l.d}</s>${l.t}</div>`).join('')+'</div>'})}
+  ${panel({title:'Личное решение',body:
+    `<div class="row"><button class="btn danger" onclick="resign()">Подать в отставку и подвести итог</button>
+      <span class="hint">Созыв ${S.term} из 3. Дальше конституция не пускает.</span></div>`})}`;
 }
 
-/* ─── 9. Справка ─────────────────────────────────────────────── */
+/* ─── 10 · Справка ───────────────────────────────────────────── */
 function tabHelp(){
-  return `<div class="sh accb"><div class="hd"><h2>Как это работает</h2><span class="note">коротко о правилах</span></div><div class="bd">
-    <h3 class="rule">Время</h3>
-    <p>Ход — квартал. В квартале три действия: поездка, речь, работа с депутатом, переговоры с фракцией, сбор средств, опрос.
-      Созыв длится ${TERM} кварталов, затем всеобщие выборы. Больше трёх созывов подряд не бывает.</p>
-    <h3 class="rule">Откуда берётся рейтинг</h3>
+  return panel({cls:'info',title:'Как это работает',meta:'коротко о правилах',body:
+   `<h3 class="sub">Время</h3>
+    <p>Ход — квартал. В квартале три действия: поездка, речь, работа с депутатом или с колеблющимися, переговоры
+      с фракцией, сбор средств, опрос. Созыв длится ${TERM} кварталов, затем всеобщие выборы.
+      Больше трёх созывов подряд не бывает.</p>
+    <h3 class="sub">Откуда берётся рейтинг</h3>
     <p>Одобрения как отдельной цифры не существует: есть восемь групп избирателей со своими взглядами и заботами.
       Каждая смотрит на две вещи — насколько ваш курс совпадает с её взглядами («курс») и что происходит
       с ценами, работой и её статьёй бюджета («дела»). Настроение группы медленно ползёт к сумме этих двух,
-      а рейтинг страны — это средневзвешенное по регионам, где эти группы живут.</p>
-    <p class="hint">Чем дольше вы у власти, тем ниже потолок: избиратель устаёт от любого правительства.</p>
-    <h3 class="rule">Собрание</h3>
+      а рейтинг страны — средневзвешенное по регионам, где эти группы живут.</p>
+    <p class="hint">Чем дольше вы у власти, тем ниже потолок: избиратель устаёт от любого правительства.
+      Число под пунктиром — оценка без свежего опроса.</p>
+    <h3 class="sub">Собрание</h3>
     <p>${SEATS} депутатов, у каждого своя позиция по шести осям, дисциплина фракции и личное отношение к вам.
-      Голосуя, депутат складывает: близость закона к своим взглядам, указание фракции, помноженное на дисциплину,
-      личное отношение и поправки, которые бьют по его округу или его избирателю. Колеблющихся решает зал —
-      их и стоит уговаривать.</p>
-    <p>Каждая тема живёт в одной редакции: новый закон отменяет прежний. Правительство меньшинства работает,
-      пока оппозиция не соберёт вотум недоверия.</p>
-    <h3 class="rule">Деньги</h3>
-    <p>Казна — государственная, партийная касса — ваша. Из казны платят за поездки, транши регионам и стройки в округах;
-      из кассы — за социологию и кампанию. Смешивать нельзя: заметят.</p>
-    <p>Дефицит уходит в долг и разгоняет инфляцию. Проценты по долгу платятся каждый квартал.</p>
-    <h3 class="rule">Выборы</h3>
-    <p>В каждом субъекте свои мандаты, распределение — по методу Д'Ондта. За партию голосуют группы,
-      которым она ближе: у соперников это чистая идеология, у вас — курс плюс то, как люди оценивают вашу работу.
-      Ядро вашей партии — две группы, которым программа ближе всего.</p>
-    <p>За четыре квартала до выборов открывается штаб: ролики бьют по группам, митинги — по субъектам, дебаты решают
-      настроение всей страны разом.</p>
-    <h3 class="rule">Чем всё кончается</h3>
+      Голосуя, депутат складывает близость закона к своим взглядам, указание фракции, помноженное на дисциплину,
+      личное отношение и поправки, которые бьют по его округу. Колеблющихся решает зал — их и стоит уговаривать,
+      поодиночке или всех разом.</p>
+    <p>Комитет по теме проекта прибавляет голоса фракции своего председателя. Каждая тема живёт в одной редакции:
+      новый закон отменяет прежний. Правительство меньшинства работает, пока оппозиция не соберёт вотум недоверия.</p>
+    <h3 class="sub">Деньги</h3>
+    <p>Казна — государственная, партийная касса — ваша. Из казны платят за поездки, транши регионам и стройки
+      в округах; из кассы — за социологию и кампанию. Смешивать нельзя: заметят.</p>
+    <p>Дефицит уходит в долг и разгоняет инфляцию. Хозяйственный цикл идёт сам, внешний спрос и цены на сырьё
+      тянут экономику и бюджет независимо от ваших решений.</p>
+    <h3 class="sub">Выборы</h3>
+    <p>В каждом субъекте свои мандаты, распределение — по методу Д'Ондта. За партию голосуют группы, которым она
+      ближе: у соперников это идеология, у вас — курс вместе с тем, как люди оценивают вашу работу.
+      За четыре квартала до выборов открывается штаб: ролики бьют по группам, митинги — по субъектам,
+      дебаты решают настроение страны разом.</p>
+    <h3 class="sub">Чем всё кончается</h3>
     <p>Долг выше 430 млрд — дефолт. Одобрение ниже 19% — отставка. Средняя напряжённость выше 72 — страна выходит
-      из-под контроля. В остальном итог считают по мандатам, законам, экономике и годам у власти.</p>
-  </div></div>`;
+      из-под контроля. В остальном итог считают по мандатам, законам, экономике и годам у власти.</p>`});
 }
 /* ════════════════════════════════════════════════════════════════
    Запуск: создание партии, загрузка сохранения.
@@ -2504,15 +2653,15 @@ function customParty(){
   draw();
 }
 function askName(base){
-  const colors=['#9A7211','#94271F','#28496F','#2A6144','#5C3A6E','#17706B'];
+  const colors=['#9A7211','#93261E','#23456B','#2C6547','#5A3868','#14675F'];
   sheetOpen({eye:'Шаг 2 из 2',title:'Название и лидер',
-    body:`<div style="margin-bottom:9px"><div class="up" style="font-size:10px;color:var(--ink2);margin-bottom:3px">Название партии</div>
+    body:`<div class="field"><label>Название партии</label>
         <input type="text" id="pn" value="${base.name}" maxlength="28"></div>
-      <div style="margin-bottom:9px"><div class="up" style="font-size:10px;color:var(--ink2);margin-bottom:3px">Ваше имя</div>
+      <div class="field"><label>Ваше имя</label>
         <input type="text" id="ln" value="${pick(NAME_M)+' '+pick(SURN_M)}" maxlength="28"></div>
-      <div class="up" style="font-size:10px;color:var(--ink2);margin-bottom:4px">Цвет фракции</div>
-      <div class="brow" id="cols">${colors.map(c=>
-        `<button class="b sm" data-c="${c}" style="background:${c};border-color:${c};width:44px;height:24px"></button>`).join('')}</div>
+      <div class="up" style="margin-bottom:4px">Цвет фракции</div>
+      <div class="row" id="cols">${colors.map(c=>
+        `<button class="btn sm" data-c="${c}" style="background:${c};border-color:${c};width:44px;height:24px"></button>`).join('')}</div>
       <p class="hint" style="margin-top:9px">Курс: ${AXES.map(a=>a.name.toLowerCase()+' '+STEP[base.st[a.id]+2]).join(', ')}.</p>`,
     acts:[{label:'Принять присягу',fn(){
       const n=document.getElementById('pn'), l=document.getElementById('ln');
@@ -2540,9 +2689,17 @@ function bindMap(){
 const _render=render;
 render=function(){ _render(); bindMap(); };
 
+function hideSplash(){
+  const s=document.getElementById('splash');
+  if(s){ s.classList.add('hide'); setTimeout(()=>s.remove(),400); }
+}
 function start(){
   document.getElementById('emb').src=EMBLEM;
+  document.getElementById('splash-em').src=EMBLEM;
   const fav=document.createElement('link');fav.rel='icon';fav.href=EMBLEM;document.head.appendChild(fav);
+  const ready=()=>setTimeout(hideSplash,320);
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(ready); else ready();
+  setTimeout(hideSplash,2600);
   if(load()){
     render();
     sheetOpen({eye:'Найдено сохранение',title:'Продолжить правление?',
