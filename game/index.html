@@ -26,7 +26,7 @@
   --f-display:'PT Serif',Georgia,serif; --f-text:'PT Sans',system-ui,sans-serif;
   --f-cond:'PT Sans Narrow',sans-serif; --f-num:'PT Mono',ui-monospace,monospace;
   --t-fast:90ms; --t:150ms; --t-slow:240ms; --ease:cubic-bezier(.2,.7,.3,1);
-  --row:30px; --row-tight:24px; --rail:190px; --page:1380px;
+  --row:30px; --row-tight:24px; --rail:210px; --page:1380px;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0}
@@ -71,15 +71,22 @@ h3.sub:first-child{margin-top:0}
   border-right:var(--hair);min-height:calc(100vh - 52px);background:rgba(255,255,255,.2)}
 .navsec{font:400 9.5px var(--f-cond);text-transform:uppercase;letter-spacing:.16em;color:var(--ink-3);
   padding:var(--x4) var(--x5) var(--x2);border-bottom:var(--hair-2);margin-bottom:var(--x2)}
-.nav{display:flex;align-items:baseline;gap:7px;width:100%;text-align:left;background:none;border:0;
-  border-left:3px solid transparent;padding:6px var(--x5);cursor:pointer;color:var(--ink-2);
+.nav{display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:none;border:0;
+  border-left:3px solid transparent;padding:8px var(--x5);cursor:pointer;color:var(--ink-2);
   font:400 13px var(--f-cond);text-transform:uppercase;letter-spacing:.08em;
   transition:background var(--t-fast) var(--ease)}
 .nav:hover{background:var(--mark-bg);color:var(--ink)}
 .nav.on{background:var(--surface);border-left-color:var(--mark);color:var(--ink);font-weight:700}
-.nav u{margin-left:auto;text-decoration:none;font:400 11px var(--f-num);color:var(--ink-3)}
+.nav .ic{flex:none;opacity:.75}
+.nav.on .ic{opacity:1;color:var(--mark)}
+.nav span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nav u{flex:none;margin-left:auto;text-decoration:none;font:400 11px var(--f-num);color:var(--ink-3)}
 .nav.on u{color:var(--mark)}
-.nav .dot{width:6px;height:6px;background:var(--bad);display:inline-block;margin-left:5px}
+.nav .dot{width:6px;height:6px;background:var(--bad);display:inline-block;flex:none}
+.navkeys{font:400 10px var(--f-cond);text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);
+  padding:var(--x5) var(--x5) 0;line-height:1.6;border-top:var(--hair-2);margin-top:var(--x4)}
+.navkeys b{font-family:var(--f-num);font-weight:400;background:var(--surface-2);border:var(--hair-2);
+  padding:0 4px;color:var(--ink-2)}
 #view{flex:1;min-width:0;padding:var(--x5) var(--x6) 90px}
 
 /* ── панели ────────────────────────────────────────────────── */
@@ -128,6 +135,19 @@ h3.sub:first-child{margin-top:0}
 .btn.lg{font-size:14px;padding:9px 18px}
 .btn.block,.b.wide{display:block;width:100%;text-align:center}
 .btn .cost{font-family:var(--f-num);font-size:11px;opacity:.75;margin-left:6px}
+
+/* ── плашки-переключатели ──────────────────────────────────── */
+.seg{display:inline-flex;border:var(--hair);background:var(--surface-2);max-width:100%;overflow-x:auto;scrollbar-width:none}
+.seg::-webkit-scrollbar{display:none}
+.seg button{border:0;border-right:var(--hair);background:none;padding:7px 13px;cursor:pointer;flex:none;
+  font:400 12px var(--f-cond);text-transform:uppercase;letter-spacing:.08em;color:var(--ink-2);
+  display:flex;align-items:center;gap:6px;transition:background var(--t-fast) var(--ease)}
+.seg button:last-child{border-right:0}
+.seg button:hover:not(.on){background:var(--mark-bg);color:var(--ink)}
+.seg button.on{background:var(--act);color:var(--ink-inv)}
+.seg button u{text-decoration:none;font:400 11px var(--f-num);opacity:.7}
+.seg.wide{display:flex;width:100%}
+.seg.wide button{flex:1;justify-content:center}
 
 /* ── таблицы ───────────────────────────────────────────────── */
 table{width:100%;border-collapse:collapse;font-size:13px}
@@ -259,7 +279,8 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
   padding:8px 11px;margin-bottom:6px;cursor:pointer;font:400 13px var(--f-text);color:var(--ink);
   transition:border-color var(--t-fast) var(--ease),background var(--t-fast) var(--ease)}
 .opt:hover{border-color:var(--ink-2);background:var(--mark-bg)}
-.opt b{display:block} .opt span{font-size:11.5px;color:var(--ink-3)}
+.opt b{display:flex;align-items:center;gap:9px} .opt b .ic{flex:none;opacity:.7}
+.opt span{display:block;font-size:11.5px;color:var(--ink-3)}
 
 /* ── плашки ────────────────────────────────────────────────── */
 #toasts{position:fixed;right:var(--x5);bottom:var(--x5);z-index:70;display:flex;
@@ -288,13 +309,17 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
   .sv{padding:5px 10px;min-width:0} .sv:first-child{padding-left:var(--x5)} .sv b{font-size:13.5px}
   #shell{display:block}
   #side{position:fixed;left:0;right:0;bottom:0;top:auto;width:auto;min-height:0;display:flex;
-    overflow-x:auto;border-right:0;border-top:var(--hair);background:var(--surface);padding:0;z-index:35;scrollbar-width:none}
-  #side::-webkit-scrollbar{display:none}
-  .navsec{display:none}
-  .nav{flex:none;border-left:0;border-top:3px solid transparent;padding:9px 10px;
-    white-space:nowrap;font-size:12px;letter-spacing:.05em}
-  .nav.on{border-left:0;border-top-color:var(--mark)}
+    border-right:0;border-top:var(--hair);background:var(--surface);padding:0;z-index:35;
+    box-shadow:0 -6px 18px rgba(20,16,10,.10)}
+  .navsec,.navkeys{display:none}
+  .nav{flex:1;min-width:0;border-left:0;border-top:3px solid transparent;padding:7px 2px 6px;
+    flex-direction:column;gap:3px;align-items:center;justify-content:center;
+    font-size:10px;letter-spacing:.04em;line-height:1.1}
+  .nav.on{border-left:0;border-top-color:var(--mark);background:var(--mark-bg)}
   .nav u{display:none}
+  .nav .ic{width:22px;height:22px}
+  .nav .dot{position:absolute;margin:0;transform:translate(14px,-10px)}
+  .nav span{flex:none;overflow:hidden;text-overflow:ellipsis;max-width:100%;white-space:nowrap}
   #view{padding:var(--x4) var(--x4) 74px}
   .cols,.c21,.c11,.c12,.c111,.g4,.g3{grid-template-columns:1fr}
   .g4{grid-template-columns:1fr 1fr}
@@ -345,6 +370,34 @@ const GEO={
   south:{c:[501.3,473.8],d:'M521.1,633.6 518.2,633.6 517.1,629.6 522.2,623.8 522.2,618.0 527.3,613.6 528.8,602.7 522.2,596.9 520.0,586.7 512.4,579.8 505.1,581.9 498.5,579.8 496.0,576.5 496.0,562.6 485.8,558.3 485.1,551.0 480.7,547.3 479.2,541.5 473.8,537.5 461.4,538.2 451.6,527.7 451.6,523.3 446.8,517.1 435.2,516.4 428.6,522.2 414.1,522.2 402.8,530.6 400.6,539.3 393.7,545.5 379.5,541.5 380.2,534.2 386.7,528.4 386.0,520.4 381.6,515.3 383.8,503.6 393.3,499.3 394.0,490.5 403.9,486.5 410.1,476.7 410.1,462.1 406.4,457.8 405.7,450.5 409.3,446.8 409.3,440.3 415.9,433.0 415.9,423.5 441.7,418.1 451.6,400.9 459.2,395.5 465.8,393.3 480.3,394.8 489.1,390.4 493.8,374.0 502.2,365.6 512.0,361.6 513.1,346.7 514.9,347.1 515.7,360.2 531.7,368.9 531.7,376.2 540.8,386.7 551.0,385.3 561.2,387.5 566.3,382.4 579.4,379.5 580.5,383.5 586.3,386.4 589.2,406.0 601.6,421.3 600.1,427.2 592.9,433.7 590.7,441.0 587.0,443.9 588.5,455.6 581.9,468.0 583.4,481.1 573.2,489.8 573.2,506.6 568.5,514.9 560.1,518.9 557.9,529.1 550.3,533.1 546.2,538.6 547.0,551.0 551.0,552.1 555.0,558.3 554.3,567.0 546.2,580.1 550.6,591.8 549.2,607.8 538.2,616.5 537.1,620.5 531.7,623.1 529.9,630.0 521.1,633.6Z'},
   kavkaz:{c:[660.3,507.8],d:'M733.8,659.1 727.2,659.1 724.3,654.0 718.9,651.5 718.9,639.1 713.8,634.7 713.0,627.5 709.0,624.2 699.6,624.2 695.6,621.6 690.8,605.2 678.4,603.1 674.8,608.2 667.5,608.2 659.9,602.0 658.4,594.7 661.3,585.2 659.1,580.1 656.2,579.4 655.5,572.8 642.0,571.0 635.1,561.9 633.6,551.0 629.6,547.7 623.1,547.7 614.3,559.4 600.5,561.5 594.3,568.5 594.3,573.6 589.9,575.7 589.6,579.8 583.0,581.9 569.2,580.5 550.6,598.3 547.0,586.7 547.0,577.2 554.3,566.3 554.3,558.3 547.0,551.0 545.5,540.1 550.3,532.4 557.9,529.1 560.1,518.2 569.6,513.1 572.5,506.6 571.0,498.5 573.2,489.1 582.7,481.1 581.9,466.5 587.0,457.0 586.3,444.6 590.7,441.0 592.1,433.7 597.2,430.1 601.2,421.0 620.2,421.0 622.4,416.6 627.1,414.8 629.6,407.9 630.0,415.5 635.5,418.8 647.1,416.6 650.8,412.2 660.2,412.2 663.1,415.9 674.8,413.7 678.4,417.3 683.5,417.3 685.4,425.0 691.2,430.1 692.3,437.0 699.6,436.3 701.0,431.9 719.2,431.2 725.8,424.6 750.2,427.2 749.5,436.6 752.4,445.4 745.4,454.5 742.2,454.8 742.2,459.9 746.2,464.7 754.9,463.9 761.1,468.7 761.8,481.8 766.9,485.4 768.4,491.3 765.5,500.0 765.5,513.8 760.0,521.5 753.8,523.3 751.6,532.8 744.0,539.7 735.3,539.0 732.7,526.9 723.6,525.1 717.4,530.6 713.0,541.5 701.4,548.8 694.8,564.8 694.8,572.8 703.6,577.9 707.9,597.6 726.5,604.5 731.2,612.9 731.2,628.2 738.5,632.6 740.7,638.4 733.8,659.1Z'},
 };
+/* ─── иконки разделов ────────────────────────────────────────────
+   Сетка 24×24, обводка 1.7 без скруглений — та же геометрия, что
+   у рамок и линеек интерфейса. Заливкой закрашена только точка «?». */
+const ICON={
+  brief:'<path d="M5 3h14v18H5z"/><path d="M8.5 8h7M8.5 12h7M8.5 16h4"/>',
+  parl:'<path d="M3 19a9 9 0 0 1 18 0"/><path d="M3 19h18"/>'+
+       '<circle cx="7.2" cy="16.2" r="1.25"/><circle cx="12" cy="13.4" r="1.25"/>'+
+       '<circle cx="16.8" cy="16.2" r="1.25"/>',
+  bill:'<path d="M6 3h9l3 3v15H6z"/><path d="M15 3v3h3"/><circle cx="12" cy="14.5" r="3"/>',
+  budget:'<path d="M3 20h18"/><path d="M6.5 20v-7M11 20V6.5M15.5 20v-5M20 20V9.5"/>',
+  gov:'<path d="M2.5 10 12 4l9.5 6"/><path d="M3 20h18"/><path d="M6 20v-9M10 20v-9M14 20v-9M18 20v-9"/>',
+  country:'<path d="M4 6.5 9.5 4l5 2.5L20 4v13.5L14.5 20l-5-2.5L4 20z"/><path d="M9.5 4v13.5M14.5 6.5V20"/>',
+  society:'<circle cx="8.5" cy="8.5" r="2.6"/><path d="M3 20c0-3.2 2.4-5.2 5.5-5.2s5.5 2 5.5 5.2"/>'+
+          '<circle cx="17" cy="9.5" r="2"/><path d="M15.4 15.2c2.9-.5 5.6 1.2 5.6 4.8"/>',
+  camp:'<path d="M4 9.5v5l10 4.5V5z"/><path d="M14.5 8.5a4 4 0 0 1 0 7"/><path d="M6.5 15.2V19h3"/>',
+  arch:'<path d="M5 3v18"/><circle cx="5" cy="7" r="1.5"/><circle cx="5" cy="12.5" r="1.5"/>'+
+       '<circle cx="5" cy="18" r="1.5"/><path d="M9.5 7H20M9.5 12.5h7.5M9.5 18H20"/>',
+  help:'<path d="M4 4h16v16H4z"/><path d="M9.8 9.6a2.4 2.4 0 1 1 2.9 2.6v1.5"/>'+
+       '<circle cx="12.7" cy="16.8" r=".95" fill="currentColor" stroke="none"/>',
+  more:'<circle cx="5" cy="12" r="1.4" fill="currentColor" stroke="none"/>'+
+       '<circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/>'+
+       '<circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none"/>',
+  clock:'<circle cx="12" cy="12" r="8.5"/><path d="M12 6.5V12l3.6 2.6"/>',
+};
+function icon(id,size){
+  return `<svg class="ic" viewBox="0 0 24 24" width="${size||19}" height="${size||19}" fill="none"
+    stroke="currentColor" stroke-width="1.7">${ICON[id]||''}</svg>`;
+}
 /* ════════════════════════════════════════════════════════════════
    НОВАРИЯ · политический симулятор
    Данные: оси, группы избирателей, регионы, партии, законопроекты.
@@ -544,6 +597,30 @@ const RIDERS = [
    desc:'Эффект закона слабее на треть, зато колеблющиеся идут за вами.'},
 ];
 
+/* ─── Обещания на созыв ───────────────────────────────────────────
+   Проверяются на выборах по реальным показателям, а не по счётчику. */
+const PROMISES=[
+  {id:'unemp', name:'Снизить безработицу ниже 6%',
+   ok:()=>S.econ.unemp<6, val:()=>S.econ.unemp+'%', goal:'ниже 6%',
+   prog:()=>clamp((10-S.econ.unemp)/4*100,0,100)},
+  {id:'inf',   name:'Удержать инфляцию ниже 5%',
+   ok:()=>S.econ.inf<5, val:()=>S.econ.inf+'%', goal:'ниже 5%',
+   prog:()=>clamp((9-S.econ.inf)/4*100,0,100)},
+  {id:'debt',  name:'Не дать долгу перевалить за 200 млрд',
+   ok:()=>S.debt<200, val:()=>Math.round(S.debt)+' млрд', goal:'ниже 200 млрд',
+   prog:()=>clamp((300-S.debt)/100*100,0,100)},
+  {id:'grow',  name:'Поднять ВВП на десятую часть за созыв',
+   ok:()=>S.econ.gdp>=(S.termGdp||100)*1.1, val:()=>'+'+Math.round((S.econ.gdp/(S.termGdp||100)-1)*100)+'%', goal:'+10%',
+   prog:()=>clamp((S.econ.gdp/(S.termGdp||100)-1)*1000,0,100)},
+  {id:'calm',  name:'Сбить среднюю напряжённость ниже 15',
+   ok:()=>avgUnrest()<15, val:()=>Math.round(avgUnrest()), goal:'ниже 15',
+   prog:()=>clamp((30-avgUnrest())/15*100,0,100)},
+  {id:'laws',  name:'Провести шесть законов за созыв',
+   ok:()=>(S.termLaws||0)>=6, val:()=>(S.termLaws||0)+' из 6', goal:'шесть законов',
+   prog:()=>clamp((S.termLaws||0)/6*100,0,100)},
+];
+const PR=id=>PROMISES.find(p=>p.id===id);
+
 /* Имена депутатов и министров. */
 const SURN_M = ['Орлов','Капустин','Беляев','Сухарев','Дроздов','Полозов','Терехов','Чернов','Лагутин','Бортников',
   'Корнеев','Шанин','Ракитин','Жилин','Крамской','Соколов','Гречко','Бутов','Стрельцов','Кулаков','Ремизов','Демин',
@@ -624,6 +701,8 @@ function initState(pl){
     pending:[], log:[], chron:[], hist:[],
     poll:0, camp:null, tab:'brief', sel:null, filter:'all',
     ev:{seen:[],cool:0}, shockCool:0, role:'pm', noConfCool:0, moodShock:{}, fatigue:0, govAge:0,
+    promises:[], termGdp:100, termLaws:0, snaps:0,          // обещания и досрочные выборы
+    budget:{submitted:false,fails:0}, lastBudget:null,      // годовой бюджет
   };
   GROUPS.forEach(g=>S.mood[g.id]=clamp(fitOf(g,player.st)*0.5+20+rnd(-4,4),20,70));
   REGIONS.forEach(r=>{ S.rmod[r.id]=r1((r.dev-2)*1.5+rnd(-3,3)); S.unrest[r.id]=ri(6,18); });
@@ -786,6 +865,35 @@ function econTick(){
     chron('Началась рецессия.','b'); shiftAll(-2.2); }
   S.stab = clamp(S.stab+(52-S.stab)*0.07-avgUnrest()*0.05+lawSum('stab')*0.6+rnd(-1.2,1.2),0,100);
 }
+
+/* ─── годовой бюджет ─────────────────────────────────────────────
+   Ставки и статьи живут до конца года, но раз в четыре квартала
+   правительство защищает их в Собрании. */
+function avgSpend(){ return SPEND.reduce((a,s)=>a+S.spend[s.id],0)/SPEND.length; }
+function budgetDue(){ return (S.q-S.termStart)%4===3; }
+function budgetYear(){ return 2029+Math.floor((S.q)/4)+1; }
+function budgetStance(){
+  return {tax:clamp((2-taxLoad())*1.4,-2,2), econ:clamp((2-avgSpend())*1.2,-2,2)};
+}
+function budgetSupport(d){
+  const b=budgetStance();
+  let v=(0.95-Math.abs(d.st.tax-b.tax))*13+(0.95-Math.abs(d.st.econ-b.econ))*10;
+  v+=inCoal(d.party)?10:-8;
+  v+=(d.rel-50)*0.30;
+  ['tax','econ'].forEach(ax=>{ const id=S.comm&&S.comm[ax];
+    const ch=id?S.deputies.find(x=>x.id===id):null;
+    if(ch&&ch.party===d.party)v+=5; });
+  if(S.unrest[d.region]>30&&S.spend.soc>=3)v+=4;      // округ на взводе ценит соцстатью
+  v+=noise(d.id+'budget'+S.q+taxLoad()+avgSpend(),7);
+  return v;
+}
+function budgetTally(){
+  const t={yes:0,no:0,und:0,list:[]};
+  S.deputies.forEach(d=>{ const v=budgetSupport(d), st=v>10?'yes':v<-10?'no':'und';
+    t[st]++; t.list.push({d,v,st}); });
+  return t;
+}
+function snapshotBudget(){ return {tax:{...S.tax},spend:{...S.spend}}; }
 
 /* ─── настроения ─────────────────────────────────────────────── */
 function perfOf(g){
@@ -1106,6 +1214,7 @@ function submitBill(){
   S.votes.unshift({no:S.billNo,q:S.q,name:t.name,stance:b.stance,yes:res.yes,no:res.no,pass});
   if(pass){
     enact(b);
+    S.termLaws=(S.termLaws||0)+1;
     addCap(6); logMsg('Принят закон «'+t.name+'» ('+res.yes+' против '+res.no+').',1);
     chron('Собрание приняло закон «'+t.name.toLowerCase()+'».','g');
   } else {
@@ -1122,6 +1231,121 @@ function submitBill(){
     acts:[{label:'Закрыть'}]});
   S.bill=null;
   render();
+}
+
+/* ─── годовой бюджет ─────────────────────────────────────────── */
+function submitBudget(){
+  if(!isPM()){toast('Бюджет вносит правительство');return;}
+  if(!budgetDue()){toast('Бюджет вносят в последнем квартале года');return;}
+  if(S.budget.submitted){toast('Бюджет на этот год уже рассматривали');return;}
+  if(!useAP(1)||!payCap(6))return;
+  S.budget.submitted=true;
+  const t=budgetTally();
+  let yes=0,no=0;
+  t.list.forEach(x=>{ if(x.st==='yes')yes++; else if(x.st==='no')no++;
+    else { (Math.random()<0.5+x.v/30?yes++:no++); } });
+  const pass=yes>no;
+  if(pass){
+    S.lastBudget=snapshotBudget(); S.budget.fails=0;
+    addCap(8); shiftAll(0.8);
+    coalition().filter(x=>x!==PL).forEach(id=>{ if(S.partners[id])S.partners[id].anger=Math.max(0,S.partners[id].anger-1); });
+    logMsg('Бюджет на '+budgetYear()+' год принят ('+yes+' против '+no+').',1);
+    chron('Собрание утвердило бюджет на '+budgetYear()+' год.','g');
+  } else {
+    S.budget.fails++;
+    if(S.lastBudget){ S.tax={...S.lastBudget.tax}; S.spend={...S.lastBudget.spend}; }
+    addCap(-10); shiftAll(-2); S.noConfCool=0;
+    coalition().filter(x=>x!==PL).forEach(id=>{ if(S.partners[id])S.partners[id].anger=clamp(S.partners[id].anger+1,0,6); });
+    logMsg('Бюджет на '+budgetYear()+' год провален ('+no+' против '+yes+'). Страна живёт по прошлогодним цифрам.',1);
+    chron('Собрание отклонило бюджет на '+budgetYear()+' год.','b');
+  }
+  sheetOpen({eye:'Народное собрание · бюджет '+budgetYear(),title:pass?'Бюджет принят':'Бюджет провален',
+    body:voteBar(yes,no)+`<div style="text-align:center;margin:14px 0 4px">
+      <span class="stamp ${pass?'y':'n'}">${pass?'утверждён':'отклонён'}</span></div>`+
+      (pass?'<p class="hint">Ставки и статьи закреплены на год. Менять их до следующего бюджета можно, но защищать придётся снова.</p>'
+           :'<p>Ставки и статьи откатились к прошлогодним. Оппозиция получила повод для вотума недоверия'+
+            (S.budget.fails>=2?', а второй провал подряд означает отставку кабинета.':'.')+'</p>'),
+    acts:[{label:'Дальше'}]});
+  if(!pass&&S.budget.fails>=2){
+    logMsg('Второй провал бюджета подряд: правительство отправлено в отставку.',1);
+    chron('Кабинет пал из-за бюджета.','b');
+    fallGovernment();
+  }
+  render();
+}
+function budgetTick(){
+  if(!isPM()){ S.budget.submitted=false; return; }
+  if(budgetDue()&&!S.budget.submitted){
+    S.budget.fails++;
+    if(S.lastBudget){ S.tax={...S.lastBudget.tax}; S.spend={...S.lastBudget.spend}; }
+    addCap(-8); shiftAll(-1.6); S.noConfCool=0;
+    logMsg('Правительство не внесло бюджет на '+budgetYear()+' год: страна живёт по прошлогодним цифрам.',1);
+    sheetOpen({eye:'Бюджетный кризис',title:'Бюджет не внесён',
+      body:'<p>Год закончился, а проект бюджета так и не дошёл до Собрания. Ставки и статьи откатились к прошлогодним, оппозиция получила повод для вотума.</p>',
+      acts:[{label:'Принять к сведению'}]});
+  }
+  if(budgetDue())S.budget.submitted=false;      // следующий год — новый проект
+}
+
+/* ─── досрочные выборы ───────────────────────────────────────── */
+function callSnapElection(){
+  if(!isPM()){toast('Распустить Собрание может только глава кабинета');return;}
+  if((S.govAge||0)<4){toast('Собрание нельзя распустить в первый год работы кабинета');return;}
+  if(S.camp){toast('Кампания уже идёт: выборы и так на носу');return;}
+  sheetOpen({eye:'Роспуск Собрания · 25 веса',title:'Идти на выборы досрочно',
+    body:`<p class="lead">Выборы пройдут в этом же квартале, без предвыборного штаба: ни роликов, ни митингов, ни дебатов.
+        Считается только то, что люди думают о вас сегодня.</p>
+      <div class="res"><span>Одобрение сейчас</span><b class="${approval()<46?'bad':'good'}">${Math.round(approval())}%</b>
+        <span>Прогноз мандатов</span><b>${forecast()} из ${SEATS}</b>
+        <span>До очередных выборов</span><b>${TERM-(S.q-S.termStart)} кварталов</b>
+        <span>Роспусков за игру</span><b>${S.snaps||0}</b></div>
+      <p class="hint">Каждый следующий роспуск избиратель принимает хуже предыдущего.</p>`,
+    opts:[
+      {label:'Распустить Собрание',hint:'выборы немедленно',fn(){
+        if(!payCap(25))return;
+        S.snaps=(S.snaps||0)+1;
+        shiftAll(-2-S.snaps*1.5);
+        logMsg('Собрание распущено, назначены досрочные выборы.',1);
+        chron('Президент распустил Собрание досрочно.','');
+        election();
+      }},
+      {label:'Передумать',hint:'работать созыв до конца',fn(){}}]});
+}
+
+/* ─── обещания на созыв ──────────────────────────────────────── */
+function choosePromises(){
+  const chosen=[];
+  const ask=()=>{
+    const avail=PROMISES.filter(p=>chosen.indexOf(p.id)<0);
+    sheetOpen({eye:'Начало созыва · обещание '+(chosen.length+1)+' из 2',title:'Что вы обещаете стране',
+      body:'<p class="lead">Выполненное обещание на выборах прибавляет поддержки и веса, проваленное отнимает вдвое больше. Выберите два.</p>',
+      opts:avail.map(p=>({label:p.name,hint:'сейчас: '+p.val()+' · нужно '+p.goal,fn(){
+        chosen.push(p.id);
+        S.promises=chosen.map(id=>({id,given:S.q}));
+        if(chosen.length<2)ask();
+        else { logMsg('Программа созыва оглашена: '+chosen.map(id=>PR(id).name.toLowerCase()).join('; ')+'.',1);
+          chron('Партия дала два обещания на созыв.',''); }
+      }}))});
+  };
+  ask();
+}
+function checkPromises(){
+  if(!S.promises||!S.promises.length)return '';
+  let out='';
+  S.promises.forEach(pp=>{
+    const pr=PR(pp.id); if(!pr)return;
+    const ok=pr.ok();
+    if(ok){ shiftAll(4); addCap(12); } else { shiftAll(-6); addCap(-8); }
+    logMsg('Обещание «'+pr.name+'»: '+(ok?'выполнено':'провалено')+'.',1);
+    chron('Обещание «'+pr.name.toLowerCase()+'»: '+(ok?'выполнено':'провалено')+'.',ok?'g':'b');
+    out+=`<span>${pr.name}</span><b class="w ${ok?'good':'bad'}">${ok?'выполнено':'провалено'} · ${pr.val()}</b>`;
+  });
+  return '<div class="res">'+out+'</div>';
+}
+function startTerm(){
+  S.termGdp=S.econ.gdp; S.termLaws=0; S.promises=[];
+  S.budget={submitted:false,fails:0}; S.lastBudget=snapshotBudget();
+  choosePromises();
 }
 
 /* ─── коалиция и вотум ───────────────────────────────────────── */
@@ -1201,6 +1425,7 @@ function confidenceVote(byPlayer){
 }
 function takePower(){
   S.govAge=0;
+  S.budget={submitted:false,fails:0}; S.lastBudget=snapshotBudget();
   S.gov={lead:PL,coal:[PL],posts:{}};
   POSTS.forEach(p=>S.gov.posts[p.id]=PL);
   S.partners={}; S.role='pm';
@@ -1580,6 +1805,7 @@ function endQuarter(){
   pendingTick();
   if(!isPM()){govBill();aiBudget();}
   else if(Math.random()<0.35)oppositionBill();
+  budgetTick();
   worldShock();
   fireEvent();
 
@@ -1682,6 +1908,7 @@ function partyScore(p,r){
   return v;
 }
 function election(){
+  const promVerdict=checkPromises();          // спрос за обещания до подсчёта голосов
   const votes={},seatsNew={};
   S.parties.forEach(p=>{votes[p.id]=0;seatsNew[p.id]=0;});
   const regRes={};
@@ -1719,9 +1946,9 @@ function election(){
   const mine=seatsNew[PL], win=mine>=MAJ;
   logMsg('Выборы: «'+me().name+'» — '+nat[PL]+'% и '+mine+' мандатов.',1);
   chron('Выборы: «'+me().name+'» получила '+mine+' мандатов.',mine>=MAJ?'g':'');
-  showResults(nat,seatsNew,regRes);
+  showResults(nat,seatsNew,regRes,promVerdict);
 }
-function showResults(nat,seats,regRes){
+function showResults(nat,seats,regRes,prom){
   const order=S.parties.slice().sort((a,b)=>seats[b.id]-seats[a.id]);
   const rows=order.map(p=>`<tr><td><span class="chip"><s style="background:${p.color}"></s>${p.name}${p.id===PL?' <span class="tag y">вы</span>':''}</span></td>
     <td class="num">${nat[p.id]}%</td><td class="num">${seats[p.id]}</td></tr>`).join('');
@@ -1730,6 +1957,7 @@ function showResults(nat,seats,regRes){
   const mine=seats[PL];
   sheetOpen({eye:'Всеобщие выборы · '+dateLabel(),title:'Итоги голосования',
     body:bar+'<table class="tight"><thead><tr><th>Партия</th><th class="r">Голоса</th><th class="r">Мандаты</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+      (prom?'<h3 class="sub">Спрос за обещания</h3>'+prom:'')+
       `<p class="hint" style="margin-top:9px">Для большинства нужно ${MAJ} мандатов. У вас ${mine}.</p>`,
     acts:[{label:'К формированию правительства',fn:()=>openFormation(seats)}]});
 }
@@ -1740,6 +1968,7 @@ function openFormation(seats){
   if(order[0].id===PL||seatsOf(PL)>=MAJ){
     S.gov={lead:PL,coal:[PL],posts:{}};POSTS.forEach(p=>S.gov.posts[p.id]=PL);
     S.partners={};S.role='pm';
+    startTerm();
     if(seatsOf(PL)>=MAJ){
       sheetOpen({eye:'Мандат на правление',title:'У вас абсолютное большинство',
         body:'<p>'+seatsOf(PL)+' мандатов из '+SEATS+'. Правительство формируется без союзников: все портфели ваши, ни один партнёр не диктует условий.</p>',
@@ -1768,12 +1997,13 @@ function openFormation(seats){
         opts:[
           {label:'Войти в коалицию',hint:'Два портфеля, влияние без первого кресла',fn(){
             S.gov.coal.push(PL);S.gov.posts.soc=PL;S.gov.posts.mid=PL;S.role='junior';
+            S.promises=[];S.termGdp=S.econ.gdp;S.termLaws=0;
             logMsg('«'+me().name+'» вошла в правительство '+lead.leader+' младшим партнёром.',1);
             chron('Ваша партия — младший партнёр в правительстве.','');render();}},
           {label:'Уйти в оппозицию',hint:'Свобода рук и четыре года критики',fn(){
             S.role='opp';logMsg('Вы отказались от портфелей и возглавили оппозицию.',1);render();}}]});
     } else {
-      S.role='opp';
+      S.role='opp'; S.promises=[]; S.termGdp=S.econ.gdp; S.termLaws=0;
       sheetOpen({eye:'Правительство сформировано',title:'Вы в оппозиции',
         body:'<p>Кабинет возглавил '+lead.leader+' («'+lead.name+'»). Ваша фракция — '+seatsOf(PL)+' мандатов — уходит в оппозицию.</p>'+
           '<p class="hint">Оппозиция вносит законы, требует вотума недоверия и готовится к следующим выборам. Бюджет теперь не ваш.</p>',
@@ -1887,14 +2117,18 @@ function mnext(){
     <div class="mb">${m.body||''}${opts?'<div style="margin-top:10px">'+opts+'</div>':''}</div>
     ${m.opts?'':`<div class="mf">${acts}</div>`}`;
   wrap.classList.add('show'); wrap.scrollTop=0;
+  // окно отвечает один раз: повторное нажатие по уже закрытому листу игнорируется
+  let answered=false;
   // обработчик может открыть следующее окно сам — тогда очередь не двигаем
   sh.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{
+    if(answered)return; answered=true;
     const a=(m.acts||[{}])[+b.dataset.a]; mopen=false;
     if(a&&a.fn)a.fn();
     if(!mopen)mnext();
     render();
   });
   sh.querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>{
+    if(answered)return; answered=true;
     const o=m.opts[+b.dataset.o]; mopen=false;
     if(o.fn)o.fn();
     if(!mopen)mnext();
@@ -1951,9 +2185,9 @@ const quarters=n=>plural(n,'квартал','квартала','квартало
 const TABS=[
   {id:'brief',  name:'Кабинет',      n:()=>S.ap+'/3'},
   {id:'parl',   name:'Собрание',     n:()=>seatsOf(PL)+'/'+SEATS},
-  {id:'bill',   name:'Законопроект', n:()=>S.laws.length, dot:()=>!!S.bill},
+  {id:'bill',   name:'Законопроект', short:'Проект', n:()=>S.laws.length, dot:()=>!!S.bill},
   {id:'budget', name:'Бюджет',       n:()=>sign(Math.round(balance()))},
-  {id:'gov',    name:'Правительство',n:()=>coalSeats(),   dot:()=>isPM()&&coalSeats()<MAJ},
+  {id:'gov',    name:'Правительство',short:'Власть', n:()=>coalSeats(), dot:()=>isPM()&&coalSeats()<MAJ},
   {id:'country',name:'Регионы',      n:()=>Math.round(avgUnrest())},
   {id:'society',name:'Общество',     n:()=>Math.round(approval())+'%'},
   {id:'camp',   name:'Кампания',     n:()=>Math.round(S.funds), only:()=>!!S.camp},
@@ -1977,14 +2211,44 @@ function renderStrip(){
   document.getElementById('subtitle').textContent =
     (isPM()?'кабинет · ':S.role==='junior'?'младший партнёр · ':'оппозиция · ')+me().name;
 }
-function renderNav(){
-  const items=TABS.filter(t=>!t.only||t.only());
-  document.getElementById('side').innerHTML='<div class="navsec">Разделы</div>'+items.map(t=>
-    `<button class="nav ${S.tab===t.id?'on':''}" data-t="${t.id}">${t.name}${
-      t.dot&&t.dot()?'<span class="dot"></span>':''}<u>${t.n()}</u></button>`).join('');
-  document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{
-    S.tab=b.dataset.t; window.scrollTo(0,0); render(); });
+const NAV_MAIN=['brief','parl','bill','budget'];
+const isNarrow=()=>window.matchMedia('(max-width:900px)').matches;
+function navItems(){ return TABS.filter(t=>!t.only||t.only()); }
+function navBtn(t,i){
+  return `<button class="nav ${S.tab===t.id?'on':''}" data-t="${t.id}" title="${t.name}${
+    i!==undefined?' · клавиша '+(i+1):''}">${icon(t.id)}<span>${i===undefined&&t.short?t.short:t.name}</span>${
+    t.dot&&t.dot()?'<span class="dot"></span>':''}<u>${t.n()}</u></button>`;
 }
+function renderNav(){
+  const items=navItems(), side=document.getElementById('side');
+  if(isNarrow()){
+    const shown=items.filter(t=>NAV_MAIN.indexOf(t.id)>=0||t.id===S.tab).slice(0,4);
+    side.innerHTML=shown.map(t=>navBtn(t)).join('')+
+      `<button class="nav" data-more="1">${icon('more')}<span>Ещё</span></button>`;
+  } else {
+    side.innerHTML='<div class="navsec">Разделы</div>'+items.map((t,i)=>navBtn(t,i)).join('')+
+      `<div class="navkeys"><b>1</b>—<b>${Math.min(9,items.length)}</b> разделы · <b>←</b> <b>→</b> листать · <b>Q</b> завершить квартал</div>`;
+  }
+  side.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>goTab(b.dataset.t));
+  const m=side.querySelector('[data-more]'); if(m)m.onclick=openSections;
+}
+function goTab(id){ S.tab=id; window.scrollTo(0,0); render(); }
+function openSections(){
+  sheetOpen({eye:'Навигация',title:'Разделы',
+    opts:navItems().map(t=>({label:icon(t.id)+t.name,hint:t.n()?'счётчик: '+t.n():'',fn:()=>goTab(t.id)}))});
+}
+/* клавиатура: цифры — разделы, стрелки — соседний, Q — конец квартала */
+document.addEventListener('keydown',e=>{
+  if(!S||mopen||e.metaKey||e.ctrlKey||e.altKey)return;
+  const tag=(e.target&&e.target.tagName||'').toLowerCase();
+  if(tag==='input'||tag==='select'||tag==='textarea')return;
+  const items=navItems(), cur=items.findIndex(t=>t.id===S.tab);
+  if(/^Digit[1-9]$/.test(e.code)){ const t=items[+e.code.slice(5)-1]; if(t){goTab(t.id);e.preventDefault();} return; }
+  if(e.code==='ArrowRight'||e.code==='BracketRight'){ goTab(items[(cur+1)%items.length].id); e.preventDefault(); return; }
+  if(e.code==='ArrowLeft'||e.code==='BracketLeft'){ goTab(items[(cur-1+items.length)%items.length].id); e.preventDefault(); return; }
+  if(e.code==='KeyQ'&&!S.over){ endQuarter(); e.preventDefault(); }
+});
+addEventListener('resize',()=>{ if(S)renderNav(); });
 function render(){
   if(!S)return;
   renderStrip(); renderNav();
@@ -2019,7 +2283,7 @@ function advice(){
     'Средняя напряжённость '+Math.round(avgUnrest())+'. Поездки, соцвыплаты и полиция сбивают её по-разному.'];
   if(ap<40)return['Рейтинг у черты',
     'Одобрение '+Math.round(ap)+'%. Посмотрите на вкладке «Общество», какие группы ушли, и работайте адресно.'];
-  if(S.camp)return['Идёт кампания','До выборов '+(TERM-(S.q-S.termStart))+' кварталов. Штаб тратит кассу, а не казну.'];
+  if(S.camp)return['Идёт кампания','До выборов '+quarters(TERM-(S.q-S.termStart))+'. Штаб тратит кассу, а не казну.'];
   if(!S.bill)return['Собрание ждёт',
     'Внесите законопроект: подберите позицию так, чтобы её приняли, но она ещё что-то меняла.'];
   return['Курс держится','Пользуйтесь спокойным кварталом: договаривайтесь с фракциями впрок.'];
@@ -2047,6 +2311,17 @@ function tabBrief(){
       st.anger>=3?'<span class="tag r">на грани выхода</span>':
       st.anger>=2?'<span class="tag y">недовольны</span>':'<span class="tag g">лояльны</span>'}</div>`;}).join('')
     ||'<p class="hint">Однопартийное правительство: делить портфели не с кем.</p>';
+
+  const promBlock=(S.promises&&S.promises.length)?panel({title:'Обещания на созыв',
+      meta:'спросят через '+quarters(Math.max(0,TERM-(S.q-S.termStart))),
+      body:S.promises.map(pp=>{const pr=PR(pp.id); if(!pr)return '';
+        const ok=pr.ok(), w=Math.round(pr.prog());
+        return `<div style="padding:6px 0;border-bottom:var(--hair-2)">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
+            <b style="font-size:13.5px">${pr.name}</b><span class="num-s ${ok?'good':'bad'}">${pr.val()}</span></div>
+          <div class="sub2">нужно ${pr.goal}${ok?' · выполнено':''}</div>
+          ${bar([[w,ok?'var(--good)':'var(--mark)']],7)}</div>`;}).join('')+
+        '<p class="hint" style="margin-top:8px">Выполненное обещание даёт поддержку и вес, проваленное отнимает вдвое больше.</p>'}):'';
 
   const billBlock=S.bill?(()=>{ const tl=tally(S.bill);
     return panel({title:'На столе',body:
@@ -2090,6 +2365,7 @@ function tabBrief(){
         foot:`<button class="btn sm" data-go="gov">Правительство</button>
               <button class="btn sm" data-go="parl">Список депутатов</button>`})}
       ${billBlock}
+      ${promBlock}
       ${panel({title:'Журнал',meta:'последнее',body:'<div class="log">'+
         (S.log.slice(0,7).map(l=>`<div class="${l.key?'key':''}"><s>${l.d}</s>${l.t}</div>`).join('')
          ||'<div class="dim">Пока тихо.</div>')+'</div>',
@@ -2150,8 +2426,8 @@ function tabParl(){
       <td>${chip(P(d.party))}</td><td class="n hide-s">${d.loyal}</td>
       <td class="n">${Math.round(d.rel)} ${mini(d.rel)}</td><td>${st}</td>
       <td class="r"><button class="btn sm" onclick="openDep('${d.id}')" ${S.ap?'':'disabled'}>Работать</button></td></tr>`;}).join('');
-  const filters=S.parties.map(p=>
-    `<button class="btn sm ${S.filter===p.id?'sel':''}" onclick="S.filter='${p.id}';render()">${p.short} ${seatsOf(p.id)}</button>`).join('');
+  const filters=`<div class="seg"><button class="${S.filter==='all'?'on':''}" onclick="S.filter='all';render()">Все<u>${SEATS}</u></button>`+
+    S.parties.map(p=>`<button class="${S.filter===p.id?'on':''}" onclick="S.filter='${p.id}';render()">${p.short}<u>${seatsOf(p.id)}</u></button>`).join('')+'</div>';
   const votes=S.votes.slice(0,8).map(v=>
     `<tr><td>${v.name} <span class="dim">${STEP[v.stance+2]}</span></td><td class="n good">${v.yes}</td>
      <td class="n bad">${v.no}</td><td>${v.pass?'<span class="tag g">принят</span>':'<span class="tag r">отклонён</span>'}</td>
@@ -2166,7 +2442,7 @@ function tabParl(){
   +`<div class="cols c21"><div>`
   +panel({title:'Депутаты',meta:b?'по проекту «'+T(b.topic).name+'»':'сортировка: кто хуже к вам относится',flush:true,
     body:`<div style="padding:var(--x4) var(--x5);border-bottom:var(--hair-2)" class="row">
-        <button class="btn sm ${S.filter==='all'?'sel':''}" onclick="S.filter='all';render()">Все</button>${filters}
+        ${filters}
         ${tl?`<span class="dim" style="margin-left:auto;font-size:11.5px">колеблются ${tl.und}</span>`:''}</div>
       <div class="scrollx"><table><thead><tr><th>Депутат</th><th>Фракция</th><th class="n hide-s">Дисц.</th>
         <th class="n">Отношение</th><th>Позиция</th><th></th></tr></thead><tbody>${rows}</tbody>
@@ -2298,6 +2574,21 @@ function tabBudget(){
        <span>Итог квартала</span><b class="${balance()<0?'bad':'good'}">${sign(balance())} млрд</b></div>
      <p class="hint">Чтобы вернуть бюджет себе, нужно большинство в Собрании или вотум недоверия.</p>`});
   const bal=balance();
+  const bt=isPM()?budgetTally():null;
+  const budgetPanel=!isPM()?'':budgetDue()&&!S.budget.submitted
+    ? panel({cls:'lead-p',title:'Проект бюджета на '+budgetYear()+' год',meta:'вносится в этом квартале',body:
+        `<p class="lead">Ставки и статьи ниже — и есть проект. Двигайте их, пока расклад не сойдётся: Собрание голосует за цифры, а не за намерения.</p>
+         <div class="whip"><div><i>за</i><b class="good">${bt.yes}</b></div><div><i>колеблются</i><b>${bt.und}</b></div>
+           <div><i>против</i><b class="bad">${bt.no}</b></div></div>
+         ${bar([[bt.yes/SEATS*100,'var(--good)'],[bt.und/SEATS*100,'var(--line)'],[bt.no/SEATS*100,'var(--bad)']],12)}
+         <p class="hint" style="margin-top:6px">Нужно ${MAJ} голосов. Провал откатывает бюджет к прошлогоднему и открывает дорогу вотуму недоверия${
+           S.budget.fails?'; это уже второй год подряд':''}.</p>`,
+        foot:`<button class="btn pri" onclick="submitBudget()" ${S.ap&&S.cap>=6?'':'disabled'}>Внести бюджет<span class="cost">6 веса</span></button>
+              <span class="hint">1 действие</span>`})
+    : panel({cls:'info',title:'Бюджетный год',meta:S.budget.submitted?'проект рассмотрен':'до защиты '+quarters(3-((S.q-S.termStart)%4)),
+        body:`<p class="hint">Ставки и статьи можно менять когда угодно, но раз в год правительство защищает их в Собрании.
+          ${S.lastBudget?'Последний утверждённый бюджет: налоги '+Object.values(S.lastBudget.tax).join('/')+', статьи '+Object.values(S.lastBudget.spend).join('/')+'.':''}</p>`});
+
   const taxRows=TAXES.map(t=>`<tr><td><b>${t.name}</b><div class="sub2">недовольны: ${t.hates.map(h=>G(h).name.toLowerCase()).join(', ')}</div></td>
     <td class="n">${r1(t.yield*(S.tax[t.id]/2)*S.econ.gdp/100)}</td>
     <td style="width:190px"><div class="steps">${[0,1,2,3,4].map(v=>
@@ -2310,13 +2601,13 @@ function tabBudget(){
       `<button class="${S.spend[s.id]===v?'on':''}" onclick="setSpend('${s.id}',${v})">${v}</button>`).join('')}</div>
       <div class="sub2">${['нет','урезано','норма','щедро','максимум'][S.spend[s.id]]}</div></div></div>`).join('');
 
-  return `<div class="cols c11">
+  return budgetPanel+`<div class="cols c11">
     ${panel({cls:'calm',title:'Доходы',meta:revenue()+' млрд за квартал',flush:true,
       body:`<table><thead><tr><th>Налог</th><th class="n">Сбор</th><th>Ставка 0—4</th></tr></thead><tbody>${taxRows}</tbody></table>`})}
     ${panel({cls:'warn',title:'Расходы',meta:outlay()+' млрд за квартал',body:spRows})}
   </div>
   <div class="cols c21">
-    ${panel({title:'Динамика',meta:S.hist.length+' кварталов',body:
+    ${panel({title:'Динамика',meta:quarters(S.hist.length),body:
       `<div class="grid g2">${spark('gdp','var(--good)','ВВП, индекс')}${spark('inf','var(--bad)','Инфляция, %')}
         ${spark('un','#6B4A1E','Безработица, %')}${spark('debt','var(--p6)','Долг, млрд')}</div>`})}
     <div>
@@ -2370,11 +2661,15 @@ function tabGov(){
         bar(S.parties.slice().sort((x,y)=>(inCoal(y.id)?1:0)-(inCoal(x.id)?1:0)).map(p=>
           [seatsOf(p.id)/SEATS*100,inCoal(p.id)?p.color:p.color+'70']),15)+
         '<div style="margin-top:10px">'+allies+'</div>'})}
-      ${panel({title:'Устойчивость',body:`<div class="res" style="margin:0;border:0;padding:0">
+      ${panel({title:'Устойчивость',foot:isPM()?
+        `<button class="btn danger" onclick="callSnapElection()" ${(S.govAge||0)>=4&&!S.camp?'':'disabled'}>Распустить Собрание<span class="cost">25 веса</span></button>
+         <span class="hint">${(S.govAge||0)<4?'не раньше пятого квартала кабинета':'выборы пройдут сразу, без штаба'}</span>`:'',
+        body:`<div class="res" style="margin:0;border:0;padding:0">
         <span>Роль</span><b class="w">${isPM()?'глава кабинета':S.role==='junior'?'младший партнёр':'оппозиция'}</b>
         <span>Возраст кабинета</span><b>${quarters(S.govAge||0)}</b>
         <span>Усталость избирателя</span><b class="${(S.fatigue||0)>6?'bad':''}">${r1(S.fatigue||0)}</b>
-        <span>Вотум недоверия</span><b class="w">${S.noConfCool>0?'не раньше чем через '+S.noConfCool:'возможен'}</b></div>`})}
+        <span>Вотум недоверия</span><b class="w">${S.noConfCool>0?'не раньше чем через '+S.noConfCool:'возможен'}</b>
+        <span>Досрочных роспусков</span><b>${S.snaps||0}</b></div>`})}
     </div>
   </div>
   ${panel({title:'Фракции вне правительства',flush:true,body:
@@ -2453,8 +2748,8 @@ function tabCountry(){
 
   return `<div class="cols c21">
     ${panel({title:'Карта Республики',meta:polled()?'данные свежего опроса':'оценка без опроса, ±3 пункта',body:
-      `<div class="row" style="margin-bottom:var(--x4)">${MAPMODE.map(m=>
-        `<button class="btn sm ${S.mapMode===m[0]?'sel':''}" onclick="S.mapMode='${m[0]}';render()">${m[1]}</button>`).join('')}
+      `<div class="row" style="margin-bottom:var(--x4)"><div class="seg">${MAPMODE.map(m=>
+        `<button class="${S.mapMode===m[0]?'on':''}" onclick="S.mapMode='${m[0]}';render()">${m[1]}</button>`).join('')}</div>
         <button class="btn sm ghost" data-act="poll" style="margin-left:auto" ${S.ap&&S.funds>=9&&!polled()?'':'disabled'}>Заказать опрос<span class="cost">9 млн</span></button></div>
        ${mapSVG()}<div class="legend">${mapLegend()}</div>`})}
     ${card}
@@ -2589,6 +2884,11 @@ function tabHelp(){
     <p>Ход — квартал. В квартале три действия: поездка, речь, работа с депутатом или с колеблющимися, переговоры
       с фракцией, сбор средств, опрос. Созыв длится ${TERM} кварталов, затем всеобщие выборы.
       Больше трёх созывов подряд не бывает.</p>
+    <h3 class="sub">Обещания</h3>
+    <p>В начале каждого созыва партия называет два обещания — по безработице, инфляции, долгу, росту,
+      напряжённости или числу проведённых законов. Их проверяют один раз, на выборах: выполненное
+      прибавляет поддержки и политического веса, проваленное отнимает вдвое больше. Ход обещаний
+      виден на первом экране весь созыв, так что провал можно заметить заранее.</p>
     <h3 class="sub">Откуда берётся рейтинг</h3>
     <p>Одобрения как отдельной цифры не существует: есть восемь групп избирателей со своими взглядами и заботами.
       Каждая смотрит на две вещи — насколько ваш курс совпадает с её взглядами («курс») и что происходит
@@ -2608,6 +2908,14 @@ function tabHelp(){
       в округах; из кассы — за социологию и кампанию. Смешивать нельзя: заметят.</p>
     <p>Дефицит уходит в долг и разгоняет инфляцию. Хозяйственный цикл идёт сам, внешний спрос и цены на сырьё
       тянут экономику и бюджет независимо от ваших решений.</p>
+    <p>Ставки и статьи меняются когда угодно, но раз в год — в четвёртом квартале — правительство защищает
+      их в Собрании. Депутат смотрит на бюджет как на закон сразу по двум осям: сколько берут и сколько тратят.
+      Отклонённый бюджет год живёт по прошлым ставкам, а кабинет теряет вес и одобрение; второй провал подряд
+      валит правительство.</p>
+    <h3 class="sub">Досрочные выборы</h3>
+    <p>С пятого квартала кабинета глава правительства может распустить Собрание и пойти на выборы раньше срока,
+      заплатив политическим весом. Это способ поймать удачный момент — но избиратель не любит, когда его гонят
+      к урнам, и каждый следующий роспуск обходится дороже.</p>
     <h3 class="sub">Выборы</h3>
     <p>В каждом субъекте свои мандаты, распределение — по методу Д'Ондта. За партию голосуют группы, которым она
       ближе: у соперников это идеология, у вас — курс вместе с тем, как люди оценивают вашу работу.
@@ -2615,7 +2923,10 @@ function tabHelp(){
       дебаты решают настроение страны разом.</p>
     <h3 class="sub">Чем всё кончается</h3>
     <p>Долг выше 430 млрд — дефолт. Одобрение ниже 19% — отставка. Средняя напряжённость выше 72 — страна выходит
-      из-под контроля. В остальном итог считают по мандатам, законам, экономике и годам у власти.</p>`});
+      из-под контроля. В остальном итог считают по мандатам, законам, экономике и годам у власти.</p>
+    <h3 class="sub">Клавиши</h3>
+    <p>Разделы переключаются цифрами <b>1</b>—<b>9</b> в том порядке, в каком они стоят в меню, соседний раздел —
+      стрелками <b>←</b> и <b>→</b>, конец квартала — <b>Q</b>. Пока открыто окно с решением, клавиши молчат.</p>`});
 }
 /* ════════════════════════════════════════════════════════════════
    Запуск: создание партии, загрузка сохранения.
@@ -2676,7 +2987,7 @@ function askName(base){
             <span>Действий в квартал</span><b>3</b>
             <span>В казне</span><b>${Math.round(S.treasury)} млрд</b></div>
           <p class="hint">Начните со «Сводки»: помощник подскажет, где сейчас тонко.</p>`,
-        acts:[{label:'К работе'}]});
+        acts:[{label:'К работе',fn:startTerm}]});
     }}],
     after(){ document.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{ base.color=b.dataset.c;
       document.querySelectorAll('[data-c]').forEach(x=>x.style.outline='');

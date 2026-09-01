@@ -76,7 +76,7 @@
   /* 09 · плотность */
   --row:30px;        /* строка таблицы, обычная плотность */
   --row-tight:24px;  /* плотная */
-  --rail:190px;      /* ширина бокового меню */
+  --rail:210px;      /* ширина бокового меню */
   --page:1380px;     /* предельная ширина полосы набора */
 }
 
@@ -278,7 +278,9 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
   padding:8px 11px;margin-bottom:6px;cursor:pointer;font:400 13px var(--f-text);color:var(--ink);
   transition:border-color var(--t-fast) var(--ease),background var(--t-fast) var(--ease)}
 .opt:hover{border-color:var(--ink-2);background:var(--mark-bg)}
-.opt b{display:block} .opt span{font-size:11.5px;color:var(--ink-3)}
+.opt b{display:flex;align-items:center;gap:9px}
+.opt b .ic{flex:none;opacity:.7}
+.opt span{display:block;font-size:11.5px;color:var(--ink-3)}
 .res{display:grid;grid-template-columns:1fr auto;gap:3px var(--x6);font-size:13px;
   border-top:var(--hair-2);border-bottom:var(--hair-2);padding:var(--x4) 0;margin:var(--x4) 0}
 .res b{font-family:var(--f-num);font-weight:400;text-align:right;letter-spacing:-.03em}
@@ -331,14 +333,53 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
 .rail{width:var(--rail);border-right:var(--hair);background:rgba(255,255,255,.2);padding:var(--x4) 0}
 .rail .cap{font:400 9.5px var(--f-cond);text-transform:uppercase;letter-spacing:.16em;color:var(--ink-3);
   padding:var(--x4) var(--x5) var(--x2);border-bottom:var(--hair-2);margin-bottom:var(--x2)}
-.nav{display:flex;align-items:baseline;gap:7px;width:100%;text-align:left;background:none;border:0;
-  border-left:3px solid transparent;padding:6px var(--x5);cursor:pointer;color:var(--ink-2);
-  font:400 13px var(--f-cond);text-transform:uppercase;letter-spacing:.08em;transition:background var(--t-fast) var(--ease)}
+.nav{display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:none;border:0;
+  border-left:3px solid transparent;padding:8px var(--x5);cursor:pointer;color:var(--ink-2);
+  font:400 13px var(--f-cond);text-transform:uppercase;letter-spacing:.08em;
+  transition:background var(--t-fast) var(--ease)}
 .nav:hover{background:var(--mark-bg);color:var(--ink)}
 .nav.on{background:var(--surface);border-left-color:var(--mark);color:var(--ink);font-weight:700}
-.nav u{margin-left:auto;text-decoration:none;font:400 11px var(--f-num);color:var(--ink-3)}
+.nav .ic{flex:none;opacity:.75}
+.nav.on .ic{opacity:1;color:var(--mark)}
+.nav span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nav u{flex:none;margin-left:auto;text-decoration:none;font:400 11px var(--f-num);color:var(--ink-3)}
 .nav.on u{color:var(--mark)}
-.nav .dot{width:6px;height:6px;background:var(--bad);display:inline-block;margin-left:5px}
+.nav .dot{width:6px;height:6px;background:var(--bad);display:inline-block;flex:none}
+.navkeys{font:400 10px var(--f-cond);text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);
+  padding:var(--x5) var(--x5) 0;line-height:1.6;border-top:var(--hair-2);margin-top:var(--x4)}
+.navkeys b{font-family:var(--f-num);font-weight:400;background:var(--surface-2);border:var(--hair-2);
+  padding:0 4px;color:var(--ink-2)}
+
+/* --- плашки-переключатели --------------------------------------- */
+.seg{display:inline-flex;border:var(--hair);background:var(--surface-2);max-width:100%;
+  overflow-x:auto;scrollbar-width:none}
+.seg::-webkit-scrollbar{display:none}
+.seg button{border:0;border-right:var(--hair);background:none;padding:7px 13px;cursor:pointer;flex:none;
+  font:400 12px var(--f-cond);text-transform:uppercase;letter-spacing:.08em;color:var(--ink-2);
+  display:flex;align-items:center;gap:6px;transition:background var(--t-fast) var(--ease)}
+.seg button:last-child{border-right:0}
+.seg button:hover:not(.on){background:var(--mark-bg);color:var(--ink)}
+.seg button.on{background:var(--act);color:var(--ink-inv)}
+.seg button u{text-decoration:none;font:400 11px var(--f-num);opacity:.7}
+.seg.wide{display:flex;width:100%}
+.seg.wide button{flex:1;justify-content:center}
+
+/* --- витрина иконок --------------------------------------------- */
+.icset{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:1px;
+  background:var(--rule);border:var(--hair)}
+.icset figure{margin:0;background:var(--surface);padding:var(--x4) var(--x2);text-align:center}
+.icset .ic{color:var(--ink);margin-bottom:6px}
+.icset figcaption{font:400 10px var(--f-cond);text-transform:uppercase;letter-spacing:.1em;
+  color:var(--ink-2);line-height:1.4}
+.icset figcaption i{display:block;font-style:normal;font-family:var(--f-num);
+  font-size:9.5px;color:var(--ink-3);letter-spacing:0;text-transform:none}
+.icsize{display:flex;align-items:flex-end;gap:var(--x6);padding:var(--x5);
+  background:var(--surface);border:var(--hair)}
+.icsize div{text-align:center;color:var(--ink)}
+.icsize span{display:block;margin-top:6px;font:400 9.5px var(--f-num);color:var(--ink-3)}
+.icbar{display:flex;gap:var(--x5);flex-wrap:wrap;padding:var(--x5);
+  background:var(--band);color:var(--ink-inv);border:var(--hair)}
+.icbar .ic{color:var(--ink-inv)}
 
 /* --- экран загрузки --------------------------------------------- */
 .splash{background:var(--band);color:var(--ink-inv);padding:var(--x10) var(--x8);text-align:center}
@@ -382,19 +423,21 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
   <a href="#c02"><b>02</b>Типографика</a>
   <a href="#c03"><b>03</b>Сетка</a>
   <a href="#c04"><b>04</b>Навигация</a>
-  <a href="#c05"><b>05</b>Кнопки</a>
-  <a href="#c06"><b>06</b>Панели</a>
-  <a href="#c07"><b>07</b>Таблицы</a>
-  <a href="#c08"><b>08</b>Графики</a>
-  <a href="#c09"><b>09</b>Формы</a>
-  <a href="#c10"><b>10</b>Модальные</a>
-  <a href="#c11"><b>11</b>Сообщения</a>
-  <a href="#c12"><b>12</b>Политика</a>
-  <a href="#c13"><b>13</b>Экономика</a>
-  <a href="#c14"><b>14</b>Выборы</a>
-  <a href="#c15"><b>15</b>Состояния</a>
-  <a href="#c16"><b>16</b>Движение</a>
-  <a href="#c17"><b>17</b>Мобильный</a>
+  <a href="#c05"><b>05</b>Иконки</a>
+  <a href="#c06"><b>06</b>Кнопки</a>
+  <a href="#c07"><b>07</b>Панели</a>
+  <a href="#c08"><b>08</b>Таблицы</a>
+  <a href="#c09"><b>09</b>Графики</a>
+  <a href="#c10"><b>10</b>Формы</a>
+  <a href="#c11"><b>11</b>Модальные</a>
+  <a href="#c12"><b>12</b>Сообщения</a>
+  <a href="#c13"><b>13</b>Политика</a>
+  <a href="#c14"><b>14</b>Экономика</a>
+  <a href="#c15"><b>15</b>Выборы</a>
+  <a href="#c16"><b>16</b>Состояния</a>
+  <a href="#c17"><b>17</b>Движение</a>
+  <a href="#c18"><b>18</b>Мобильный</a>
+  <a href="#c19"><b>19</b>Загрузка</a>
   <a href="#scr"><b>—</b>Экраны</a>
 </nav>
 <main id="doc">
@@ -510,9 +553,10 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
 <section id="c04">
 <h2><i>04</i>Навигация</h2>
 <p class="why">Три уровня. Тёмная полоса сверху — постоянные показатели: где мы во времени, сколько
-осталось действий, что с рейтингом и казной. Боковое меню — разделы, у каждого счётчик, чтобы решение
-«куда идти» принималось не заходя внутрь. Красная точка в меню — там ждёт решение. На узком экране
-меню уезжает вниз, полоса переносится второй строкой.</p>
+осталось действий, что с рейтингом и казной. Боковое меню — разделы: иконка, название, счётчик.
+Счётчик нужен, чтобы решение «куда идти» принималось не заходя внутрь; красная точка — там ждёт
+решение. Внизу меню — подсказка клавиш: разделы переключаются цифрами и стрелками, чтобы за ход
+не приходилось целиться мышью восемь раз. На узком экране меню уезжает вниз лентой.</p>
 <div class="spec" style="padding:0;overflow:hidden">
   <div class="appbar">
     <div class="brand"><div style="width:26px;height:29px;background:var(--band-2)"></div>
@@ -529,24 +573,77 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
   <div style="display:flex">
     <nav class="rail">
       <div class="cap">Разделы</div>
-      <button class="nav on">Кабинет<u>2/3</u></button>
-      <button class="nav">Собрание<u>32/120</u></button>
-      <button class="nav">Законопроект<span class="dot"></span><u>14</u></button>
-      <button class="nav">Бюджет<u>−4</u></button>
-      <button class="nav">Регионы<u>21</u></button>
-      <button class="nav">Общество<u>54%</u></button>
-      <button class="nav" disabled style="opacity:.45">Кампания<u>—</u></button>
+      <button class="nav on"><i data-ic="brief"></i><span>Кабинет</span><u>2/3</u></button>
+      <button class="nav"><i data-ic="parl"></i><span>Собрание</span><u>32/120</u></button>
+      <button class="nav"><i data-ic="bill"></i><span>Законопроект</span><span class="dot"></span><u>14</u></button>
+      <button class="nav"><i data-ic="budget"></i><span>Бюджет</span><u>−4</u></button>
+      <button class="nav"><i data-ic="gov"></i><span>Правительство</span><u>77</u></button>
+      <button class="nav"><i data-ic="country"></i><span>Регионы</span><u>21</u></button>
+      <button class="nav"><i data-ic="society"></i><span>Общество</span><u>54%</u></button>
+      <button class="nav" disabled style="opacity:.45"><i data-ic="camp"></i><span>Кампания</span><u>—</u></button>
+      <div class="navkeys"><b>1</b>—<b>9</b> разделы · <b>←</b> <b>→</b> листать · <b>Q</b> завершить квартал</div>
     </nav>
     <div style="flex:1;padding:var(--x5)">
-      <p class="t-small">Активный раздел держит золотую метку слева и белый фон — он визуально «выдвинут»
-        из меню на рабочее поле. Недоступный раздел приглушён, но не спрятан: игрок должен знать, что он есть.</p>
+      <p class="t-small">Активный раздел держит золотую метку слева, белый фон и золотую иконку — он
+        визуально «выдвинут» из меню на рабочее поле. Недоступный раздел приглушён, но не спрятан:
+        игрок должен знать, что он есть. Порядок разделов постоянный, поэтому цифра клавиши всегда
+        означает одно и то же место.</p>
     </div>
   </div>
 </div>
 </section>
 
 <section id="c05">
-<h2><i>05</i>Кнопки</h2>
+<h2><i>05</i>Иконки</h2>
+<p class="why">Один набор, нарисованный по той же сетке, что и всё остальное: 24×24, обводка 1.7,
+углы прямые, скруглений нет. Иконки не декоративные — они держат навигацию на узком экране, где
+подпись сокращается до одного слова, и различают разделы боковым зрением. Каждая рисует предмет,
+а не абстракцию: собрание — полукруг зала, бюджет — столбцы статей, регионы — сшитая из лоскутов
+карта. Цвет иконка берёт у текста (<code>currentColor</code>), поэтому в тёмной полосе и в светлом
+меню это один и тот же файл.</p>
+<div class="icset">
+  <figure><i data-ic="brief" data-s="26"></i><figcaption>Кабинет<i>brief</i></figcaption></figure>
+  <figure><i data-ic="parl" data-s="26"></i><figcaption>Собрание<i>parl</i></figcaption></figure>
+  <figure><i data-ic="bill" data-s="26"></i><figcaption>Законопроект<i>bill</i></figcaption></figure>
+  <figure><i data-ic="budget" data-s="26"></i><figcaption>Бюджет<i>budget</i></figcaption></figure>
+  <figure><i data-ic="gov" data-s="26"></i><figcaption>Правительство<i>gov</i></figcaption></figure>
+  <figure><i data-ic="country" data-s="26"></i><figcaption>Регионы<i>country</i></figcaption></figure>
+  <figure><i data-ic="society" data-s="26"></i><figcaption>Общество<i>society</i></figcaption></figure>
+  <figure><i data-ic="camp" data-s="26"></i><figcaption>Кампания<i>camp</i></figcaption></figure>
+  <figure><i data-ic="arch" data-s="26"></i><figcaption>Летопись<i>arch</i></figcaption></figure>
+  <figure><i data-ic="help" data-s="26"></i><figcaption>Справка<i>help</i></figcaption></figure>
+  <figure><i data-ic="more" data-s="26"></i><figcaption>Ещё<i>more</i></figcaption></figure>
+  <figure><i data-ic="clock" data-s="26"></i><figcaption>Срок<i>clock</i></figcaption></figure>
+</div>
+<div class="grid g2" style="margin-top:var(--x5)">
+  <div>
+    <h3 class="sub">Размеры</h3>
+    <div class="icsize">
+      <div><i data-ic="parl" data-s="16"></i><span>16</span></div>
+      <div><i data-ic="parl" data-s="19"></i><span>19 · меню</span></div>
+      <div><i data-ic="parl" data-s="22"></i><span>22 · лента внизу</span></div>
+      <div><i data-ic="parl" data-s="30"></i><span>30</span></div>
+    </div>
+    <p class="t-small">Обводка не масштабируется вместе с иконкой: она везде 1.7 — иначе в мелком
+      размере линия сливается, а в крупном выглядит жирнее рамок панелей.</p>
+  </div>
+  <div>
+    <h3 class="sub">На тёмном</h3>
+    <div class="icbar">
+      <i data-ic="brief" data-s="22"></i><i data-ic="parl" data-s="22"></i>
+      <i data-ic="bill" data-s="22"></i><i data-ic="budget" data-s="22"></i>
+      <i data-ic="gov" data-s="22"></i><i data-ic="country" data-s="22"></i>
+      <i data-ic="society" data-s="22"></i><i data-ic="clock" data-s="22"></i>
+    </div>
+    <p class="t-small">Заливка используется ровно в двух местах — точка вопросительного знака и
+      три точки «Ещё». Всё прочее — контур: набор должен читаться как чертёж, а не как пиктограммы
+      мобильного приложения.</p>
+  </div>
+</div>
+</section>
+
+<section id="c06">
+<h2><i>06</i>Кнопки и переключатели</h2>
 <p class="why">Одна форма, четыре роли, три размера. Цена действия всегда стоит на самой кнопке —
 игрок не должен считать в уме, хватит ли ему веса и денег. Заблокированная кнопка остаётся видимой:
 она объясняет, чего не хватает, а не исчезает.</p>
@@ -576,11 +673,45 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
   </div>
   <p class="note">Ширина кнопки не подгоняется под сетку: она равна тексту плюс поля. Ряд кнопок выравнивается
     по левому краю, в модальном окне — по правому.</p>
+
+  <h3 class="sub">Плашки</h3>
+  <p class="t-small" style="margin-top:0">Там, где выбирают вид одного и того же списка — фракцию,
+    режим карты, статью — кнопки не годятся: пять отдельных кнопок читаются как пять разных действий.
+    Плашки слипаются в одну ленту с общей рамкой, и выбранная закрашивается целиком. Счётчик стоит
+    прямо в плашке, чтобы фильтр показывал размер выборки до нажатия.</p>
+  <div class="row" style="align-items:flex-start;gap:var(--x5)">
+    <div class="seg">
+      <button class="on">Все<u>120</u></button>
+      <button>Народное возрождение<u>32</u></button>
+      <button>Единство<u>23</u></button>
+      <button>Труд<u>22</u></button>
+      <button>Независимые<u>6</u></button>
+    </div>
+  </div>
+  <div class="row" style="margin-top:var(--x4)">
+    <div class="seg">
+      <button class="on">Напряжение</button>
+      <button>Занятость</button>
+      <button>Мандаты</button>
+      <button>Ваш результат</button>
+    </div>
+  </div>
+  <h3 class="sub">Во всю ширину</h3>
+  <p class="t-small" style="margin-top:0">Когда плашек три-четыре и они делят экран пополам —
+    <code>.seg.wide</code>: доли равные, подпись по центру. Лента всегда прокручивается вбок и никогда
+    не переносится на вторую строку: перенос ломает ощущение одного переключателя.</p>
+  <div class="seg wide">
+    <button class="on">Обзор</button>
+    <button>Поимённо</button>
+    <button>Комитеты</button>
+  </div>
+  <p class="note">Плашка — это выбор из набора, а не действие. Если после нажатия что-то происходит
+    с миром игры, это кнопка. Если меняется только то, что показано на экране, это плашка.</p>
 </div>
 </section>
 
-<section id="c06">
-<h2><i>06</i>Панели</h2>
+<section id="c07">
+<h2><i>07</i>Панели</h2>
 <p class="why">Панель — единица содержания. Верхняя линейка задаёт её вес на экране: золотая — главное,
 красная — требует вмешательства, зелёная — благополучие, синяя — справка. Без линейки — рядовая панель.
 На одном экране золотая линейка допускается только одна, иначе главного не видно.</p>
@@ -610,8 +741,8 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
 </div>
 </section>
 
-<section id="c07">
-<h2><i>07</i>Таблицы</h2>
+<section id="c08">
+<h2><i>08</i>Таблицы</h2>
 <p class="why">Основной способ показать данные: игра про списки — депутатов, статей, регионов, партий.
 Числа выровнены вправо и набраны моноширинным, подпись строки — слева. Зебра не используется: работают
 волосяные линейки и подсветка строки под курсором. Выбранная строка помечена золотой планкой слева.
@@ -654,8 +785,8 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
 </div>
 </section>
 
-<section id="c08">
-<h2><i>08</i>Графики</h2>
+<section id="c09">
+<h2><i>09</i>Графики</h2>
 <p class="why">Пять форм на всю игру, и ни одной новой без крайней надобности. Спарклайн — динамика
 показателя; полоса мандатов — состав палаты; полоса голосования — исход с порогом; полукруг — зал
 заседаний; картограмма — страна. У каждой формы подпись с последним значением: график показывает
@@ -702,8 +833,8 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
 </div>
 </section>
 
-<section id="c09">
-<h2><i>09</i>Формы</h2>
+<section id="c10">
+<h2><i>10</i>Формы</h2>
 <p class="why">Ввода в игре мало, и почти весь он — выбор из шкалы. Шкала позиции от −2 до +2 и уровень
 расхода от 0 до 4 — одна и та же конструкция в двух размерах: подпись слева и справа объясняет,
 что означают края.</p>
@@ -734,8 +865,8 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
   </div>
 </div>
 </section>
-<section id="c10">
-<h2><i>10</i>Модальные окна</h2>
+<section id="c11">
+<h2><i>11</i>Модальные окна</h2>
 <p class="why">Окно появляется только тогда, когда игра ждёт решения или сообщает исход. Три вида:
 выбор из вариантов, итог с печатью, и подтверждение. Заголовок всегда с надзаголовком — он говорит,
 откуда пришло сообщение: Собрание, пресса, мировые рынки. Печать ставится один раз и по центру:
@@ -766,8 +897,8 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
 </div>
 </section>
 
-<section id="c11">
-<h2><i>11</i>Сообщения</h2>
+<section id="c12">
+<h2><i>12</i>Сообщения</h2>
 <p class="why">Четыре канала, по убыванию настойчивости. Записка помощника — постоянная подсказка
 наверху экрана. Красная записка — то, что горит. Всплывающая плашка — подтверждение того, что кнопка
 сработала: живёт три секунды и не требует закрытия. Журнал — полная память, в нём выделены только
@@ -791,8 +922,8 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
 </div>
 </section>
 
-<section id="c12">
-<h2><i>12</i>Политические компоненты</h2>
+<section id="c13">
+<h2><i>13</i>Политические компоненты</h2>
 <p class="why">Собраны из общих кирпичей, но встречаются на трёх экранах и потому описаны отдельно:
 счётчик голосов, строка депутата, шкала позиции, строка комитета, полоса коалиции.</p>
 <div class="grid g2">
@@ -824,8 +955,8 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
 </div>
 </section>
 
-<section id="c13">
-<h2><i>13</i>Экономические компоненты</h2>
+<section id="c14">
+<h2><i>14</i>Экономические компоненты</h2>
 <p class="why">Показатель без направления бесполезен, поэтому у каждой цифры есть либо изменение за
 квартал, либо место на шкале. Конъюнктура — единственный блок, помеченный как неуправляемый: игрок
 должен сразу видеть, где кончается его влияние.</p>
@@ -855,8 +986,8 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
 </div>
 </section>
 
-<section id="c14">
-<h2><i>14</i>Выборы</h2>
+<section id="c15">
+<h2><i>15</i>Выборы</h2>
 <p class="why">Кампания и подсчёт — единственное место, где допустима крупная типографика и цвет во
 всю ширину: это событие, а не рутина. Результат подаётся тремя слоями: полоса голосов, таблица по
 фракциям, карта победителей по субъектам.</p>
@@ -893,8 +1024,8 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
 </div>
 </section>
 
-<section id="c15">
-<h2><i>15</i>Состояния</h2>
+<section id="c16">
+<h2><i>16</i>Состояния</h2>
 <p class="why">Пустота, ожидание и отказ выглядят по-разному и всегда объясняют причину. Числа,
 полученные без опроса, помечены пунктиром — игрок должен отличать измеренное от прикинутого,
 это часть игры, а не оформление.</p>
@@ -918,8 +1049,8 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
 </div>
 </section>
 
-<section id="c16">
-<h2><i>16</i>Движение</h2>
+<section id="c17">
+<h2><i>17</i>Движение</h2>
 <p class="why">Три длительности и одна кривая. Движение допускается там, где что-то появляется
 или подтверждается, и нигде больше: списки не разъезжаются, числа не крутятся, панели не всплывают
 при переключении раздела. При системной настройке «меньше движения» анимации выключаются полностью.</p>
@@ -935,11 +1066,14 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
 </div>
 </section>
 
-<section id="c17">
-<h2><i>17</i>Мобильная версия</h2>
+<section id="c18">
+<h2><i>18</i>Мобильная версия</h2>
 <p class="why">Правила переноса, а не отдельный дизайн. Меню уезжает вниз лентой, полоса показателей
 переносится второй строкой и прокручивается вбок, двухколоночные раскладки схлопываются в одну,
-из широких таблиц уходят второстепенные столбцы, кнопка «завершить квартал» прилипает к низу.</p>
+из широких таблиц уходят второстепенные столбцы, кнопка «завершить квартал» прилипает к низу.
+Внизу помещаются четыре раздела и «Ещё»: иконка сверху, короткая подпись под ней, счётчики уходят,
+активный раздел держит золотую черту поверху. Остальные разделы открываются листом со списком —
+теми же иконками и теми же названиями, чтобы порядок не менялся между экранами.</p>
 <div class="spec" style="max-width:420px">
   <div class="appbar" style="flex-wrap:wrap;min-height:0">
     <div class="brand" style="padding:6px 10px"><div style="width:22px;height:24px;background:var(--band-2)"></div>
@@ -957,16 +1091,27 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
         <span>Одобрение</span><b class="good">54%</b><span>Казна</span><b class="bad">18 млрд</b></div></div></div>
   </div>
   <div style="display:flex;overflow:hidden;border-top:var(--hair);background:var(--surface)">
-    <button class="nav on" style="border-left:0;border-top:3px solid var(--mark);flex:none">Кабинет</button>
-    <button class="nav" style="border-left:0;border-top:3px solid transparent;flex:none">Собрание</button>
-    <button class="nav" style="border-left:0;border-top:3px solid transparent;flex:none">Бюджет</button>
-    <button class="nav" style="border-left:0;border-top:3px solid transparent;flex:none">Ст…</button>
+    <button class="nav on" style="border-left:0;border-top:3px solid var(--mark);flex:1;min-width:0;flex-direction:column;gap:3px;align-items:center;justify-content:center;padding:7px 2px 6px;font-size:10px;letter-spacing:.04em"><i data-ic="brief" data-s="22"></i><span>Кабинет</span></button>
+    <button class="nav" style="border-left:0;border-top:3px solid transparent;flex:1;min-width:0;flex-direction:column;gap:3px;align-items:center;justify-content:center;padding:7px 2px 6px;font-size:10px;letter-spacing:.04em"><i data-ic="parl" data-s="22"></i><span>Собрание</span></button>
+    <button class="nav" style="border-left:0;border-top:3px solid transparent;flex:1;min-width:0;flex-direction:column;gap:3px;align-items:center;justify-content:center;padding:7px 2px 6px;font-size:10px;letter-spacing:.04em"><i data-ic="bill" data-s="22"></i><span>Проект</span></button>
+    <button class="nav" style="border-left:0;border-top:3px solid transparent;flex:1;min-width:0;flex-direction:column;gap:3px;align-items:center;justify-content:center;padding:7px 2px 6px;font-size:10px;letter-spacing:.04em"><i data-ic="budget" data-s="22"></i><span>Бюджет</span></button>
+    <button class="nav" style="border-left:0;border-top:3px solid transparent;flex:1;min-width:0;flex-direction:column;gap:3px;align-items:center;justify-content:center;padding:7px 2px 6px;font-size:10px;letter-spacing:.04em"><i data-ic="more" data-s="22"></i><span>Ещё</span></button>
+  </div>
+</div>
+<div class="modal" style="max-width:420px;margin-top:var(--x5)">
+  <div class="mh"><i>Навигация</i><h3>Разделы</h3></div>
+  <div class="mb">
+    <button class="opt"><b><i data-ic="gov"></i>Правительство</b><span>счётчик: 77</span></button>
+    <button class="opt"><b><i data-ic="country"></i>Регионы</b><span>счётчик: 21</span></button>
+    <button class="opt"><b><i data-ic="society"></i>Общество</b><span>счётчик: 54%</span></button>
+    <button class="opt"><b><i data-ic="arch"></i>Летопись</b><span>счётчик: 18</span></button>
+    <button class="opt"><b><i data-ic="help"></i>Справка</b></button>
   </div>
 </div>
 </section>
 
-<section id="c18">
-<h2><i>18</i>Экран загрузки</h2>
+<section id="c19">
+<h2><i>19</i>Экран загрузки</h2>
 <p class="why">Первое, что видит игрок. Герб, название республики, полоса — и ничего больше:
 пять секунд, за которые грузятся шрифты и собирается созыв.</p>
 <div class="splash">
@@ -1001,14 +1146,14 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
   </div>
   <div class="screen">
     <nav class="rail"><div class="cap">Разделы</div>
-      <button class="nav on">Кабинет<u>2/3</u></button>
-      <button class="nav">Собрание<u>32/120</u></button>
-      <button class="nav">Законопроект<u>14</u></button>
-      <button class="nav">Бюджет<u>−4</u></button>
-      <button class="nav">Регионы<u>21</u></button>
-      <button class="nav">Общество<u>54%</u></button>
-      <button class="nav">Правительство<u>6</u></button>
-      <button class="nav">Летопись<u>18</u></button>
+      <button class="nav on"><i data-ic="brief"></i><span>Кабинет</span><u>2/3</u></button>
+      <button class="nav"><i data-ic="parl"></i><span>Собрание</span><u>32/120</u></button>
+      <button class="nav"><i data-ic="bill"></i><span>Законопроект</span><u>14</u></button>
+      <button class="nav"><i data-ic="budget"></i><span>Бюджет</span><u>−4</u></button>
+      <button class="nav"><i data-ic="country"></i><span>Регионы</span><u>21</u></button>
+      <button class="nav"><i data-ic="society"></i><span>Общество</span><u>54%</u></button>
+      <button class="nav"><i data-ic="gov"></i><span>Правительство</span><u>6</u></button>
+      <button class="nav"><i data-ic="arch"></i><span>Летопись</span><u>18</u></button>
     </nav>
     <div class="work">
       <div class="pin" style="margin-bottom:var(--x5)"><b>Записка помощника</b>
@@ -1096,11 +1241,11 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
       <div class="sv"><i>мандаты</i><b>32 · коалиция 77</b></div></div></div>
   <div class="screen">
     <nav class="rail"><div class="cap">Разделы</div>
-      <button class="nav">Кабинет<u>2/3</u></button>
-      <button class="nav on">Собрание<u>32/120</u></button>
-      <button class="nav">Законопроект<u>14</u></button>
-      <button class="nav">Бюджет<u>−4</u></button>
-      <button class="nav">Регионы<u>21</u></button></nav>
+      <button class="nav"><i data-ic="brief"></i><span>Кабинет</span><u>2/3</u></button>
+      <button class="nav on"><i data-ic="parl"></i><span>Собрание</span><u>32/120</u></button>
+      <button class="nav"><i data-ic="bill"></i><span>Законопроект</span><u>14</u></button>
+      <button class="nav"><i data-ic="budget"></i><span>Бюджет</span><u>−4</u></button>
+      <button class="nav"><i data-ic="country"></i><span>Регионы</span><u>21</u></button></nav>
     <div class="work">
       <div class="panel info">
         <header><h4>Народное собрание</h4><span class="meta">120 мандатов · большинство 61 · коалиция 77</span></header>
@@ -1189,8 +1334,8 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
       <div class="sv"><i>инфляция</i><b class="warn">6,4%</b></div></div></div>
   <div class="screen">
     <nav class="rail"><div class="cap">Разделы</div>
-      <button class="nav">Кабинет<u>2/3</u></button><button class="nav">Собрание<u>32/120</u></button>
-      <button class="nav on">Бюджет<u>−8</u></button><button class="nav">Регионы<u>21</u></button></nav>
+      <button class="nav"><i data-ic="brief"></i><span>Кабинет</span><u>2/3</u></button><button class="nav"><i data-ic="parl"></i><span>Собрание</span><u>32/120</u></button>
+      <button class="nav on"><i data-ic="budget"></i><span>Бюджет</span><u>−8</u></button><button class="nav"><i data-ic="country"></i><span>Регионы</span><u>21</u></button></nav>
     <div class="work">
       <div class="cols c11">
         <div class="panel calm"><header><h4>Доходы</h4><span class="meta">62,5 млрд за квартал</span></header>
@@ -1261,9 +1406,9 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
       <div class="sv"><i>одобрение</i><b class="good">54%</b></div><div class="sv"><i>опрос</i><b>устарел</b></div></div></div>
   <div class="screen">
     <nav class="rail"><div class="cap">Разделы</div>
-      <button class="nav">Кабинет<u>2/3</u></button><button class="nav">Собрание<u>32/120</u></button>
-      <button class="nav">Бюджет<u>−8</u></button><button class="nav on">Регионы<u>21</u></button>
-      <button class="nav">Общество<u>54%</u></button></nav>
+      <button class="nav"><i data-ic="brief"></i><span>Кабинет</span><u>2/3</u></button><button class="nav"><i data-ic="parl"></i><span>Собрание</span><u>32/120</u></button>
+      <button class="nav"><i data-ic="budget"></i><span>Бюджет</span><u>−8</u></button><button class="nav on"><i data-ic="country"></i><span>Регионы</span><u>21</u></button>
+      <button class="nav"><i data-ic="society"></i><span>Общество</span><u>54%</u></button></nav>
     <div class="work">
       <div class="cols c21">
         <div class="panel"><header><h4>Карта Республики</h4><span class="meta">оценка без опроса, ±3 пункта</span></header>
@@ -1340,8 +1485,8 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
       <div class="sv"><i>портфелей отдано</i><b>3 из 6</b></div><div class="sv"><i>вес</i><b>41</b></div></div></div>
   <div class="screen">
     <nav class="rail"><div class="cap">Разделы</div>
-      <button class="nav">Кабинет<u>2/3</u></button><button class="nav">Собрание<u>32/120</u></button>
-      <button class="nav">Бюджет<u>−8</u></button><button class="nav on">Правительство<u>6</u></button></nav>
+      <button class="nav"><i data-ic="brief"></i><span>Кабинет</span><u>2/3</u></button><button class="nav"><i data-ic="parl"></i><span>Собрание</span><u>32/120</u></button>
+      <button class="nav"><i data-ic="budget"></i><span>Бюджет</span><u>−8</u></button><button class="nav on"><i data-ic="gov"></i><span>Правительство</span><u>6</u></button></nav>
     <div class="work">
       <div class="cols c21">
         <div class="panel lead"><header><h4>Портфели</h4><span class="meta">отданный портфель покупает голоса фракции</span></header>
@@ -1391,8 +1536,8 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
       <div class="sv"><i>касса</i><b>73 млн</b></div><div class="sv"><i>прогноз</i><b class="good">42 мандата</b></div></div></div>
   <div class="screen">
     <nav class="rail"><div class="cap">Разделы</div>
-      <button class="nav">Кабинет<u>1/3</u></button><button class="nav">Собрание<u>32/120</u></button>
-      <button class="nav on">Кампания<u>73</u></button><button class="nav">Общество<u>54%</u></button></nav>
+      <button class="nav"><i data-ic="brief"></i><span>Кабинет</span><u>1/3</u></button><button class="nav"><i data-ic="parl"></i><span>Собрание</span><u>32/120</u></button>
+      <button class="nav on"><i data-ic="camp"></i><span>Кампания</span><u>73</u></button><button class="nav"><i data-ic="society"></i><span>Общество</span><u>54%</u></button></nav>
     <div class="work">
       <div class="panel lead"><header><h4>Предвыборный штаб</h4><span class="meta">до выборов 2 квартала</span></header>
         <div class="body"><div class="grid g4" style="gap:var(--x4)">
@@ -1440,8 +1585,8 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
         <div class="sv"><i>одобрение</i><b class="warn">48%</b></div><div class="sv"><i>казна</i><b class="bad">9 млрд</b></div></div></div>
     <div class="screen" style="min-height:560px">
       <nav class="rail"><div class="cap">Разделы</div>
-        <button class="nav on">Кабинет<u>1/3</u></button><button class="nav">Собрание<u>32/120</u></button>
-        <button class="nav">Бюджет<u>−11</u></button></nav>
+        <button class="nav on"><i data-ic="brief"></i><span>Кабинет</span><u>1/3</u></button><button class="nav"><i data-ic="parl"></i><span>Собрание</span><u>32/120</u></button>
+        <button class="nav"><i data-ic="budget"></i><span>Бюджет</span><u>−11</u></button></nav>
       <div class="work"><div class="panel"><header><h4>Положение дел</h4></header><div class="body t-small">…</div></div></div>
     </div>
     <div style="position:absolute;inset:0;background:rgba(20,16,10,.55);display:flex;align-items:flex-start;justify-content:center;padding-top:60px">
@@ -1471,6 +1616,42 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
 </section>
 </main>
 </div>
+<script>
+/* ─── иконки разделов ────────────────────────────────────────────
+   Сетка 24×24, обводка 1.7 без скруглений — та же геометрия, что
+   у рамок и линеек интерфейса. Заливкой закрашена только точка «?». */
+const ICON={
+  brief:'<path d="M5 3h14v18H5z"/><path d="M8.5 8h7M8.5 12h7M8.5 16h4"/>',
+  parl:'<path d="M3 19a9 9 0 0 1 18 0"/><path d="M3 19h18"/>'+
+       '<circle cx="7.2" cy="16.2" r="1.25"/><circle cx="12" cy="13.4" r="1.25"/>'+
+       '<circle cx="16.8" cy="16.2" r="1.25"/>',
+  bill:'<path d="M6 3h9l3 3v15H6z"/><path d="M15 3v3h3"/><circle cx="12" cy="14.5" r="3"/>',
+  budget:'<path d="M3 20h18"/><path d="M6.5 20v-7M11 20V6.5M15.5 20v-5M20 20V9.5"/>',
+  gov:'<path d="M2.5 10 12 4l9.5 6"/><path d="M3 20h18"/><path d="M6 20v-9M10 20v-9M14 20v-9M18 20v-9"/>',
+  country:'<path d="M4 6.5 9.5 4l5 2.5L20 4v13.5L14.5 20l-5-2.5L4 20z"/><path d="M9.5 4v13.5M14.5 6.5V20"/>',
+  society:'<circle cx="8.5" cy="8.5" r="2.6"/><path d="M3 20c0-3.2 2.4-5.2 5.5-5.2s5.5 2 5.5 5.2"/>'+
+          '<circle cx="17" cy="9.5" r="2"/><path d="M15.4 15.2c2.9-.5 5.6 1.2 5.6 4.8"/>',
+  camp:'<path d="M4 9.5v5l10 4.5V5z"/><path d="M14.5 8.5a4 4 0 0 1 0 7"/><path d="M6.5 15.2V19h3"/>',
+  arch:'<path d="M5 3v18"/><circle cx="5" cy="7" r="1.5"/><circle cx="5" cy="12.5" r="1.5"/>'+
+       '<circle cx="5" cy="18" r="1.5"/><path d="M9.5 7H20M9.5 12.5h7.5M9.5 18H20"/>',
+  help:'<path d="M4 4h16v16H4z"/><path d="M9.8 9.6a2.4 2.4 0 1 1 2.9 2.6v1.5"/>'+
+       '<circle cx="12.7" cy="16.8" r=".95" fill="currentColor" stroke="none"/>',
+  more:'<circle cx="5" cy="12" r="1.4" fill="currentColor" stroke="none"/>'+
+       '<circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/>'+
+       '<circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none"/>',
+  clock:'<circle cx="12" cy="12" r="8.5"/><path d="M12 6.5V12l3.6 2.6"/>',
+};
+function icon(id,size){
+  return `<svg class="ic" viewBox="0 0 24 24" width="${size||19}" height="${size||19}" fill="none"
+    stroke="currentColor" stroke-width="1.7">${ICON[id]||''}</svg>`;
+}
+
+/* В документе иконка пишется как <i data-ic="parl"></i> — так разметка
+   макетов остаётся читаемой. В игре вызывается icon('parl') напрямую. */
+document.querySelectorAll('[data-ic]').forEach(el=>{
+  el.outerHTML=icon(el.dataset.ic, el.dataset.s?+el.dataset.s:undefined);
+});
+</script>
 <script>
 /* Полукруг зала. Кресел ровно столько, сколько мандатов: ряды получают места
    пропорционально длине дуги, остаток раздаётся с внешнего ряда.
