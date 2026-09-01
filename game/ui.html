@@ -76,7 +76,7 @@
   /* 09 · плотность */
   --row:30px;        /* строка таблицы, обычная плотность */
   --row-tight:24px;  /* плотная */
-  --rail:210px;      /* ширина бокового меню */
+  --rail:226px;      /* ширина бокового меню */
   --page:1380px;     /* предельная ширина полосы набора */
 }
 
@@ -364,6 +364,37 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
 .seg.wide{display:flex;width:100%}
 .seg.wide button{flex:1;justify-content:center}
 
+/* --- путь закона: три ступени ---------------- */
+.gates{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);
+  border:var(--hair);margin-bottom:var(--x2)}
+.gate{background:var(--surface);padding:var(--x4);display:flex;flex-direction:column;gap:3px}
+.gate i{font:400 9.5px var(--f-cond);text-transform:uppercase;letter-spacing:.14em;
+  color:var(--ink-3);font-style:normal}
+.gate b{font:400 24px var(--f-num);letter-spacing:-.04em;line-height:1}
+.gate u{text-decoration:none;font:400 10.5px var(--f-cond);color:var(--ink-3);
+  text-transform:uppercase;letter-spacing:.06em}
+.gate span.dim{font-size:11px}
+.gate.ok{box-shadow:inset 3px 0 0 var(--good)}
+.gate.no{box-shadow:inset 3px 0 0 var(--bad)}
+
+.path{border:var(--hair);margin:var(--x4) 0}
+.stg{display:grid;grid-template-columns:1fr auto auto auto;align-items:center;gap:var(--x4);
+  padding:8px var(--x5);border-bottom:var(--hair-2);background:var(--surface)}
+.stg:last-child{border-bottom:0}
+.stg i{font-style:normal;font:700 12px var(--f-cond);text-transform:uppercase;letter-spacing:.08em}
+.stg b{font-weight:400;font-size:11.5px;color:var(--ink-3)}
+.stg u{text-decoration:none;font:400 14px var(--f-num);letter-spacing:-.03em;min-width:62px;text-align:right}
+.stg.ok{box-shadow:inset 3px 0 0 var(--good)}
+.stg.no{box-shadow:inset 3px 0 0 var(--bad)}
+
+/* линейка направления: где стоят партии и где стоит закон */
+.ruler{position:relative;height:22px;background:var(--surface-2);border:var(--hair-2)}
+.ruler::after{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--rule)}
+.ruler i{position:absolute;top:5px;width:7px;height:7px;margin-left:-3.5px;border-radius:0}
+.ruler s{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:var(--ink);
+  text-decoration:none}
+
+
 /* --- витрина иконок --------------------------------------------- */
 .icset{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:1px;
   background:var(--rule);border:var(--hair)}
@@ -574,10 +605,12 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
     <nav class="rail">
       <div class="cap">Разделы</div>
       <button class="nav on"><i data-ic="brief"></i><span>Кабинет</span><u>2/3</u></button>
-      <button class="nav"><i data-ic="parl"></i><span>Собрание</span><u>32/120</u></button>
+      <button class="nav"><i data-ic="parl"></i><span>Собрание</span><u>113/435</u></button>
+      <button class="nav"><i data-ic="senate"></i><span>Сенат</span><u>26/100</u></button>
       <button class="nav"><i data-ic="bill"></i><span>Законопроект</span><span class="dot"></span><u>14</u></button>
       <button class="nav"><i data-ic="budget"></i><span>Бюджет</span><u>−4</u></button>
       <button class="nav"><i data-ic="gov"></i><span>Правительство</span><u>77</u></button>
+      <button class="nav"><i data-ic="pres"></i><span>Президент</span><u>12</u></button>
       <button class="nav"><i data-ic="country"></i><span>Регионы</span><u>21</u></button>
       <button class="nav"><i data-ic="society"></i><span>Общество</span><u>54%</u></button>
       <button class="nav" disabled style="opacity:.45"><i data-ic="camp"></i><span>Кампания</span><u>—</u></button>
@@ -605,6 +638,8 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
   <figure><i data-ic="brief" data-s="26"></i><figcaption>Кабинет<i>brief</i></figcaption></figure>
   <figure><i data-ic="parl" data-s="26"></i><figcaption>Собрание<i>parl</i></figcaption></figure>
   <figure><i data-ic="bill" data-s="26"></i><figcaption>Законопроект<i>bill</i></figcaption></figure>
+  <figure><i data-ic="senate" data-s="26"></i><figcaption>Сенат<i>senate</i></figcaption></figure>
+  <figure><i data-ic="pres" data-s="26"></i><figcaption>Президент<i>pres</i></figcaption></figure>
   <figure><i data-ic="budget" data-s="26"></i><figcaption>Бюджет<i>budget</i></figcaption></figure>
   <figure><i data-ic="gov" data-s="26"></i><figcaption>Правительство<i>gov</i></figcaption></figure>
   <figure><i data-ic="country" data-s="26"></i><figcaption>Регионы<i>country</i></figcaption></figure>
@@ -633,7 +668,8 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
       <i data-ic="brief" data-s="22"></i><i data-ic="parl" data-s="22"></i>
       <i data-ic="bill" data-s="22"></i><i data-ic="budget" data-s="22"></i>
       <i data-ic="gov" data-s="22"></i><i data-ic="country" data-s="22"></i>
-      <i data-ic="society" data-s="22"></i><i data-ic="clock" data-s="22"></i>
+      <i data-ic="society" data-s="22"></i><i data-ic="senate" data-s="22"></i>
+      <i data-ic="pres" data-s="22"></i><i data-ic="clock" data-s="22"></i>
     </div>
     <p class="t-small">Заливка используется ровно в двух местах — точка вопросительного знака и
       три точки «Ещё». Всё прочее — контур: набор должен читаться как чертёж, а не как пиктограммы
@@ -952,6 +988,53 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
     <div class="dep"><div class="who"><b>Земля и воля</b><span>22 мандата · один портфель</span></div><span class="tag y">недовольны</span></div>
     <div class="dep" style="border:0"><div class="who"><b>Держава</b><span>17 мандатов · оппозиция</span></div><span class="tag r">против вас</span></div>
   </div></div>
+</div>
+
+<h3 class="sub" style="margin-top:var(--x8)">Путь закона</h3>
+<p class="why" style="margin-top:0">Закон проходит три ступени: Собрание, Сенат, подпись президента. Ступени
+показываются двумя способами. <b>Ворота</b> — прогноз до внесения: три равные колонки, у каждой своё число,
+своя планка и своя полоса; зелёная или красная черта слева говорит, проходит ступень или нет. <b>Путь</b> —
+отчёт после голосования: те же три ступени строками, с печатью на каждой. Обе формы держат один порядок
+сверху вниз и слева направо, чтобы «где мы застряли» читалось за секунду.</p>
+<div class="spec">
+  <div class="gates">
+    <div class="gate ok"><i>Народное собрание</i><b class="good">308</b><u>нужно 218 из 435</u>
+      <div class="meter" style="height:9px"><i style="width:71%;background:var(--good)"></i><i style="width:8%;background:var(--line)"></i><i style="width:21%;background:var(--bad)"></i></div>
+      <span class="dim">колеблются 34</span></div>
+    <div class="gate ok"><i>Сенат</i><b class="good">75</b><u>нужно 51 из 100</u>
+      <div class="meter" style="height:9px"><i style="width:75%;background:var(--good)"></i><i style="width:12%;background:var(--line)"></i><i style="width:13%;background:var(--bad)"></i></div>
+      <span class="dim">колеблются 12</span></div>
+    <div class="gate no"><i>Президент</i><b class="bad">38%</b><u>Анна Громова · СТ</u>
+      <div class="meter" style="height:9px"><i style="width:38%;background:var(--good)"></i><i style="width:62%;background:var(--bad)"></i></div>
+      <span class="dim">может завернуть</span></div>
+  </div>
+  <div class="path">
+    <div class="stg ok"><i>Народное собрание</i><b>нужно 218 из 435</b><u>308 : 127</u><span class="stamp yes">принят</span></div>
+    <div class="stg ok"><i>Сенат</i><b>нужно 51 из 100</b><u>56 : 44</u><span class="stamp yes">принят</span></div>
+    <div class="stg no"><i>Президент</i><b>Анна Громова · СТ</b><u></u><span class="stamp no">вето</span></div>
+  </div>
+  <p class="note">Вето снимается двумя третями Собрания — 290 голосами вместо 218. Это единственное место
+    в системе, где планка выше обычного большинства, поэтому число всегда называется прямо.</p>
+</div>
+
+<h3 class="sub" style="margin-top:var(--x8)">Линейка направления</h3>
+<p class="why" style="margin-top:0">Шесть направлений законодательства — те же шесть осей. Линейка ставит на
+одну шкалу от −2 до +2 позиции всех партий (квадраты в их цветах) и действующие законы (чёрные засечки).
+Видно сразу: где стоит страна, где стоите вы и куда тянут соперники. Центр отмечен тонкой линией — это ноль,
+а не «правильная» позиция.</p>
+<div class="spec">
+  <div class="ruler">
+    <i style="left:12%;background:var(--p2)" title="Союз труда"></i>
+    <i style="left:31%;background:var(--p1)" title="Народное возрождение"></i>
+    <i style="left:44%;background:var(--p3)" title="Держава"></i>
+    <i style="left:58%;background:var(--p5)" title="Земля и воля"></i>
+    <i style="left:78%;background:var(--p6)" title="Новый рассвет"></i>
+    <i style="left:91%;background:var(--p4)" title="Свободный курс"></i>
+    <s style="left:37%"></s><s style="left:66%"></s>
+  </div>
+  <div class="scale-l" style="margin-top:4px"><span>госплан</span><span>Экономика</span><span>рынок</span></div>
+  <p class="note">Засечка стоит там, где закон, а не там, где партия его вносила: за четыре года позиция
+    могла уехать, и линейка это показывает без единой цифры.</p>
 </div>
 </section>
 
@@ -1626,6 +1709,10 @@ const ICON={
        '<circle cx="7.2" cy="16.2" r="1.25"/><circle cx="12" cy="13.4" r="1.25"/>'+
        '<circle cx="16.8" cy="16.2" r="1.25"/>',
   bill:'<path d="M6 3h9l3 3v15H6z"/><path d="M15 3v3h3"/><circle cx="12" cy="14.5" r="3"/>',
+  senate:'<circle cx="12" cy="12" r="8.6"/><circle cx="12" cy="12" r="2.7"/>'+
+         '<path d="M12 3.4v2.4M12 18.2v2.4M3.4 12h2.4M18.2 12h2.4"/>',
+  pres:'<path d="M12 2.6 4 5.6v6c0 4.9 3.3 8.4 8 9.8 4.7-1.4 8-5 8-9.8v-6z"/>'+
+       '<path d="M12 8.2v5.2M9.6 10.8h4.8"/>',
   budget:'<path d="M3 20h18"/><path d="M6.5 20v-7M11 20V6.5M15.5 20v-5M20 20V9.5"/>',
   gov:'<path d="M2.5 10 12 4l9.5 6"/><path d="M3 20h18"/><path d="M6 20v-9M10 20v-9M14 20v-9M18 20v-9"/>',
   country:'<path d="M4 6.5 9.5 4l5 2.5L20 4v13.5L14.5 20l-5-2.5L4 20z"/><path d="M9.5 4v13.5M14.5 6.5V20"/>',
