@@ -6,176 +6,209 @@
 <title>НОВАРИЯ — правительственный терминал</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=PT+Sans+Narrow:wght@400;700&family=PT+Sans:ital,wght@0,400;0,700;1,400&family=PT+Serif:wght@700&family=PT+Mono&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=PT+Sans+Narrow:wght@400;700&family=PT+Sans:ital,wght@0,400;0,700;1,400&family=PT+Serif:ital,wght@0,400;0,700;1,400&family=PT+Mono&display=swap" rel="stylesheet">
 <style>
 /* ═══════════════════════════════════════════════════════════════
    NOVARIA UI · токены. Полное описание системы — в game/ui.html.
    Здесь те же значения; менять их следует сначала там.
    ═══════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════
+   NOVARIA UI · вторая редакция: газетная полоса.
+   Первая была архивной бумагой в коробке. Эта — сегодняшний номер:
+   белое поле, чёрные линейки, серифные заголовки, колонки. Числа
+   остаются моноширинными: газета верстает таблицы так же.
+   Полное описание — в game/ui.html; менять сначала там.
+   ═══════════════════════════════════════════════════════════════ */
 :root{
-  --bg:#E3DDCE; --surface:#FBF8F1; --surface-2:#F2EDE1; --surface-3:#E9E2D2;
-  --band:#1B1813; --band-2:#2E2820;
-  --ink:#17130E; --ink-2:#554E3F; --ink-3:#8A8271; --ink-inv:#F2ECDC; --ink-inv-2:#A99C7C;
-  --line:#C6BCA4; --line-2:#DCD4C0;
-  --act:#17130E; --mark:#8A5A0E; --bad:#93261E; --good:#2C6547; --info:#23456B;
-  --mark-bg:#F1E7CE; --bad-bg:#F5E3DF; --good-bg:#E2EDE4;
+  /* бумага и краска */
+  --bg:#EDEAE2; --surface:#FFFDF9; --surface-2:#F4F1E9; --surface-3:#E8E4D9;
+  --band:#14130F; --band-2:#312E27;
+  --ink:#14130F; --ink-2:#4B473E; --ink-3:#807B70; --ink-inv:#FBF9F3; --ink-inv-2:#A8A297;
+  --line:#171510; --line-2:#CFCABC; --line-3:#E2DED2;
+  /* один акцент на всю полосу: газетный красный */
+  --act:#14130F; --mark:#A4211B; --bad:#A4211B; --good:#1C5738; --info:#1C3C68;
+  --mark-bg:#F6E9E5; --bad-bg:#F6E4E0; --good-bg:#E4EEE7;
   --p1:#9A7211; --p2:#93261E; --p3:#23456B; --p4:#14675F; --p5:#4C6A22; --p6:#5A3868;
   --x1:2px; --x2:4px; --x3:6px; --x4:8px; --x5:12px; --x6:16px; --x7:20px; --x8:24px; --x9:32px; --x10:40px;
-  --hair:1px solid var(--line); --hair-2:1px solid var(--line-2); --rule:3px solid var(--mark);
-  --shadow:0 14px 40px rgba(20,16,10,.34);
-  --f-display:'PT Serif',Georgia,serif; --f-text:'PT Sans',system-ui,sans-serif;
+  /* линейки — главный инструмент полосы: волосяная, обычная, жирная */
+  --hair:1px solid var(--line-2); --hair-2:1px solid var(--line-3);
+  --rule:3px solid var(--ink); --rule-thin:1px solid var(--ink);
+  --shadow:0 18px 48px rgba(16,14,10,.30);
+  --f-display:'PT Serif',Georgia,'Times New Roman',serif;
+  --f-text:'PT Sans',system-ui,sans-serif;
   --f-cond:'PT Sans Narrow',sans-serif; --f-num:'PT Mono',ui-monospace,monospace;
   --t-fast:90ms; --t:150ms; --t-slow:240ms; --ease:cubic-bezier(.2,.7,.3,1);
-  --row:30px; --row-tight:24px; --rail:226px; --page:1380px;
+  --row:30px; --row-tight:24px; --rail:232px; --page:1420px;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0}
 body{background:var(--bg);color:var(--ink);font:400 14px/1.45 var(--f-text);
-  background-image:repeating-linear-gradient(180deg,rgba(0,0,0,.013) 0 1px,transparent 1px 4px);
   min-height:100vh;overscroll-behavior-y:none}
 p{margin:0 0 var(--x4)} p:last-child{margin-bottom:0}
 
-/* типографика */
-.t-sec{font:700 12.5px/1.2 var(--f-cond);text-transform:uppercase;letter-spacing:.1em}
-.t-micro,.up{font:400 10px/1.2 var(--f-cond);text-transform:uppercase;letter-spacing:.14em;color:var(--ink-3)}
-.n,.num{font-family:var(--f-num);font-variant-numeric:tabular-nums;letter-spacing:-.03em}
-.num-l{font:400 21px/1 var(--f-num);letter-spacing:-.04em}
-.num-s{font:400 12.5px/1.2 var(--f-num);letter-spacing:-.03em}
+/* ── типографика ───────────────────────────────────────────────
+   Заголовок всегда серифный и всегда с линейкой. Текст — гротеск,
+   числа — моноширинный. Три гарнитуры, ни одной лишней. */
+.t-sec{font:700 15px/1.15 var(--f-display);letter-spacing:-.01em}
+.t-micro,.up{font:700 9.5px/1.2 var(--f-cond);text-transform:uppercase;letter-spacing:.16em;color:var(--ink-3)}
+.n,.num{font-family:var(--f-num);font-variant-numeric:tabular-nums;letter-spacing:-.04em}
+.num-l{font:400 23px/1 var(--f-num);letter-spacing:-.05em}
+.num-s{font:400 12.5px/1.2 var(--f-num);letter-spacing:-.04em}
 .good,.pos{color:var(--good)} .bad,.neg{color:var(--bad)} .dim{color:var(--ink-3)}
-.lead{font-size:13.5px;color:var(--ink-2)}
-.hint,.note{font-size:12px;line-height:1.4;color:var(--ink-3)}
-h3.sub{font:700 11px var(--f-cond);text-transform:uppercase;letter-spacing:.12em;color:var(--ink-2);
-  margin:var(--x6) 0 var(--x3);padding-bottom:3px;border-bottom:var(--hair-2)}
+.lead{font:400 14.5px/1.5 var(--f-display);color:var(--ink-2)}
+.hint,.note{font-size:12px;line-height:1.45;color:var(--ink-3)}
+h3.sub{font:700 13px/1.2 var(--f-display);letter-spacing:-.01em;color:var(--ink);
+  margin:var(--x6) 0 var(--x4);padding-bottom:3px;border-bottom:var(--rule-thin)}
 h3.sub:first-child{margin-top:0}
 .est{border-bottom:1px dotted var(--ink-3);cursor:help}
 
-/* ── шапка ─────────────────────────────────────────────────── */
-#top{position:sticky;top:0;z-index:40;background:var(--band);color:var(--ink-inv);
-  display:flex;align-items:stretch;border-bottom:var(--rule);min-height:52px}
-#top .brand{display:flex;align-items:center;gap:9px;padding:6px var(--x5);flex:none}
-#top .brand img{width:26px;height:29px;display:block;filter:saturate(.2) brightness(1.6)}
-#top .brand b{font:700 15px/1.05 var(--f-display);letter-spacing:.06em;display:block}
-#top .brand span{font:400 9.5px/1.2 var(--f-cond);text-transform:uppercase;letter-spacing:.14em;color:var(--ink-inv-2)}
+/* ── шапка: заголовок номера ───────────────────────────────────
+   Не тёмная панель, а титул газеты: белое поле, крупный сериф,
+   под ним жирная линейка, справа — колонка сегодняшних цифр. */
+#top{position:sticky;top:0;z-index:40;background:var(--surface);color:var(--ink);
+  display:flex;align-items:stretch;border-bottom:var(--rule)}
+#top .brand{display:flex;align-items:center;gap:10px;padding:7px var(--x6) 7px var(--x5);flex:none;
+  border-right:var(--rule-thin)}
+#top .brand img{width:30px;height:33px;display:block}
+#top .brand b{font:700 24px/1 var(--f-display);letter-spacing:.02em;display:block}
+#top .brand span{font:700 8.5px/1.2 var(--f-cond);text-transform:uppercase;letter-spacing:.2em;
+  color:var(--ink-3);display:block;margin-top:2px}
 #strip{margin-left:auto;display:flex;overflow-x:auto;scrollbar-width:none}
 #strip::-webkit-scrollbar{display:none}
-.sv{padding:6px 13px;border-left:1px solid var(--band-2);display:flex;flex-direction:column;
-  justify-content:center;min-width:76px;flex:none}
-.sv i{font:400 9px var(--f-cond);text-transform:uppercase;letter-spacing:.12em;color:var(--ink-inv-2);font-style:normal}
-.sv b{font:400 15px var(--f-num);letter-spacing:-.03em;color:var(--ink-inv);white-space:nowrap}
-.sv b.warn{color:#E0A24C} .sv b.bad{color:#DE8375} .sv b.good{color:#8FC0A0}
-.sv.act{background:var(--band-2);box-shadow:inset 0 -3px 0 var(--mark)}
+.sv{padding:6px 14px;border-left:1px solid var(--line-3);display:flex;flex-direction:column;
+  justify-content:center;min-width:80px;flex:none}
+.sv i{font:700 8.5px var(--f-cond);text-transform:uppercase;letter-spacing:.16em;
+  color:var(--ink-3);font-style:normal}
+.sv b{font:400 16px var(--f-num);letter-spacing:-.04em;color:var(--ink);white-space:nowrap}
+.sv b.warn{color:#8A5A0E} .sv b.bad{color:var(--bad)} .sv b.good{color:var(--good)}
+.sv.act{background:var(--ink);}
+.sv.act i{color:var(--ink-inv-2)} .sv.act b{color:var(--ink-inv)}
 
-/* ── каркас ────────────────────────────────────────────────── */
-#shell{display:flex;align-items:flex-start;max-width:var(--page);margin:0 auto}
-#side{position:sticky;top:52px;width:var(--rail);flex:none;padding:var(--x4) 0 var(--x10);
-  border-right:var(--hair);min-height:calc(100vh - 52px);background:rgba(255,255,255,.2)}
-.navsec{font:400 9.5px var(--f-cond);text-transform:uppercase;letter-spacing:.16em;color:var(--ink-3);
-  padding:var(--x4) var(--x5) var(--x2);border-bottom:var(--hair-2);margin-bottom:var(--x2)}
+/* ── каркас ────────────────────────────────────────────────────
+   Указатель разделов слева — как содержание номера. */
+#shell{display:flex;align-items:flex-start;max-width:var(--page);margin:0 auto;
+  background:var(--surface);border-left:var(--hair);border-right:var(--hair)}
+#side{position:sticky;top:57px;width:var(--rail);flex:none;padding:var(--x4) 0 var(--x10);
+  border-right:var(--rule-thin);min-height:calc(100vh - 57px)}
+.navsec{font:700 8.5px var(--f-cond);text-transform:uppercase;letter-spacing:.2em;color:var(--ink-3);
+  padding:var(--x3) var(--x5) var(--x2);border-bottom:var(--rule-thin);margin-bottom:var(--x1)}
 .nav{display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:none;border:0;
-  border-left:3px solid transparent;padding:8px var(--x5);cursor:pointer;color:var(--ink-2);
-  font:400 13px var(--f-cond);text-transform:uppercase;letter-spacing:.08em;
+  border-bottom:var(--hair-2);padding:8px var(--x5);cursor:pointer;color:var(--ink-2);
+  font:400 13.5px var(--f-cond);text-transform:uppercase;letter-spacing:.06em;
   transition:background var(--t-fast) var(--ease)}
-.nav:hover{background:var(--mark-bg);color:var(--ink)}
-.nav.on{background:var(--surface);border-left-color:var(--mark);color:var(--ink);font-weight:700}
-.nav .ic{flex:none;opacity:.75}
-.nav.on .ic{opacity:1;color:var(--mark)}
+.nav:hover{background:var(--surface-2);color:var(--ink)}
+.nav.on{background:var(--ink);color:var(--ink-inv);font-weight:700}
+.nav .ic{flex:none;opacity:.7}
+.nav.on .ic{opacity:1;color:var(--ink-inv)}
 .nav span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .nav u{flex:none;margin-left:auto;text-decoration:none;font:400 11px var(--f-num);color:var(--ink-3)}
-.nav.on u{color:var(--mark)}
-.nav .dot{width:6px;height:6px;background:var(--bad);display:inline-block;flex:none}
+.nav.on u{color:var(--ink-inv-2)}
+.nav .dot{width:6px;height:6px;background:var(--mark);display:inline-block;flex:none}
+.nav.on .dot{background:var(--ink-inv)}
 .navkeys{font:400 10px var(--f-cond);text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);
-  padding:var(--x5) var(--x5) 0;line-height:1.6;border-top:var(--hair-2);margin-top:var(--x4)}
-.navkeys b{font-family:var(--f-num);font-weight:400;background:var(--surface-2);border:var(--hair-2);
+  padding:var(--x5) var(--x5) 0;line-height:1.7;border-top:var(--rule-thin);margin-top:var(--x4)}
+.navkeys b{font-family:var(--f-num);font-weight:400;border:1px solid var(--line-2);
   padding:0 4px;color:var(--ink-2)}
-#view{flex:1;min-width:0;padding:var(--x5) var(--x6) 90px}
+#view{flex:1;min-width:0;padding:var(--x6) var(--x7) 90px}
 
-/* ── панели ────────────────────────────────────────────────── */
-.panel{background:var(--surface);border:var(--hair);margin-bottom:var(--x5)}
-.panel>header{display:flex;align-items:center;gap:var(--x4);padding:6px var(--x5);
-  background:var(--surface-2);border-bottom:var(--hair)}
-.panel>header h4{margin:0;font:700 12.5px var(--f-cond);text-transform:uppercase;letter-spacing:.1em}
-.panel>header .meta{margin-left:auto;font-size:11.5px;color:var(--ink-3);text-align:right}
+/* ── панели: заметки на полосе ─────────────────────────────────
+   Жирная линейка сверху, серифный заголовок, дальше материал.
+   Рамка тонкая и почти незаметна — держит колонку, а не рисует. */
+.panel{background:var(--surface);border:var(--hair);border-top:var(--rule-thin);margin-bottom:var(--x6)}
+.panel>header{display:flex;align-items:baseline;gap:var(--x4);padding:7px var(--x5) 5px;
+  border-bottom:var(--rule-thin);flex-wrap:wrap}
+.panel>header h4{margin:0;font:700 16px/1.15 var(--f-display);letter-spacing:-.01em;
+  flex:1 1 auto;min-width:0}
+.panel>header .meta{margin-left:auto;font:400 11px/1.3 var(--f-cond);text-transform:uppercase;
+  letter-spacing:.1em;color:var(--ink-3);text-align:right;flex:0 1 auto}
 .panel>.body{padding:var(--x5)}
 .panel>.body.flush{padding:0}
 .panel>footer{padding:var(--x4) var(--x5);border-top:var(--hair);background:var(--surface-2);
   display:flex;gap:var(--x3);flex-wrap:wrap;align-items:center}
-.panel.lead-p{border-top:var(--rule)}
+.panel.lead-p{border-top:6px double var(--ink)}
 .panel.warn{border-top:3px solid var(--bad)}
 .panel.calm{border-top:3px solid var(--good)}
 .panel.info{border-top:3px solid var(--info)}
-.panel.inset{background:var(--surface-3);border-style:dashed}
-.cols{display:grid;gap:var(--x5);align-items:start}
+.panel.inset{background:var(--surface-2)}
+.cols{display:grid;gap:var(--x6);align-items:start}
 .c21{grid-template-columns:2fr 1fr} .c11{grid-template-columns:1fr 1fr}
 .c12{grid-template-columns:1fr 2fr} .c111{grid-template-columns:repeat(3,1fr)}
 .grid{display:grid;gap:var(--x4)} .g2{grid-template-columns:1fr 1fr}
 .g3{grid-template-columns:repeat(3,1fr)} .g4{grid-template-columns:repeat(4,1fr)}
 .row,.brow{display:flex;gap:var(--x3);flex-wrap:wrap;align-items:center}
-.pin{border-left:3px solid var(--mark);background:var(--mark-bg);padding:var(--x4) var(--x5);
-  font-size:13px;margin-bottom:var(--x5)}
-.pin.warn{border-left-color:var(--bad);background:var(--bad-bg)}
-.pin b{display:block;font:700 10px var(--f-cond);text-transform:uppercase;letter-spacing:.12em;color:var(--ink-2)}
+/* врезка — то, что в газете ставят в рамку посреди текста */
+.pin{border-top:var(--rule-thin);border-bottom:var(--rule-thin);background:var(--surface);
+  padding:var(--x4) 0;font:400 14.5px/1.5 var(--f-display);margin-bottom:var(--x6)}
+.pin.warn{border-color:var(--bad);color:#6E1712}
+.pin b{display:block;font:700 8.5px var(--f-cond);text-transform:uppercase;letter-spacing:.2em;
+  color:var(--ink-3);margin-bottom:2px}
+.pin.warn b{color:var(--bad)}
 
-/* ── кнопки ────────────────────────────────────────────────── */
-.btn,.b{font:400 12.5px var(--f-cond);text-transform:uppercase;letter-spacing:.08em;
-  background:var(--surface);color:var(--ink);border:1px solid var(--ink-2);padding:5px 12px;cursor:pointer;
-  transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease)}
-.btn:hover,.b:hover{background:var(--ink);color:var(--ink-inv)}
-.btn:active,.b:active{transform:translate(1px,1px)}
-.btn:focus-visible,.b:focus-visible{outline:2px solid var(--mark);outline-offset:1px}
-.btn.pri,.b.p{background:var(--act);color:var(--ink-inv);border-color:var(--act)}
-.btn.pri:hover,.b.p:hover{background:#000}
-.btn.danger,.b.d{border-color:var(--bad);color:var(--bad)}
-.btn.danger:hover,.b.d:hover{background:var(--bad);color:#fff}
-.btn.ghost{border-color:var(--line);color:var(--ink-2)}
-.btn.ghost:hover{background:var(--surface-2);color:var(--ink)}
-.btn.sel,.b.on{background:var(--mark);border-color:var(--mark);color:#fff}
-.btn[disabled],.b[disabled]{background:var(--surface-2);border-color:var(--line);color:var(--ink-3);cursor:not-allowed}
-.btn[disabled]:active,.b[disabled]:active{transform:none}
-.btn.sm,.b.sm{font-size:11px;padding:3px 8px}
-.btn.lg{font-size:14px;padding:9px 18px}
-.btn.block,.b.wide{display:block;width:100%;text-align:center}
-.btn .cost{font-family:var(--f-num);font-size:11px;opacity:.75;margin-left:6px}
+/* ── кнопки ────────────────────────────────────────────────────
+   Прямоугольник с чёрной линией. Главная — залитая, остальные — контур. */
+.btn,.b{display:inline-flex;align-items:center;justify-content:center;gap:5px;
+  font:700 11.5px var(--f-cond);text-transform:uppercase;letter-spacing:.1em;
+  padding:7px 13px;border:var(--rule-thin);background:var(--surface);color:var(--ink);
+  cursor:pointer;transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease)}
+.btn:hover:not(:disabled),.b:hover:not(:disabled){background:var(--ink);color:var(--ink-inv)}
+.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.pri,.b.pri{background:var(--ink);color:var(--ink-inv)}
+.btn.pri:hover:not(:disabled){background:var(--mark);border-color:var(--mark)}
+.btn.danger{border-color:var(--bad);color:var(--bad)}
+.btn.danger:hover:not(:disabled){background:var(--bad);color:#fff}
+.btn.ghost{border-color:var(--line-2);color:var(--ink-2)}
+.btn.sel{background:var(--mark);border-color:var(--mark);color:#fff}
+.btn:disabled,.b:disabled{opacity:.34;cursor:not-allowed}
+.btn.sm,.b.sm{padding:4px 9px;font-size:10.5px;letter-spacing:.08em}
+.btn.lg{padding:12px 20px;font-size:14px}
+.btn.block,.b.wide{display:flex;width:100%;text-align:center}
+.btn .cost{font-family:var(--f-num);font-size:11px;opacity:.7;margin-left:5px;letter-spacing:-.03em}
 
-/* ── плашки-переключатели ──────────────────────────────────── */
-.seg{display:inline-flex;border:var(--hair);background:var(--surface-2);max-width:100%;overflow-x:auto;scrollbar-width:none}
+/* ── плашки-переключатели ──────────────────────────────────────
+   Рубрикатор: сплошная лента, выбранная рубрика залита чёрным. */
+.seg{display:inline-flex;border:var(--rule-thin);background:var(--surface);max-width:100%;
+  overflow-x:auto;scrollbar-width:none}
 .seg::-webkit-scrollbar{display:none}
-.seg button{border:0;border-right:var(--hair);background:none;padding:7px 13px;cursor:pointer;flex:none;
-  font:400 12px var(--f-cond);text-transform:uppercase;letter-spacing:.08em;color:var(--ink-2);
-  display:flex;align-items:center;gap:6px;transition:background var(--t-fast) var(--ease)}
+.seg button{border:0;border-right:1px solid var(--line-2);background:none;padding:7px 13px;
+  cursor:pointer;flex:none;font:700 11px var(--f-cond);text-transform:uppercase;letter-spacing:.1em;
+  color:var(--ink-2);display:flex;align-items:center;gap:6px;
+  transition:background var(--t-fast) var(--ease)}
 .seg button:last-child{border-right:0}
-.seg button:hover:not(.on){background:var(--mark-bg);color:var(--ink)}
-.seg button.on{background:var(--act);color:var(--ink-inv)}
-.seg button u{text-decoration:none;font:400 11px var(--f-num);opacity:.7}
+.seg button:hover:not(.on){background:var(--surface-2);color:var(--ink)}
+.seg button.on{background:var(--ink);color:var(--ink-inv)}
+.seg button u{text-decoration:none;font:400 11px var(--f-num);opacity:.65;letter-spacing:-.03em}
 .seg.wide{display:flex;width:100%}
 .seg.wide button{flex:1;justify-content:center}
 
 /* ── путь закона: три ступени ──────────────────────────────── */
-.gates{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);
-  border:var(--hair);margin-bottom:var(--x2)}
-.gate{background:var(--surface);padding:var(--x4);display:flex;flex-direction:column;gap:3px}
-.gate i{font:400 9.5px var(--f-cond);text-transform:uppercase;letter-spacing:.14em;
+.gates{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:var(--rule-thin)}
+.gate{background:var(--surface);padding:var(--x4) var(--x5);display:flex;flex-direction:column;gap:3px;
+  border-right:1px solid var(--line-2)}
+.gate:last-child{border-right:0}
+.gate i{font:700 8.5px var(--f-cond);text-transform:uppercase;letter-spacing:.18em;
   color:var(--ink-3);font-style:normal}
-.gate b{font:400 24px var(--f-num);letter-spacing:-.04em;line-height:1}
+.gate b{font:400 27px/1 var(--f-num);letter-spacing:-.05em}
 .gate u{text-decoration:none;font:400 10.5px var(--f-cond);color:var(--ink-3);
   text-transform:uppercase;letter-spacing:.06em}
 .gate span.dim{font-size:11px}
-.gate.ok{box-shadow:inset 3px 0 0 var(--good)}
-.gate.no{box-shadow:inset 3px 0 0 var(--bad)}
+.gate.ok{box-shadow:inset 0 3px 0 var(--good)}
+.gate.no{box-shadow:inset 0 3px 0 var(--bad)}
 
-.path{border:var(--hair);margin:var(--x4) 0}
+.path{border-top:var(--rule-thin);border-bottom:var(--rule-thin);margin:var(--x5) 0}
 .stg{display:grid;grid-template-columns:1fr auto auto auto;align-items:center;gap:var(--x4);
-  padding:8px var(--x5);border-bottom:var(--hair-2);background:var(--surface)}
+  padding:9px var(--x2);border-bottom:var(--hair-2);background:var(--surface)}
 .stg:last-child{border-bottom:0}
-.stg i{font-style:normal;font:700 12px var(--f-cond);text-transform:uppercase;letter-spacing:.08em}
-.stg b{font-weight:400;font-size:11.5px;color:var(--ink-3)}
-.stg u{text-decoration:none;font:400 14px var(--f-num);letter-spacing:-.03em;min-width:62px;text-align:right}
+.stg i{font-style:normal;font:700 14px var(--f-display);letter-spacing:-.01em}
+.stg b{font-weight:400;font-size:11px;font-family:var(--f-cond);text-transform:uppercase;
+  letter-spacing:.1em;color:var(--ink-3)}
+.stg u{text-decoration:none;font:400 15px var(--f-num);letter-spacing:-.04em;min-width:66px;text-align:right}
 .stg.ok{box-shadow:inset 3px 0 0 var(--good)}
 .stg.no{box-shadow:inset 3px 0 0 var(--bad)}
 
-/* линейка направления: где стоят партии и где стоит закон */
-.ruler{position:relative;height:22px;background:var(--surface-2);border:var(--hair-2)}
-.ruler::after{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--rule)}
-.ruler i{position:absolute;top:5px;width:7px;height:7px;margin-left:-3.5px;border-radius:0}
+/* линейка направления */
+.ruler{position:relative;height:22px;background:var(--surface-2);border:1px solid var(--line-2)}
+.ruler::after{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line-2)}
+.ruler i{position:absolute;top:5px;width:7px;height:7px;margin-left:-3.5px}
 .ruler s{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:var(--ink);
   text-decoration:none}
 
@@ -183,200 +216,225 @@ h3.sub:first-child{margin-top:0}
 .repline{display:grid;grid-template-columns:118px 1fr 34px auto;align-items:center;gap:var(--x4);
   padding:5px 0;border-bottom:var(--hair-2)}
 .repline:last-of-type{border-bottom:0}
-.repline i{font-style:normal;font:400 11px var(--f-cond);text-transform:uppercase;
-  letter-spacing:.05em;color:var(--ink-2);white-space:nowrap}
-.repline b{font:400 13px var(--f-num);text-align:right;letter-spacing:-.03em}
+.repline i{font-style:normal;font:700 11px var(--f-cond);text-transform:uppercase;
+  letter-spacing:.1em;color:var(--ink-2);white-space:nowrap}
+.repline b{font:400 13px var(--f-num);text-align:right;letter-spacing:-.04em}
 .repline u{text-decoration:none;font-size:11px;color:var(--ink-3);min-width:88px}
-.repscale{position:relative;height:8px;background:var(--surface-3);border:var(--hair-2)}
-.repscale::after{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line)}
-.repscale span{position:absolute;top:-2px;width:3px;height:12px;background:var(--ink);margin-left:-1.5px}
+.repscale{position:relative;height:8px;background:var(--surface-3);border:1px solid var(--line-2)}
+.repscale::after{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line-2)}
+.repscale span{position:absolute;top:-3px;width:3px;height:14px;background:var(--ink);margin-left:-1.5px}
 
 /* ── карьера политика ──────────────────────────────────────── */
 .career{max-height:340px;overflow-y:auto}
-.crow{display:flex;gap:var(--x4);padding:5px var(--x5);border-bottom:var(--hair-2);font-size:12.5px}
+.crow{display:flex;gap:var(--x4);padding:6px var(--x5);border-bottom:var(--hair-2);font-size:12.5px}
 .crow:last-child{border-bottom:0}
 .crow s{text-decoration:none;font:400 11px var(--f-num);color:var(--ink-3);flex:none;width:34px}
 
-/* ── таблицы ───────────────────────────────────────────────── */
+/* ── таблицы: газетная вёрстка ─────────────────────────────────
+   Жирная линейка над шапкой, волосяные между строками, никаких
+   вертикальных линий и никакой заливки заголовка. */
 table{width:100%;border-collapse:collapse;font-size:13px}
-th{font:700 9.5px var(--f-cond);text-transform:uppercase;letter-spacing:.11em;color:var(--ink-2);
-  text-align:left;padding:4px 7px;background:var(--surface-2);border-bottom:var(--hair);white-space:nowrap}
-td{padding:0 7px;height:var(--row);border-bottom:var(--hair-2);vertical-align:middle}
+th{font:700 8.5px var(--f-cond);text-transform:uppercase;letter-spacing:.16em;color:var(--ink-2);
+  text-align:left;padding:4px 8px;border-top:var(--rule-thin);border-bottom:1px solid var(--line-2);
+  white-space:nowrap;background:none}
+td{padding:0 8px;height:var(--row);border-bottom:var(--hair-2);vertical-align:middle}
 tbody tr:last-child td{border-bottom:0}
-tbody tr:hover{background:var(--mark-bg)}
-tr.sel td{background:var(--mark-bg);box-shadow:inset 3px 0 0 var(--mark)}
-td.n,th.n,td.num{text-align:right;font-family:var(--f-num);font-size:12.5px;letter-spacing:-.03em;white-space:nowrap}
+tbody tr:hover{background:var(--surface-2)}
+tr.sel td{background:var(--surface-2);box-shadow:inset 3px 0 0 var(--ink)}
+td.n,th.n,td.num{text-align:right;font-family:var(--f-num);font-size:12.5px;letter-spacing:-.04em;white-space:nowrap}
 td.r,th.r{text-align:right}
-table.tight td{height:var(--row-tight);padding:0 6px}
-table.tight th{padding:3px 6px}
-caption{caption-side:bottom;text-align:left;font-size:11.5px;color:var(--ink-3);padding-top:var(--x3)}
+table.tight td{height:var(--row-tight);padding:0 7px}
+table.tight th{padding:3px 7px}
+caption{caption-side:bottom;text-align:left;font-size:11.5px;color:var(--ink-3);
+  padding:var(--x3) var(--x5) var(--x4);border-top:1px solid var(--line-3)}
 .scrollx{overflow-x:auto}
 .sub2{font-size:11.5px;color:var(--ink-3)}
 
 /* ── индикаторы ────────────────────────────────────────────── */
-.meter,.bar{height:8px;background:var(--surface-3);border:var(--hair);display:flex;position:relative}
+.meter,.bar{height:9px;background:var(--surface-3);border:1px solid var(--line-2);display:flex;position:relative}
 .meter i,.bar i{display:block;height:100%}
 .meter .mid,.bar .mid{position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--ink)}
-.meter.tall{height:15px}
-.mini{display:inline-block;width:60px;height:6px;background:var(--surface-3);border:var(--hair);vertical-align:middle}
+.meter.tall{height:16px}
+.mini{display:inline-block;width:60px;height:6px;background:var(--surface-3);border:1px solid var(--line-2);vertical-align:middle}
 .mini i{display:block;height:100%;background:var(--ink-2)}
-.stat{border:var(--hair);background:var(--surface);padding:var(--x4) var(--x5)}
-.stat .k{font:400 10px var(--f-cond);text-transform:uppercase;letter-spacing:.14em;color:var(--ink-3);white-space:nowrap}
-.stat .v{font:400 21px/1.1 var(--f-num);letter-spacing:-.04em;margin-top:2px}
-.stat .v u{text-decoration:none;font:400 11px var(--f-text);color:var(--ink-3);margin-left:3px}
-.stat .d{font-size:11.5px;color:var(--ink-3);margin-top:1px}
-.stat.alert{border-color:#D9B7AF;background:var(--bad-bg)} .stat.alert .v{color:var(--bad)}
+/* показатель — как биржевая сводка: подпись капителью, число крупно */
+.stat{border-top:var(--rule-thin);padding:var(--x4) 0 var(--x3)}
+.stat .k,.stat i{font:700 8.5px var(--f-cond);text-transform:uppercase;letter-spacing:.18em;
+  color:var(--ink-3);white-space:nowrap;font-style:normal;display:block}
+.stat .v{font:400 30px/1.05 var(--f-num);letter-spacing:-.055em;margin-top:3px}
+.stat .v u{text-decoration:none;font:400 12px var(--f-text);color:var(--ink-3);margin-left:3px;letter-spacing:0}
+.stat .d,.stat span{font-size:11.5px;color:var(--ink-3);margin-top:1px;display:block}
+.stat.alert{border-top-color:var(--bad)} .stat.alert .v{color:var(--bad)}
 .chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;white-space:nowrap}
 .chip s{width:9px;height:9px;flex:none;text-decoration:none;display:inline-block}
-.tag{display:inline-block;font:700 9px var(--f-cond);text-transform:uppercase;letter-spacing:.1em;
+.tag{display:inline-block;font:700 8.5px var(--f-cond);text-transform:uppercase;letter-spacing:.12em;
   border:1px solid currentColor;padding:1px 5px;white-space:nowrap}
-.tag.g{color:var(--good)} .tag.r{color:var(--bad)} .tag.b{color:var(--info)} .tag.y{color:var(--mark)}
-.stamp{display:inline-block;font:700 15px var(--f-cond);text-transform:uppercase;letter-spacing:.16em;
-  border:2px solid currentColor;box-shadow:inset 0 0 0 1px currentColor;padding:4px 13px;
-  transform:rotate(-4deg);opacity:.9}
+.tag.g{color:var(--good)} .tag.r{color:var(--bad)} .tag.b{color:var(--info)} .tag.y{color:#8A5A0E}
+/* печать ставится поверх материала, как штамп в наборной кассе */
+.stamp{display:inline-block;font:700 16px var(--f-display);text-transform:uppercase;letter-spacing:.14em;
+  border:2px solid currentColor;box-shadow:inset 0 0 0 1px currentColor;padding:4px 14px;
+  transform:rotate(-3deg)}
 .stamp.yes,.stamp.y{color:var(--good)} .stamp.no,.stamp.n{color:var(--bad)}
-.kv{display:flex;justify-content:space-between;gap:var(--x5);padding:4px 0;border-bottom:1px dotted var(--line);font-size:13px}
+.kv{display:flex;justify-content:space-between;gap:var(--x5);padding:4px 0;
+  border-bottom:1px dotted var(--line-2);font-size:13px}
 .kv:last-child{border-bottom:none}
-.kv b{font-family:var(--f-num);font-weight:400;letter-spacing:-.03em}
-.res{display:grid;grid-template-columns:1fr auto;gap:3px var(--x6);font-size:13px;
-  border-top:var(--hair-2);border-bottom:var(--hair-2);padding:var(--x4) 0;margin:var(--x4) 0}
-.res b{font-family:var(--f-num);font-weight:400;text-align:right;letter-spacing:-.03em}
-.res b.w{font-family:var(--f-text);font-weight:700}
+.kv b{font-family:var(--f-num);font-weight:400;letter-spacing:-.04em}
+/* сводка ключ-значение: точечный лидер между колонками, как в программе передач */
+.res{display:grid;grid-template-columns:1fr auto;gap:2px var(--x6);font-size:13px;
+  border-top:var(--rule-thin);border-bottom:1px solid var(--line-2);padding:var(--x4) 0;margin:var(--x4) 0}
+.res span{color:var(--ink-2)}
+.res b{font-family:var(--f-num);font-weight:400;text-align:right;letter-spacing:-.04em}
+.res b.w{font-family:var(--f-text);font-weight:700;letter-spacing:0}
 
 /* ── формы и шкалы ─────────────────────────────────────────── */
-input[type=text],select{font:400 14px var(--f-text);background:#fff;border:var(--hair);
+input[type=text],input[type=number],select{font:400 14px var(--f-text);background:var(--surface);
+  border:1px solid var(--line-2);border-bottom:var(--rule-thin);
   padding:6px 8px;color:var(--ink);width:100%;border-radius:0}
-input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset:-1px}
+input:focus,select:focus{outline:2px solid var(--mark);outline-offset:-1px}
 .field{margin-bottom:var(--x5)}
-.field>label{display:block;font:400 10px var(--f-cond);text-transform:uppercase;
-  letter-spacing:.14em;color:var(--ink-2);margin-bottom:3px}
+.field>label{display:block;font:700 8.5px var(--f-cond);text-transform:uppercase;
+  letter-spacing:.18em;color:var(--ink-2);margin-bottom:3px}
 .ax{margin-bottom:var(--x5)}
-.axh,.scale-l{display:flex;justify-content:space-between;font:400 10px var(--f-cond);
-  text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);margin-bottom:3px}
-.axr,.scale{display:flex;gap:2px}
-.axr button,.scale button{flex:1;height:28px;border:var(--hair);background:var(--surface-2);cursor:pointer;
-  font:400 11px var(--f-num);color:var(--ink-3);transition:background var(--t-fast) var(--ease)}
-.axr button:hover,.scale button:hover{background:var(--mark-bg)}
-.axr button.on,.scale button.on{background:var(--act);border-color:var(--act);color:var(--ink-inv)}
-.steps{display:flex;gap:2px}
-.steps button{width:30px;height:24px;border:var(--hair);background:var(--surface-2);cursor:pointer;
-  font:400 11px var(--f-num);color:var(--ink-3)}
-.steps button:hover{background:var(--mark-bg)}
-.steps button.on{background:var(--mark);border-color:var(--mark);color:#fff}
-.now{font-size:11.5px;color:var(--ink-2);margin-top:3px}
+.axh,.scale-l{display:flex;justify-content:space-between;font:700 9px var(--f-cond);
+  text-transform:uppercase;letter-spacing:.14em;color:var(--ink-3);margin-bottom:3px}
+.axr,.scale{display:flex;gap:1px;background:var(--line-2);border:var(--rule-thin)}
+.axr button,.scale button{flex:1;height:30px;border:0;background:var(--surface);cursor:pointer;
+  font:400 12px var(--f-num);color:var(--ink-2);transition:background var(--t-fast) var(--ease)}
+.axr button:hover,.scale button:hover{background:var(--surface-2)}
+.axr button.on,.scale button.on{background:var(--ink);color:var(--ink-inv)}
+.steps{display:flex;gap:1px;background:var(--line-2);border:1px solid var(--line-2)}
+.steps button{width:31px;height:25px;border:0;background:var(--surface);cursor:pointer;
+  font:400 11px var(--f-num);color:var(--ink-2)}
+.steps button:hover{background:var(--surface-2)}
+.steps button.on{background:var(--ink);color:var(--ink-inv)}
+.now{font-size:11.5px;color:var(--ink-2);margin-top:4px}
 
 /* ── политические и экономические блоки ────────────────────── */
-.whip{display:grid;grid-template-columns:repeat(3,1fr);border:var(--hair)}
-.whip div{padding:5px 9px;border-right:var(--hair)}
+.whip{display:grid;grid-template-columns:repeat(3,1fr);border-top:var(--rule-thin);
+  border-bottom:1px solid var(--line-2)}
+.whip div{padding:6px 10px;border-right:1px solid var(--line-3)}
 .whip div:last-child{border-right:0}
-.whip i{display:block;font:400 9.5px var(--f-cond);text-transform:uppercase;
-  letter-spacing:.12em;color:var(--ink-3);font-style:normal}
-.whip b{font:400 19px var(--f-num);letter-spacing:-.04em}
-.dep{display:flex;align-items:center;gap:var(--x5);padding:5px 0;border-bottom:var(--hair-2)}
+.whip i{display:block;font:700 8.5px var(--f-cond);text-transform:uppercase;
+  letter-spacing:.16em;color:var(--ink-3);font-style:normal}
+.whip b{font:400 22px var(--f-num);letter-spacing:-.05em}
+.dep{display:flex;align-items:center;gap:var(--x5);padding:6px 0;border-bottom:var(--hair-2)}
 .dep:last-child{border-bottom:0}
 .dep .who{flex:1;min-width:0}
-.dep .who b{display:block;font-size:13.5px}
+.dep .who b{display:block;font:700 14px var(--f-display);letter-spacing:-.01em}
 .dep .who span{font-size:11.5px;color:var(--ink-3)}
-.hemi{width:100%;display:block;max-height:250px}
+.hemi{width:100%;display:block;max-height:270px}
 .bline{display:grid;grid-template-columns:1fr 54px 168px;gap:var(--x5);align-items:center;
-  padding:5px 0;border-bottom:var(--hair-2)}
+  padding:6px 0;border-bottom:var(--hair-2)}
 .bline:last-child{border-bottom:0}
 .bline .who{font-size:11.5px;color:var(--ink-3)}
 .gauge{display:flex;align-items:center;gap:var(--x4);margin-bottom:var(--x4)}
 .gauge:last-child{margin-bottom:0}
-.gauge .track{flex:1;height:8px;background:var(--surface-3);border:var(--hair);position:relative}
-.gauge .track i{position:absolute;top:-3px;width:2px;height:14px;background:var(--ink)}
+.gauge .track{flex:1;height:9px;background:var(--surface-3);border:1px solid var(--line-2);position:relative}
+.gauge .track i{position:absolute;top:-3px;width:2px;height:15px;background:var(--ink)}
 .spark{display:block;width:100%;height:46px}
 
 /* ── карта ─────────────────────────────────────────────────── */
-.mapbox{background:#141C26;border:var(--hair);padding:5px;max-width:860px;margin:0 auto}
+.mapbox{background:var(--surface-2);border:var(--rule-thin);padding:6px;max-width:880px;margin:0 auto}
 .mapsvg{width:100%;display:block}
-.rgn{stroke:#0C1219;stroke-width:1.4;cursor:pointer;transition:filter var(--t-fast) var(--ease)}
-.rgn:hover{filter:brightness(1.18)}
-.rgn.sel{stroke:#fff;stroke-width:2.8}
-.caplbl{fill:#fff;font:700 15px var(--f-cond);pointer-events:none;paint-order:stroke;
-  stroke:rgba(10,14,20,.92);stroke-width:4px;stroke-linejoin:round;letter-spacing:.04em}
+.rgn{stroke:var(--ink);stroke-width:1.1;cursor:pointer;transition:filter var(--t-fast) var(--ease)}
+.rgn:hover{filter:brightness(1.1)}
+.rgn.sel{stroke:var(--mark);stroke-width:3}
+.caplbl{fill:var(--ink);font:700 14px var(--f-cond);pointer-events:none;paint-order:stroke;
+  stroke:var(--surface);stroke-width:3.5px;stroke-linejoin:round;letter-spacing:.04em}
 .legend{display:flex;flex-wrap:wrap;gap:var(--x2) var(--x6);font-size:11.5px;color:var(--ink-2);margin-top:var(--x4)}
 
 /* ── журнал, состояния ─────────────────────────────────────── */
-.log div{padding:4px 0;border-bottom:1px dotted var(--line);font-size:12.5px}
+.log div{padding:5px 0;border-bottom:1px dotted var(--line-2);font-size:12.5px}
 .log div:last-child{border-bottom:0}
-.log div.key{background:var(--mark-bg);padding:4px 6px;margin:0 -6px}
+.log div.key{border-left:3px solid var(--mark);padding-left:8px;margin-left:-11px}
 .log s{text-decoration:none;font:400 10.5px var(--f-num);color:var(--ink-3);margin-right:7px}
-.empty{padding:var(--x8);text-align:center;color:var(--ink-3);font-size:13px;border:1px dashed var(--line)}
-.chron{display:flex;gap:var(--x5);padding:5px 0;border-bottom:var(--hair-2);font-size:13px}
+.empty{padding:var(--x8);text-align:center;color:var(--ink-3);font-size:13px;
+  border-top:1px solid var(--line-3);border-bottom:1px solid var(--line-3)}
+.chron{display:flex;gap:var(--x5);padding:6px 0;border-bottom:var(--hair-2);font-size:13px}
 .chron:last-child{border-bottom:0}
 .chron .y{font:400 11.5px var(--f-num);color:var(--ink-3);width:40px;flex:none;padding-top:2px}
-.chron.g{color:var(--good)} .chron.b{color:var(--bad)}
+.chron.g{box-shadow:inset 3px 0 0 var(--good);padding-left:9px}
+.chron.b{box-shadow:inset 3px 0 0 var(--bad);padding-left:9px}
 
-/* ── модальное окно ────────────────────────────────────────── */
-#modal{position:fixed;inset:0;z-index:60;background:rgba(20,16,10,.55);display:none;
+/* ── модальное окно: экстренный выпуск ─────────────────────── */
+#modal{position:fixed;inset:0;z-index:60;background:rgba(20,18,12,.62);display:none;
   align-items:flex-start;justify-content:center;padding:var(--x8) var(--x5);overflow-y:auto}
 #modal.show{display:flex}
-#msheet{background:var(--surface);border:1px solid var(--ink-2);border-top:4px solid var(--mark);
-  box-shadow:var(--shadow);width:100%;max-width:620px;animation:rise var(--t-slow) var(--ease)}
+#msheet{background:var(--surface);border:var(--rule);box-shadow:var(--shadow);
+  width:100%;max-width:640px;animation:rise var(--t-slow) var(--ease)}
 @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-#msheet .mh{padding:var(--x4) var(--x6);background:var(--surface-2);border-bottom:var(--hair)}
-#msheet .mh i{display:block;font:400 9.5px var(--f-cond);text-transform:uppercase;
-  letter-spacing:.14em;color:var(--ink-3);font-style:normal}
-#msheet .mh h2{margin:1px 0 0;font:700 19px/1.15 var(--f-display)}
+#msheet .mh{padding:var(--x5) var(--x6) var(--x4);border-bottom:var(--rule-thin)}
+#msheet .mh i{display:block;font:700 8.5px var(--f-cond);text-transform:uppercase;
+  letter-spacing:.2em;color:var(--ink-3);font-style:normal}
+#msheet .mh h2{margin:3px 0 0;font:700 25px/1.1 var(--f-display);letter-spacing:-.015em}
 #msheet .mb{padding:var(--x5) var(--x6);font-size:13.5px}
-#msheet .mf{padding:var(--x4) var(--x6);border-top:var(--hair);background:var(--surface-2);
+#msheet .mf{padding:var(--x4) var(--x6);border-top:var(--rule-thin);background:var(--surface-2);
   display:flex;gap:var(--x3);justify-content:flex-end;flex-wrap:wrap}
-.opt{display:block;width:100%;text-align:left;background:var(--surface-2);border:var(--hair);
-  padding:8px 11px;margin-bottom:6px;cursor:pointer;font:400 13px var(--f-text);color:var(--ink);
-  transition:border-color var(--t-fast) var(--ease),background var(--t-fast) var(--ease)}
-.opt:hover{border-color:var(--ink-2);background:var(--mark-bg)}
-.opt b{display:flex;align-items:center;gap:9px} .opt b .ic{flex:none;opacity:.7}
-.opt span{display:block;font-size:11.5px;color:var(--ink-3)}
+.opt{display:block;width:100%;text-align:left;background:var(--surface);border:0;
+  border-top:1px solid var(--line-2);padding:9px 2px;margin:0;cursor:pointer;
+  font:400 13px var(--f-text);color:var(--ink);
+  transition:background var(--t-fast) var(--ease),padding-left var(--t-fast) var(--ease)}
+.opt:last-child{border-bottom:1px solid var(--line-2)}
+.opt:hover{background:var(--surface-2);padding-left:9px}
+.opt b{display:flex;align-items:center;gap:9px;font:700 14px var(--f-display);letter-spacing:-.01em}
+.opt b .ic{flex:none;opacity:.7}
+.opt span{display:block;font-size:11.5px;color:var(--ink-3);margin-top:1px}
 
 /* ── плашки ────────────────────────────────────────────────── */
 #toasts{position:fixed;right:var(--x5);bottom:var(--x5);z-index:70;display:flex;
   flex-direction:column;gap:5px;align-items:flex-end}
-.toast{background:var(--band);color:var(--ink-inv);padding:6px 12px;font-size:12.5px;
-  border-left:3px solid var(--mark);animation:tin var(--t) var(--ease),tout var(--t-slow) var(--ease) 2.4s forwards}
+.toast{background:var(--ink);color:var(--ink-inv);padding:7px 13px;font:400 12.5px var(--f-text);
+  border-left:3px solid var(--mark);
+  animation:tin var(--t) var(--ease),tout var(--t-slow) var(--ease) 2.4s forwards}
 @keyframes tin{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:none}}
 @keyframes tout{to{opacity:0}}
 
-/* ── экран загрузки ────────────────────────────────────────── */
-#splash{position:fixed;inset:0;z-index:80;background:var(--band);color:var(--ink-inv);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity var(--t-slow) var(--ease)}
+/* ── экран загрузки: первая полоса ─────────────────────────── */
+#splash{position:fixed;inset:0;z-index:80;background:var(--surface);color:var(--ink);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  transition:opacity var(--t-slow) var(--ease)}
 #splash.hide{opacity:0;pointer-events:none}
-#splash img{width:64px;height:70px;margin-bottom:var(--x5);filter:saturate(.2) brightness(1.6)}
-#splash h1{font:700 26px var(--f-display);letter-spacing:.1em;margin:0}
-#splash p{color:var(--ink-inv-2);font:400 11px var(--f-cond);text-transform:uppercase;
-  letter-spacing:.2em;margin:var(--x3) 0 var(--x6)}
-#splash .load{width:220px;height:3px;background:var(--band-2);overflow:hidden}
-#splash .load i{display:block;height:100%;width:40%;background:var(--mark);animation:slide 1.1s var(--ease) infinite}
+#splash img{width:66px;height:72px;margin-bottom:var(--x5)}
+#splash h1{font:700 40px var(--f-display);letter-spacing:.06em;margin:0;
+  border-top:var(--rule);border-bottom:var(--rule-thin);padding:var(--x3) var(--x8)}
+#splash p{color:var(--ink-3);font:700 10px var(--f-cond);text-transform:uppercase;
+  letter-spacing:.28em;margin:var(--x4) 0 var(--x6)}
+#splash .load{width:240px;height:3px;background:var(--surface-3);overflow:hidden}
+#splash .load i{display:block;height:100%;width:40%;background:var(--ink);animation:slide 1.1s var(--ease) infinite}
 @keyframes slide{from{transform:translateX(-100%)}to{transform:translateX(250%)}}
 
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media(max-width:900px){
-  #top{flex-wrap:wrap} #top .brand{min-height:44px}
-  #strip{width:100%;margin-left:0;order:3;border-top:1px solid var(--band-2)}
-  .sv{padding:5px 10px;min-width:0} .sv:first-child{padding-left:var(--x5)} .sv b{font-size:13.5px}
-  #shell{display:block}
+  #top{flex-wrap:wrap} #top .brand{min-height:44px;border-right:0;width:100%}
+  #top .brand b{font-size:20px}
+  #strip{width:100%;margin-left:0;order:3;border-top:var(--rule-thin)}
+  .sv{padding:5px 11px;min-width:0} .sv:first-child{border-left:0} .sv b{font-size:14px}
+  #shell{display:block;border:0}
   #side{position:fixed;left:0;right:0;bottom:0;top:auto;width:auto;min-height:0;display:flex;
-    border-right:0;border-top:var(--hair);background:var(--surface);padding:0;z-index:35;
-    box-shadow:0 -6px 18px rgba(20,16,10,.10)}
+    border-right:0;border-top:var(--rule);background:var(--surface);padding:0;z-index:35;
+    box-shadow:0 -6px 18px rgba(20,18,12,.12)}
   .navsec,.navkeys{display:none}
-  .nav{flex:1;min-width:0;border-left:0;border-top:3px solid transparent;padding:7px 2px 6px;
+  .nav{flex:1;min-width:0;border-bottom:0;border-top:3px solid transparent;padding:7px 2px 6px;
     flex-direction:column;gap:3px;align-items:center;justify-content:center;
     font-size:10px;letter-spacing:.04em;line-height:1.1}
-  .nav.on{border-left:0;border-top-color:var(--mark);background:var(--mark-bg)}
+  .nav.on{border-top-color:var(--mark);background:var(--ink)}
   .nav u{display:none}
   .nav .ic{width:22px;height:22px}
   .nav .dot{position:absolute;margin:0;transform:translate(14px,-10px)}
   .nav span{flex:none;overflow:hidden;text-overflow:ellipsis;max-width:100%;white-space:nowrap}
-  #view{padding:var(--x4) var(--x4) 74px}
+  #view{padding:var(--x5) var(--x5) 74px}
   .cols,.c21,.c11,.c12,.c111,.g4,.g3{grid-template-columns:1fr}
   .g4{grid-template-columns:1fr 1fr}
+  .gates{grid-template-columns:1fr}
+  .gate{border-right:0;border-bottom:1px solid var(--line-2)}
+  .gate:last-child{border-bottom:0}
 }
 @media(max-width:560px){
   .g2,.g4{grid-template-columns:1fr 1fr}
   .hide-s,.mini{display:none}
-  td,th{padding:0 5px}
-  .stat .v{font-size:18px}
+  td,th{padding:0 6px}
+  .stat .v{font-size:23px}
+  #msheet .mh h2{font-size:21px}
   #modal{padding:var(--x4) var(--x2)}
   .bline{grid-template-columns:1fr 44px;row-gap:var(--x2)}
   .bline>div:last-child{grid-column:1/3}
@@ -430,6 +488,8 @@ const ICON={
   self:'<circle cx="12" cy="8" r="3.4"/>'+
        '<path d="M4.6 20.4c0-4.1 3.3-6.6 7.4-6.6s7.4 2.5 7.4 6.6"/>'+
        '<path d="M3 3h3M3 3v3M21 3h-3M21 3v3"/>',
+  pm:'<path d="M4 20.5h16"/><path d="M6 20.5V9.5h12v11"/>'+
+     '<path d="M3.2 9.5 12 3.5l8.8 6"/><path d="M10 20.5v-5.5h4v5.5"/>',
   senate:'<circle cx="12" cy="12" r="8.6"/><circle cx="12" cy="12" r="2.7"/>'+
          '<path d="M12 3.4v2.4M12 18.2v2.4M3.4 12h2.4M18.2 12h2.4"/>',
   pres:'<path d="M12 2.6 4 5.6v6c0 4.9 3.3 8.4 8 9.8 4.7-1.4 8-5 8-9.8v-6z"/>'+
@@ -603,6 +663,14 @@ const TAXES = [
   {id:'vat', name:'НДС',               yield:24, hates:['pens','agro','work']},
 ];
 const RATE_NAME = ['отменён','низкий','умеренный','высокий','предельный'];
+
+/* ─── Исполнительная власть ───────────────────────────────────────
+   Три кресла, три разных мандата. Президент избран страной,
+   вице-президент идёт с ним в связке и председательствует в Сенате,
+   премьер отвечает перед Собранием и ведёт кабинет. */
+const PM_COST   = 10;   // веса за перестановку в кабинете
+const VP_TIE    = true; // вице-президент разбивает равенство в Сенате
+const MIN_TERM  = 8;    // после скольких кварталов министр «изнашивается»
 
 /* Министерства. Отданный портфель покупает дисциплину чужой фракции. */
 const POSTS = [
@@ -879,6 +947,42 @@ function presGap(){
   return axDist(p.st, isPM()?me().st:P(S.gov.lead).st);
 }
 
+/* ─── вице-президент ─────────────────────────────────────────────
+   Идёт на выборы в связке с президентом и потому всегда из его
+   партии. Своих полномочий у него два: председательствовать в Сенате
+   и разбивать равенство — в палате из ста мест это не редкость;
+   и наследовать кресло, если президент его освобождает. */
+function vp(){ return S.vp; }
+function isVP(){ return S.vp && S.vp.party===PL; }
+function vpParty(){ return S.vp?P(S.vp.party):null; }
+/* как вице-президент проголосует при равенстве: за своих, против чужих */
+function vpBreak(bill){
+  if(!S.vp)return 0;
+  const p=vpParty(), d=Math.abs((p.st[T(bill.topic).ax]||0)-bill.stance);
+  return d<1.6?1:-1;
+}
+
+/* ─── премьер и кабинет ──────────────────────────────────────────
+   Премьер — человек, а не партия: у него имя, срок и своя молва.
+   Министры тоже люди: компетентность министра усиливает или гасит
+   эффект его ведомства. */
+function pm(){ return S.pm; }
+function isPMperson(){ return S.pm && S.pm.party===PL; }
+function minOf(post){ return S.ministers?S.ministers[post]:null; }
+/* насколько ведомство работает лучше или хуже обычного */
+function minPower(post){
+  const m=minOf(post); if(!m)return 0;
+  // доля, а не разы: даже блестящий министр правит ведомство на десятую часть
+  let v=(m.comp-50)*0.0035;
+  if(m.party===PL)v+=0.025; else if(inCoal(m.party))v+=0.012;
+  if(S.q-m.since>MIN_TERM)v-=0.03;          // засидевшийся министр выдыхается
+  return r2(clamp(v,-0.13,0.15));
+}
+function cabinetPower(){
+  return r2(POSTS.reduce((a,p)=>a+minPower(p.id),0)/POSTS.length);
+}
+function minWord(m){ return m.comp>=72?'сильный':m.comp>=56?'крепкий':m.comp>=40?'средний':'слабый'; }
+
 /* ─── личность политика ──────────────────────────────────────────
    Черта характера не пишет текст, а меняет число в уже работающем
    механизме: цену действия, скорость износа, силу голоса. */
@@ -949,7 +1053,8 @@ function initState(pl){
     mood:{}, rmod:{}, unrest:{},
     deputies:[], seats:{}, regSeats:{},
     senate:[], senSeats:{}, senCls:0,        // вторая палата и номер переизбираемого класса
-    pres:null, presRel:58, vetoed:null, decrees:[], presRace:null,
+    pres:null, vp:null, presRel:58, vetoed:null, decrees:[], presRace:null,
+    pm:null, ministers:{},                   // премьер и министры — люди, а не партии
     you:{name:pl.leader, age:pl.age||48, origin:pl.origin||'province', traits:pl.traits||[],
          rep:{honest:50,firm:50,comp:50,folk:50}, career:[]},
     govs:{}, govLog:[],                      // главы субъектов и их смена
@@ -978,6 +1083,7 @@ function initState(pl){
   seedPresident();
   seedGovernors();
   formCoalition(true);
+  seedCabinet();
   snapshot();
   logMsg('Правительство сформировано. Собрание созвано на '+dateLabel()+'.',1);
   chron('«'+player.name+'» формирует правительство.','g');
@@ -1129,7 +1235,10 @@ function resolveSenVote(bill){
     if(x.st==='yes')yes++; else if(x.st==='no')no++;
     else (Math.random()<0.5+x.v/30?yes++:no++);
   });
-  return {yes,no,pass:yes>=SEN_MAJ};
+  // сто мест — значит равенство возможно, и его разбивает председатель палаты
+  let tie=0;
+  if(VP_TIE&&yes===no&&S.vp){ tie=vpBreak(bill); if(tie>0)yes++; else no++; S.vp.ties++; }
+  return {yes,no,pass:yes>=SEN_MAJ,tie};
 }
 
 /* ─── главы субъектов ────────────────────────────────────────────
@@ -1176,6 +1285,33 @@ function seedPresident(){
   const near=S.parties.filter(p=>p.id!==PL).sort((a,b)=>axDist(a.st,me().st)-axDist(b.st,me().st))[0];
   S.pres={party:near.id, name:near.leader, since:S.q-11, until:S.q+12, term:1, vetoes:0, decrees:0};
   S.presRel=clamp(Math.round(72-axDist(near.st,me().st)*11),25,88);
+  seatVP(near.id);
+}
+/* вице-президент всегда из партии президента: они шли одним списком */
+function seatVP(party,name){
+  S.vp={party, name:name||depName(), since:S.q, ties:0};
+}
+
+/* ─── кабинет ────────────────────────────────────────────────────
+   Премьер и министры заводятся людьми: у портфеля есть не только
+   партия, но и фамилия, компетентность и срок в должности. */
+function makeMinister(post,party){
+  return {post, party, name:depName(), comp:ri(30,86), since:S.q};
+}
+function seedCabinet(){
+  S.pm={party:S.gov.lead, name:S.gov.lead===PL?S.you.name:P(S.gov.lead).leader, since:S.q, reshuffles:0};
+  S.ministers={};
+  POSTS.forEach(p=>{ S.ministers[p.id]=makeMinister(p.id,S.gov.posts[p.id]||S.gov.lead); });
+}
+/* портфель сменил партию — значит сменился и человек */
+function syncCabinet(){
+  if(!S.ministers)S.ministers={};
+  POSTS.forEach(p=>{
+    const want=S.gov.posts[p.id]||S.gov.lead, cur=S.ministers[p.id];
+    if(!cur||cur.party!==want)S.ministers[p.id]=makeMinister(p.id,want);
+  });
+  if(!S.pm||S.pm.party!==S.gov.lead)
+    S.pm={party:S.gov.lead, name:S.gov.lead===PL?S.you.name:P(S.gov.lead).leader, since:S.q, reshuffles:0};
 }
 /* вероятность вето: расхождение по теме плюс испорченные отношения */
 function vetoChance(bill){
@@ -1235,6 +1371,7 @@ function revenue(){
   const g=S.econ.gdp/100;
   let v=TAXES.reduce((a,t)=>a+t.yield*(S.tax[t.id]/2),0)*g+resIncome();
   if(S.gov.posts.fin===PL||inCoal(S.gov.posts.fin))v*=1.06;
+  v*=1+minPower('fin');                       // министр финансов, а не только его фракция
   v*=clamp(1-avgUnrest()*0.004,0.7,1);
   return r1(v);
 }
@@ -1878,6 +2015,45 @@ function callSnapElection(){
       {label:'Передумать',hint:'работать созыв до конца',fn(){}}]});
 }
 
+/* ═══ КАБИНЕТ ═════════════════════════════════════════════════════
+   Портфель отдан партии — это политика; кто именно сидит в кресле —
+   это работа ведомства. Перестановка меняет человека, не меняя
+   коалиционного расклада, и потому стоит веса, а не портфеля. */
+function reshuffle(post){
+  if(!isPM()){toast('Кабинет собирает глава правительства');return;}
+  const m=minOf(post); if(!m)return;
+  if(!useAP(1)||!payCap(PM_COST))return;
+  const was=m.comp;
+  // новый человек той же партии: обычно сильнее прежнего, но не всегда
+  const fresh=makeMinister(post,m.party);
+  fresh.comp=clamp(ri(38,92)+(rep('comp')-50)*0.2,20,95);
+  S.ministers[post]=fresh;
+  S.pm.reshuffles=(S.pm.reshuffles||0)+1;
+  if(m.party!==PL)S.deputies.filter(d=>d.party===m.party).forEach(d=>d.rel=clamp(d.rel-3,0,100));
+  bumpRep('firm',1.5);
+  const pn=POSTS.find(x=>x.id===post).name;
+  logMsg('Перестановка: '+pn+' принял '+fresh.name+' ('+minWord(fresh)+', было '+was+').',1);
+  career('Перестановка в кабинете: '+pn.toLowerCase()+'.');
+  toast(fresh.comp>was?'Министр сильнее прежнего':'Министр слабее прежнего');
+  render();
+}
+function askMinister(post){
+  const m=minOf(post), pn=POSTS.find(x=>x.id===post);
+  sheetOpen({eye:'Министерство · '+pn.name,title:m.name,
+    body:`<div class="res"><span>Ведомство даёт</span><b class="w">${pn.eff}</b>
+        <span>Партия</span><b class="w">${P(m.party).name}</b>
+        <span>Компетентность</span><b class="${m.comp<40?'bad':m.comp>=72?'good':''}">${m.comp} · ${minWord(m)}</b>
+        <span>В должности</span><b>${quarters(S.q-m.since)}</b>
+        <span>Вклад ведомства</span><b class="${minPower(post)<0?'bad':'good'}">${sign(Math.round(minPower(post)*100))}%</b></div>
+      <p class="hint">${S.q-m.since>MIN_TERM
+        ? 'Министр засиделся: после двух лет в кресле ведомство работает хуже, чем могло бы.'
+        : 'Компетентность министра усиливает или гасит эффект ведомства. Партия портфеля при этом не меняется.'}</p>`,
+    opts:[
+      {label:'Заменить министра',hint:PM_COST+' веса · та же партия, другой человек',fn:()=>reshuffle(post)},
+      {label:'Передать портфель другой фракции',hint:'политическое решение, меняет коалицию',fn:()=>askPost(post)},
+      {label:'Оставить',hint:'не тратить квартал',fn(){}}]});
+}
+
 /* ═══ ГЛАВЫ СУБЪЕКТОВ ═════════════════════════════════════════════
    Кто ставит губернатора, решает закон о местном самоуправлении:
    при вертикали его назначает кабинет, при автономии выбирает край.
@@ -2057,6 +2233,7 @@ function installPres(pid,share){
   const name=limited?depName():(pid===PL?me().leader:p.leader);
   S.pres={party:pid, name, since:S.q, until:S.q+PTERM,
           term:limited?1:(same?(S.pres.term||1)+1:1), vetoes:0, decrees:0};
+  seatVP(pid);                                   // вице шёл тем же списком
   S.presRel=pid===PL?100:clamp(Math.round(70-axDist(p.st,me().st)*12),20,85);
   if(pid===PL){ addCap(22); shiftAll(1.6); bumpRep('comp',5); bumpRep('folk',4);
     career('Избрание президентом республики — '+share+'% голосов.'); }
@@ -2111,6 +2288,29 @@ function presElection(){
 }
 function presTick(){
   if(S.q>=S.pres.until)presElection();
+}
+/* Президент может освободить кресло досрочно: возраст, здоровье,
+   скандал. Тогда его доводит вице — и срок не обнуляется. */
+function presVacancy(){
+  if(S.q<S.pres.since+4||presLeft()<3)return;
+  const risk=0.012+(S.presRel<26?0.012:0)+(avgUnrest()>46?0.01:0);
+  if(Math.random()>risk)return;
+  const old=S.pres.name, vpn=S.vp?S.vp.name:depName(), party=S.pres.party;
+  S.pres={party, name:vpn, since:S.q, until:S.pres.until, term:S.pres.term,
+          vetoes:S.pres.vetoes, decrees:S.pres.decrees, succeeded:true};
+  seatVP(party);
+  if(party===PL){ S.you.name=vpn; career('Кресло президента перешло к вам как к вице-президенту.'); }
+  logMsg('Президент '+old+' оставил пост. Полномочия принял вице-президент '+vpn+'.',1);
+  chron('Президент '+old+' ушёл, кресло занял вице-президент.','');
+  sheetOpen({eye:'Досрочная передача власти',title:'Президент оставил пост',
+    body:`<p class="lead">${old} прекратил полномочия до истечения срока. Конституция не назначает
+        новых выборов: кресло переходит к вице-президенту, и он доводит срок до конца.</p>
+      <div class="res"><span>Новый президент</span><b class="w">${vpn}</b>
+        <span>Партия</span><b class="w">${P(party).name}</b>
+        <span>Осталось от срока</span><b>${quarters(presLeft())}</b>
+        <span>Это вы</span><b class="w">${party===PL?'да':'нет'}</b></div>
+      <p class="hint">Новый вице-президент назначен из той же партии и с этого дня председательствует в Сенате.</p>`,
+    acts:[{label:'Принять к сведению'}]});
 }
 /* президент подбирает главу кабинета: вес фракции и близость к себе */
 function nominatePM(){
@@ -2202,6 +2402,7 @@ function offerPost(pid,post){
     chron('«'+P(pid).name+'» вошла в правительство.','g'); }
   if(pid!==PL&&S.partners[pid])S.partners[pid].anger=Math.max(0,S.partners[pid].anger-2);
   S.deputies.filter(d=>d.party===pid).forEach(d=>d.rel=clamp(d.rel+6,0,100));
+  syncCabinet();
   toast('Портфель передан');
   render();
 }
@@ -2256,7 +2457,7 @@ function takePower(){
   S.budget={submitted:false,fails:0}; S.lastBudget=snapshotBudget();
   S.gov={lead:PL,coal:[PL],posts:{}};
   POSTS.forEach(p=>S.gov.posts[p.id]=PL);
-  S.partners={}; S.role='pm';
+  S.partners={}; S.role='pm'; syncCabinet();
 }
 function fallGovernment(){
   S.govAge=0;
@@ -2267,6 +2468,7 @@ function fallGovernment(){
     .forEach(p=>{ if(coalSeats()<MAJ)S.gov.coal.push(p.id); });
   S.role='opp';
   S.partners={};
+  S.pm=null; syncCabinet();
 }
 
 /* ─── правительство ИИ, когда игрок в оппозиции ──────────────── */
@@ -2663,6 +2865,7 @@ function endQuarter(){
   budgetTick();
   decreeTick();
   governorTick();
+  presVacancy();
   worldShock();
   fireEvent();
 
@@ -2851,7 +3054,7 @@ function seatFormation(leadId){
   const order=S.parties.slice().sort((a,b)=>seatsOf(b.id)-seatsOf(a.id));
   if(leadId===PL){
     S.gov={lead:PL,coal:[PL],posts:{}};POSTS.forEach(p=>S.gov.posts[p.id]=PL);
-    S.partners={};S.role='pm';
+    S.partners={};S.role='pm'; syncCabinet();
     startTerm();
     if(seatsOf(PL)>=MAJ){
       sheetOpen({eye:'Мандат на правление',title:'У вас абсолютное большинство',
@@ -2862,6 +3065,7 @@ function seatFormation(leadId){
     const lead=P(leadId);
     // назначенец президента строит коалицию и может позвать игрока
     S.gov={lead:lead.id,coal:[lead.id],posts:{}};
+    S.pm=null;                                   // премьером станет он, а не вы
     POSTS.forEach(p=>S.gov.posts[p.id]=lead.id);
     const others=S.parties.filter(p=>p.id!==lead.id).sort((a,b)=>axDist(a.st,lead.st)-axDist(b.st,lead.st));
     let invite=null;
@@ -2895,6 +3099,7 @@ function seatFormation(leadId){
           (isPres()?' Президентское кресло при этом остаётся вашим: вето и указы никуда не делись.':'')+'</p>',
         acts:[{label:'Принять'}]});
     }
+    syncCabinet();
   }
 }
 function openCoalitionTalks(){
@@ -3025,6 +3230,12 @@ function load(){
     if(!S.govs||!Object.keys(S.govs).length){ seedGovernors(); S.govLog=S.govLog||[];
       logMsg('Введена должность главы субъекта: одиннадцать краёв получили своих правителей.',1); }
     S.govLog=S.govLog||[];
+    // сохранение до того, как исполнительная власть стала людьми
+    if(!S.vp){ seatVP(S.pres.party);
+      logMsg('Учреждена должность вице-президента: он председательствует в Сенате.',1); }
+    if(!S.pm||!S.ministers||!Object.keys(S.ministers).length){ seedCabinet();
+      logMsg('Кабинет получил поимённый состав: у каждого портфеля теперь есть министр.',1); }
+    syncCabinet();
     return true;
   }catch(e){ return false; }
 }
@@ -3122,6 +3333,8 @@ const TABS=[
   {id:'senate', name:'Сенат',        n:()=>senSeatsOf(PL)+'/'+SEN_SEATS},
   {id:'bill',   name:'Законы',       n:()=>S.laws.length, dot:()=>!!S.bill||!!S.vetoed},
   {id:'budget', name:'Бюджет',       n:()=>sign(Math.round(balance()))},
+  {id:'pm',     name:'Премьер-министр',short:'Премьер', n:()=>Math.round(cabinetPower()*100),
+   dot:()=>isPM()&&POSTS.some(x=>S.q-minOf(x.id).since>MIN_TERM)},
   {id:'gov',    name:'Правительство',short:'Кабинет', n:()=>coalSeats(), dot:()=>isPM()&&coalSeats()<MAJ},
   {id:'pres',   name:'Президент',    n:()=>presLeft(), dot:()=>!!S.vetoed},
   {id:'country',name:'Регионы',      n:()=>Math.round(avgUnrest())},
@@ -3189,8 +3402,9 @@ addEventListener('resize',()=>{ if(S)renderNav(); });
 function render(){
   if(!S)return;
   renderStrip(); renderNav();
-  const f=({brief:tabBrief,self:tabSelf,parl:tabParl,senate:tabSenate,bill:tabBill,budget:tabBudget,gov:tabGov,
-            pres:tabPres,country:tabCountry,society:tabSociety,camp:tabCamp,arch:tabArch,help:tabHelp})[S.tab]||tabBrief;
+  const f=({brief:tabBrief,self:tabSelf,parl:tabParl,senate:tabSenate,bill:tabBill,budget:tabBudget,
+            pm:tabPM,gov:tabGov,pres:tabPres,country:tabCountry,society:tabSociety,camp:tabCamp,
+            arch:tabArch,help:tabHelp})[S.tab]||tabBrief;
   document.getElementById('view').innerHTML=f();
   bindActions();
 }
@@ -3257,7 +3471,7 @@ function tabBrief(){
       st.anger>=2?'<span class="tag y">недовольны</span>':'<span class="tag g">лояльны</span>'}</div>`;}).join('')
     ||'<p class="hint">Однопартийное правительство: делить портфели не с кем.</p>';
 
-  const promBlock=(S.promises&&S.promises.length)?panel({title:'Обещания на созыв',
+  const promBlock=(S.promises&&S.promises.length)?panel({title:'Обещания',
       meta:'спросят через '+quarters(Math.max(0,TERM-(S.q-S.termStart))),
       body:S.promises.map(pp=>{const pr=PR(pp.id); if(!pr)return '';
         const ok=pr.ok(), w=Math.round(pr.prog());
@@ -3305,7 +3519,7 @@ function tabBrief(){
       <button class="btn pri lg block" id="endq" ${S.over?'disabled':''}>Завершить квартал · ${dateLabel()}</button>
     </div>
     <div>
-      ${panel({cls:coalSeats()<MAJ&&isPM()?'warn':'',title:'Три власти',meta:'что нужно, чтобы провести закон',body:
+      ${panel({cls:coalSeats()<MAJ&&isPM()?'warn':'',title:'Три власти',meta:'чтобы провести закон',body:
         `<div class="sub2" style="margin-bottom:3px">Собрание · нужно ${MAJ} из ${SEATS}</div>
         ${bar(S.parties.slice().sort((x,y)=>(inCoal(y.id)?1:0)-(inCoal(x.id)?1:0)).map(p=>
           [seatsOf(p.id)/SEATS*100,inCoal(p.id)?p.color:p.color+'70']),15)}
@@ -3852,50 +4066,122 @@ function askPost(post){
       fn:()=>offerPost(p.id,post)}))});
 }
 
-/* ─── 7 · Президент ──────────────────────────────────────────────
+/* ─── 7 · Премьер-министр ────────────────────────────────────────
+   Кресло, которое отвечает перед Собранием. Здесь не коалиционная
+   арифметика — она рядом, во «Правительстве», — а работа кабинета:
+   кто именно сидит в министерствах и что это даёт стране. */
+function tabPM(){
+  const p=S.pm, mine=isPM(), power=cabinetPower();
+  const tired=POSTS.filter(x=>S.q-minOf(x.id).since>MIN_TERM);
+  const rows=POSTS.map(x=>{ const m=minOf(x.id), pw=minPower(x.id), old=S.q-m.since>MIN_TERM;
+    return `<tr><td><b>${m.name}</b><div class="sub2">${x.name} · ${x.eff}</div></td>
+      <td>${chip(P(m.party))}</td>
+      <td class="n ${m.comp<40?'bad':m.comp>=72?'good':''}">${m.comp}</td>
+      <td class="hide-s dim">${old?'<span class="tag y">засиделся</span>':quarters(S.q-m.since)}</td>
+      <td class="n ${pw<0?'bad':'good'}">${sign(Math.round(pw*100))}%</td>
+      <td class="r"><button class="btn sm" onclick="askMinister('${x.id}')" ${S.ap&&mine?'':'disabled'}>Кресло</button></td></tr>`;}).join('');
+  const best=POSTS.slice().sort((a,b)=>minOf(b.id).comp-minOf(a.id).comp)[0];
+  const worst=POSTS.slice().sort((a,b)=>minOf(a.id).comp-minOf(b.id).comp)[0];
+
+  return panel({cls:mine?'lead-p':'info',title:mine?'Правительство под вашим началом':'Кабинет ведёт не ваша партия',
+    meta:'мандат от Собрания',body:
+    `<div class="cols c12"><div>
+      <div class="stat"><i>${P(p.party).name}</i><div class="v" style="font-family:var(--f-display);font-size:23px;letter-spacing:0">${p.name}</div>
+        <span>премьер-министр · ${quarters(S.q-p.since)} в должности</span></div>
+     </div><div>
+      <div class="res" style="margin:0">
+        <span>Сила кабинета</span><b class="${power<0?'bad':'good'}">${sign(Math.round(power*100))}%</b>
+        <span>Опора в Собрании</span><b class="${coalSeats()>=MAJ?'good':'bad'}">${coalSeats()} · нужно ${MAJ}</b>
+        <span>Опора в Сенате</span><b class="${senCoalSeats()>=SEN_MAJ?'good':'bad'}">${senCoalSeats()} · нужно ${SEN_MAJ}</b>
+        <span>Перестановок</span><b>${p.reshuffles||0}</b>
+        <span>Вотум недоверия</span><b class="w">${S.noConfCool>0?'не раньше чем через '+S.noConfCool:'возможен'}</b></div>
+      <p class="hint">Сила кабинета — среднее по шести ведомствам. Она не политика, а качество работы:
+        сильный министр вытягивает свою статью, слабый тянет вниз даже при верной программе.</p>
+     </div></div>`})
+  +panel({title:'Министры',meta:mine?'перестановка — '+PM_COST+' веса':'кресла не ваши',flush:true,
+    body:`<div class="scrollx"><table><thead><tr><th>Министр</th><th>Фракция</th><th class="n">Компет.</th>
+      <th class="hide-s">В должности</th><th class="n">Вклад</th><th></th></tr></thead><tbody>${rows}</tbody>
+      <caption>Партия портфеля — это коалиция; человек в кресле — это работа ведомства. Заменить министра
+        можно, не трогая расклад: та же фракция, другое лицо. После ${quarters(MIN_TERM)} в должности
+        министр начинает выдыхаться.</caption></table></div>`})
+  +`<div class="cols c11"><div>`
+  +panel({cls:tired.length?'warn':'',title:'Что требует внимания',body:
+    tired.length
+      ? `<p class="lead">Засиделись: ${tired.map(x=>x.name.toLowerCase()).join(', ')}.</p>
+         <p>Каждое такое кресло отнимает у ведомства шесть процентов отдачи. Перестановка возвращает их
+            и обычно приводит человека сильнее — но фракция, чей министр ушёл, это заметит.</p>`
+      : `<p class="lead">Кабинет свежий: никто не пересидел срок.</p>
+         <p class="hint">Присматривайте за компетентностью: она важнее партийной принадлежности
+            там, где нужен результат, а не голоса.</p>`,
+    foot:tired.length&&mine?`<button class="btn pri" onclick="askMinister('${tired[0].id}')" ${S.ap&&S.cap>=PM_COST?'':'disabled'}>Заняться креслом<span class="cost">${PM_COST}</span></button>`:''})
+  +`</div><div>`
+  +panel({title:'Сильное и слабое звено',body:
+    `<div class="dep"><div class="who"><b>${minOf(best.id).name}</b>
+        <span>${best.name} · ${minWord(minOf(best.id))}</span></div>
+       <b class="num-s good">${minOf(best.id).comp}</b></div>
+     <div class="dep"><div class="who"><b>${minOf(worst.id).name}</b>
+        <span>${worst.name} · ${minWord(minOf(worst.id))}</span></div>
+       <b class="num-s bad">${minOf(worst.id).comp}</b></div>
+     <p class="hint" style="margin-top:8px">Министр финансов прямо меняет сборы, остальные — свои статьи
+       и настроение групп, которые за ними следят.</p>`,
+    foot:`<button class="btn" data-go="gov">К коалиции и портфелям</button>`})
+  +`</div></div>`;
+}
+
+/* ─── 8 · Президент ──────────────────────────────────────────────
    Отдельная власть с отдельным сроком: подписывает или заворачивает
    законы, поручает кабинет, распускает Собрание, правит указами.
    Вкладка живая и когда кресло чужое — тогда это карточка соперника. */
 function tabPres(){
   const p=presParty(), mine=isPres(), gap=presGap();
+  const v=S.vp, vparty=vpParty(), vmine=isVP();
   const dec=activeDecrees();
-  const relWord=v=>v>=70?'союзник':v>=52?'работает с вами':v>=34?'холодно':v>=18?'противостояние':'открытая война';
-  const head=panel({cls:mine?'lead-p':'info',title:mine?'Президент — это вы':'Глава государства',
-    meta:'полномочия до: '+dateLabel(S.pres.until),
-    body:`<div class="cols c12"><div>
-        <div class="stat"><i>${p.name}</i><div class="v">${S.pres.name}</div>
-          <span>${mine?'ваш мандат — от всей страны':'мандат от всей страны, не от Собрания'}</span></div>
-      </div><div>
-        <div class="res" style="margin:0"><span>Осталось в кресле</span><b>${quarters(presLeft())}</b>
-          <span>Срок подряд</span><b class="${S.pres.term>=2?'warn':''}">${S.pres.term} из 2${
-            S.pres.term>=2?' · предел':''}</b>
-          <span>Наложено вето</span><b class="${S.pres.vetoes?'bad':''}">${S.pres.vetoes}</b>
-          <span>Подписано указов</span><b>${S.pres.decrees}</b>
-          <span>Указов в силе</span><b class="${dec.length?'warn':''}">${dec.length}</b>
-          ${mine?'':`<span>Отношения с вами</span><b class="${S.presRel<34?'bad':S.presRel>=52?'good':'warn'}">${Math.round(S.presRel)} · ${relWord(S.presRel)}</b>
-          <span>Расхождение с кабинетом</span><b class="${gap>2?'bad':''}">${gap.toFixed(1)}</b>`}</div>
-      </div></div>`});
+  const relWord=x=>x>=70?'союзник':x>=52?'работает с вами':x>=34?'холодно':x>=18?'противостояние':'открытая война';
 
-  const powers=panel({title:'Полномочия главы государства',flush:true,
-    body:`<table class="tight"><tbody>
+  /* два кресла рядом: избирались одним списком, полномочия разные */
+  const ticket=panel({cls:mine?'lead-p':'info',title:mine?'Президент — это вы':'Глава государства',
+    meta:'полномочия до: '+dateLabel(S.pres.until),body:
+    `<div class="cols c11"><div>
+      <div class="stat"><i>${p.name}${S.pres.succeeded?' · принял полномочия досрочно':''}</i>
+        <div class="v" style="font-family:var(--f-display);font-size:26px;letter-spacing:0">${S.pres.name}</div>
+        <span>${mine?'ваш мандат — от всей страны':'мандат от всей страны, не от Собрания'}</span></div>
+     </div><div>
+      <div class="stat"><i>${vparty?vparty.name:''} · вице-президент</i>
+        <div class="v" style="font-family:var(--f-display);font-size:26px;letter-spacing:0">${v?v.name:'—'}</div>
+        <span>${vmine?'ваш человек председательствует в Сенате':'председательствует в Сенате'}</span></div>
+     </div></div>
+     <div class="res">
+       <span>Осталось в кресле</span><b>${quarters(presLeft())}</b>
+       <span>Срок подряд</span><b class="${S.pres.term>=2?'warn':''}">${S.pres.term} из 2${S.pres.term>=2?' · предел':''}</b>
+       <span>Наложено вето</span><b class="${S.pres.vetoes?'bad':''}">${S.pres.vetoes}</b>
+       <span>Указов подписано</span><b>${S.pres.decrees}</b>
+       <span>Равенств разбито в Сенате</span><b>${v?v.ties||0:0}</b>
+       ${mine?'':`<span>Отношения с вами</span><b class="${S.presRel<34?'bad':S.presRel>=52?'good':'warn'}">${Math.round(S.presRel)} · ${relWord(S.presRel)}</b>
+       <span>Расхождение с кабинетом</span><b class="${gap>2?'bad':''}">${gap.toFixed(1)}</b>`}</div>`});
+
+  const powers=panel({title:'Кто что может',flush:true,
+    body:`<table class="tight"><thead><tr><th>Полномочие</th><th>Кресло</th><th class="r">У вас</th></tr></thead><tbody>
       <tr><td><b>Подпись и вето</b><div class="sub2">закон, прошедший обе палаты, вступает в силу только с подписью</div></td>
-        <td class="r">${mine?'<span class="tag g">ваше</span>':'<span class="tag y">не ваше</span>'}</td></tr>
+        <td class="dim">президент</td><td class="r">${mine?'<span class="tag g">да</span>':'<span class="tag r">нет</span>'}</td></tr>
       <tr><td><b>Поручение кабинета</b><div class="sub2">после выборов решает, кто собирает правительство</div></td>
-        <td class="r">${mine?'<span class="tag g">ваше</span>':'<span class="tag y">не ваше</span>'}</td></tr>
+        <td class="dim">президент</td><td class="r">${mine?'<span class="tag g">да</span>':'<span class="tag r">нет</span>'}</td></tr>
       <tr><td><b>Роспуск Собрания</b><div class="sub2">досрочные выборы без предвыборного штаба</div></td>
-        <td class="r">${mine?'<span class="tag g">ваше</span>':'<span class="tag y">не ваше</span>'}</td></tr>
+        <td class="dim">президент</td><td class="r">${mine?'<span class="tag g">да</span>':'<span class="tag r">нет</span>'}</td></tr>
       <tr><td><b>Указ</b><div class="sub2">${Math.round(DECREE_POWER*100)}% силы закона на ${quarters(DECREE_LEN)}, мимо палат</div></td>
-        <td class="r">${mine?'<span class="tag g">ваше</span>':'<span class="tag y">не ваше</span>'}</td></tr>
+        <td class="dim">президент</td><td class="r">${mine?'<span class="tag g">да</span>':'<span class="tag r">нет</span>'}</td></tr>
+      <tr><td><b>Решающий голос в Сенате</b><div class="sub2">равенство 50 на 50 разбивает председатель палаты</div></td>
+        <td class="dim">вице-президент</td><td class="r">${vmine?'<span class="tag g">да</span>':'<span class="tag r">нет</span>'}</td></tr>
+      <tr><td><b>Наследование кресла</b><div class="sub2">если президент уходит досрочно, срок доводит вице</div></td>
+        <td class="dim">вице-президент</td><td class="r">${vmine?'<span class="tag g">да</span>':'<span class="tag r">нет</span>'}</td></tr>
       </tbody></table>`,
     foot:mine?`<button class="btn" onclick="askDecree()" ${S.ap&&S.cap>=DECREE_COST?'':'disabled'}>Подписать указ<span class="cost">${DECREE_COST}</span></button>
         <button class="btn danger" onclick="callSnapElection()" ${(S.govAge||0)>=4&&!S.camp?'':'disabled'}>Распустить Собрание<span class="cost">25</span></button>
         <span class="hint">${(S.govAge||0)<4?'роспуск — не раньше пятого квартала кабинета':'выборы пройдут сразу, без штаба'}</span>`
-      :`<span class="hint">Чтобы получить эти полномочия, надо выиграть президентские выборы: ${
-        presLeft()?'они пройдут через '+quarters(presLeft()):'они уже в этом квартале'}.</span>`});
+      :`<span class="hint">Кресло берут на выборах: ${presLeft()?'они пройдут через '+quarters(presLeft()):'они уже в этом квартале'}.
+        Вице идёт тем же списком, поэтому выигрываются оба кресла разом.</span>`});
 
   const decRows=dec.map(l=>`<tr><td><b>${l.name}</b><div class="sub2">${AXNAME[T(l.topic).ax]} · ${STEP[l.stance+2]}</div></td>
-      <td class="n">до ${dateLabel(l.until)}</td>
-      <td class="r"><span class="tag y">указ</span></td></tr>`).join('')
+      <td class="n">до ${dateLabel(l.until)}</td><td class="r"><span class="tag y">указ</span></td></tr>`).join('')
     ||'<tr><td colspan="3" class="dim">Указов в силе нет: страна живёт по законам.</td></tr>';
 
   const vetoP=S.vetoed?panel({cls:'warn',title:'Закон на возврате',
@@ -3904,13 +4190,27 @@ function tabPres(){
     foot:`<button class="btn pri" onclick="overrideVeto()" ${S.ap&&S.cap>=capCost(14,'veto')?'':'disabled'}>Преодолеть вето<span class="cost">${capCost(14,'veto')}</span></button>
       <button class="btn" data-go="bill">К законам</button>`}):'';
 
-  const race=panel({title:'Как устроены выборы главы государства',
-    body:`<p class="hint" style="margin:0">Всенародно, в два тура, раз в ${quarters(PTERM)} — то есть по своим часам,
-      не совпадающим с созывом Собрания (${quarters(TERM)}). Если в первом туре никто не берёт половину,
-      во второй выходят двое, а голоса выбывших расходятся по близости взглядов. Партия, не дошедшая
-      до второго тура, решает, кого поддержать: поддержка запоминается и облегчает работу с будущим президентом.</p>`});
+  /* вице-президент важен ровно тогда, когда Сенат расколот пополам */
+  const senSplit=Math.abs(senCoalSeats()-(SEN_SEATS-senCoalSeats()));
+  const vpPanel=panel({cls:senSplit<=6?'warn':'',title:'Председатель Сената',
+    body:`<div class="res" style="margin-top:0"><span>Кто</span><b class="w">${v?v.name:'—'}</b>
+        <span>Партия</span><b class="w">${vparty?vparty.name:'—'}</b>
+        <span>Разбито равенств</span><b>${v?v.ties||0:0}</b>
+        <span>Расклад в Сенате</span><b>${senCoalSeats()} · ${SEN_SEATS-senCoalSeats()}</b>
+        <span>Разрыв</span><b class="${senSplit<=6?'warn':''}">${senSplit}</b></div>
+      <p class="hint">${senSplit<=6
+        ? 'Палата расколота почти поровну — значит решающий голос председателя будет звучать часто, и он не ваш, если вице-президент не ваш.'
+        : 'Пока разрыв велик, председатель молчит: его голос слышен только при равенстве в пятьдесят на пятьдесят.'}</p>`,
+    foot:`<button class="btn" data-go="senate">К Сенату</button>`});
 
-  return head+vetoP+`<div class="cols c11"><div>`+powers+`</div><div>`
+  const race=panel({title:'Как выбирают главу государства',
+    body:`<p class="hint" style="margin:0">Всенародно, в два тура, раз в ${quarters(PTERM)} — по своим часам,
+      не совпадающим с созывом Собрания (${quarters(TERM)}). Президент и вице идут одним списком: голосуют
+      за пару, а не за человека. Если в первом туре никто не берёт половину, во второй выходят двое,
+      а голоса выбывших расходятся по близости взглядов. Партия, не дошедшая до второго тура, решает,
+      кого поддержать. Два срока подряд — предел для человека, но не для партии: она выставляет новое лицо.</p>`});
+
+  return ticket+vetoP+`<div class="cols c11"><div>`+powers+`</div><div>`+vpPanel
     +panel({title:'Указы в силе',meta:'закон Собрания отменяет указ',flush:true,
       body:`<table class="tight"><tbody>${decRows}</tbody></table>`})
     +race+`</div></div>`;
@@ -4183,13 +4483,25 @@ function tabHelp(){
     <p>Палата субъектов. Сенатор вдвое меньше слушает фракцию и вдвое больше — свой край и вас лично,
       поэтому расклад здесь никогда не повторяет расклад Собрания. Всё, что задевает регионы, тут встречают жёстче.
       Обновление третями означает, что выигранные вами выборы в Собрание меняют Сенат лишь на треть — и не сразу.</p>
-    <h3 class="sub">Президент</h3>
+    <h3 class="sub">Премьер-министр и кабинет</h3>
+    <p>Портфель отдан фракции — это политика; кто именно сидит в кресле — это работа ведомства.
+      У премьера есть имя и срок, у каждого из шести министров — фамилия, партия и компетентность.
+      Сильный министр вытягивает свою статью, слабый тянет вниз даже при верной программе; министр
+      финансов прямо меняет сборы. После ${quarters(MIN_TERM)} в должности человек выдыхается, и ведомство
+      теряет часть отдачи. Перестановка стоит ${PM_COST} веса, меняет лицо, но не трогает коалицию —
+      фракция сохраняет портфель и только замечает потерю своего человека.</p>
+    <h3 class="sub">Президент и вице-президент</h3>
     <p>Подписывает или заворачивает законы, после выборов решает, кому поручить кабинет, может распустить
       Собрание и править указами. Указ обходит обе палаты, но действует ${Math.round(DECREE_POWER*100)}% силы
       закона и всего ${quarters(DECREE_LEN)}, а его легко перебить обычным законом. Два срока подряд — предел
       для человека: партия остаётся, лицо меняется.</p>
     <p>Если президентом становитесь вы, эти полномочия ваши — даже когда кабинет не ваш.
       Оппозиция с президентским креслом ничем не хуже правительства без него.</p>
+    <p>Вице-президент идёт на выборы тем же списком и потому всегда из партии президента. Своих
+      полномочий у него два. Он председательствует в Сенате и разбивает равенство: в палате из ста мест
+      пятьдесят на пятьдесят — не редкость, и тогда решает он, а не сенаторы. И он наследует кресло,
+      если президент оставляет его досрочно: новых выборов не назначают, вице доводит срок до конца.
+      Выигрывая президентские выборы, вы получаете оба кресла разом; проигрывая — отдаёте оба.</p>
     <h3 class="sub">Деньги</h3>
     <p>Казна — государственная, партийная касса — ваша. Из казны платят за поездки, транши регионам и стройки
       в округах; из кассы — за социологию и кампанию. Смешивать нельзя: заметят.</p>

@@ -14,70 +14,25 @@
    Всё остальное в системе собрано только из этих значений.
    ═══════════════════════════════════════════════════════════════ */
 :root{
-  /* 01 · бумага и чернила */
-  --bg:        #E3DDCE;   /* холст приложения */
-  --surface:   #FBF8F1;   /* лист: панель, модальное окно */
-  --surface-2: #F2EDE1;   /* подложка: шапка таблицы, неактивная вкладка */
-  --surface-3: #E9E2D2;   /* вдавленный блок, дорожка индикатора */
-  --band:      #1B1813;   /* тёмная полоса: шапка приложения */
-  --band-2:    #2E2820;   /* разделители внутри полосы */
-
-  --ink:       #17130E;   /* основной текст */
-  --ink-2:     #554E3F;   /* вторичный: подписи строк, лиды */
-  --ink-3:     #8A8271;   /* третичный: пояснения, единицы, «нет данных» */
-  --ink-inv:   #F2ECDC;   /* текст на тёмном */
-  --ink-inv-2: #A99C7C;
-
-  --line:      #C6BCA4;   /* основная линейка: рамка панели, низ шапки таблицы */
-  --line-2:    #DCD4C0;   /* слабая линейка: строки таблицы */
-
-  /* 02 · смысловые цвета. Роли не пересекаются:
-     чёрный — действие, золото — «вы здесь», красный — плохо, зелёный — хорошо. */
-  --act:    #17130E;      /* основное действие */
-  --mark:   #8A5A0E;      /* активный раздел, метка внимания, штамп бюллетеня */
-  --bad:    #93261E;      /* убыль, провал, угроза */
-  --good:   #2C6547;      /* прибыль, принято, поддержка */
-  --info:   #23456B;      /* нейтральная справка, вторая палата */
-  --mark-bg:#F1E7CE;      /* заливка под меткой */
-  --bad-bg: #F5E3DF;
-  --good-bg:#E2EDE4;
-
-  /* 03 · палитра фракций. Шесть различимых тонов, не пересекаются
-     со смысловыми: партия — это идентичность, а не оценка. */
-  --p1:#9A7211;  --p2:#93261E;  --p3:#23456B;
-  --p4:#14675F;  --p5:#4C6A22;  --p6:#5A3868;
-
-  /* 04 · шкалы данных. Расходящаяся — для поддержки, последовательная —
-     для напряжённости. В графиках используются только они. */
-  --d1:#7B2018; --d2:#B4744A; --d3:#C9B98F; --d4:#6E8F5E; --d5:#2C6547;
-  --s1:#E7E0CE; --s2:#D9C08A; --s3:#C08A3E; --s4:#A85A2A; --s5:#7B2018;
-
-  /* 05 · шаг сетки. Всё кратно 4, мелкие подгонки — 2. */
-  --x1:2px; --x2:4px; --x3:6px; --x4:8px; --x5:12px; --x6:16px;
-  --x7:20px; --x8:24px; --x9:32px; --x10:40px;
-
-  /* 06 · геометрия. Скруглений нет: документ, а не приложение. */
-  --r:0;
-  --hair:1px solid var(--line);
-  --hair-2:1px solid var(--line-2);
-  --rule:3px solid var(--mark);
-  --shadow:0 14px 40px rgba(20,16,10,.34);   /* только для перекрытий */
-
-  /* 07 · шрифт */
-  --f-display:'PT Serif',Georgia,serif;
+  /* бумага и краска */
+  --bg:#EDEAE2; --surface:#FFFDF9; --surface-2:#F4F1E9; --surface-3:#E8E4D9;
+  --band:#14130F; --band-2:#312E27;
+  --ink:#14130F; --ink-2:#4B473E; --ink-3:#807B70; --ink-inv:#FBF9F3; --ink-inv-2:#A8A297;
+  --line:#171510; --line-2:#CFCABC; --line-3:#E2DED2;
+  /* один акцент на всю полосу: газетный красный */
+  --act:#14130F; --mark:#A4211B; --bad:#A4211B; --good:#1C5738; --info:#1C3C68;
+  --mark-bg:#F6E9E5; --bad-bg:#F6E4E0; --good-bg:#E4EEE7;
+  --p1:#9A7211; --p2:#93261E; --p3:#23456B; --p4:#14675F; --p5:#4C6A22; --p6:#5A3868;
+  --x1:2px; --x2:4px; --x3:6px; --x4:8px; --x5:12px; --x6:16px; --x7:20px; --x8:24px; --x9:32px; --x10:40px;
+  /* линейки — главный инструмент полосы: волосяная, обычная, жирная */
+  --hair:1px solid var(--line-2); --hair-2:1px solid var(--line-3);
+  --rule:3px solid var(--ink); --rule-thin:1px solid var(--ink);
+  --shadow:0 18px 48px rgba(16,14,10,.30);
+  --f-display:'PT Serif',Georgia,'Times New Roman',serif;
   --f-text:'PT Sans',system-ui,sans-serif;
-  --f-cond:'PT Sans Narrow',sans-serif;
-  --f-num:'PT Mono',ui-monospace,monospace;
-
-  /* 08 · движение. Три длительности, одна кривая, и не более. */
-  --t-fast:90ms; --t:150ms; --t-slow:240ms;
-  --ease:cubic-bezier(.2,.7,.3,1);
-
-  /* 09 · плотность */
-  --row:30px;        /* строка таблицы, обычная плотность */
-  --row-tight:24px;  /* плотная */
-  --rail:226px;      /* ширина бокового меню */
-  --page:1380px;     /* предельная ширина полосы набора */
+  --f-cond:'PT Sans Narrow',sans-serif; --f-num:'PT Mono',ui-monospace,monospace;
+  --t-fast:90ms; --t:150ms; --t-slow:240ms; --ease:cubic-bezier(.2,.7,.3,1);
+  --row:30px; --row-tight:24px; --rail:232px; --page:1420px;
 }
 
 /* ═══ типографика ═══════════════════════════════════════════════
@@ -149,72 +104,108 @@ code{font:400 12px var(--f-num);background:var(--surface-2);padding:1px 4px;bord
    ═══════════════════════════════════════════════════════════════ */
 
 /* --- панель ---------------------------------------------------- */
-.panel{background:var(--surface);border:var(--hair);margin-bottom:var(--x5)}
-.panel>header{display:flex;align-items:center;gap:var(--x4);padding:6px var(--x5);
-  background:var(--surface-2);border-bottom:var(--hair)}
-.panel>header h4{margin:0;font:700 12.5px var(--f-cond);text-transform:uppercase;letter-spacing:.1em}
-.panel>header .meta{margin-left:auto;font-size:11.5px;color:var(--ink-3)}
+.panel{background:var(--surface);border:var(--hair);border-top:var(--rule-thin);margin-bottom:var(--x6)}
+.panel>header{display:flex;align-items:baseline;gap:var(--x4);padding:7px var(--x5) 5px;
+  border-bottom:var(--rule-thin);flex-wrap:wrap}
+.panel>header h4{margin:0;font:700 16px/1.15 var(--f-display);letter-spacing:-.01em;
+  flex:1 1 auto;min-width:0}
+.panel>header .meta{margin-left:auto;font:400 11px/1.3 var(--f-cond);text-transform:uppercase;
+  letter-spacing:.1em;color:var(--ink-3);text-align:right;flex:0 1 auto}
 .panel>.body{padding:var(--x5)}
-.panel>footer{padding:var(--x4) var(--x5);border-top:var(--hair);background:var(--surface-2)}
-.panel.lead{border-top:var(--rule)}                 /* главное на экране */
+.panel>.body.flush{padding:0}
+.panel>footer{padding:var(--x4) var(--x5);border-top:var(--hair);background:var(--surface-2);
+  display:flex;gap:var(--x3);flex-wrap:wrap;align-items:center}
+.panel.lead-p{border-top:6px double var(--ink)}
 .panel.warn{border-top:3px solid var(--bad)}
 .panel.calm{border-top:3px solid var(--good)}
 .panel.info{border-top:3px solid var(--info)}
-.panel.inset{background:var(--surface-3);border-style:dashed}
+.panel.inset{background:var(--surface-2)}
+.cols{display:grid;gap:var(--x6);align-items:start}
+.c21{grid-template-columns:2fr 1fr} .c11{grid-template-columns:1fr 1fr}
+.c12{grid-template-columns:1fr 2fr} .c111{grid-template-columns:repeat(3,1fr)}
+.grid{display:grid;gap:var(--x4)} .g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:repeat(3,1fr)} .g4{grid-template-columns:repeat(4,1fr)}
+.row,.brow{display:flex;gap:var(--x3);flex-wrap:wrap;align-items:center}
+/* врезка — то, что в газете ставят в рамку посреди текста */
+.pin{border-top:var(--rule-thin);border-bottom:var(--rule-thin);background:var(--surface);
+  padding:var(--x4) 0;font:400 14.5px/1.5 var(--f-display);margin-bottom:var(--x6)}
+.pin.warn{border-color:var(--bad);color:#6E1712}
+.pin b{display:block;font:700 8.5px var(--f-cond);text-transform:uppercase;letter-spacing:.2em;
+  color:var(--ink-3);margin-bottom:2px}
+.pin.warn b{color:var(--bad)}
 
 /* --- кнопки ---------------------------------------------------- */
-.btn{font:400 12.5px var(--f-cond);text-transform:uppercase;letter-spacing:.08em;
-  background:var(--surface);color:var(--ink);border:1px solid var(--ink-2);
-  padding:5px 12px;cursor:pointer;transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease)}
-.btn:hover{background:var(--ink);color:var(--ink-inv)}
-.btn:active{transform:translate(1px,1px)}
-.btn:focus-visible{outline:2px solid var(--mark);outline-offset:1px}
-.btn.pri{background:var(--act);color:var(--ink-inv);border-color:var(--act)}
-.btn.pri:hover{background:#000}
+.btn,.b{display:inline-flex;align-items:center;justify-content:center;gap:5px;
+  font:700 11.5px var(--f-cond);text-transform:uppercase;letter-spacing:.1em;
+  padding:7px 13px;border:var(--rule-thin);background:var(--surface);color:var(--ink);
+  cursor:pointer;transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease)}
+.btn:hover:not(:disabled),.b:hover:not(:disabled){background:var(--ink);color:var(--ink-inv)}
+.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.pri,.b.pri{background:var(--ink);color:var(--ink-inv)}
+.btn.pri:hover:not(:disabled){background:var(--mark);border-color:var(--mark)}
 .btn.danger{border-color:var(--bad);color:var(--bad)}
-.btn.danger:hover{background:var(--bad);color:#fff}
-.btn.ghost{border-color:var(--line);color:var(--ink-2)}
-.btn.ghost:hover{background:var(--surface-2);color:var(--ink)}
+.btn.danger:hover:not(:disabled){background:var(--bad);color:#fff}
+.btn.ghost{border-color:var(--line-2);color:var(--ink-2)}
 .btn.sel{background:var(--mark);border-color:var(--mark);color:#fff}
-.btn[disabled]{background:var(--surface-2);border-color:var(--line);color:var(--ink-3);cursor:not-allowed}
-.btn[disabled]:active{transform:none}
-.btn.sm{font-size:11px;padding:3px 8px}
-.btn.lg{font-size:14px;padding:9px 18px}
-.btn.block{display:block;width:100%;text-align:center}
-.btn .cost{font-family:var(--f-num);font-size:11px;opacity:.75;margin-left:6px}
-.btn.busy{position:relative;color:transparent}
-.btn.busy::after{content:'';position:absolute;inset:0;margin:auto;width:11px;height:11px;
-  border:2px solid var(--ink-3);border-top-color:transparent;animation:spin .7s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
+.btn:disabled,.b:disabled{opacity:.34;cursor:not-allowed}
+.btn.sm,.b.sm{padding:4px 9px;font-size:10.5px;letter-spacing:.08em}
+.btn.lg{padding:12px 20px;font-size:14px}
+.btn.block,.b.wide{display:flex;width:100%;text-align:center}
+.btn .cost{font-family:var(--f-num);font-size:11px;opacity:.7;margin-left:5px;letter-spacing:-.03em}
 
 /* --- таблицы --------------------------------------------------- */
-table.tbl{width:100%;border-collapse:collapse;font-size:13px}
-.tbl th{font:700 9.5px var(--f-cond);text-transform:uppercase;letter-spacing:.11em;color:var(--ink-2);
-  text-align:left;padding:4px 7px;background:var(--surface-2);border-bottom:var(--hair);white-space:nowrap}
-.tbl td{padding:0 7px;height:var(--row);border-bottom:var(--hair-2);vertical-align:middle}
-.tbl tbody tr:last-child td{border-bottom:0}
-.tbl tbody tr:hover{background:var(--mark-bg)}
-.tbl tr.sel td{background:var(--mark-bg);box-shadow:inset 3px 0 0 var(--mark)}
-.tbl td.n,.tbl th.n{text-align:right;font-family:var(--f-num);font-size:12.5px;letter-spacing:-.03em;white-space:nowrap}
-.tbl.tight td{height:var(--row-tight);padding:0 6px}
-.tbl caption{caption-side:bottom;text-align:left;font-size:11.5px;color:var(--ink-3);padding-top:var(--x3)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font:700 8.5px var(--f-cond);text-transform:uppercase;letter-spacing:.16em;color:var(--ink-2);
+  text-align:left;padding:4px 8px;border-top:var(--rule-thin);border-bottom:1px solid var(--line-2);
+  white-space:nowrap;background:none}
+td{padding:0 8px;height:var(--row);border-bottom:var(--hair-2);vertical-align:middle}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:var(--surface-2)}
+tr.sel td{background:var(--surface-2);box-shadow:inset 3px 0 0 var(--ink)}
+td.n,th.n,td.num{text-align:right;font-family:var(--f-num);font-size:12.5px;letter-spacing:-.04em;white-space:nowrap}
+td.r,th.r{text-align:right}
+table.tight td{height:var(--row-tight);padding:0 7px}
+table.tight th{padding:3px 7px}
+caption{caption-side:bottom;text-align:left;font-size:11.5px;color:var(--ink-3);
+  padding:var(--x3) var(--x5) var(--x4);border-top:1px solid var(--line-3)}
 .scrollx{overflow-x:auto}
+.sub2{font-size:11.5px;color:var(--ink-3)}
 
 /* --- индикаторы и данные --------------------------------------- */
-.meter{height:8px;background:var(--surface-3);border:var(--hair);display:flex;position:relative}
-.meter i{height:100%}
-.meter .mid{position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--ink)}
-.meter.tall{height:15px}
-.bar-s{display:inline-block;width:66px;height:6px;background:var(--surface-3);border:var(--hair);vertical-align:middle}
-.bar-s i{display:block;height:100%;background:var(--ink-2)}
-.stat{border:var(--hair);background:var(--surface);padding:var(--x4) var(--x5)}
-.stat .k{font:400 10px var(--f-cond);text-transform:uppercase;letter-spacing:.14em;color:var(--ink-3)}
-.stat .v{font:400 21px/1.1 var(--f-num);letter-spacing:-.04em;margin-top:2px}
-.stat .v u{text-decoration:none;font:400 11px var(--f-text);color:var(--ink-3);margin-left:3px}
-.stat .d{font-size:11.5px;color:var(--ink-3);margin-top:1px}
-.stat.alert{border-color:#D9B7AF;background:var(--bad-bg)}
-.stat.alert .v{color:var(--bad)}
-.est{border-bottom:1px dotted var(--ink-3);cursor:help}   /* оценка без опроса */
+.meter,.bar{height:9px;background:var(--surface-3);border:1px solid var(--line-2);display:flex;position:relative}
+.meter i,.bar i{display:block;height:100%}
+.meter .mid,.bar .mid{position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--ink)}
+.meter.tall{height:16px}
+.mini{display:inline-block;width:60px;height:6px;background:var(--surface-3);border:1px solid var(--line-2);vertical-align:middle}
+.mini i{display:block;height:100%;background:var(--ink-2)}
+/* показатель — как биржевая сводка: подпись капителью, число крупно */
+.stat{border-top:var(--rule-thin);padding:var(--x4) 0 var(--x3)}
+.stat .k,.stat i{font:700 8.5px var(--f-cond);text-transform:uppercase;letter-spacing:.18em;
+  color:var(--ink-3);white-space:nowrap;font-style:normal;display:block}
+.stat .v{font:400 30px/1.05 var(--f-num);letter-spacing:-.055em;margin-top:3px}
+.stat .v u{text-decoration:none;font:400 12px var(--f-text);color:var(--ink-3);margin-left:3px;letter-spacing:0}
+.stat .d,.stat span{font-size:11.5px;color:var(--ink-3);margin-top:1px;display:block}
+.stat.alert{border-top-color:var(--bad)} .stat.alert .v{color:var(--bad)}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;white-space:nowrap}
+.chip s{width:9px;height:9px;flex:none;text-decoration:none;display:inline-block}
+.tag{display:inline-block;font:700 8.5px var(--f-cond);text-transform:uppercase;letter-spacing:.12em;
+  border:1px solid currentColor;padding:1px 5px;white-space:nowrap}
+.tag.g{color:var(--good)} .tag.r{color:var(--bad)} .tag.b{color:var(--info)} .tag.y{color:#8A5A0E}
+/* печать ставится поверх материала, как штамп в наборной кассе */
+.stamp{display:inline-block;font:700 16px var(--f-display);text-transform:uppercase;letter-spacing:.14em;
+  border:2px solid currentColor;box-shadow:inset 0 0 0 1px currentColor;padding:4px 14px;
+  transform:rotate(-3deg)}
+.stamp.yes,.stamp.y{color:var(--good)} .stamp.no,.stamp.n{color:var(--bad)}
+.kv{display:flex;justify-content:space-between;gap:var(--x5);padding:4px 0;
+  border-bottom:1px dotted var(--line-2);font-size:13px}
+.kv:last-child{border-bottom:none}
+.kv b{font-family:var(--f-num);font-weight:400;letter-spacing:-.04em}
+/* сводка ключ-значение: точечный лидер между колонками, как в программе передач */
+.res{display:grid;grid-template-columns:1fr auto;gap:2px var(--x6);font-size:13px;
+  border-top:var(--rule-thin);border-bottom:1px solid var(--line-2);padding:var(--x4) 0;margin:var(--x4) 0}
+.res span{color:var(--ink-2)}
+.res b{font-family:var(--f-num);font-weight:400;text-align:right;letter-spacing:-.04em}
+.res b.w{font-family:var(--f-text);font-weight:700;letter-spacing:0}
 
 /* --- фишки, метки, штампы -------------------------------------- */
 .chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;white-space:nowrap}
@@ -264,26 +255,28 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
 .empty{padding:var(--x8);text-align:center;color:var(--ink-3);font-size:13px;border:1px dashed var(--line)}
 
 /* --- модальное окно -------------------------------------------- */
-.modal{background:var(--surface);border:1px solid var(--ink-2);border-top:4px solid var(--mark);
-  box-shadow:var(--shadow);max-width:600px;animation:rise var(--t-slow) var(--ease)}
+#modal{position:fixed;inset:0;z-index:60;background:rgba(20,18,12,.62);display:none;
+  align-items:flex-start;justify-content:center;padding:var(--x8) var(--x5);overflow-y:auto}
+#modal.show{display:flex}
+#msheet{background:var(--surface);border:var(--rule);box-shadow:var(--shadow);
+  width:100%;max-width:640px;animation:rise var(--t-slow) var(--ease)}
 @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-.modal .mh{padding:var(--x4) var(--x6);background:var(--surface-2);border-bottom:var(--hair)}
-.modal .mh i{display:block;font:400 9.5px var(--f-cond);text-transform:uppercase;
-  letter-spacing:.14em;color:var(--ink-3);font-style:normal}
-.modal .mh h3{margin:1px 0 0;font:700 19px/1.15 var(--f-display)}
-.modal .mb{padding:var(--x5) var(--x6);font-size:13.5px}
-.modal .mf{padding:var(--x4) var(--x6);border-top:var(--hair);background:var(--surface-2);
+#msheet .mh{padding:var(--x5) var(--x6) var(--x4);border-bottom:var(--rule-thin)}
+#msheet .mh i{display:block;font:700 8.5px var(--f-cond);text-transform:uppercase;
+  letter-spacing:.2em;color:var(--ink-3);font-style:normal}
+#msheet .mh h2{margin:3px 0 0;font:700 25px/1.1 var(--f-display);letter-spacing:-.015em}
+#msheet .mb{padding:var(--x5) var(--x6);font-size:13.5px}
+#msheet .mf{padding:var(--x4) var(--x6);border-top:var(--rule-thin);background:var(--surface-2);
   display:flex;gap:var(--x3);justify-content:flex-end;flex-wrap:wrap}
-.opt{display:block;width:100%;text-align:left;background:var(--surface-2);border:var(--hair);
-  padding:8px 11px;margin-bottom:6px;cursor:pointer;font:400 13px var(--f-text);color:var(--ink);
-  transition:border-color var(--t-fast) var(--ease),background var(--t-fast) var(--ease)}
-.opt:hover{border-color:var(--ink-2);background:var(--mark-bg)}
-.opt b{display:flex;align-items:center;gap:9px}
+.opt{display:block;width:100%;text-align:left;background:var(--surface);border:0;
+  border-top:1px solid var(--line-2);padding:9px 2px;margin:0;cursor:pointer;
+  font:400 13px var(--f-text);color:var(--ink);
+  transition:background var(--t-fast) var(--ease),padding-left var(--t-fast) var(--ease)}
+.opt:last-child{border-bottom:1px solid var(--line-2)}
+.opt:hover{background:var(--surface-2);padding-left:9px}
+.opt b{display:flex;align-items:center;gap:9px;font:700 14px var(--f-display);letter-spacing:-.01em}
 .opt b .ic{flex:none;opacity:.7}
-.opt span{display:block;font-size:11.5px;color:var(--ink-3)}
-.res{display:grid;grid-template-columns:1fr auto;gap:3px var(--x6);font-size:13px;
-  border-top:var(--hair-2);border-bottom:var(--hair-2);padding:var(--x4) 0;margin:var(--x4) 0}
-.res b{font-family:var(--f-num);font-weight:400;text-align:right;letter-spacing:-.03em}
+.opt span{display:block;font-size:11.5px;color:var(--ink-3);margin-top:1px}
 
 /* --- политические компоненты ----------------------------------- */
 .seatbar{display:flex;height:15px;border:var(--hair);position:relative;background:var(--surface-3)}
@@ -314,20 +307,24 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
 .spark{display:block;width:100%;height:46px}
 
 /* --- шапка приложения ------------------------------------------ */
-.appbar{background:var(--band);color:var(--ink-inv);display:flex;align-items:stretch;
-  border-bottom:var(--rule);min-height:52px}
-.appbar .brand{display:flex;align-items:center;gap:9px;padding:6px var(--x5);flex:none}
-.appbar .brand b{font:700 15px/1.05 var(--f-display);letter-spacing:.06em;display:block}
-.appbar .brand span{font:400 9.5px/1.2 var(--f-cond);text-transform:uppercase;
-  letter-spacing:.14em;color:var(--ink-inv-2)}
-.appbar .strip{margin-left:auto;display:flex}
-.sv{padding:6px 13px;border-left:1px solid var(--band-2);display:flex;flex-direction:column;
-  justify-content:center;min-width:76px;flex:none}
-.sv i{font:400 9px var(--f-cond);text-transform:uppercase;letter-spacing:.12em;
-  color:var(--ink-inv-2);font-style:normal}
-.sv b{font:400 15px var(--f-num);letter-spacing:-.03em;color:var(--ink-inv);white-space:nowrap}
-.sv b.warn{color:#E0A24C} .sv b.bad{color:#DE8375} .sv b.good{color:#8FC0A0}
-.sv.act{background:var(--band-2);box-shadow:inset 0 -3px 0 var(--mark)}
+#top{position:sticky;top:0;z-index:40;background:var(--surface);color:var(--ink);
+  display:flex;align-items:stretch;border-bottom:var(--rule)}
+#top .brand{display:flex;align-items:center;gap:10px;padding:7px var(--x6) 7px var(--x5);flex:none;
+  border-right:var(--rule-thin)}
+#top .brand img{width:30px;height:33px;display:block}
+#top .brand b{font:700 24px/1 var(--f-display);letter-spacing:.02em;display:block}
+#top .brand span{font:700 8.5px/1.2 var(--f-cond);text-transform:uppercase;letter-spacing:.2em;
+  color:var(--ink-3);display:block;margin-top:2px}
+#strip{margin-left:auto;display:flex;overflow-x:auto;scrollbar-width:none}
+#strip::-webkit-scrollbar{display:none}
+.sv{padding:6px 14px;border-left:1px solid var(--line-3);display:flex;flex-direction:column;
+  justify-content:center;min-width:80px;flex:none}
+.sv i{font:700 8.5px var(--f-cond);text-transform:uppercase;letter-spacing:.16em;
+  color:var(--ink-3);font-style:normal}
+.sv b{font:400 16px var(--f-num);letter-spacing:-.04em;color:var(--ink);white-space:nowrap}
+.sv b.warn{color:#8A5A0E} .sv b.bad{color:var(--bad)} .sv b.good{color:var(--good)}
+.sv.act{background:var(--ink);}
+.sv.act i{color:var(--ink-inv-2)} .sv.act b{color:var(--ink-inv)}
 
 /* --- навигация -------------------------------------------------- */
 .rail{width:var(--rail);border-right:var(--hair);background:rgba(255,255,255,.2);padding:var(--x4) 0}
@@ -351,61 +348,63 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
   padding:0 4px;color:var(--ink-2)}
 
 /* --- плашки-переключатели --------------------------------------- */
-.seg{display:inline-flex;border:var(--hair);background:var(--surface-2);max-width:100%;
+.seg{display:inline-flex;border:var(--rule-thin);background:var(--surface);max-width:100%;
   overflow-x:auto;scrollbar-width:none}
 .seg::-webkit-scrollbar{display:none}
-.seg button{border:0;border-right:var(--hair);background:none;padding:7px 13px;cursor:pointer;flex:none;
-  font:400 12px var(--f-cond);text-transform:uppercase;letter-spacing:.08em;color:var(--ink-2);
-  display:flex;align-items:center;gap:6px;transition:background var(--t-fast) var(--ease)}
+.seg button{border:0;border-right:1px solid var(--line-2);background:none;padding:7px 13px;
+  cursor:pointer;flex:none;font:700 11px var(--f-cond);text-transform:uppercase;letter-spacing:.1em;
+  color:var(--ink-2);display:flex;align-items:center;gap:6px;
+  transition:background var(--t-fast) var(--ease)}
 .seg button:last-child{border-right:0}
-.seg button:hover:not(.on){background:var(--mark-bg);color:var(--ink)}
-.seg button.on{background:var(--act);color:var(--ink-inv)}
-.seg button u{text-decoration:none;font:400 11px var(--f-num);opacity:.7}
+.seg button:hover:not(.on){background:var(--surface-2);color:var(--ink)}
+.seg button.on{background:var(--ink);color:var(--ink-inv)}
+.seg button u{text-decoration:none;font:400 11px var(--f-num);opacity:.65;letter-spacing:-.03em}
 .seg.wide{display:flex;width:100%}
 .seg.wide button{flex:1;justify-content:center}
 
 /* --- путь закона: три ступени ---------------- */
-.gates{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);
-  border:var(--hair);margin-bottom:var(--x2)}
-.gate{background:var(--surface);padding:var(--x4);display:flex;flex-direction:column;gap:3px}
-.gate i{font:400 9.5px var(--f-cond);text-transform:uppercase;letter-spacing:.14em;
+.gates{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:var(--rule-thin)}
+.gate{background:var(--surface);padding:var(--x4) var(--x5);display:flex;flex-direction:column;gap:3px;
+  border-right:1px solid var(--line-2)}
+.gate:last-child{border-right:0}
+.gate i{font:700 8.5px var(--f-cond);text-transform:uppercase;letter-spacing:.18em;
   color:var(--ink-3);font-style:normal}
-.gate b{font:400 24px var(--f-num);letter-spacing:-.04em;line-height:1}
+.gate b{font:400 27px/1 var(--f-num);letter-spacing:-.05em}
 .gate u{text-decoration:none;font:400 10.5px var(--f-cond);color:var(--ink-3);
   text-transform:uppercase;letter-spacing:.06em}
 .gate span.dim{font-size:11px}
-.gate.ok{box-shadow:inset 3px 0 0 var(--good)}
-.gate.no{box-shadow:inset 3px 0 0 var(--bad)}
+.gate.ok{box-shadow:inset 0 3px 0 var(--good)}
+.gate.no{box-shadow:inset 0 3px 0 var(--bad)}
 
-.path{border:var(--hair);margin:var(--x4) 0}
+.path{border-top:var(--rule-thin);border-bottom:var(--rule-thin);margin:var(--x5) 0}
 .stg{display:grid;grid-template-columns:1fr auto auto auto;align-items:center;gap:var(--x4);
-  padding:8px var(--x5);border-bottom:var(--hair-2);background:var(--surface)}
+  padding:9px var(--x2);border-bottom:var(--hair-2);background:var(--surface)}
 .stg:last-child{border-bottom:0}
-.stg i{font-style:normal;font:700 12px var(--f-cond);text-transform:uppercase;letter-spacing:.08em}
-.stg b{font-weight:400;font-size:11.5px;color:var(--ink-3)}
-.stg u{text-decoration:none;font:400 14px var(--f-num);letter-spacing:-.03em;min-width:62px;text-align:right}
+.stg i{font-style:normal;font:700 14px var(--f-display);letter-spacing:-.01em}
+.stg b{font-weight:400;font-size:11px;font-family:var(--f-cond);text-transform:uppercase;
+  letter-spacing:.1em;color:var(--ink-3)}
+.stg u{text-decoration:none;font:400 15px var(--f-num);letter-spacing:-.04em;min-width:66px;text-align:right}
 .stg.ok{box-shadow:inset 3px 0 0 var(--good)}
 .stg.no{box-shadow:inset 3px 0 0 var(--bad)}
 
-/* линейка направления: где стоят партии и где стоит закон */
-.ruler{position:relative;height:22px;background:var(--surface-2);border:var(--hair-2)}
-.ruler::after{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--rule)}
-.ruler i{position:absolute;top:5px;width:7px;height:7px;margin-left:-3.5px;border-radius:0}
+/* линейка направления */
+.ruler{position:relative;height:22px;background:var(--surface-2);border:1px solid var(--line-2)}
+.ruler::after{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line-2)}
+.ruler i{position:absolute;top:5px;width:7px;height:7px;margin-left:-3.5px}
 .ruler s{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:var(--ink);
   text-decoration:none}
-
 
 /* --- молва: четыре шкалы личного дела ------------ */
 .repline{display:grid;grid-template-columns:118px 1fr 34px auto;align-items:center;gap:var(--x4);
   padding:5px 0;border-bottom:var(--hair-2)}
 .repline:last-of-type{border-bottom:0}
-.repline i{font-style:normal;font:400 11px var(--f-cond);text-transform:uppercase;
-  letter-spacing:.05em;color:var(--ink-2);white-space:nowrap}
-.repline b{font:400 13px var(--f-num);text-align:right;letter-spacing:-.03em}
+.repline i{font-style:normal;font:700 11px var(--f-cond);text-transform:uppercase;
+  letter-spacing:.1em;color:var(--ink-2);white-space:nowrap}
+.repline b{font:400 13px var(--f-num);text-align:right;letter-spacing:-.04em}
 .repline u{text-decoration:none;font-size:11px;color:var(--ink-3);min-width:88px}
-.repscale{position:relative;height:8px;background:var(--surface-3);border:var(--hair-2)}
-.repscale::after{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line)}
-.repscale span{position:absolute;top:-2px;width:3px;height:12px;background:var(--ink);margin-left:-1.5px}
+.repscale{position:relative;height:8px;background:var(--surface-3);border:1px solid var(--line-2)}
+.repscale::after{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line-2)}
+.repscale span{position:absolute;top:-3px;width:3px;height:14px;background:var(--ink);margin-left:-1.5px}
 
 /* --- карьера политика ──────────────────────────────────────── */
 .career{max-height:340px;overflow-y:auto}
@@ -464,7 +463,7 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
 </head>
 <body>
 <header id="gh">
-  <b>NOVARIA UI</b><span>дизайн-система · версия 1</span>
+  <b>NOVARIA UI</b><span>дизайн-система · редакция 2 · газетная полоса</span>
   <em>черновик к утверждению</em>
 </header>
 <div id="gw">
@@ -493,37 +492,41 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
 <main id="doc">
 <section id="c01">
 <h2><i>01</i>Цвет</h2>
-<p class="why">Четыре набора, которые не смешиваются. Бумага и чернила держат весь интерфейс.
-Смысловые цвета отвечают только за оценку: чёрный — действие, золото — «вы здесь» и требует внимания,
-красный — убыль и провал, зелёный — прибыль и принятое решение. Палитра фракций — это опознавательный знак,
+<p class="why">Вторая редакция сменила основание: вместо архивной бумаги — сегодняшняя полоса.
+Поле стало светлее и холоднее, чернила почернели, а главным инструментом стала линейка, а не рамка.
+Акцент теперь один на всю систему — газетный красный, и он дорог: им отмечается активный раздел,
+провал и то, что требует решения. Золото ушло совсем. Палитра фракций — опознавательный знак,
 а не оценка: красная фракция не «плохая». Шкалы данных живут отдельно, чтобы карта и графики не спорили
-с интерфейсом. Правило простое: если цвет что-то значит, рядом всегда есть слово или число, которое значит то же самое.</p>
+с интерфейсом. Правило прежнее: если цвет что-то значит, рядом всегда есть слово или число, которое значит то же самое.</p>
 
 <h3 class="sub">Бумага и чернила</h3>
 <div class="grid g6">
-  <div class="sw"><i style="background:#E3DDCE"></i><div><b>холст</b><span>--bg</span></div></div>
-  <div class="sw"><i style="background:#FBF8F1"></i><div><b>лист</b><span>--surface</span></div></div>
-  <div class="sw"><i style="background:#F2EDE1"></i><div><b>подложка</b><span>--surface-2</span></div></div>
-  <div class="sw"><i style="background:#E9E2D2"></i><div><b>вдавленное</b><span>--surface-3</span></div></div>
-  <div class="sw"><i style="background:#1B1813"></i><div><b>полоса</b><span>--band</span></div></div>
-  <div class="sw"><i style="background:#C6BCA4"></i><div><b>линейка</b><span>--line</span></div></div>
+  <div class="sw"><i style="background:#EDEAE2"></i><div><b>поле</b><span>--bg</span></div></div>
+  <div class="sw"><i style="background:#FFFDF9"></i><div><b>полоса</b><span>--surface</span></div></div>
+  <div class="sw"><i style="background:#F4F1E9"></i><div><b>подложка</b><span>--surface-2</span></div></div>
+  <div class="sw"><i style="background:#E8E4D9"></i><div><b>вдавленное</b><span>--surface-3</span></div></div>
+  <div class="sw"><i style="background:#14130F"></i><div><b>краска</b><span>--band</span></div></div>
+  <div class="sw"><i style="background:#171510"></i><div><b>жирная линейка</b><span>--line</span></div></div>
 </div>
 <div class="grid g4" style="margin-top:var(--x5)">
-  <div class="sw"><i style="background:#17130E"></i><div><b>текст</b><span>--ink</span></div></div>
-  <div class="sw"><i style="background:#554E3F"></i><div><b>вторичный</b><span>--ink-2</span></div></div>
-  <div class="sw"><i style="background:#8A8271"></i><div><b>третичный</b><span>--ink-3</span></div></div>
-  <div class="sw"><i style="background:#DCD4C0"></i><div><b>слабая линия</b><span>--line-2</span></div></div>
+  <div class="sw"><i style="background:#14130F"></i><div><b>текст</b><span>--ink</span></div></div>
+  <div class="sw"><i style="background:#4B473E"></i><div><b>вторичный</b><span>--ink-2</span></div></div>
+  <div class="sw"><i style="background:#807B70"></i><div><b>третичный</b><span>--ink-3</span></div></div>
+  <div class="sw"><i style="background:#CFCABC"></i><div><b>волосяная</b><span>--line-2</span></div></div>
 </div>
+<p class="note">Линейка теперь двух весов: жирная чёрная отбивает разделы и шапки таблиц, волосяная серая
+делит строки. Рамка почти исчезла — колонку держит линия, как в газете.</p>
 
 <h3 class="sub">Смысловые</h3>
 <div class="grid g4">
-  <div class="sw"><i style="background:#17130E"></i><div><b>действие</b><span>--act</span></div></div>
-  <div class="sw"><i style="background:#8A5A0E"></i><div><b>внимание, «вы здесь»</b><span>--mark</span></div></div>
-  <div class="sw"><i style="background:#93261E"></i><div><b>убыль, провал</b><span>--bad</span></div></div>
-  <div class="sw"><i style="background:#2C6547"></i><div><b>прибыль, принято</b><span>--good</span></div></div>
+  <div class="sw"><i style="background:#14130F"></i><div><b>действие</b><span>--act</span></div></div>
+  <div class="sw"><i style="background:#A4211B"></i><div><b>акцент: провал, внимание</b><span>--mark</span></div></div>
+  <div class="sw"><i style="background:#1C5738"></i><div><b>прибыль, принято</b><span>--good</span></div></div>
+  <div class="sw"><i style="background:#1C3C68"></i><div><b>справка</b><span>--info</span></div></div>
 </div>
-<p class="note">Красный не используется для «активного раздела» и не красит партии в оценку — иначе игрок читает
-любую красную фракцию как враждебную.</p>
+<p class="note">Акцент один, и он же <code>--bad</code>: в газете красным набирают то, что случилось плохо,
+и то, что требует ответа. Активный раздел меток не носит — он просто залит чёрным, как выворотка в наборе.
+Партии красный не оценивает: красная фракция не «плохая», у неё просто такой цвет.</p>
 
 <h3 class="sub">Фракции</h3>
 <div class="grid g6">
@@ -552,10 +555,12 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
 
 <section id="c02">
 <h2><i>02</i>Типографика</h2>
-<p class="why">Четыре начертания с разными обязанностями. Засечный PT Serif — только заголовки:
-он даёт документу голос. Узкий PT Sans Narrow в разрядку — служебные надписи: рубрики, шапки таблиц,
-кнопки. Обычный PT Sans — весь связный текст. Моноширинный PT Mono — все числа без исключения,
-чтобы столбцы выравнивались по разряду, а цифра не прыгала при смене значения.</p>
+<p class="why">Четыре начертания с разными обязанностями, но во второй редакции сериф взял на себя
+больше. Засечный PT Serif — все заголовки и лид: он и даёт полосе голос. Узкий PT Sans Narrow в разрядку —
+служебные надписи: рубрики, шапки таблиц, кнопки; он набирается прописными и держится мелким, чтобы не
+спорить с заголовком. Обычный PT Sans — связный текст и подписи. Моноширинный PT Mono — все числа без
+исключения, чтобы столбцы выравнивались по разряду, а цифра не прыгала при смене значения. Числа выросли:
+показатель на первом экране набирается тридцатью пунктами, как биржевая сводка.</p>
 <div class="spec">
   <div class="t-display">Народное собрание</div>
   <p class="note">display · PT Serif 700 · 28/1.1 — заголовок экрана, итог правления</p>
@@ -563,17 +568,19 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
   <p class="note">title · PT Serif 700 · 21/1.15 — заголовок модального окна</p>
   <div class="t-sub" style="margin-top:var(--x5)">Реформа школы</div>
   <p class="note">sub · PT Serif 700 · 17/1.2 — подзаголовок внутри длинного текста</p>
-  <div class="t-sec" style="margin-top:var(--x5)">Предварительный расклад</div>
-  <p class="note">section · PT Sans Narrow 700 · 12,5 · +0,1em — шапка панели, пункт меню</p>
+  <div class="t-sec" style="margin-top:var(--x5)">Путь закона</div>
+  <p class="note">section · PT Serif 700 · 15/1,15 — шапка панели; во второй редакции она серифная,
+    а линейка под ней жирная</p>
   <div class="t-micro" style="margin-top:var(--x5)">оценка секретариата</div>
-  <p class="note">micro · PT Sans Narrow · 10 · +0,14em — подпись над числом, служебная пометка</p>
+  <p class="note">micro · PT Sans Narrow 700 · 9,5 · +0,16em — подпись над числом, рубрика, пункт меню</p>
   <p class="t-body" style="margin-top:var(--x5);max-width:70ch">Депутат складывает близость закона к своим
     взглядам, указание фракции и личное отношение к вам. Основной текст живёт на 14 пунктах с интерлиньяжем 1,45
     и не растягивается шире семидесяти знаков в строке.</p>
   <p class="note">body · PT Sans · 14/1.45 · строка не длиннее 70 знаков</p>
   <div style="margin-top:var(--x5)"><span class="num-l">61</span> <span class="num">−2,4 млрд</span>
     <span class="num-s">2032/III</span></div>
-  <p class="note">num-l 21 · num 15 · num-s 12,5 — PT Mono, табличные знаки, отрицательное трекинг-смещение −0,03em</p>
+  <p class="note">num-l 23 · num 15 · num-s 12,5 — PT Mono, табличные знаки, трекинг −0,04em.
+    Крупный показатель на экране — 30 пунктов с трекингом −0,055em.</p>
 </div>
 </section>
 
@@ -629,6 +636,7 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
       <button class="nav"><i data-ic="senate"></i><span>Сенат</span><u>26/100</u></button>
       <button class="nav"><i data-ic="bill"></i><span>Законопроект</span><span class="dot"></span><u>14</u></button>
       <button class="nav"><i data-ic="budget"></i><span>Бюджет</span><u>−4</u></button>
+      <button class="nav"><i data-ic="pm"></i><span>Премьер-министр</span><u>+7%</u></button>
       <button class="nav"><i data-ic="gov"></i><span>Правительство</span><u>77</u></button>
       <button class="nav"><i data-ic="pres"></i><span>Президент</span><u>12</u></button>
       <button class="nav"><i data-ic="country"></i><span>Регионы</span><u>21</u></button>
@@ -659,6 +667,7 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
   <figure><i data-ic="parl" data-s="26"></i><figcaption>Собрание<i>parl</i></figcaption></figure>
   <figure><i data-ic="bill" data-s="26"></i><figcaption>Законопроект<i>bill</i></figcaption></figure>
   <figure><i data-ic="self" data-s="26"></i><figcaption>Мой политик<i>self</i></figcaption></figure>
+  <figure><i data-ic="pm" data-s="26"></i><figcaption>Премьер-министр<i>pm</i></figcaption></figure>
   <figure><i data-ic="senate" data-s="26"></i><figcaption>Сенат<i>senate</i></figcaption></figure>
   <figure><i data-ic="pres" data-s="26"></i><figcaption>Президент<i>pres</i></figcaption></figure>
   <figure><i data-ic="budget" data-s="26"></i><figcaption>Бюджет<i>budget</i></figcaption></figure>
@@ -769,9 +778,10 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
 
 <section id="c07">
 <h2><i>07</i>Панели</h2>
-<p class="why">Панель — единица содержания. Верхняя линейка задаёт её вес на экране: золотая — главное,
-красная — требует вмешательства, зелёная — благополучие, синяя — справка. Без линейки — рядовая панель.
-На одном экране золотая линейка допускается только одна, иначе главного не видно.</p>
+<p class="why">Панель — единица содержания, и во второй редакции она перестала быть карточкой: рамка
+осталась волосяной, а работу делает линейка сверху. Двойная чёрная — главный материал полосы, красная —
+требует вмешательства, зелёная — благополучие, синяя — справка. Обычная тонкая чёрная — рядовая панель.
+Двойная линейка на экране допускается одна, иначе главного не видно.</p>
 <div class="grid g2">
   <div class="panel lead" style="margin:0">
     <header><h4>Положение дел</h4><span class="meta">Лето 2031</span></header>
@@ -1761,6 +1771,8 @@ const ICON={
   self:'<circle cx="12" cy="8" r="3.4"/>'+
        '<path d="M4.6 20.4c0-4.1 3.3-6.6 7.4-6.6s7.4 2.5 7.4 6.6"/>'+
        '<path d="M3 3h3M3 3v3M21 3h-3M21 3v3"/>',
+  pm:'<path d="M4 20.5h16"/><path d="M6 20.5V9.5h12v11"/>'+
+     '<path d="M3.2 9.5 12 3.5l8.8 6"/><path d="M10 20.5v-5.5h4v5.5"/>',
   senate:'<circle cx="12" cy="12" r="8.6"/><circle cx="12" cy="12" r="2.7"/>'+
          '<path d="M12 3.4v2.4M12 18.2v2.4M3.4 12h2.4M18.2 12h2.4"/>',
   pres:'<path d="M12 2.6 4 5.6v6c0 4.9 3.3 8.4 8 9.8 4.7-1.4 8-5 8-9.8v-6z"/>'+
