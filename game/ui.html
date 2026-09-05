@@ -406,6 +406,18 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
 .repscale::after{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line-2)}
 .repscale span{position:absolute;top:-3px;width:3px;height:14px;background:var(--ink);margin-left:-1.5px}
 
+/* --- первая полоса: заголовки изданий --------------------------- */
+.heads{max-height:420px;overflow-y:auto}
+.head{display:flex;gap:var(--x4);padding:8px var(--x5);border-bottom:var(--hair-2)}
+.head:last-child{border-bottom:0}
+.head s{text-decoration:none;font:400 10.5px var(--f-num);color:var(--ink-3);flex:none;
+  width:46px;padding-top:3px}
+.head b{display:block;font:700 14.5px/1.25 var(--f-display);letter-spacing:-.01em}
+.head span{display:block;font:700 8.5px var(--f-cond);text-transform:uppercase;
+  letter-spacing:.16em;color:var(--ink-3);margin-top:2px}
+.head.hg{box-shadow:inset 3px 0 0 var(--good)}
+.head.hb{box-shadow:inset 3px 0 0 var(--bad)}
+
 /* --- карьера политика ──────────────────────────────────────── */
 .career{max-height:340px;overflow-y:auto}
 .crow{display:flex;gap:var(--x4);padding:5px var(--x5);border-bottom:var(--hair-2);font-size:12.5px}
@@ -668,6 +680,10 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
   <figure><i data-ic="bill" data-s="26"></i><figcaption>Законопроект<i>bill</i></figcaption></figure>
   <figure><i data-ic="self" data-s="26"></i><figcaption>Мой политик<i>self</i></figcaption></figure>
   <figure><i data-ic="pm" data-s="26"></i><figcaption>Премьер-министр<i>pm</i></figcaption></figure>
+  <figure><i data-ic="press" data-s="26"></i><figcaption>Печать<i>press</i></figcaption></figure>
+  <figure><i data-ic="court" data-s="26"></i><figcaption>Суд<i>court</i></figcaption></figure>
+  <figure><i data-ic="party" data-s="26"></i><figcaption>Партия<i>party</i></figcaption></figure>
+  <figure><i data-ic="world" data-s="26"></i><figcaption>Соседи<i>world</i></figcaption></figure>
   <figure><i data-ic="senate" data-s="26"></i><figcaption>Сенат<i>senate</i></figcaption></figure>
   <figure><i data-ic="pres" data-s="26"></i><figcaption>Президент<i>pres</i></figcaption></figure>
   <figure><i data-ic="budget" data-s="26"></i><figcaption>Бюджет<i>budget</i></figcaption></figure>
@@ -1046,6 +1062,21 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
   </div>
   <p class="note">Вето снимается двумя третями Собрания — 290 голосами вместо 218. Это единственное место
     в системе, где планка выше обычного большинства, поэтому число всегда называется прямо.</p>
+</div>
+
+<h3 class="sub" style="margin-top:var(--x8)">Первая полоса</h3>
+<p class="why" style="margin-top:0">Заголовок — единственное место, где интерфейс говорит не цифрами.
+Одно событие даёт пять разных строк: издание пишет по своему уклону и по своему отношению к власти.
+Слева цветная отбивка тона, потом дата, потом сам заголовок серифом и подпись издания капителью.
+Тон отмечается только на краях — доброжелательно или враждебно; нейтральные строки идут без отбивки,
+иначе полоса становится светофором.</p>
+<div class="spec" style="padding:0;max-width:640px">
+  <div class="heads">
+    <div class="head hb"><s>2032/II</s><div><b>Закручивание гаек: полномочия полиции расширены</b><span>Волна</span></div></div>
+    <div class="head hg"><s>2032/II</s><div><b>Порядок наведён: улицы спокойнее</b><span>Знамя</span></div></div>
+    <div class="head"><s>2032/II</s><div><b>Собрание и Сенат приняли закон о полиции</b><span>Труд</span></div></div>
+    <div class="head hb"><s>2032/I</s><div><b>Спад продолжается, у кабинета нет ответа</b><span>Дело</span></div></div>
+  </div>
 </div>
 
 <h3 class="sub" style="margin-top:var(--x8)">Молва</h3>
@@ -1773,6 +1804,16 @@ const ICON={
        '<path d="M3 3h3M3 3v3M21 3h-3M21 3v3"/>',
   pm:'<path d="M4 20.5h16"/><path d="M6 20.5V9.5h12v11"/>'+
      '<path d="M3.2 9.5 12 3.5l8.8 6"/><path d="M10 20.5v-5.5h4v5.5"/>',
+  press:'<path d="M3 5h13v15H5.5A2.5 2.5 0 0 1 3 17.5z"/>'+
+        '<path d="M16 9h5v8.5a2.5 2.5 0 0 1-2.5 2.5H16z"/>'+
+        '<path d="M6 8.5h7M6 12h7M6 15.5h4"/>',
+  court:'<path d="M12 3v18"/><path d="M6 21h12"/><path d="M4 8h16"/>'+
+        '<path d="M4 8 1.8 14h4.4zM20 8l-2.2 6h4.4"/>',
+  party:'<circle cx="7" cy="7.5" r="2.4"/><circle cx="17" cy="7.5" r="2.4"/>'+
+        '<circle cx="12" cy="16" r="2.6"/>'+
+        '<path d="M8.9 9.2 10.8 14M15.1 9.2 13.2 14M9.4 7.5h5.2"/>',
+  world:'<circle cx="12" cy="12" r="8.6"/><path d="M3.4 12h17.2"/>'+
+        '<path d="M12 3.4c2.6 2.6 2.6 14.6 0 17.2-2.6-2.6-2.6-14.6 0-17.2z"/>',
   senate:'<circle cx="12" cy="12" r="8.6"/><circle cx="12" cy="12" r="2.7"/>'+
          '<path d="M12 3.4v2.4M12 18.2v2.4M3.4 12h2.4M18.2 12h2.4"/>',
   pres:'<path d="M12 2.6 4 5.6v6c0 4.9 3.3 8.4 8 9.8 4.7-1.4 8-5 8-9.8v-6z"/>'+
