@@ -694,6 +694,77 @@ const PM_COST   = 10;   // веса за перестановку в кабин�
 const VP_TIE    = true; // вице-президент разбивает равенство в Сенате
 const MIN_TERM  = 8;    // после скольких кварталов министр «изнашивается»
 
+/* ─── Регламент Сената ────────────────────────────────────────────
+   Большинство в Сенате — пятьдесят один голос, но до голосования
+   ещё нужно дойти. Меньшинство вправе тянуть прения бесконечно,
+   и прекращает их только клотур — шестьдесят голосов. Отсюда вся
+   арифметика палаты: закон проводят пятьдесят одним, а вносят
+   на голосование шестьюдесятью. */
+const CLOTURE   = 60;   // голосов, чтобы прекратить прения
+const NUKE_MIN  = 51;   // сколько своих нужно, чтобы менять регламент
+const NUKE_COST = 30;   // веса за «ядерный вариант»
+const FILI_CAP  = 12;   // веса за выкуп голосов при обструкции
+const CONF_CAP  = 7;    // веса за согласительную комиссию
+const CONF_GAP  = 8;    // насколько близко нужно проиграть, чтобы её созвали
+const LEAD_DEAL = 9;    // веса за сделку с лидером большинства
+const SEN_HOLD  = 0.3;  // вероятность, что чужой лидер положит проект под сукно
+
+/* Работа с сенатором. Дороже, чем с депутатом: их вдвое меньше,
+   и каждый весит вчетверо. */
+const SENLOB = [
+  {id:'talk', name:'Разговор в кулуарах', cap:4, gold:0,
+   txt:'Сенатор старой школы ценит, когда к нему приходят лично.'},
+  {id:'proj', name:'Стройка в субъекте',  cap:0, gold:14,
+   txt:'Мост, больница, дорога. Край запомнит, надзор — тоже.'},
+  {id:'comm', name:'Комитет палаты',      cap:10, gold:0,
+   txt:'Председательство в сенатском комитете. Обойдённые обидятся.'},
+  {id:'join', name:'Позвать во фракцию',  cap:20, gold:14, need:s=>s.party!==PL&&s.rel>=68,
+   txt:'Кресло переходит к вам до конца его класса.'},
+];
+
+/* ─── Вице-президент ──────────────────────────────────────────────
+   Кресло без собственного ведомства и потому недооценённое: вице
+   ничего не решает, пока не наступит день, когда решает всё. Три
+   его свойства — умение работать с палатой, известность в стране
+   и честолюбие — определяют, чем он полезен и чем опасен. */
+const VP_TERM   = 4;    // не раньше пятого квартала можно менять поручение
+const VP_DROP   = 18;   // веса за снятие вице-президента со списка
+const VP_AMB    = 62;   // с какого честолюбия вице начинает свою игру
+
+/* Поручение вице-президенту: одно за раз, действует каждый квартал. */
+const VP_JOBS = [
+  {id:'senate', name:'Работа с Сенатом',
+   txt:'Председатель дневал бы в палате и без поручения. С ним — тянет к вам колеблющихся.',
+   eff:'отношение сенаторов растёт, обструкцию ломать легче'},
+  {id:'region', name:'Объезд субъектов',
+   txt:'Вице ездит туда, куда президенту ехать не по чину.',
+   eff:'напряжённость в самых беспокойных краях гаснет'},
+  {id:'world',  name:'Представительство вовне',
+   txt:'Похороны, инаугурации, подписания. Скучная работа, живые связи.',
+   eff:'отношения с соседями теплеют без затрат казны'},
+  {id:'party',  name:'Партийная работа',
+   txt:'Съезды, областные конференции, ужины с жертвователями.',
+   eff:'дисциплина фракции и касса партии'},
+  {id:'none',   name:'Держать при себе',
+   txt:'Ни поручений, ни трибуны. Так с вице поступают чаще всего.',
+   eff:'ничего не даёт, зато честолюбие не разыгрывается'},
+];
+
+/* Откуда берут напарника по списку. Каждый тип уравновешивает
+   список по-своему и по-своему же мешает. */
+const VP_KIND = [
+  {id:'senior', name:'Сенатор со стажем',  sen:[62,92], pop:[28,54], amb:[20,50],
+   txt:'Двадцать лет в палате, все её обычаи наизусть.'},
+  {id:'gov',    name:'Глава субъекта',     sen:[26,52], pop:[46,76], amb:[45,80],
+   txt:'Хозяйственник с именем в своём крае и амбицией на большее.'},
+  {id:'young',  name:'Молодое лицо',       sen:[20,46], pop:[52,86], amb:[55,90],
+   txt:'Партии нужен кто-то моложе. Стране — тоже.'},
+  {id:'wing',   name:'Человек крыла',      sen:[38,66], pop:[34,62], amb:[40,72],
+   txt:'Своё крыло не простит, если его обойдут в списке.'},
+  {id:'tech',   name:'Министр-техник',     sen:[34,58], pop:[22,48], amb:[15,42],
+   txt:'Никого не раздражает, никого и не зажигает.'},
+];
+
 /* Министерства. Отданный портфель покупает дисциплину чужой фракции. */
 const POSTS = [
   {id:'fin', name:'Финансы',        eff:'сборы налогов выше на десятую часть'},
@@ -960,6 +1031,9 @@ const DECREE_POWER = 0.6;    // доля от силы настоящего за
 const CONFIRM = {
   post:  {name:'министр',              cost:4},
   chair: {name:'председатель комитета', cost:3},
+  vp:    {name:'вице-президента',      cost:6},
+  judge: {name:'судью',                cost:5},
+  treaty:{name:'договор',              cost:4},
 };
 
 /* Имена депутатов, сенаторов и министров. Списки длинные не для красоты:
@@ -1053,18 +1127,38 @@ function presGap(){
 }
 
 /* ─── вице-президент ─────────────────────────────────────────────
-   Идёт на выборы в связке с президентом и потому всегда из его
-   партии. Своих полномочий у него два: председательствовать в Сенате
-   и разбивать равенство — в палате из ста мест это не редкость;
-   и наследовать кресло, если президент его освобождает. */
+   Кресло без ведомства: вице ничего не решает ровно до того дня,
+   когда решает всё. Полномочий у него три — председательствовать
+   в Сенате и разбивать равенство, вести порученное дело и
+   наследовать кресло, если президент его освобождает.
+   Человека описывают три числа: палата (умение работать с
+   сенаторами), имя (известность в стране) и честолюбие. Первые
+   два работают на вас, третье — против, если его не занять. */
 function vp(){ return S.vp; }
 function isVP(){ return S.vp && S.vp.party===PL; }
 function vpParty(){ return S.vp?P(S.vp.party):null; }
+function vpKind(){ return S.vp?VP_KIND.find(k=>k.id===S.vp.kind)||VP_KIND[4]:null; }
+function vpJob(){ return S.vp?VP_JOBS.find(j=>j.id===(S.vp.job||'none'))||VP_JOBS[4]:null; }
+/* умение вести палату: от него зависит и убеждение при почти-равенстве,
+   и то, насколько поручение «работа с Сенатом» вообще что-то даёт */
+function vpSkill(){ return S.vp?clamp(S.vp.sen||40,0,100):0; }
+/* насколько близкий к равенству счёт председатель ещё может развернуть:
+   сильный вице уговаривает двоих, слабый не спасает и равенства */
+function vpMargin(){
+  if(!S.vp)return 0;
+  const b=S.vp.job==='senate'?1:0;
+  return vpSkill()>=80?2+b:vpSkill()>=58?1+b:0;
+}
 /* как вице-президент проголосует при равенстве: за своих, против чужих */
 function vpBreak(bill){
   if(!S.vp)return 0;
   const p=vpParty(), d=Math.abs((p.st[T(bill.topic).ax]||0)-bill.stance);
   return d<1.6?1:-1;
+}
+/* честолюбие растёт, пока вице нечем занять, и падает от настоящего дела */
+function vpRestless(){
+  if(!S.vp)return false;
+  return (S.vp.amb||0)>=VP_AMB && (S.vp.job||'none')==='none';
 }
 
 /* ─── премьер и кабинет ──────────────────────────────────────────
@@ -1149,6 +1243,12 @@ function pressMul(v){
   return v>0 ? 1+t*0.9 : 1-t*0.9;
 }
 function pressWord(v){ return v>=18?'на вашей стороне':v>=6?'скорее доброжелательна':v>-6?'нейтральна':v>-18?'придирается':'травит'; }
+/* один шаг сразу по всем изданиям: так отзывается то, что нельзя
+   объяснить одной редакции отдельно — вроде поправки к регламенту */
+function pressAll(v){
+  if(!S.press)return;
+  PRESS.forEach(o=>{ const st=pressOf(o.id); if(st)st.rel=clamp(st.rel+v,0,100); });
+}
 /* как издание относится к конкретному решению */
 function pressView(o,ax,stance){
   const d=Math.abs((o.st[ax]||0)-stance);
@@ -1313,6 +1413,7 @@ function initState(pl){
     mood:{}, rmod:{}, unrest:{},
     deputies:[], seats:{}, regSeats:{},
     senate:[], senSeats:{}, senCls:0,        // вторая палата и номер переизбираемого класса
+    senRules:null, senLead:null, senHold:null, mate:null,   // регламент, лидер, повестка, напарник
     pres:null, vp:null, presRel:58, vetoed:null, decrees:[], presRace:null,
     pm:null, ministers:{},                   // премьер и министры — люди, а не партии
     you:{name:pl.leader, age:pl.age||48, origin:pl.origin||'province', traits:pl.traits||[],
@@ -1442,7 +1543,7 @@ function makeSen(party,region,cls,i){
   AX.forEach(k=>st[k]=clamp(r1((p.st[k]||0)+rnd(-0.95,0.95)),-2,2));
   return {id:'s-'+party+'-'+region+'-'+i+'-'+cls, name:depName(), party, region, cls, st,
     loyal:ri(34,80), integ:ri(24,95), rel:clamp(Math.round(60-axDist(st,me().st)*10+rnd(-9,9)),8,92),
-    since:S.q, deals:0, note:''};
+    since:S.q, terms:1, deals:0, note:''};
 }
 function seedSenate(){
   S.senate=[];
@@ -1452,14 +1553,80 @@ function seedSenate(){
     let k=0;
     Object.entries(seats).forEach(([pid,n])=>{
       tot[pid]+=n;
-      for(let i=0;i<n;i++,k++)S.senate.push(makeSen(pid,r.id,k%3,i));   // классы вперемешку
+      for(let i=0;i<n;i++,k++){
+        const s=makeSen(pid,r.id,k%3,i);
+        s.terms=ri(1,4);                       // палата не начинается с чистого листа
+        s.since=S.q-(s.terms-1)*SEN_CYCLE;
+        S.senate.push(s);
+      }
     });
   });
   S.senSeats=tot; S.senCls=0;
+  S.senRules={cloture:CLOTURE, nuked:false, nukedBy:null, nukedQ:0};
+  seatSenLeader(true);
 }
 function senSeatsOf(id){ return S.senSeats[id]||0; }
 function senCoalSeats(){ return coalition().reduce((a,id)=>a+senSeatsOf(id),0); }
 function senDue(){ return S.q>1 && (S.q-1)%SEN_CYCLE===0; }
+
+/* ─── регламент палаты ───────────────────────────────────────────
+   Порог клотура — не константа, а состояние: его можно опустить,
+   но опущенный он остаётся опущенным и для тех, кто придёт после. */
+function cloture(){ return (S.senRules&&S.senRules.cloture)||CLOTURE; }
+function nuked(){ return !!(S.senRules&&S.senRules.nuked); }
+/* регламент меняют простым большинством — но для этого нужны и палата,
+   и председатель: без своего вице поправку к регламенту не поставят */
+function canNuke(){ return senCoalSeats()>=NUKE_MIN && isVP() && !nuked(); }
+
+/* ─── старшинство ────────────────────────────────────────────────
+   В палате, где треть меняется раз в два года, стаж — валюта.
+   Старейшина тянет за собой земляков и первым получает комитет. */
+function senRank(s){ return s.terms||1; }
+function senElder(s){ return senRank(s)>=4; }
+/* земляки прислушиваются к старейшине своей делегации */
+function senDean(region){
+  const here=S.senate.filter(s=>s.region===region);
+  if(!here.length)return null;
+  return here.slice().sort((a,b)=>senRank(b)-senRank(a)||a.id.localeCompare(b.id))[0];
+}
+
+/* ─── лидер сенатского большинства ───────────────────────────────
+   Председательствует вице-президент, но повестку ведёт лидер
+   крупнейшей фракции. Чужой лидер не отклоняет закон — он просто
+   не ставит его в календарь, и это дороже отклонения. */
+function senLeadParty(){
+  let best=null,bv=-1;
+  S.parties.forEach(p=>{ const n=senSeatsOf(p.id); if(n>bv){bv=n;best=p.id;} });
+  return best;
+}
+function senLead(){ return S.senLead; }
+function senLeadPerson(){
+  if(!S.senLead)return null;
+  return S.senate.find(s=>s.id===S.senLead.id)||null;
+}
+function isSenLead(){ return !!(S.senLead&&S.senLead.party===PL); }
+function senFriendlyLead(){ return !!(S.senLead&&(S.senLead.party===PL||inCoal(S.senLead.party))); }
+/* лидером становится самый заслуженный сенатор крупнейшей фракции */
+function seatSenLeader(quiet){
+  const pid=senLeadParty();
+  const pool=S.senate.filter(s=>s.party===pid);
+  if(!pool.length){ S.senLead=null; return; }
+  const who=pool.slice().sort((a,b)=>
+    (senRank(b)*10+b.loyal*0.2)-(senRank(a)*10+a.loyal*0.2)||a.id.localeCompare(b.id))[0];
+  const was=S.senLead;
+  if(was&&was.id===who.id&&was.party===pid)return;
+  S.senLead={id:who.id, name:who.name, party:pid, since:S.q, deals:0, favour:0};
+  if(!quiet){
+    logMsg('Лидером сенатского большинства стал '+who.name+' («'+P(pid).name+'»).',1);
+    chron('Сенат возглавил '+who.name+'.',pid===PL?'g':'');
+  }
+}
+/* насколько лидер расположен вести ваш проект: фракция плюс личные услуги */
+function leadFavour(){
+  if(!S.senLead)return 60;
+  const base=S.senLead.party===PL?92:inCoal(S.senLead.party)?74:26;
+  return clamp(Math.round(base+(S.senLead.favour||0)),0,100);
+}
 
 /* Сенатор голосует иначе, чем депутат: фракция весит вдвое меньше,
    зато интерес субъекта и личное отношение — вдвое больше. */
@@ -1479,6 +1646,16 @@ function senSupport(sen,bill){
   if(mine&&!inCoal(sen.party))v-=7;
   if(!mine&&sen.party===PL)v-=7;
   if(mine&&hasTrait('jurist'))v+=4;
+  // старейшина делегации задаёт тон землякам: в палате субъектов
+  // возражение человека, сидящего здесь двадцать лет, весит отдельно
+  const dean=senDean(sen.region);
+  if(dean&&dean.id!==sen.id){
+    const dv=(0.95-Math.abs(dean.st[ax]-bill.stance))*24+(dean.rel-50)*0.3;
+    v+=clamp(dv,-24,24)*0.14*Math.min(senRank(dean),5)/5;
+  }
+  // председатель, занятый палатой, подтягивает своих
+  if(S.vp&&S.vp.job==='senate'&&(sen.party===S.vp.party||inCoal(sen.party)))
+    v+=vpSkill()*0.06;
   v+=noise(sen.id+'|'+bill.topic+bill.stance+(bill.riders||[]).join('')+S.billNo,9);
   return v;
 }
@@ -1488,16 +1665,63 @@ function senTally(bill){
     t[st]++; t.list.push({d,v,st}); });
   return t;
 }
-function resolveSenVote(bill){
-  const t=senTally(bill); let yes=0,no=0;
+/* Сколько голосов реально ляжет за проект: колеблющиеся падают
+   в ту сторону, куда их клонит, а обещанное на прениях учитывается. */
+function senCount(bill,tl){
+  const t=tl||senTally(bill); let yes=0,no=0;
   t.list.forEach(x=>{
-    if(x.st==='yes')yes++; else if(x.st==='no')no++;
-    else (Math.random()<0.5+x.v/30?yes++:no++);
+    const pl=(x.d.spledge&&x.d.spledgeNo===bill.id)?x.d.spledge:0;
+    const v=x.v+pl;
+    if(v>10)yes++; else if(v<-10)no++;
+    else (Math.random()<0.5+v/30?yes++:no++);
   });
+  return {yes,no};
+}
+/* Обструкция: считается не большинство, а те, кто готов её прекратить.
+   Меньшинство, у которого больше сорока твёрдых «против», держит
+   трибуну до тех пор, пока за клотур не наберётся шестьдесят. */
+function clotureCount(bill,tl){
+  const t=tl||senTally(bill); let n=0;
+  const by=bill.by||PL;
+  t.list.forEach(x=>{
+    const pl=(x.d.spledge&&x.d.spledgeNo===bill.id)?x.d.spledge:0;
+    // На процедуре фракция весит вдвое больше, чем на существе: вопрос
+    // «дать ли им победу» проще вопроса «хорош ли закон», и партийная
+    // линия держится здесь крепче всего.
+    const own=x.d.party===by||inCoal(x.d.party);
+    let v=x.v*0.65+pl+(own?24:-18)+(x.d.rel-50)*0.2;
+    if(senRank(x.d)>=4)v+=6;                       // старейшины берегут обычаи палаты
+    if(S.vp&&S.vp.job==='senate'&&own)v+=vpSkill()*0.05;
+    if(v>0)n++;
+  });
+  return n;
+}
+function willFilibuster(bill,tl){
+  if(cloture()<=SEN_MAJ)return false;              // регламент уже опущен
+  const n=clotureCount(bill,tl);
+  return n<cloture();
+}
+/* Медиана палаты по оси проекта — то, на чём согласительная комиссия
+   сойдётся, если её созвать. */
+function senMedian(ax){
+  if(!S.senate.length)return 0;
+  const v=S.senate.map(s=>s.st[ax]||0).sort((a,b)=>a-b);
+  const m=v.length%2?v[(v.length-1)/2]:(v[v.length/2-1]+v[v.length/2])/2;
+  return r1(m);
+}
+function resolveSenVote(bill){
+  const t=senTally(bill);
+  let {yes,no}=senCount(bill,t);
   // сто мест — значит равенство возможно, и его разбивает председатель палаты
-  let tie=0;
-  if(VP_TIE&&yes===no&&S.vp){ tie=vpBreak(bill); if(tie>0)yes++; else no++; S.vp.ties++; }
-  return {yes,no,pass:yes>=SEN_MAJ,tie};
+  let tie=0, talked=0;
+  if(VP_TIE&&S.vp){
+    const m=vpMargin(), gap=no-yes;
+    // председатель с именем в палате разворачивает не только равенство,
+    // но и счёт, проигранный на голос-другой, — уговором в кулуарах
+    if(gap>0&&gap<=m&&vpBreak(bill)>0){ talked=gap; yes+=gap; no-=gap; }
+    if(yes===no){ tie=vpBreak(bill); if(tie>0)yes++; else no++; S.vp.ties=(S.vp.ties||0)+1; }
+  }
+  return {yes,no,pass:yes>=SEN_MAJ,tie,talked,cl:clotureCount(bill,t),need:cloture()};
 }
 
 /* ─── главы субъектов ────────────────────────────────────────────
@@ -1578,9 +1802,21 @@ function seedPresident(){
   S.presRel=clamp(Math.round(72-axDist(near.st,me().st)*11),25,88);
   seatVP(near.id);
 }
-/* вице-президент всегда из партии президента: они шли одним списком */
-function seatVP(party,name){
-  S.vp={party, name:name||depName(), since:S.q, ties:0};
+/* вице-президент всегда из партии президента: они шли одним списком.
+   Кем именно он окажется — решает жребий, если список не ваш; ваш
+   список вы составляете сами, и тогда сюда приходит готовый напарник. */
+function makeVP(party,kind,region){
+  const k=VP_KIND.find(x=>x.id===kind)||pick(VP_KIND);
+  const r=region||pick(REGIONS).id;
+  return {party, name:depName(), kind:k.id, region:r,
+    sen:ri(k.sen[0],k.sen[1]), pop:ri(k.pop[0],k.pop[1]), amb:ri(k.amb[0],k.amb[1]),
+    job:'none', since:S.q, ties:0, jobQ:S.q, dropped:0, restless:0};
+}
+function seatVP(party,name,who){
+  if(who){ S.vp={...who, party, since:S.q, ties:0, jobQ:S.q}; return; }
+  const v=makeVP(party);
+  if(name)v.name=name;
+  S.vp=v;
 }
 
 /* ─── кабинет ────────────────────────────────────────────────────
@@ -2109,8 +2345,11 @@ function pathRow(name,who,res,verdict,ok){
     ${res?`<u>${res.yes} : ${res.no}</u>`:'<u></u>'}
     <span class="stamp ${ok?'y':'n'}">${verdict}</span></div>`;
 }
-function billPath(b,low,up,pres,ok){
+function billPath(b,low,up,pres,ok,cl){
   const rows=[pathRow('Народное собрание','нужно '+MAJ+' из '+SEATS,low,low.pass?'принят':'отклонён',low.pass)];
+  // ступень прений видна отдельно: закон теряют здесь чаще, чем на голосовании
+  if(cl)rows.push(pathRow('Прения в Сенате','клотур: нужно '+cl.need+' из '+SEN_SEATS,
+    {yes:cl.got,no:SEN_SEATS-cl.got},cl.ok?'прения закрыты':'обструкция',cl.ok));
   if(up)rows.push(pathRow('Сенат','нужно '+SEN_MAJ+' из '+SEN_SEATS,up,up.pass?'принят':'отклонён',up.pass));
   if(pres)rows.push(pathRow('Президент',S.pres.name+' · '+P(S.pres.party).short,null,pres.veto?'вето':'подписан',!pres.veto));
   return `<p class="lead">${stanceLine(b)}</p><div class="path">${rows.join('')}</div>`;
@@ -2143,18 +2382,279 @@ function submitBill(){
     S.bill=null; render(); return;
   }
 
+  S.bill=null;                       // дальше проект живёт своим ходом, а не на столе
+  senateStage(b,low);
+  render();
+}
+
+/* ═══ СЕНАТ: КАЛЕНДАРЬ, ПРЕНИЯ, ГОЛОСОВАНИЕ ═══════════════════════
+   Три ступени вместо одной. Сначала лидер большинства решает, когда
+   поставить проект в повестку. Потом меньшинство решает, давать ли
+   вообще голосовать. И только третьей идёт сама подача голосов. */
+
+/* ─── повестка ───────────────────────────────────────────────── */
+function senCalendar(b,low){
+  if(senFriendlyLead()||!S.senLead)return true;
+  const risk=SEN_HOLD*(1-leadFavour()/100);
+  if(Math.random()>=risk)return true;
+  S.senHold={bill:{...b,riders:[...(b.riders||[])]}, low, left:ri(1,2), q:S.q};
+  const t=T(b.topic);
+  logMsg('Лидер большинства '+S.senLead.name+' не поставил «'+t.name+'» в повестку Сената.',1);
+  chron('Сенат отложил «'+t.name.toLowerCase()+'».','b');
+  sheetOpen({eye:'Повестка Сената · '+dateLabel(),title:'Проект положен под сукно',
+    body:`<p class="lead">${t.name} прошёл Собрание, но до голосования в Сенате не дошёл.
+        Календарь палаты ведёт лидер большинства, и он не назвал дату.</p>
+      <div class="res"><span>Лидер</span><b class="w">${S.senLead.name}</b>
+        <span>Фракция</span><b class="w">${P(S.senLead.party).name}</b>
+        <span>Расположение к вам</span><b class="${leadFavour()<40?'bad':leadFavour()>=70?'good':'warn'}">${leadFavour()}</b>
+        <span>Ожидание</span><b>${quarters(S.senHold.left)}</b></div>
+      <p class="hint">Отклонения не было: проект жив и всплывёт сам. Ускорить его можно только
+        одним способом — договориться с тем, кто ведёт календарь.</p>`,
+    acts:[{label:'Ждать'},{label:'К Сенату',fn(){S.tab='senate';}}]});
+  return false;
+}
+/* проект, пролежавший срок, выходит на голосование сам */
+function senHoldTick(){
+  const h=S.senHold; if(!h)return;
+  h.left--;
+  if(h.left>0)return;
+  S.senHold=null;
+  logMsg('«'+T(h.bill.topic).name+'» наконец поставлен на голосование в Сенате.',1);
+  senateDebate(h.bill,h.low,true);
+}
+/* выкуп повестки: лидер ставит проект сразу, но услуга не бесплатна */
+function pushCalendar(){
+  const h=S.senHold; if(!h){toast('В повестке ничего не залежалось');return;}
+  if(!useAP(1)||!payCap(capCost(LEAD_DEAL,'lobby')))return;
+  S.senLead.deals=(S.senLead.deals||0)+1;
+  S.senLead.favour=clamp((S.senLead.favour||0)+ri(6,12),-40,40);
+  addTrail(ri(3,7),'сделка с лидером Сената');
+  S.senHold=null;
+  logMsg('Лидер большинства поставил «'+T(h.bill.topic).name+'» в повестку вне очереди.');
+  senateDebate(h.bill,h.low,true);
+  render();
+}
+
+/* ─── прения и обструкция ────────────────────────────────────── */
+function senateStage(b,low){
+  if(!senCalendar(b,low))return;
+  senateDebate(b,low);
+}
+function senateDebate(b,low,skipCal){
+  const t=T(b.topic), tl=senTally(b);
+  if(!willFilibuster(b,tl)){ senateFloor(b,low,{got:clotureCount(b,tl),need:cloture(),ok:true}); return; }
+  const got=clotureCount(b,tl), need=cloture(), lack=need-got;
+  const med=senMedian(t.ax), soft=Math.round(clamp((b.stance+med)/2,-2,2))||(b.stance>0?1:-1);
+  const opts=[];
+  opts.push({label:'Ставить на клотур как есть',hint:'сейчас за прекращение прений '+got+' из '+need,
+    fn(){ filiVote(b,low); }});
+  // выкуп закрывает последние несколько голосов, а не разрыв в сорок:
+  // предлагать его при большом отрыве — обманывать самих себя
+  if(lack<=10)opts.push({label:'Выкупить недостающие голоса',
+    hint:'вес '+capCost(FILI_CAP,'lobby')+' и '+Math.max(6,lack*2)+' млрд · берут не все',
+    fn(){ filiBuy(b,low,lack); }});
+  if(soft!==b.stance)opts.push({label:'Смягчить текст до «'+STEP[soft+2]+'»',hint:'вес '+CONF_CAP+' · палата стоит на '+med.toFixed(1),
+    fn(){ filiSoften(b,low,soft); }});
+  if(canNuke())opts.push({label:'Ядерный вариант: клотур в '+SEN_MAJ,hint:'вес '+NUKE_COST+' · навсегда и для всех',
+    fn(){ askNuke(b,low); }});
+  opts.push({label:'Отозвать проект',hint:'потерять вес '+3+', но не позориться голосованием',
+    fn(){ addCap(-3); logMsg('«'+t.name+'» отозван из Сената: обструкцию сломать было нечем.',1); render(); }});
+
+  sheetOpen({eye:'Прения в Сенате · '+dateLabel(),title:'Обструкция',
+    body:`<p class="lead">${t.name} — ${stanceLine(b).split('—')[1]||''}. Собрание проект принял.
+        В Сенате меньшинство отказалось прекращать прения: пока за клотур нет ${need} голосов,
+        до голосования по существу дело не дойдёт.</p>
+      ${voteBar(got,SEN_SEATS-got,need)}
+      <div class="res"><span>За прекращение прений</span><b class="${got>=need?'good':'bad'}">${got}</b>
+        <span>Нужно</span><b>${need}</b>
+        <span>Не хватает</span><b class="bad">${lack}</b>
+        <span>Простое большинство</span><b>${senCount(b,tl).yes} из ${SEN_MAJ}</b></div>
+      <p class="hint">Голосов на сам закон может хватать — обструкция бьёт не по большинству,
+        а по праву его показать. ${nuked()?'Регламент уже опущен раньше.':'Порог клотура — '+need+'.'}</p>`,
+    opts});
+}
+/* голосование по клотуру: прошло — идём к существу, нет — проект мёртв */
+function filiVote(b,low,note){
+  const tl=senTally(b), got=clotureCount(b,tl), need=cloture();
+  const cl={got,need,ok:got>=need};
+  if(cl.ok){ senateFloor(b,low,cl,note); return; }
+  const t=T(b.topic);
+  addCap(-4); shiftAll(-0.5);
+  S.votes.unshift({no:S.billNo,q:S.q,name:t.name+' · клотур',stance:b.stance,
+    yes:got,no:SEN_SEATS-got,pass:false,house:'сен'});
+  cover({ax:t.ax,stance:b.stance,
+    good:'Сенат не дал продавить спорный закон',
+    bad:'Обструкция в Сенате похоронила «'+t.name.toLowerCase()+'»',
+    flat:'Прения в Сенате так и не были закрыты'});
+  logMsg('Обструкция устояла: за клотур '+got+' при нужных '+need+'. «'+t.name+'» снят.',1);
+  chron('Обструкция в Сенате остановила «'+t.name.toLowerCase()+'».','b');
+  sheetOpen({eye:'Прохождение закона · '+dateLabel(),title:t.name,
+    body:billPath(b,low,null,null,false,cl)+
+      `<p class="hint">Меньшинству не нужно большинство — достаточно ${SEN_SEATS-need+1} голосов,
+        чтобы говорить бесконечно. Это и есть главная арифметика палаты.</p>`,
+    acts:[{label:'Закрыть'}]});
+  render();
+}
+/* выкуп: обещания колеблющимся, деньги субъектам, надзору — след */
+function filiBuy(b,low,lack){
+  const price=Math.max(6,lack*2);
+  if(!payCap(capCost(FILI_CAP,'lobby'))){render();return;}
+  if(!payGold(price)){addCap(capCost(FILI_CAP,'lobby'));render();return;}
+  // деньги идут не всем подряд, а тем, кому до «да» остаётся один шаг:
+  // считаем счёт по клотуру и работаем с ближайшими к нулю снизу
+  const tl=senTally(b);
+  const score=x=>{ const own=x.d.party===(b.by||PL)||inCoal(x.d.party);
+    return x.v*0.65+(own?24:-18)+(x.d.rel-50)*0.2+(senRank(x.d)>=4?6:0); };
+  // берут не всех, а столько, на сколько хватает рук: приём закрывает
+  // последние несколько голосов, а не разрыв в тридцать
+  const near=tl.list.filter(x=>{const v=score(x); return v<=0&&v>-15;})
+    .sort((a,c)=>score(c)-score(a)).slice(0,Math.min(lack+2,10));
+  let n=0;
+  near.forEach(x=>{
+    if(Math.random()<x.d.integ/145)return;          // неподкупный не берёт
+    const g=inCoal(x.d.party)?ri(8,18):ri(4,14);
+    x.d.spledge=(x.d.spledge||0)+g; x.d.spledgeNo=b.id; x.d.deals++; n++;
+  });
+  addTrail(ri(5,11),'выкуп голосов в Сенате');
+  bumpRep('honest',-2);
+  logMsg('Работа с сенаторами перед клотуром: обработано '+n+', казна минус '+price+' млрд.');
+  filiVote(b,low);
+}
+/* тот же выкуп без оплаты — служит замеру силы приёма */
+function filiBuyProbe(b,lack){
+  const tl=senTally(b);
+  const score=x=>{ const own=x.d.party===(b.by||PL)||inCoal(x.d.party);
+    return x.v*0.65+(own?24:-18)+(x.d.rel-50)*0.2+(senRank(x.d)>=4?6:0); };
+  tl.list.filter(x=>{const v=score(x); return v<=0&&v>-15;})
+    .sort((a,c)=>score(c)-score(a)).slice(0,Math.min(lack+2,10))
+    .forEach(x=>{ if(Math.random()<x.d.integ/145)return;
+      x.d.spledge=inCoal(x.d.party)?ri(8,18):ri(4,14); x.d.spledgeNo=b.id; });
+}
+/* уступка: текст сдвигается к медиане палаты — закон слабее, но живой */
+function filiSoften(b,low,soft){
+  if(!payCap(CONF_CAP)){render();return;}
+  const t=T(b.topic), was=b.stance;
+  b.stance=soft;
+  shiftAll(-0.3); bumpRep('firm',-2); bumpRep('comp',1);
+  logMsg('«'+t.name+'» смягчён с «'+STEP[was+2]+'» до «'+STEP[soft+2]+'» ради клотура.',1);
+  chron('Проект по «'+t.name.toLowerCase()+'» смягчили ради Сената.','');
+  filiVote(b,low,'текст смягчён до «'+STEP[soft+2]+'»');
+}
+/* ядерный вариант: регламент меняют простым большинством — один раз
+   и навсегда, потому что следующий состав палаты им же и воспользуется */
+function askNuke(b,low){
+  sheetOpen({eye:'Регламент Сената',title:'Опустить порог клотура?',
+    body:`<p class="lead">Председатель ставит вопрос о толковании регламента, и палата решает его
+        простым большинством. С этого дня прения прекращаются ${SEN_MAJ} голосами, а не ${cloture()}.</p>
+      <div class="res"><span>У коалиции в Сенате</span><b class="good">${senCoalSeats()}</b>
+        <span>Нужно</span><b>${NUKE_MIN}</b>
+        <span>Председатель</span><b class="w">${S.vp?S.vp.name:'—'}</b>
+        <span>Цена</span><b>вес ${NUKE_COST}</b></div>
+      <p class="hint">Обратного хода нет. Правило останется и тогда, когда большинство будет чужим —
+        и тогда уже вам нечем будет тянуть прения.</p>`,
+    opts:[
+      {label:'Опустить порог',hint:'вес '+NUKE_COST+' · навсегда',fn(){ doNuke(); filiVote(b,low,'регламент изменён'); }},
+      {label:'Не трогать регламент',hint:'вернуться к прениям',fn(){ senateDebate(b,low); }}]});
+}
+function doNuke(){
+  if(!payCap(NUKE_COST))return false;
+  S.senRules={cloture:SEN_MAJ, nuked:true, nukedBy:PL, nukedQ:S.q};
+  shiftAll(-1.8); shiftMood('intel',-6); shiftMood('urban',-3);
+  bumpRep('firm',6); bumpRep('honest',-5);
+  S.presRel=clamp(S.presRel+3,0,100);
+  pressAll(-9);
+  career('Порог клотура в Сенате опущен до простого большинства.');
+  logMsg('Регламент Сената изменён: прения теперь закрываются '+SEN_MAJ+' голосами.',1);
+  chron('Порог клотура в Сенате опущен.','b');
+  cover({ax:'order',stance:2,
+    good:'Палату наконец заставили работать',
+    bad:'Регламент Сената сломан ради одного закона',
+    flat:'Сенат опустил порог прекращения прений'});
+  return true;
+}
+
+/* ─── голосование по существу и согласительная комиссия ──────── */
+function senateFloor(b,low,cl,note){
+  const t=T(b.topic);
   const up=resolveSenVote(b);
   S.votes.unshift({no:S.billNo,q:S.q,name:t.name,stance:b.stance,yes:up.yes,no:up.no,pass:up.pass,house:'сен'});
   if(!up.pass){
+    const lack=SEN_MAJ-up.yes;
+    const med=senMedian(t.ax);
+    const soft=Math.round(clamp((b.stance+med*2)/3,-2,2));
+    // проигранный на несколько голосов проект не хоронят, а переписывают
+    if(lack<=CONF_GAP&&soft!==b.stance&&!b.conf){
+      askConference(b,low,up,cl,soft,lack);
+      return;
+    }
     addCap(-3); shiftAll(-0.4);
     logMsg('Сенат отклонил «'+t.name+'» ('+up.yes+' против '+up.no+'), хотя Собрание его приняло.',1);
     chron('Сенат остановил «'+t.name.toLowerCase()+'».','b');
     sheetOpen({eye:'Прохождение закона · '+dateLabel(),title:t.name,
-      body:billPath(b,low,up)+'<p class="hint">Палата субъектов не пропустила проект. Сенату важнее регионы, чем фракции: смотрите, кого задевает текст.</p>',
+      body:billPath(b,low,up,null,false,cl)+
+        '<p class="hint">Палата субъектов не пропустила проект. Сенату важнее регионы, чем фракции: смотрите, кого задевает текст.</p>',
       acts:[{label:'Закрыть'}]});
-    S.bill=null; render(); return;
+    render(); return;
   }
+  presStage(b,low,up,cl,note);
+}
+/* согласительная комиссия: палаты сходятся на среднем тексте, и
+   Собрание должно принять его заново — уже без права поправок */
+function askConference(b,low,up,cl,soft,lack){
+  const t=T(b.topic);
+  sheetOpen({eye:'Согласительная комиссия',title:'Сенат готов сойтись на среднем',
+    body:`<p class="lead">«${t.name}» не хватило ${lack} голосов. Сенаторы предлагают комиссию:
+        текст сдвинется с «${STEP[b.stance+2]}» на «${STEP[soft+2]}», и палата его пропустит.
+        Собранию придётся принять согласованный текст целиком, без поправок.</p>
+      ${voteBar(up.yes,up.no)}
+      <div class="res"><span>Медиана Сената по оси</span><b>${senMedian(t.ax).toFixed(1)}</b>
+        <span>Ваш текст</span><b>${STEP[b.stance+2]}</b>
+        <span>Согласованный</span><b class="w">${STEP[soft+2]}</b>
+        <span>Цена комиссии</span><b>вес ${CONF_CAP}</b></div>`,
+    opts:[
+      {label:'Созвать комиссию',hint:'закон слабее, но он будет',
+       fn(){ if(!payCap(CONF_CAP)){render();return;} runConference(b,low,cl,soft); }},
+      {label:'Настоять на своём тексте',hint:'проект умирает здесь',
+       fn(){ addCap(-3); shiftAll(-0.4); bumpRep('firm',3);
+         logMsg('Комиссия отклонена: «'+t.name+'» снят с рассмотрения.',1);
+         chron('Сенат остановил «'+t.name.toLowerCase()+'».','b'); render(); }}]});
+}
+function runConference(b,low,cl,soft){
+  const t=T(b.topic), was=b.stance;
+  b.stance=soft; b.conf=true;
+  // Собрание голосует по согласованному тексту заново
+  const re=resolveVote(b);
+  S.votes.unshift({no:S.billNo,q:S.q,name:t.name+' · согласовано',stance:soft,
+    yes:re.yes,no:re.no,pass:re.pass,house:'соб'});
+  if(!re.pass){
+    addCap(-5); shiftAll(-0.8);
+    logMsg('Собрание не приняло согласованный текст «'+t.name+'» ('+re.yes+':'+re.no+').',1);
+    sheetOpen({eye:'Согласительная комиссия',title:'Собрание не приняло компромисс',
+      body:voteBar(re.yes,re.no)+
+        `<p>Текст, устроивший Сенат, оказался слишком мягок для Собрания: за него ${re.yes} при нужных ${MAJ}.
+          Проект похоронен между палатами — самая обидная из смертей закона.</p>`,
+      acts:[{label:'Закрыть'}]});
+    render(); return;
+  }
+  const up=resolveSenVote(b);
+  S.votes.unshift({no:S.billNo,q:S.q,name:t.name+' · согласовано',stance:soft,
+    yes:up.yes,no:up.no,pass:up.pass,house:'сен'});
+  bumpRep('comp',2); bumpRep('firm',-2);
+  logMsg('Согласительная комиссия свела «'+t.name+'» с «'+STEP[was+2]+'» на «'+STEP[soft+2]+'».',1);
+  chron('Палаты сошлись на компромиссе по «'+t.name.toLowerCase()+'».','');
+  if(!up.pass){
+    addCap(-4);
+    sheetOpen({eye:'Согласительная комиссия',title:'Сенат отступил от своего же текста',
+      body:billPath(b,re,up,null,false,cl)+'<p class="hint">Так бывает: комиссия договаривается, а палата — нет.</p>',
+      acts:[{label:'Закрыть'}]});
+    render(); return;
+  }
+  presStage(b,re,up,cl,'через согласительную комиссию');
+}
 
+/* ─── подпись президента ─────────────────────────────────────── */
+function presStage(b,low,up,cl,note){
+  const t=T(b.topic);
   const veto=Math.random()<vetoChance(b);
   if(veto){
     S.pres.vetoes++;
@@ -2168,10 +2668,10 @@ function submitBill(){
     logMsg('Президент наложил вето на «'+t.name+'», принятый обеими палатами.',1);
     chron('Президент отклонил «'+t.name.toLowerCase()+'».','b');
     sheetOpen({eye:'Прохождение закона · '+dateLabel(),title:t.name,
-      body:billPath(b,low,up,{veto:true})+
+      body:billPath(b,low,up,{veto:true},false,cl)+
         `<p>Закон вернулся в Собрание. Преодолеть вето можно двумя третями — это ${SUPER} голосов из ${SEATS}, на сорок больше обычного большинства.</p>`,
       acts:[{label:'Оставить в Собрании'}]});
-    S.bill=null; render(); return;
+    render(); return;
   }
 
   enact(b);
@@ -2186,9 +2686,10 @@ function submitBill(){
   logMsg('Принят закон «'+t.name+'»: Собрание '+low.yes+':'+low.no+', Сенат '+up.yes+':'+up.no+'.',1);
   chron('Принят закон «'+t.name.toLowerCase()+'».','g');
   sheetOpen({eye:'Прохождение закона · '+dateLabel(),title:t.name,
-    body:billPath(b,low,up,{veto:false},true)+'<p class="hint">Закон вступает в силу с начала следующего квартала.</p>',
+    body:billPath(b,low,up,{veto:false},true,cl)+
+      (note?'<p class="hint">'+note[0].toUpperCase()+note.slice(1)+'.</p>':'')+
+      '<p class="hint">Закон вступает в силу с начала следующего квартала.</p>',
     acts:[{label:'Закрыть'}]});
-  S.bill=null;
   render();
 }
 
@@ -2515,15 +3016,265 @@ function confirmSenate(kind,who,byParty){
     let v=(s.party===byParty?24:inCoal(s.party)?10:-14);
     v+=(s.rel-50)*0.22;
     if(who&&who.st)v+=(1.4-axDist(who.st,P(s.party).st))*10;
+    // старейшина взвешивает кадровый вопрос строже: он этих людей переживёт
+    if(senRank(s)>=4)v+=(s.party===byParty?4:-5);
     v+=noise(s.id+'conf'+kind+S.q,12);
     (v>0?yes++:no++);
   });
-  if(yes===no&&S.vp){ (S.vp.party===byParty?yes++:no++); S.vp.ties++; }
+  // лидер большинства ведёт и кадровые голосования
+  if(S.senLead){ const f=(leadFavour()-50)/50; const n=Math.round(f*4);
+    if(S.senLead.party===byParty||inCoal(S.senLead.party)){ yes+=Math.max(0,n); no-=Math.max(0,n); }
+    else { yes+=Math.min(0,n); no-=Math.min(0,n); } }
+  yes=clamp(yes,0,SEN_SEATS); no=SEN_SEATS-yes;
+  // председатель уговаривает так же, как и по законам
+  const m=vpMargin(), gap=no-yes;
+  if(S.vp&&gap>0&&gap<=m&&(S.vp.party===byParty||inCoal(S.vp.party))){ yes+=gap; no-=gap; }
+  if(yes===no&&S.vp){ (S.vp.party===byParty?yes++:no++); S.vp.ties=(S.vp.ties||0)+1; }
   const ok=yes>=SEN_MAJ;
   logMsg('Сенат '+(ok?'утвердил':'отклонил')+' '+c.name+(who&&who.name?' — '+who.name:'')+
     ' ('+yes+':'+no+').',ok?0:1);
   if(!ok)addCap(-c.cost);
   return ok;
+}
+
+/* ═══ РАБОТА С ПАЛАТОЙ ════════════════════════════════════════════
+   Сенаторов вдвое меньше депутатов, и каждый весит вчетверо: сотня
+   человек решает судьбу всего, что прошло Собрание. Поэтому здесь
+   работают не с фракциями, а с людьми и с их субъектами. */
+function senLobby(senId,kind){
+  const s=S.senate.find(x=>x.id===senId), l=SENLOB.find(x=>x.id===kind);
+  if(!s||!l)return;
+  if(!useAP(1))return;
+  if(l.cap&&!payCap(capCost(l.cap,'lobby'))){S.ap++;return;}
+  if(l.gold&&!payGold(l.gold)){S.ap++;return;}
+  s.deals++;
+  if(kind==='talk'){
+    // старейшину уговаривать труднее: он пересидел четверых на вашем месте
+    const g=senElder(s)?ri(4,9):ri(7,14);
+    s.rel=clamp(s.rel+g,0,100); s.note='беседовал с вами';
+    if(S.vp&&S.vp.job==='senate')s.rel=clamp(s.rel+Math.round(vpSkill()*0.05),0,100);
+  }
+  if(kind==='proj'){
+    s.rel=clamp(s.rel+ri(13,22),0,100); s.note='получил стройку в субъект';
+    S.rmod[s.region]=clamp(S.rmod[s.region]+2.4,-22,22);
+    S.unrest[s.region]=clamp(S.unrest[s.region]-ri(2,5),0,100);
+    // земляки по делегации замечают, кому досталось
+    S.senate.filter(x=>x.region===s.region&&x.id!==s.id).forEach(x=>x.rel=clamp(x.rel+3,0,100));
+    addTrail(s.integ*0.1,'стройка в субъекте '+s.name);
+  }
+  if(kind==='comm'){
+    s.rel=clamp(s.rel+ri(16,26),0,100); s.note='возглавил комитет палаты';
+    const mate=S.senate.filter(x=>x.party===s.party&&x.id!==s.id&&senRank(x)>=senRank(s));
+    if(mate.length){ const m=pick(mate); m.rel=clamp(m.rel-ri(6,12),0,100); m.note='обойдён по старшинству'; }
+    addTrail(3,'комитет для '+s.name);
+  }
+  if(kind==='join'){
+    const from=s.party;
+    const ch=clamp((s.rel-60)/56+(70-s.loyal)/160-senRank(s)*0.04,0.06,0.72);
+    if(Math.random()<ch){
+      s.party=PL; s.rel=clamp(s.rel+5,0,100); s.loyal=ri(52,78); s.note='перешёл к вам';
+      S.senSeats[from]--; S.senSeats[PL]=(S.senSeats[PL]||0)+1;
+      S.senate.filter(x=>x.party===from).forEach(x=>x.rel=clamp(x.rel-5,0,100));
+      if(S.partners[from])S.partners[from].anger=clamp(S.partners[from].anger+1.5,0,6);
+      addTrail(ri(5,10),'переход сенатора '+s.name);
+      seatSenLeader();
+      logMsg('Сенатор '+s.name+' перешёл из «'+P(from).name+'» в вашу фракцию.',1);
+      chron('Сенатор '+s.name+' сменил фракцию на вашу.','g');
+    } else {
+      s.rel=clamp(s.rel-14,0,100); s.note='отказал вам';
+      logMsg('Сенатор '+s.name+' отказался переходить.',1);
+    }
+    render(); return;
+  }
+  logMsg('Работа с сенатором: '+s.name+' ('+P(s.party).short+'), отношение '+Math.round(s.rel)+'.');
+  toast('Отношение: '+Math.round(s.rel));
+  render();
+}
+function askSen(senId){
+  const s=S.senate.find(x=>x.id===senId); if(!s)return;
+  const dean=senDean(s.region);
+  sheetOpen({eye:R(s.region).name+' · класс '+QUARTERS[s.cls],title:s.name,
+    body:`<div class="res" style="margin-top:0"><span>Фракция</span><b class="w">${P(s.party).name}</b>
+        <span>Отношение к вам</span><b class="${s.rel<34?'bad':s.rel>=62?'good':'warn'}">${Math.round(s.rel)}</b>
+        <span>Дисциплина</span><b>${s.loyal}</b>
+        <span>Неподкупность</span><b>${s.integ}</b>
+        <span>Сроков в палате</span><b>${senRank(s)}${senElder(s)?' · старейшина':''}</b>
+        <span>Старший в делегации</span><b class="w">${dean?dean.name:'—'}</b></div>
+      ${s.note?'<p class="hint">Последнее: '+s.note+'.</p>':''}`,
+    opts:SENLOB.filter(l=>!l.need||l.need(s)).map(l=>({
+      label:l.name,
+      hint:(l.cap?'вес '+capCost(l.cap,'lobby'):'')+(l.cap&&l.gold?' · ':'')+(l.gold?l.gold+' млрд':'')+' · '+l.txt,
+      fn:()=>senLobby(senId,l.id)})).concat([{label:'Ничего',hint:'закрыть',fn(){}}])});
+}
+/* сделка с лидером большинства: календарь, повестка, тон палаты */
+function askLead(){
+  const l=S.senLead; if(!l){toast('Палата пока без лидера');return;}
+  const who=senLeadPerson();
+  sheetOpen({eye:'Лидер сенатского большинства',title:l.name,
+    body:`<div class="res" style="margin-top:0"><span>Фракция</span><b class="w">${P(l.party).name}</b>
+        <span>В кресле с</span><b>${shortDate(l.since)}</b>
+        <span>Сроков в палате</span><b>${who?senRank(who):'—'}</b>
+        <span>Расположение к вам</span><b class="${leadFavour()<40?'bad':leadFavour()>=70?'good':'warn'}">${leadFavour()}</b>
+        <span>Сделок с вами</span><b>${l.deals||0}</b></div>
+      <p class="hint">Лидер не голосует за вас и не против: он решает, когда ваш проект окажется
+        в календаре палаты и окажется ли вообще. Кресло достаётся самому заслуженному сенатору
+        крупнейшей фракции — сместить его можно, только сместив саму фракцию.</p>`,
+    opts:[
+      {label:'Договориться о повестке',hint:'вес '+capCost(LEAD_DEAL,'lobby')+' · расположение и след',
+       fn(){ if(!useAP(1))return; if(!payCap(capCost(LEAD_DEAL,'lobby'))){S.ap++;return;}
+         l.deals=(l.deals||0)+1;
+         l.favour=clamp((l.favour||0)+ri(7,14),-40,40);
+         if(who)who.rel=clamp(who.rel+ri(5,10),0,100);
+         addTrail(ri(3,6),'сделка с лидером Сената');
+         logMsg('Договорённость с лидером Сената: расположение '+leadFavour()+'.');
+         toast('Расположение: '+leadFavour()); render(); }},
+      ...(S.senHold?[{label:'Вытащить проект из-под сукна',hint:'вес '+capCost(LEAD_DEAL,'lobby')+' · «'+T(S.senHold.bill.topic).name+'»',
+        fn:()=>pushCalendar()}]:[]),
+      {label:'Ничего',hint:'закрыть',fn(){}}]});
+}
+
+/* ═══ ВИЦЕ-ПРЕЗИДЕНТ ══════════════════════════════════════════════
+   Второе кресло страны и первое по бесполезности — ровно до того
+   дня, когда оно становится первым во всём. Между этими днями вице
+   ведёт порученное дело или тихо копит обиду. */
+
+/* поручение работает каждый квартал и тем сильнее, чем он способнее */
+function vpTick(){
+  const v=S.vp; if(!v)return;
+  const k=vpSkill()/100, own=v.party===PL||inCoal(v.party);
+  if(v.job==='senate'&&own){
+    const pool=S.senate.filter(s=>s.party===v.party||inCoal(s.party)||s.rel>44);
+    pool.forEach(s=>{ if(Math.random()<0.3)s.rel=clamp(s.rel+1+k*2,0,100); });
+    if(S.senLead&&(S.senLead.party===v.party||inCoal(S.senLead.party)))
+      S.senLead.favour=clamp((S.senLead.favour||0)+0.8,-40,40);
+  }
+  if(v.job==='region'&&own){
+    const worst=REGIONS.slice().sort((a,b)=>(S.unrest[b.id]||0)-(S.unrest[a.id]||0)).slice(0,2);
+    worst.forEach(r=>S.unrest[r.id]=clamp(S.unrest[r.id]-(1.2+k*2.2),0,100));
+    if(v.region)S.rmod[v.region]=clamp(S.rmod[v.region]+0.4,-22,22);
+  }
+  if(v.job==='world'&&own&&S.nb){
+    Object.values(S.nb).forEach(n=>{ n.rel=clamp(n.rel+0.5+k*1.1,0,100); });
+  }
+  if(v.job==='party'&&own){
+    S.deputies.filter(d=>d.party===PL).forEach(d=>{ if(Math.random()<0.22)d.rel=clamp(d.rel+1,0,100); });
+    S.funds=r1(S.funds+1.5+(v.pop||40)*0.05);
+  }
+  // известный вице подтягивает и вас, если он ваш
+  if(own&&v.pop>=60&&Math.random()<0.2)shiftAll(0.25);
+  // честолюбие: без дела оно растёт, с делом — гаснет
+  v.amb=clamp((v.amb||40)+((v.job||'none')==='none'?0.9:-0.45),0,100);
+  if(vpRestless()){ v.restless=(v.restless||0)+1; if(v.restless>=4&&Math.random()<0.3)vpRevolt(); }
+  else v.restless=0;
+}
+/* вице, которому нечего делать, начинает делать себе имя */
+function vpRevolt(){
+  const v=S.vp; v.restless=0;
+  const own=v.party===PL;
+  v.amb=clamp(v.amb+4,0,100);
+  if(own){
+    shiftAll(-0.8); S.deputies.filter(d=>d.party===PL).forEach(d=>{ if(Math.random()<0.3)d.rel=clamp(d.rel-3,0,100); });
+    bumpRep('firm',-3);
+    logMsg('Вице-президент '+v.name+' выступил со своей программой, не согласовав её с вами.',1);
+    chron('Вице-президент повёл свою игру.','b');
+    sheetOpen({eye:'Второе кресло',title:'Вице-президент заговорил сам',
+      body:`<p class="lead">${v.name} дал большое интервью и изложил взгляды, которые расходятся с вашими
+          в мелочах и совпадают в главном — ровно так, как говорят те, кто готовится наследовать.</p>
+        <div class="res"><span>Честолюбие</span><b class="bad">${Math.round(v.amb)}</b>
+          <span>Известность</span><b>${Math.round(v.pop)}</b>
+          <span>Поручение</span><b class="w">${vpJob().name}</b></div>
+        <p class="hint">Занятому вице некогда собирать сторонников. Свободному — некуда девать время.</p>`,
+      opts:[
+        {label:'Дать ему дело',hint:'выбрать поручение',fn:()=>askVPJob(true)},
+        {label:'Оставить как есть',hint:'пусть говорит',fn(){}}]});
+  } else {
+    S.presRel=clamp(S.presRel+ri(2,6),0,100);
+    logMsg('Вице-президент '+v.name+' публично разошёлся с президентом.',1);
+    chron('Раскол в паре президент — вице.','');
+  }
+}
+function askVPJob(quiet){
+  const v=S.vp; if(!v){toast('Кресло вице-президента пусто');return;}
+  if(v.party!==PL&&!inCoal(v.party)){toast('Поручения вице даёт его президент, не вы');return;}
+  if(!quiet&&S.q-(v.jobQ||0)<VP_TERM){toast('Поручение меняют не чаще раза в год');return;}
+  sheetOpen({eye:'Поручение вице-президенту',title:v.name,
+    body:`<div class="res" style="margin-top:0"><span>Тип</span><b class="w">${vpKind().name}</b>
+        <span>Палата</span><b>${v.sen}</b><span>Известность</span><b>${v.pop}</b>
+        <span>Честолюбие</span><b class="${v.amb>=VP_AMB?'bad':''}">${Math.round(v.amb)}</b></div>
+      <p class="hint">Одно дело за раз. Способность к палате решает, много ли даст работа с Сенатом;
+        известность — много ли даст всё остальное.</p>`,
+    opts:VP_JOBS.map(j=>({label:j.name+(v.job===j.id?' · сейчас':''),hint:j.eff,
+      fn(){ v.job=j.id; v.jobQ=S.q;
+        logMsg('Вице-президенту поручено: '+j.name.toLowerCase()+'.');
+        toast(j.name); render(); }}))});
+}
+/* снять напарника со списка: дорого, обидно и не всегда помогает */
+function dropVP(){
+  const v=S.vp; if(!v){toast('Кресло и так пусто');return;}
+  if(v.party!==PL){toast('Это не ваш вице-президент');return;}
+  if(!useAP(1)||!payCap(VP_DROP))return;
+  const old=v.name;
+  const fresh=makeVP(PL);
+  if(!confirmSenate('vp',fresh,PL)){
+    logMsg('Сенат не утвердил нового вице-президента. '+old+' остаётся в кресле.',1);
+    v.amb=clamp(v.amb+10,0,100);
+    toast('Сенат отклонил замену'); render(); return;
+  }
+  fresh.dropped=(v.dropped||0)+1;
+  S.vp=fresh;
+  shiftAll(-0.6); bumpRep('firm',3); bumpRep('honest',-2);
+  logMsg('Вице-президент сменён: вместо '+old+' — '+fresh.name+'.',1);
+  chron('Смена вице-президента.','');
+  render();
+}
+/* кресло вице пустеет отдельно от президентского */
+function vpVacancy(){
+  const v=S.vp; if(!v)return;
+  if(S.q-(v.since||0)<6)return;
+  const risk=0.008+(v.amb>=VP_AMB?0.008:0);
+  if(Math.random()>=risk)return;
+  const old=v.name, party=v.party;
+  const cand=makeVP(party);
+  const ok=confirmSenate('vp',cand,party);
+  S.vp=ok?cand:null;
+  logMsg('Вице-президент '+old+' оставил пост. '+(ok?'Палата утвердила '+cand.name+'.':'Кресло осталось пустым.'),1);
+  chron('Смена вице-президента.','');
+  sheetOpen({eye:'Второе кресло',title:'Вице-президент ушёл',
+    body:`<p class="lead">${old} прекратил полномочия. Президент вносит новую кандидатуру, и утверждает её Сенат —
+        та самая палата, которой вице потом будет председательствовать.</p>
+      ${ok?`<div class="res"><span>Новый вице</span><b class="w">${cand.name}</b>
+          <span>Тип</span><b class="w">${(VP_KIND.find(k=>k.id===cand.kind)||{}).name}</b>
+          <span>Палата</span><b>${cand.sen}</b><span>Честолюбие</span><b>${cand.amb}</b></div>`
+        :`<p class="hint">Сенат кандидатуру отклонил. Пока кресло пусто, равенство в палате
+            никто не разбивает — а равенство в палате из ста мест случается чаще, чем кажется.</p>`}`,
+    acts:[{label:'Принять к сведению'}]});
+}
+/* напарник по списку: выбор перед выборами, если идёте вы */
+function askRunningMate(then){
+  const pool=[];
+  const kinds=VP_KIND.slice().sort(()=>Math.random()-0.5).slice(0,3);
+  kinds.forEach(k=>{
+    const c=makeVP(PL,k.id);
+    // человек крыла приходит из своего края, глава субъекта — из своего
+    pool.push(c);
+  });
+  sheetOpen({eye:'Список · '+dateLabel(),title:'Кого брать вторым номером',
+    body:`<p class="lead">Голосуют за пару, а не за человека. Напарник добирает голоса там, где вас
+        знают хуже: свой край, своё крыло, свой возраст. Он же садится председателем Сената —
+        и то, что он умеет там, важнее того, что он даёт на выборах.</p>
+      <p class="hint">Палата — умение вести Сенат. Имя — известность в стране. Честолюбие — то,
+        чем он станет для вас, когда работа надоест.</p>`,
+    opts:pool.map(c=>{
+      const k=VP_KIND.find(x=>x.id===c.kind);
+      return {label:c.name+' · '+k.name,
+        hint:'палата '+c.sen+' · имя '+c.pop+' · честолюбие '+c.amb+' · '+R(c.region).name+'. '+k.txt,
+        fn(){ S.mate=c; toast('Напарник: '+c.name); if(then)then(); }};
+    })});
+}
+/* прибавка списку от напарника: свой край и своё имя */
+function mateBonus(pid){
+  if(pid!==PL||!S.mate)return 0;
+  return r2(0.4+(S.mate.pop-40)*0.02);
 }
 
 /* ═══ НАДЗОР ══════════════════════════════════════════════════════
@@ -2703,7 +3454,7 @@ function nbTreaty(id){
   if(st.rel<48){toast('С таким отношением договор не подпишут');return;}
   if(!useAP(1)||!payCap(TREATY_COST))return;
   // международный договор ратифицирует Сенат
-  const ok=confirmSenate('treaty',{name:'договор с «'+x.name+'»',st:x.st},S.gov.lead);
+  const ok=confirmSenate('treaty',{name:'с «'+x.name+'»',st:x.st},S.gov.lead);
   if(!ok){
     addCap(-4);
     sheetOpen({eye:'Сенат',title:'Договор не ратифицирован',
@@ -2974,15 +3725,21 @@ function askGov(rid){
 function senateElection(){
   const cls=S.senCls, was={...S.senSeats};
   const kept=S.senate.filter(s=>s.cls!==cls), fresh=[];
+  let retired=0, kept_in=0;
   REGIONS.forEach(r=>{
     const old=S.senate.filter(s=>s.cls===cls&&s.region===r.id);
     if(!old.length)return;
+    // старик уходит сам: после четвёртого срока каждый второй не выдвигается
+    const runs=old.filter(s=>{ const go=senRank(s)>=4&&Math.random()<0.42;
+      if(go)retired++; return !go; });
     const sc={}; S.parties.forEach(p=>sc[p.id]=partyScore(p,r));
     const won=dhondt(shareFrom(sc),old.length);
     Object.entries(won).forEach(([pid,k])=>{
-      const inc=old.filter(s=>s.party===pid);
+      const inc=runs.filter(s=>s.party===pid);
       for(let i=0;i<k;i++){
-        if(inc[i]){ const s=inc[i]; s.rel=clamp(s.rel*0.9+8,0,100); s.deals=0; s.note=''; s.since=S.q; fresh.push(s); }
+        if(inc[i]){ const s=inc[i];
+          s.rel=clamp(s.rel*0.9+8,0,100); s.deals=0; s.note=''; s.since=S.q;
+          s.terms=senRank(s)+1; s.spledge=0; kept_in++; fresh.push(s); }
         else fresh.push(makeSen(pid,r.id,cls,'n'+i+S.q));
       }
     });
@@ -2992,6 +3749,8 @@ function senateElection(){
   S.senate.forEach(s=>tot[s.party]++);
   S.senSeats=tot;
   S.senCls=(cls+1)%3;
+  seatSenLeader();
+  const elders=S.senate.filter(senElder).length;
 
   const rows=S.parties.slice().sort((a,b)=>senSeatsOf(b.id)-senSeatsOf(a.id)).map(p=>{
     const d=senSeatsOf(p.id)-(was[p.id]||0);
@@ -3003,7 +3762,12 @@ function senateElection(){
   sheetOpen({eye:'Выборы в Сенат · '+dateLabel(),title:'Обновилась треть палаты',
     body:`<p class="lead">Треть сенаторов переизбиралась в своих субъектах. Остальные две трети остались на местах — Сенат никогда не меняется весь сразу.</p>
       <table class="tight"><thead><tr><th>Партия</th><th class="r">Мест</th><th class="r">Сдвиг</th></tr></thead><tbody>${rows}</tbody></table>
-      <p class="hint" style="margin-top:8px">Для большинства в Сенате нужно ${SEN_MAJ}. У коалиции ${senCoalSeats()}.</p>`,
+      <div class="res"><span>Переизбраны</span><b>${kept_in}</b>
+        <span>Ушли по стажу</span><b>${retired}</b>
+        <span>Старейшин в палате</span><b>${elders}</b>
+        <span>Лидер большинства</span><b class="w">${S.senLead?S.senLead.name:'—'}</b></div>
+      <p class="hint" style="margin-top:8px">Для большинства в Сенате нужно ${SEN_MAJ}, чтобы закрыть прения — ${cloture()}.
+        У коалиции ${senCoalSeats()}.</p>`,
     acts:[{label:'Принять к сведению'}]});
 }
 
@@ -3015,6 +3779,8 @@ function presScores(){
   const popTot=REGIONS.reduce((a,r)=>a+r.pop,0);
   REGIONS.forEach(r=>{
     const sc={}; S.parties.forEach(p=>sc[p.id]=partyScore(p,r));
+    // напарник по списку добирает голоса в своём краю и по стране своим именем
+    if(S.mate){ sc[PL]*=(1+mateBonus(PL)*0.03+(S.mate.region===r.id?0.16:0)); }
     const sh=shareFrom(sc);
     S.parties.forEach(p=>votes[p.id]+=sh[p.id]*r.pop);
   });
@@ -3042,7 +3808,9 @@ function installPres(pid,share){
   const name=limited?depName():(pid===PL?me().leader:p.leader);
   S.pres={party:pid, name, since:S.q, until:S.q+PTERM,
           term:limited?1:(same?(S.pres.term||1)+1:1), vetoes:0, decrees:0};
-  seatVP(pid);                                   // вице шёл тем же списком
+  // вице шёл тем же списком: если список составляли вы, это ваш напарник
+  if(pid===PL&&S.mate)seatVP(pid,null,S.mate); else seatVP(pid);
+  S.mate=null;
   S.presRel=pid===PL?100:clamp(Math.round(70-axDist(p.st,me().st)*12),20,85);
   if(pid===PL){ addCap(22); shiftAll(1.6); bumpRep('comp',5); bumpRep('folk',4);
     career('Избрание президентом республики — '+share+'% голосов.'); }
@@ -3055,6 +3823,11 @@ function presRow(p,v,mark){
     <td class="n">${v}%</td><td style="width:110px">${bar([[v,p.color]],8)}</td></tr>`;
 }
 function presElection(){
+  // список составляется до подсчёта: напарник влияет на результат
+  if(!S.mate&&seatsOf(PL)>0){ askRunningMate(()=>presElectionRun()); return; }
+  presElectionRun();
+}
+function presElectionRun(){
   const first=presScores();
   // отсидевший два срока не идёт третий: партия выставляет менее известного
   if((S.pres.term||1)>=2){ const id=S.pres.party; first[id]=r1(first[id]*0.82); }
@@ -3105,9 +3878,13 @@ function presVacancy(){
   const risk=0.012+(S.presRel<26?0.012:0)+(avgUnrest()>46?0.01:0);
   if(Math.random()>risk)return;
   const old=S.pres.name, vpn=S.vp?S.vp.name:depName(), party=S.pres.party;
+  const was=S.vp?{...S.vp}:null;
   S.pres={party, name:vpn, since:S.q, until:S.pres.until, term:S.pres.term,
           vetoes:S.pres.vetoes, decrees:S.pres.decrees, succeeded:true};
-  seatVP(party);
+  // кресло вице освободилось вместе с президентским: новую пару утверждает Сенат
+  const cand=makeVP(party);
+  const okVP=confirmSenate('vp',cand,party);
+  S.vp=okVP?cand:null;
   if(party===PL){ S.you.name=vpn; career('Кресло президента перешло к вам как к вице-президенту.'); }
   logMsg('Президент '+old+' оставил пост. Полномочия принял вице-президент '+vpn+'.',1);
   chron('Президент '+old+' ушёл, кресло занял вице-президент.','');
@@ -3118,7 +3895,10 @@ function presVacancy(){
         <span>Партия</span><b class="w">${P(party).name}</b>
         <span>Осталось от срока</span><b>${quarters(presLeft())}</b>
         <span>Это вы</span><b class="w">${party===PL?'да':'нет'}</b></div>
-      <p class="hint">Новый вице-президент назначен из той же партии и с этого дня председательствует в Сенате.</p>`,
+      <p class="hint">${okVP
+        ? 'Новый вице-президент — '+cand.name+' — утверждён Сенатом и с этого дня председательствует в палате.'
+        : 'Сенат новую кандидатуру отклонил: кресло вице пустует, и равенство в палате разбивать некому.'}
+        ${was&&was.job&&was.job!=='none'?'Поручение прежнего вице («'+(VP_JOBS.find(j=>j.id===was.job)||{}).name.toLowerCase()+'») отменено.':''}</p>`,
     acts:[{label:'Принять к сведению'}]});
 }
 /* президент подбирает главу кабинета: вес фракции и близость к себе */
@@ -3676,6 +4456,9 @@ function endQuarter(){
   decreeTick();
   governorTick();
   presVacancy();
+  vpVacancy();
+  vpTick();
+  senHoldTick();
   pressTick();
   judgeTick();
   probeTick();
@@ -3710,6 +4493,12 @@ function oppositionBill(){
   const bill={topic:t.id,stance:clamp(Math.round(opp.st[t.ax]),-2,2),riders:[],by:opp.id};
   const res=resolveVote(bill);
   if(!res.pass)return;
+  // обструкция работает в обе стороны: ваше меньшинство тоже умеет тянуть прения
+  if(willFilibuster(bill)){
+    logMsg('Обструкция в Сенате остановила проект оппозиции «'+t.name+'»: за клотур '+
+      clotureCount(bill)+' при нужных '+cloture()+'.');
+    return;
+  }
   const up=resolveSenVote(bill);
   if(!up.pass){ logMsg('Сенат остановил проект оппозиции «'+t.name+'» ('+up.yes+':'+up.no+').'); return; }
   if(Math.random()<vetoChance(bill)){
@@ -4060,6 +4849,29 @@ function load(){
       logMsg('Установлены отношения с четырьмя соседними государствами.',1); }
     S.trail=S.trail||0; S.trailLog=S.trailLog||[];
     S.probe=S.probe||null; S.challenge=S.challenge||null; S.ref=S.ref||null;
+    // сохранение до реформы Сената: регламент, стаж, лидер большинства
+    if(!S.senRules){
+      S.senRules={cloture:CLOTURE, nuked:false, nukedBy:null, nukedQ:0};
+      logMsg('Принят регламент Сената: прения закрываются '+CLOTURE+' голосами, а не простым большинством.',1);
+    }
+    if(S.senate&&S.senate.length){
+      let noRank=false;
+      S.senate.forEach(x=>{ if(!x.terms){ noRank=true;
+        x.terms=Math.max(1,1+Math.floor(Math.max(0,S.q-(x.since||1))/SEN_CYCLE)); } });
+      if(noRank)logMsg('Палата пересчитала стаж: у сенаторов появилось старшинство.',1);
+    }
+    if(!S.senLead&&S.senate&&S.senate.length){ seatSenLeader(true);
+      logMsg('Сенат избрал лидера большинства: повестку палаты ведёт '+
+        (S.senLead?S.senLead.name:'—')+'.',1); }
+    S.senHold=S.senHold||null; S.mate=S.mate||null;
+    // сохранение до того, как вице-президент стал человеком со свойствами
+    if(S.vp&&S.vp.sen===undefined){
+      const k=pick(VP_KIND);
+      S.vp.kind=k.id; S.vp.region=pick(REGIONS).id;
+      S.vp.sen=ri(k.sen[0],k.sen[1]); S.vp.pop=ri(k.pop[0],k.pop[1]); S.vp.amb=ri(k.amb[0],k.amb[1]);
+      S.vp.job='none'; S.vp.jobQ=S.q; S.vp.dropped=0; S.vp.restless=0;
+      logMsg('У вице-президента появились свои свойства: умение вести палату, имя и честолюбие.',1);
+    }
     return true;
   }catch(e){ return false; }
 }
@@ -4121,13 +4933,16 @@ function bar(parts,h){
   return `<div class="meter" style="height:${h||8}px">${parts.map(p=>
     `<i style="width:${p[0]}%;background:${p[1]}"></i>`).join('')}<span class="mid"></span></div>`;
 }
-function voteBar(yes,no){
-  const t=yes+no||1;
+/* Порог не всегда половина: у клотура и у преодоления вето он свой,
+   и планка на шкале должна стоять там, где он на самом деле. */
+function voteBar(yes,no,need){
+  const t=yes+no||1, th=need||Math.floor(t/2)+1;
   return `<div class="meter tall" style="margin:8px 0 4px">
       <i style="width:${yes/t*100}%;background:var(--good)"></i>
-      <i style="width:${no/t*100}%;background:var(--bad)"></i><span class="mid"></span></div>
+      <i style="width:${no/t*100}%;background:var(--bad)"></i>
+      <span class="mid" style="left:${clamp(th/t*100,0,100)}%"></span></div>
     <div style="display:flex;justify-content:space-between;font-size:12px">
-      <span class="good">за ${yes}</span><span class="dim">порог ${Math.floor(t/2)+1}</span><span class="bad">против ${no}</span></div>`;
+      <span class="good">за ${yes}</span><span class="dim">порог ${th}</span><span class="bad">против ${no}</span></div>`;
 }
 function mini(v,color){ return `<span class="mini"><i style="width:${clamp(v,0,100)}%;background:${color||'var(--ink-2)'}"></i></span>`; }
 function chip(p){ return `<span class="chip"><s style="background:${p.color}"></s>${p.short}</span>`; }
@@ -4603,61 +5418,153 @@ function tabSelf(){
    Здесь смотрят не на фракцию, а на то, что закон сделает с краем. */
 function tabSenate(){
   const b=S.bill, tl=b?senTally(b):null;
+  const cnt=b?senCount(b,tl):null, cl=b?clotureCount(b,tl):null, need=cloture();
   let sens=S.senate.slice();
   if(S.filter!=='all')sens=sens.filter(s=>s.party===S.filter);
   if(b)sens.sort((x,y)=>Math.abs(senSupport(x,b))-Math.abs(senSupport(y,b)));
-  else sens.sort((x,y)=>x.rel-y.rel);
+  else sens.sort((x,y)=>x.rel-y.rel||senRank(y)-senRank(x));
   const shown=Math.min(S.shown||24,sens.length);
   const rows=sens.slice(0,shown).map(s=>{
     const v=b?senSupport(s,b):null;
     const st=v===null?'':v>10?'<span class="tag g">за</span>':v<-10?'<span class="tag r">против</span>':'<span class="tag y">колеблется</span>';
-    return `<tr><td><b>${s.name}</b><div class="sub2">${R(s.region).name} · класс ${QUARTERS[s.cls]}</div></td>
-      <td>${chip(P(s.party))}</td><td class="n hide-s">${s.loyal}</td>
-      <td class="n">${Math.round(s.rel)} ${mini(s.rel)}</td><td>${st}</td></tr>`;}).join('');
+    const lead=S.senLead&&S.senLead.id===s.id;
+    return `<tr><td><b>${s.name}</b>${lead?' <span class="tag y">лидер</span>':senElder(s)?' <span class="tag">старейшина</span>':''}
+      <div class="sub2">${R(s.region).name} · класс ${QUARTERS[s.cls]}${s.note?' · '+s.note:''}</div></td>
+      <td>${chip(P(s.party))}</td><td class="n hide-s">${senRank(s)}</td>
+      <td class="n">${Math.round(s.rel)} ${mini(s.rel)}</td><td>${st}</td>
+      <td class="r"><button class="btn sm" onclick="askSen('${s.id}')" ${S.ap?'':'disabled'}>Работать</button></td></tr>`;}).join('');
   const filters=`<div class="seg"><button class="${S.filter==='all'?'on':''}" onclick="setFilter('all')">Все<u>${SEN_SEATS}</u></button>`+
     S.parties.map(p=>`<button class="${S.filter===p.id?'on':''}" onclick="setFilter('${p.id}')">${p.short}<u>${senSeatsOf(p.id)}</u></button>`).join('')+'</div>';
   const byReg=REGIONS.map(r=>{
     const here=S.senate.filter(s=>s.region===r.id);
     const mine=here.filter(s=>inCoal(s.party)).length;
-    return `<tr><td><b>${r.name}</b><div class="sub2">${r.pop} млн</div></td><td class="n">${r.sen}</td>
+    const dean=senDean(r.id);
+    return `<tr><td><b>${r.name}</b><div class="sub2">старший — ${dean?dean.name:'—'}</div></td><td class="n">${r.sen}</td>
       <td class="n ${mine*2>=r.sen?'good':'bad'}">${mine}</td>
       <td style="width:110px">${bar(seatOrder().map(p=>
         [here.filter(s=>s.party===p.id).length/r.sen*100,p.color]),8)}</td></tr>`;}).join('');
   const cls=S.senCls, due=SEN_CYCLE-((S.q-1)%SEN_CYCLE);
   const upFor=S.senate.filter(s=>s.cls===cls).length;
+  const elders=S.senate.filter(senElder).length;
 
-  return panel({cls:'info',title:'Сенат',
-    meta:SEN_SEATS+' мест · большинство '+SEN_MAJ+' · коалиция '+senCoalSeats(),
+  /* Палата описывается двумя числами, а не одним: пятьдесят один
+     проводит закон, шестьдесят даёт его хотя бы поставить. */
+  const head=panel({cls:'info',title:'Сенат',
+    meta:SEN_SEATS+' мест · большинство '+SEN_MAJ+' · клотур '+need+(nuked()?' · регламент изменён':''),
     body:`<div class="cols c12"><div>${senCircle()}</div><div>
-      <p class="lead">Вторая палата собрана по субъектам, а не по стране: маленький край весит здесь больше,
-        чем на выборах в Собрание. Закон, прошедший Собрание, попадает сюда — и здесь его можно потерять.</p>
-      <div class="res"><span>Следующее переизбрание</span><b>${quarters(due)}</b>
-        <span>Пойдёт на выборы</span><b>${upFor} из ${SEN_SEATS}</b>
-        <span>Класс на очереди</span><b>${QUARTERS[cls]}</b>
-        <span>У вашей партии</span><b class="${senSeatsOf(PL)>=25?'good':''}">${senSeatsOf(PL)}</b></div>
+      <p class="lead">Вторая палата собрана по субъектам, а не по стране: маленький край весит здесь больше.
+        Но главное её правило не в подсчёте голосов, а в прениях: пока за клотур нет ${need} голосов,
+        до голосования по существу дело не доходит вовсе.</p>
+      <div class="res"><span>У коалиции</span><b class="${senCoalSeats()>=SEN_MAJ?'good':'bad'}">${senCoalSeats()} из ${SEN_MAJ}</b>
+        <span>До клотура</span><b class="${senCoalSeats()>=need?'good':'warn'}">${senCoalSeats()} из ${need}</b>
+        <span>Следующее переизбрание</span><b>${quarters(due)}</b>
+        <span>Пойдёт на выборы</span><b>${upFor} из ${SEN_SEATS} · класс ${QUARTERS[cls]}</b>
+        <span>Старейшин в палате</span><b>${elders}</b></div>
       <div class="legend" style="margin-top:8px">${S.parties.map(p=>
         `<span class="chip"><s style="background:${p.color}"></s>${p.short} — ${senSeatsOf(p.id)}</span>`).join('')}</div>
-      </div></div>`})
+      </div></div>`});
+
+  /* Председатель палаты — вице-президент. Кресло у него здесь, а не
+     в разделе президента: там он гость, здесь работает. */
+  const v=S.vp, vparty=vpParty(), vmine=isVP();
+  const senSplit=Math.abs(senCoalSeats()-(SEN_SEATS-senCoalSeats()));
+  const chair=v?panel({cls:vmine?'lead-p':'',title:'Председатель палаты',
+    meta:'вице-президент · '+(vparty?vparty.name:''),
+    body:`<div class="stat"><i>${vpKind().name}${v.dropped?' · сменил предшественника':''}</i>
+        <div class="v" style="font-family:var(--f-display);font-size:26px;letter-spacing:0">${v.name}</div>
+        <span>${vmine?'ваш человек ведёт заседания':'заседания ведёт не ваш человек'}</span></div>
+      <div class="res"><span>Умение вести палату</span><b class="${v.sen>=70?'good':v.sen<40?'bad':''}">${v.sen} ${mini(v.sen)}</b>
+        <span>Известность в стране</span><b>${v.pop} ${mini(v.pop)}</b>
+        <span>Честолюбие</span><b class="${v.amb>=VP_AMB?'bad':''}">${Math.round(v.amb)} ${mini(v.amb)}</b>
+        <span>Родом из</span><b class="w">${R(v.region||REGIONS[0].id).name}</b>
+        <span>Поручение</span><b class="w">${vpJob().name}</b>
+        <span>Разбито равенств</span><b>${v.ties||0}</b>
+        <span>Сверх равенства уговорит</span><b>${vpMargin()?vpMargin()+' голоса':'нет'}</b>
+        <span>Разрыв в палате</span><b class="${senSplit<=6?'warn':''}">${senSplit}</b></div>
+      <p class="hint">${senSplit<=6
+        ? 'Палата расколота почти поровну: голос председателя будет звучать часто.'
+        : 'Пока разрыв велик, председатель молчит — но уговаривать в кулуарах он может и без равенства.'}
+        ${vpRestless()?' Дела ему не дано, и он начинает искать его сам.':''}</p>`,
+    foot:vmine?`<button class="btn" onclick="askVPJob()" ${S.q-(v.jobQ||0)>=VP_TERM?'':'disabled'}>Дать поручение</button>
+        <button class="btn danger" onclick="dropVP()" ${S.ap&&S.cap>=VP_DROP?'':'disabled'}>Сменить вице<span class="cost">${VP_DROP}</span></button>
+        <span class="hint">${S.q-(v.jobQ||0)<VP_TERM?'поручение меняют не чаще раза в год':'замену утверждает Сенат'}</span>`
+      :`<span class="hint">Председатель приходит в связке с президентом: своего сюда сажают, только выиграв президентские выборы.</span>
+        <button class="btn sm" data-go="pres">К президенту</button>`})
+  :panel({cls:'warn',title:'Председатель палаты',
+    body:'<div class="empty">Кресло вице-президента пусто. Равенство в палате никто не разбивает — а при ста местах оно случается.</div>'});
+
+  /* Лидер большинства ведёт календарь: он не голосует против вас,
+     он просто не называет дату. */
+  const lf=leadFavour();
+  const lead=S.senLead?panel({cls:S.senHold?'warn':'',title:'Лидер большинства',
+    meta:P(S.senLead.party).name,
+    body:`<div class="res" style="margin-top:0"><span>Кто ведёт повестку</span><b class="w">${S.senLead.name}</b>
+        <span>В кресле с</span><b>${shortDate(S.senLead.since)}</b>
+        <span>Расположение к вам</span><b class="${lf<40?'bad':lf>=70?'good':'warn'}">${lf} ${mini(lf)}</b>
+        <span>Сделок</span><b>${S.senLead.deals||0}</b></div>
+      ${S.senHold?`<p class="hint"><b>Под сукном:</b> «${T(S.senHold.bill.topic).name}» — ${STEP[S.senHold.bill.stance+2]}.
+          Выйдет на голосование само через ${quarters(S.senHold.left)}.</p>`
+        :'<p class="hint">Кресло достаётся самому заслуженному сенатору крупнейшей фракции. Чужой лидер не отклоняет законы — он не ставит их в календарь.</p>'}`,
+    foot:`<button class="btn" onclick="askLead()" ${S.ap&&S.cap>=LEAD_DEAL?'':'disabled'}>Договориться<span class="cost">${capCost(LEAD_DEAL,'lobby')}</span></button>
+      ${S.senHold?`<button class="btn pri" onclick="pushCalendar()" ${S.ap&&S.cap>=LEAD_DEAL?'':'disabled'}>Вытащить проект<span class="cost">${capCost(LEAD_DEAL,'lobby')}</span></button>`:''}`}):'';
+
+  /* Регламент: одно число, которое меняют раз в поколение. */
+  const rules=panel({title:'Регламент',meta:nuked()?'изменён в '+shortDate(S.senRules.nukedQ):'в первоначальном виде',
+    body:`<table class="tight"><tbody>
+        <tr><td><b>Простое большинство</b><div class="sub2">чтобы принять закон</div></td><td class="n">${SEN_MAJ}</td></tr>
+        <tr><td><b>Клотур</b><div class="sub2">чтобы прекратить прения и дойти до голосования</div></td>
+          <td class="n ${nuked()?'warn':''}">${need}</td></tr>
+        <tr><td><b>Обструкция</b><div class="sub2">столько голосов держат трибуну сколько угодно</div></td>
+          <td class="n">${SEN_SEATS-need+1}</td></tr>
+        <tr><td><b>Голос председателя</b><div class="sub2">при равенстве и около него</div></td>
+          <td class="n">${v?'+'+(1+vpMargin()):'—'}</td></tr>
+      </tbody></table>`,
+    foot:canNuke()
+      ? `<button class="btn danger" onclick="askNukeSolo()" ${S.cap>=NUKE_COST?'':'disabled'}>Опустить порог клотура<span class="cost">${NUKE_COST}</span></button>
+         <span class="hint">навсегда и для всех, кто придёт после</span>`
+      : `<span class="hint">${nuked()?'Порог уже опущен: обратного хода нет.'
+          :'Менять регламент можно, имея '+NUKE_MIN+' своих в палате и своего председателя. Сейчас у коалиции '+senCoalSeats()+(isVP()?'':', и председатель не ваш')+'.'}</span>`});
+
+  const board=b?panel({cls:'lead-p',title:'Расклад в Сенате',meta:'по проекту «'+T(b.topic).name+'»',body:
+      `<div class="whip"><div><i>за</i><b class="good">${cnt.yes}</b></div><div><i>?</i><b>${tl.und}</b></div>
+        <div><i>против</i><b class="bad">${cnt.no}</b></div></div>
+       ${bar([[tl.yes/SEN_SEATS*100,'var(--good)'],[tl.und/SEN_SEATS*100,'var(--line)'],[tl.no/SEN_SEATS*100,'var(--bad)']],12)}
+       <div class="res" style="margin-top:8px"><span>Большинство</span><b class="${cnt.yes>=SEN_MAJ?'good':'bad'}">${cnt.yes} из ${SEN_MAJ}</b>
+         <span>Клотур</span><b class="${cl>=need?'good':'bad'}">${cl} из ${need}</b>
+         <span>Обструкция</span><b class="${cl>=need?'good':'bad'}">${cl>=need?'не грозит':'вероятна'}</b></div>
+       <p class="hint" style="margin-top:6px">${cl>=need
+         ? 'Прения закроют без боя: проект дойдёт до голосования по существу.'
+         : 'Голосов на закон может хватать, но до голосования не дойдёт: не хватает '+(need-cl)+' до клотура.'}</p>`,
+      foot:`<button class="btn sm" data-go="bill">К проекту</button>`})
+    :panel({title:'Расклад в Сенате',body:'<div class="empty">Проект не внесён — позиции сенаторов и счёт по клотуру покажутся, когда он появится.</div>'});
+
+  return head
   +`<div class="cols c21"><div>`
   +panel({title:'Сенаторы',meta:b?'по проекту «'+T(b.topic).name+'»':'сортировка: кто хуже к вам относится',flush:true,
     body:`<div style="padding:var(--x4) var(--x5);border-bottom:var(--hair-2)" class="row">${filters}
         ${tl?`<span class="dim" style="margin-left:auto;font-size:11.5px">колеблются ${tl.und}</span>`:''}</div>
-      <div class="scrollx"><table><thead><tr><th>Сенатор</th><th>Фракция</th><th class="n hide-s">Дисц.</th>
-        <th class="n">Отношение</th><th>Позиция</th></tr></thead><tbody>${rows}</tbody>
-        <caption>Показаны ${shown} из ${sens.length}. Сенатор меньше слушает фракцию и больше — свой субъект,
-          поэтому дисциплина здесь ниже, а личное отношение весит вдвое.</caption></table></div>`,
+      <div class="scrollx"><table><thead><tr><th>Сенатор</th><th>Фракция</th><th class="n hide-s">Сроков</th>
+        <th class="n">Отношение</th><th>Позиция</th><th></th></tr></thead><tbody>${rows}</tbody>
+        <caption>Показаны ${shown} из ${sens.length}. Сенатор меньше слушает фракцию и больше — свой субъект.
+          Старейшина сидит четвёртый срок и тянет за собой делегацию своего края.</caption></table></div>`,
     foot:shown<sens.length?`<button class="btn sm" onclick="S.shown=${shown+40};render()">Показать ещё<span class="cost">${Math.min(40,sens.length-shown)}</span></button>`:''})
-  +`</div><div>`
-  +(b?panel({cls:'lead-p',title:'Расклад в Сенате',body:
-      `<div class="whip"><div><i>за</i><b class="good">${tl.yes}</b></div><div><i>?</i><b>${tl.und}</b></div>
-        <div><i>против</i><b class="bad">${tl.no}</b></div></div>
-       ${bar([[tl.yes/SEN_SEATS*100,'var(--good)'],[tl.und/SEN_SEATS*100,'var(--line)'],[tl.no/SEN_SEATS*100,'var(--bad)']],12)}
-       <p class="hint" style="margin-top:6px">Нужно ${SEN_MAJ}. Собрание — только первая ступень: без Сената закон никуда не идёт.</p>`,
-      foot:`<button class="btn sm" data-go="bill">К проекту</button>`})
-    :panel({title:'Расклад в Сенате',body:'<div class="empty">Проект не внесён — позиции сенаторов покажутся, когда он появится.</div>'}))
   +panel({title:'Делегации субъектов',meta:'мест в палате · из них у коалиции',flush:true,
     body:`<div class="scrollx"><table class="tight"><tbody>${byReg}</tbody></table></div>`})
-  +`</div></div>`;
+  +`</div><div>`+chair+board+lead+rules+`</div></div>`;
+}
+/* тот же ядерный вариант, но вне спора о конкретном законе */
+function askNukeSolo(){
+  if(!canNuke()){toast('Для правки регламента нужны '+NUKE_MIN+' своих и свой председатель');return;}
+  sheetOpen({eye:'Регламент Сената',title:'Опустить порог клотура?',
+    body:`<p class="lead">Председатель ставит вопрос о толковании регламента, и палата решает его
+        простым большинством. С этого дня прения прекращаются ${SEN_MAJ} голосами, а не ${cloture()}.</p>
+      <div class="res"><span>У коалиции в Сенате</span><b class="good">${senCoalSeats()}</b>
+        <span>Нужно</span><b>${NUKE_MIN}</b>
+        <span>Председатель</span><b class="w">${S.vp?S.vp.name:'—'}</b>
+        <span>Цена</span><b>вес ${NUKE_COST}</b></div>
+      <p class="hint">Обратного хода нет. Правило останется и тогда, когда большинство будет чужим.</p>`,
+    opts:[{label:'Опустить порог',hint:'вес '+NUKE_COST+' · навсегда',fn(){ doNuke(); render(); }},
+          {label:'Не трогать регламент',hint:'закрыть',fn(){}}]});
 }
 
 /* ─── 4 · Законы ─────────────────────────────────────────────── */
@@ -5014,7 +5921,9 @@ function tabPres(){
         <td class="dim">президент</td><td class="r">${mine?'<span class="tag g">да</span>':'<span class="tag r">нет</span>'}</td></tr>
       <tr><td><b>Указ</b><div class="sub2">${Math.round(DECREE_POWER*100)}% силы закона на ${quarters(DECREE_LEN)}, мимо палат</div></td>
         <td class="dim">президент</td><td class="r">${mine?'<span class="tag g">да</span>':'<span class="tag r">нет</span>'}</td></tr>
-      <tr><td><b>Решающий голос в Сенате</b><div class="sub2">равенство 50 на 50 разбивает председатель палаты</div></td>
+      <tr><td><b>Решающий голос в Сенате</b><div class="sub2">равенство разбивает председатель палаты${v&&vpMargin()?', а счёт в '+vpMargin()+' голоса он ещё и уговаривает':''}</div></td>
+        <td class="dim">вице-президент</td><td class="r">${vmine?'<span class="tag g">да</span>':'<span class="tag r">нет</span>'}</td></tr>
+      <tr><td><b>Порученное дело</b><div class="sub2">палата, объезд субъектов, представительство вовне или партия</div></td>
         <td class="dim">вице-президент</td><td class="r">${vmine?'<span class="tag g">да</span>':'<span class="tag r">нет</span>'}</td></tr>
       <tr><td><b>Наследование кресла</b><div class="sub2">если президент уходит досрочно, срок доводит вице</div></td>
         <td class="dim">вице-президент</td><td class="r">${vmine?'<span class="tag g">да</span>':'<span class="tag r">нет</span>'}</td></tr>
@@ -5035,17 +5944,25 @@ function tabPres(){
     foot:`<button class="btn pri" onclick="overrideVeto()" ${S.ap&&S.cap>=capCost(14,'veto')?'':'disabled'}>Преодолеть вето<span class="cost">${capCost(14,'veto')}</span></button>
       <button class="btn" data-go="bill">К законам</button>`}):'';
 
-  /* вице-президент важен ровно тогда, когда Сенат расколот пополам */
+  /* Второе кресло описано в разделе Сената — там оно и работает.
+     Здесь остаётся только связка: кто идёт вторым номером и что будет,
+     если первый номер уйдёт раньше срока. */
   const senSplit=Math.abs(senCoalSeats()-(SEN_SEATS-senCoalSeats()));
-  const vpPanel=panel({cls:senSplit<=6?'warn':'',title:'Председатель Сената',
-    body:`<div class="res" style="margin-top:0"><span>Кто</span><b class="w">${v?v.name:'—'}</b>
+  const vpPanel=panel({cls:vpRestless()?'warn':'',title:'Второй номер списка',
+    meta:v?vpKind().name:'кресло пусто',
+    body:v?`<div class="res" style="margin-top:0"><span>Кто</span><b class="w">${v.name}</b>
         <span>Партия</span><b class="w">${vparty?vparty.name:'—'}</b>
-        <span>Разбито равенств</span><b>${v?v.ties||0:0}</b>
-        <span>Расклад в Сенате</span><b>${senCoalSeats()} · ${SEN_SEATS-senCoalSeats()}</b>
-        <span>Разрыв</span><b class="${senSplit<=6?'warn':''}">${senSplit}</b></div>
-      <p class="hint">${senSplit<=6
-        ? 'Палата расколота почти поровну — значит решающий голос председателя будет звучать часто, и он не ваш, если вице-президент не ваш.'
-        : 'Пока разрыв велик, председатель молчит: его голос слышен только при равенстве в пятьдесят на пятьдесят.'}</p>`,
+        <span>Умение вести палату</span><b class="${v.sen>=70?'good':v.sen<40?'bad':''}">${v.sen}</b>
+        <span>Известность</span><b>${v.pop}</b>
+        <span>Честолюбие</span><b class="${v.amb>=VP_AMB?'bad':''}">${Math.round(v.amb)}</b>
+        <span>Поручение</span><b class="w">${vpJob().name}</b>
+        <span>Разбито равенств</span><b>${v.ties||0}</b>
+        <span>Разрыв в Сенате</span><b class="${senSplit<=6?'warn':''}">${senSplit}</b></div>
+      <p class="hint">${vpRestless()
+        ? 'Ему нечего делать, а честолюбия хватает на двоих: рано или поздно он заговорит сам.'
+        : 'Идёт с президентом одним списком, председательствует в Сенате и наследует кресло, если оно освободится.'}
+        Работа с ним — в разделе Сената.</p>`
+      :'<div class="empty">Кресло вице-президента пусто: наследовать полномочия некому.</div>',
     foot:`<button class="btn" data-go="senate">К Сенату</button>`});
 
   const race=panel({title:'Как выбирают главу государства',

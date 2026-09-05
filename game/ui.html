@@ -900,11 +900,17 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
       <span class="chip"><s style="background:var(--p3)"></s>ДРЖ 17</span>
     </div>
   </div></div>
-  <div class="panel" style="margin:0"><header><h4>Полоса голосования</h4></header>
+  <div class="panel" style="margin:0"><header><h4>Полоса голосования</h4><span class="meta">порог на месте</span></header>
   <div class="body">
     <div class="meter tall"><i style="width:62%;background:var(--good)"></i><i style="width:38%;background:var(--bad)"></i><span class="mid"></span></div>
     <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:4px">
       <span class="good">за 74</span><span class="dim">порог 61</span><span class="bad">против 46</span></div>
+    <p class="note">Риска стоит на половине по умолчанию. Но порог не всегда половина: у клотура
+      в Сенате он шестьдесят из ста, у преодоления вето — две трети. Риску тогда сдвигают
+      инлайновым <code>left</code>, иначе шкала врёт о том, добрали или нет.</p>
+    <div class="meter tall" style="margin-top:var(--x4)"><i style="width:41%;background:var(--good)"></i><i style="width:59%;background:var(--bad)"></i><span class="mid" style="left:60%"></span></div>
+    <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:4px">
+      <span class="good">за 41</span><span class="dim">порог 60</span><span class="bad">против 59</span></div>
   </div></div>
   <div class="panel" style="margin:0"><header><h4>Зал заседаний</h4><span class="meta">120 мандатов</span></header>
   <div class="body">
@@ -1775,6 +1781,109 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
           <button class="opt"><b>Отстаивать закон · 9 веса</b><span>если проиграете, отменят целиком</span></button>
           <button class="opt"><b>Смягчить самим</b><span>сила закона падает вдвое, зато он останется</span></button>
           <button class="opt"><b>Не вмешиваться</b><span>пусть решают судьи</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div></div></div>
+
+<!-- 8 · СЕНАТ -->
+<div class="board"><div class="cap">08 · Сенат<span>палата, председатель, повестка, регламент</span></div>
+<div class="wrap"><div class="frame">
+  <div class="appbar"><div class="brand"><div style="width:26px;height:29px;background:var(--band-2)"></div>
+    <div><b>НОВАРИЯ</b><span>кабинет · народное возрождение</span></div></div>
+    <div class="strip"><div class="sv"><i>квартал</i><b>Весна 2032 · 10/16</b></div>
+      <div class="sv"><i>действия</i><b>2 из 3</b></div><div class="sv"><i>вес</i><b>38</b></div>
+      <div class="sv"><i>сенат</i><b>26 · коалиция 54</b></div></div></div>
+  <div class="screen">
+    <nav class="rail"><div class="cap">Разделы</div>
+      <button class="nav"><i data-ic="brief"></i><span>Кабинет</span><u>2/3</u></button>
+      <button class="nav"><i data-ic="parl"></i><span>Собрание</span><u>32/120</u></button>
+      <button class="nav on"><i data-ic="senate"></i><span>Сенат</span><u>26/100</u></button>
+      <button class="nav"><i data-ic="bill"></i><span>Законопроект</span><u>14</u></button>
+      <button class="nav"><i data-ic="pres"></i><span>Президент</span><u>9</u></button></nav>
+    <div class="work">
+      <div class="panel info">
+        <header><h4>Сенат</h4><span class="meta">100 мест · большинство 51 · клотур 60</span></header>
+        <div class="body">
+          <p class="lead">Вторая палата собрана по субъектам, а не по стране. Но главное её правило
+            не в подсчёте голосов, а в прениях: пока за клотур нет 60 голосов, до голосования
+            по существу дело не доходит вовсе.</p>
+          <div class="res">
+            <span>У коалиции</span><b class="good">54 из 51</b>
+            <span>До клотура</span><b class="warn">54 из 60</b>
+            <span>Следующее переизбрание</span><b>6 кварталов</b>
+            <span>Старейшин в палате</span><b>19</b></div>
+        </div>
+      </div>
+      <div class="cols c21">
+        <div>
+          <div class="panel"><header><h4>Сенаторы</h4><span class="meta">по проекту «Трудовой кодекс»</span></header>
+          <div class="body flush">
+            <div class="scrollx"><table>
+              <thead><tr><th>Сенатор</th><th>Фракция</th><th style="text-align:right">Сроков</th>
+                <th style="text-align:right">Отношение</th><th>Позиция</th><th></th></tr></thead>
+              <tbody>
+                <tr><td><b>П. Грачёв</b> <span class="tag">старейшина</span>
+                  <div class="sub2">Балтийская область · класс III</div></td>
+                  <td><span class="chip"><s style="background:var(--p4)"></s>СВК</span></td>
+                  <td style="text-align:right">4</td><td style="text-align:right">29</td>
+                  <td><span class="tag r">против</span></td>
+                  <td style="text-align:right"><button class="btn sm">Работать</button></td></tr>
+                <tr><td><b>М. Грачёва</b><div class="sub2">Поволжский регион · класс I</div></td>
+                  <td><span class="chip"><s style="background:var(--p6)"></s>НР</span></td>
+                  <td style="text-align:right">2</td><td style="text-align:right">50</td>
+                  <td><span class="tag y">колеблется</span></td>
+                  <td style="text-align:right"><button class="btn sm">Работать</button></td></tr>
+                <tr><td><b>О. Логинов</b> <span class="tag y">лидер</span>
+                  <div class="sub2">Уральский регион · класс I</div></td>
+                  <td><span class="chip"><s style="background:var(--p1)"></s>НВ</span></td>
+                  <td style="text-align:right">4</td><td style="text-align:right">71</td>
+                  <td><span class="tag g">за</span></td>
+                  <td style="text-align:right"><button class="btn sm">Работать</button></td></tr>
+              </tbody>
+              <caption>Старейшина сидит четвёртый срок и тянет за собой делегацию своего края.</caption>
+            </table></div>
+          </div></div>
+        </div>
+        <div>
+          <div class="panel lead-p"><header><h4>Председатель палаты</h4><span class="meta">вице-президент</span></header>
+          <div class="body">
+            <div class="stat"><i>Сенатор со стажем</i>
+              <div class="v" style="font-family:var(--f-display);font-size:26px;letter-spacing:0">Ф. Новиков</div>
+              <span>ваш человек ведёт заседания</span></div>
+            <div class="res">
+              <span>Умение вести палату</span><b class="good">84</b>
+              <span>Известность в стране</span><b>42</b>
+              <span>Честолюбие</span><b class="bad">71</b>
+              <span>Поручение</span><b class="w">Работа с Сенатом</b>
+              <span>Сверх равенства уговорит</span><b>3 голоса</b></div>
+          </div>
+          <footer><button class="btn">Дать поручение</button>
+            <button class="btn danger">Сменить вице<span class="cost">18</span></button></footer></div>
+
+          <div class="panel warn"><header><h4>Лидер большинства</h4><span class="meta">Союз труда</span></header>
+          <div class="body">
+            <div class="res" style="margin-top:0">
+              <span>Кто ведёт повестку</span><b class="w">М. Чекалин</b>
+              <span>Расположение к вам</span><b class="bad">31</b>
+              <span>Сделок</span><b>2</b></div>
+            <p class="note"><b>Под сукном:</b> «Пенсионная реформа» — −2. Выйдет на голосование
+              само через 2 квартала.</p>
+          </div>
+          <footer><button class="btn">Договориться<span class="cost">9</span></button>
+            <button class="btn pri">Вытащить проект<span class="cost">9</span></button></footer></div>
+
+          <div class="panel"><header><h4>Регламент</h4><span class="meta">в первоначальном виде</span></header>
+          <div class="body flush"><table class="tight"><tbody>
+            <tr><td><b>Простое большинство</b><div class="sub2">чтобы принять закон</div></td>
+              <td style="text-align:right">51</td></tr>
+            <tr><td><b>Клотур</b><div class="sub2">чтобы прекратить прения</div></td>
+              <td style="text-align:right">60</td></tr>
+            <tr><td><b>Обструкция</b><div class="sub2">столько голосов держат трибуну сколько угодно</div></td>
+              <td style="text-align:right">41</td></tr>
+          </tbody></table></div>
+          <footer><span class="note">Менять регламент можно, имея 51 своего в палате и своего председателя.</span></footer></div>
         </div>
       </div>
     </div>
