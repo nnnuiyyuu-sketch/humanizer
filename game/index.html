@@ -240,7 +240,8 @@ h3.sub:first-child{margin-top:0}
 .career{max-height:340px;overflow-y:auto}
 .crow{display:flex;gap:var(--x4);padding:6px var(--x5);border-bottom:var(--hair-2);font-size:12.5px}
 .crow:last-child{border-bottom:0}
-.crow s{text-decoration:none;font:400 11px var(--f-num);color:var(--ink-3);flex:none;width:34px}
+.crow s{text-decoration:none;font:400 11px var(--f-num);color:var(--ink-3);flex:none;width:48px}
+.crow span{flex:1;min-width:0}
 
 /* ── таблицы: газетная вёрстка ─────────────────────────────────
    Жирная линейка над шапкой, волосяные между строками, никаких
@@ -335,6 +336,7 @@ input:focus,select:focus{outline:2px solid var(--mark);outline-offset:-1px}
 .dep .who b{display:block;font:700 14px var(--f-display);letter-spacing:-.01em}
 .dep .who span{font-size:11.5px;color:var(--ink-3)}
 .hemi{width:100%;display:block;max-height:270px}
+.hemi.sen{max-height:none}
 /* доска голосования: один квадрат — один мандат. Сетка честнее
    полукруга: на ней видно и счёт, и то, чья фракция где сломалась. */
 .board{display:grid;gap:2px;margin:var(--x5) 0;padding:var(--x4);
@@ -342,6 +344,9 @@ input:focus,select:focus{outline:2px solid var(--mark);outline-offset:-1px}
 .board i{display:block;aspect-ratio:1;border:1px solid rgba(20,19,15,.14)}
 .board i.v-no{background:var(--surface-3)!important;border-style:dashed}
 .board i.v-und{opacity:.45}
+/* своя строка в архиве правителей — вынесена тоном, а не цветом */
+tr.mine td{background:var(--surface-2)}
+tr.mine td:first-child{box-shadow:inset 3px 0 0 var(--ink)}
 /* палата субъектов: делегации стоят блоками, а не общим кольцом */
 .deleg{display:flex;flex-wrap:wrap;gap:var(--x4);margin:var(--x4) 0}
 .deleg .d{border:1px solid var(--line-2);background:var(--surface-2);padding:5px 6px 6px}
@@ -549,6 +554,10 @@ const ICON={
        '<circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/>'+
        '<circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none"/>',
   clock:'<circle cx="12" cy="12" r="8.5"/><path d="M12 6.5V12l3.6 2.6"/>',
+  const:'<path d="M6 3h9l3 3v15H6z"/><path d="M15 3v3h3"/>'+
+        '<path d="M9 10.5h6M9 14h6M9 17.5h3.5"/><path d="M4 3v18"/>',
+  hist:'<path d="M4 21V9l8-5.5L20 9v12"/><path d="M4 21h16"/>'+
+       '<path d="M9 21v-6h6v6"/><path d="M8 12h8"/>',
   firms:'<path d="M3 21h18"/><path d="M4.5 21V7l7-3.5V21"/><path d="M11.5 10.5H20V21"/>'+
         '<path d="M7 10h1.5M7 13.5h1.5M7 17h1.5M14.5 14h1.5M14.5 17.5h1.5"/>',
 };
@@ -1237,6 +1246,137 @@ const EV_KIND = [
   {id:'chance',  name:'Возможность',  w:2},
   {id:'rumor',   name:'Слух',         w:2},
 ];
+
+/* ════════════════════════════════════════════════════════════════
+   КОНСТИТУЦИЯ
+   Обычный закон говорит, что делать. Конституционный говорит, кто
+   решает и как долго. Поэтому он и проходит иначе: две трети в обеих
+   палатах, иногда всенародное голосование, и никакого вето — палаты
+   тут выше президента. Цена не в весе, а в легитимности: каждая
+   поправка, выгодная тому, кто её провёл, стоит стране веры в правила.
+   ════════════════════════════════════════════════════════════════ */
+const CN_CAP   = 24;   // веса за внесение поправки
+const CN_REF   = 20;   // веса сверху, если нужен референдум
+const CN_GOLD  = 26;   // млрд на всенародное голосование
+const LEGIT0   = 78;   // легитимность строя на старте
+const LEGIT_LOW= 45;   // ниже этого страна перестаёт верить правилам
+const LEGIT_CR = 25;   // ниже этого начинается конституционный кризис
+
+/* need: h — голосов в Собрании, s — в Сенате, ref — нужно ли всенародное.
+   self — во сколько легитимности обходится (минус) или прибавляет (плюс). */
+const CONSTS = [
+  {id:'reset', name:'Обнуление сроков', art:'ст. 81 ч. 3',
+   txt:'Сроки, отбытые до вступления поправки в силу, не учитываются при подсчёте.',
+   eff:'счётчик сроков действующего президента обнуляется',
+   need:{h:290,s:67,ref:true}, self:-24,
+   on:()=>false, cond:()=>!!S.pres&&(S.pres.term||1)>=2,
+   apply(){ S.pres.term=0; S.pres.reset=(S.pres.reset||0)+1; }},
+
+  {id:'pterm', name:'Продление президентского срока', art:'ст. 81 ч. 1',
+   txt:'Президент избирается на восемь лет вместо шести. Действующий досиживает по новому правилу.',
+   eff:'президентский срок 24 → 32 квартала',
+   need:{h:290,s:67,ref:true}, self:-15,
+   on:()=>S.cn.pterm>=32, cond:()=>true,
+   apply(){ S.cn.pterm=32; if(S.pres)S.pres.until+=8; }},
+
+  {id:'ptermBack', name:'Возврат к шестилетнему сроку', art:'ст. 81 ч. 1',
+   txt:'Президентский срок возвращается к прежней длине.',
+   eff:'президентский срок 32 → 24 квартала',
+   need:{h:290,s:67,ref:false}, self:9,
+   on:()=>S.cn.pterm<=24, cond:()=>S.cn.pterm>24,
+   apply(){ S.cn.pterm=24; if(S.pres)S.pres.until=Math.min(S.pres.until,S.q+24); }},
+
+  {id:'nolimit', name:'Снятие ограничения в два срока', art:'ст. 81 ч. 3',
+   txt:'Одно и то же лицо может занимать должность президента без ограничения числа сроков.',
+   eff:'предел в два срока подряд отменяется',
+   need:{h:290,s:67,ref:true}, self:-20,
+   on:()=>S.cn.limit===0, cond:()=>S.cn.limit>0,
+   apply(){ S.cn.limit=0; }},
+
+  {id:'limitBack', name:'Возврат ограничения сроков', art:'ст. 81 ч. 3',
+   txt:'Не более двух сроков подряд для одного лица.',
+   eff:'предел в два срока восстанавливается',
+   need:{h:290,s:67,ref:false}, self:12,
+   on:()=>S.cn.limit>0, cond:()=>S.cn.limit===0,
+   apply(){ S.cn.limit=2; }},
+
+  {id:'term', name:'Продление полномочий Собрания', art:'ст. 96',
+   txt:'Народное собрание избирается на пять лет вместо четырёх. Действующий созыв — тоже.',
+   eff:'созыв 16 → 20 кварталов',
+   need:{h:290,s:67,ref:false}, self:-11,
+   on:()=>S.cn.term>=20, cond:()=>true,
+   apply(){ S.cn.term=20; }},
+
+  {id:'sencyc', name:'Реформа Сената', art:'ст. 95 ч. 2',
+   txt:'Треть Сената обновляется раз в три года вместо двух: сенатор сидит дольше и меньше зависит от края.',
+   eff:'обновление трети 8 → 12 кварталов',
+   need:{h:290,s:67,ref:false}, self:-6,
+   on:()=>S.cn.sencyc>=12, cond:()=>true,
+   apply(){ S.cn.sencyc=12; }},
+
+  {id:'senall', name:'Сенат вместе с Собранием', art:'ст. 95 ч. 2',
+   txt:'Классы упраздняются: Сенат переизбирается целиком вместе с Народным собранием.',
+   eff:'палата перестаёт быть якорем и следует за большинством',
+   need:{h:290,s:67,ref:false}, self:-13,
+   on:()=>S.cn.senall, cond:()=>true,
+   apply(){ S.cn.senall=true; S.cn.sencyc=S.cn.term; }},
+
+  {id:'constructive', name:'Конструктивный вотум недоверия', art:'ст. 117',
+   txt:'Собрание вправе отправить кабинет в отставку, только назвав в том же голосовании его преемника.',
+   eff:'кабинет валят вдвое реже, коалиция держится дольше',
+   need:{h:290,s:67,ref:false}, self:6,
+   on:()=>S.cn.noconf==='constructive', cond:()=>true,
+   apply(){ S.cn.noconf='constructive'; }},
+
+  {id:'veto', name:'Преодоление вето простым большинством', art:'ст. 107',
+   txt:'Закон, отклонённый президентом, вступает в силу, если Собрание подтвердит его тем же большинством.',
+   eff:'преодоление вето 290 → 218 голосов',
+   need:{h:290,s:67,ref:false}, self:-9,
+   on:()=>S.cn.super<=MAJ, cond:()=>true,
+   apply(){ S.cn.super=MAJ; }},
+
+  {id:'dissolve', name:'Право роспуска — премьеру', art:'ст. 109',
+   txt:'Распустить Народное собрание вправе глава правительства, а не глава государства.',
+   eff:'роспуск переходит от президента к премьеру',
+   need:{h:290,s:67,ref:false}, self:-5,
+   on:()=>S.cn.dissolve!=='pres', cond:()=>true,
+   apply(){ S.cn.dissolve='pm'; }},
+
+  {id:'nodissolve', name:'Запрет роспуска Собрания', art:'ст. 109',
+   txt:'Народное собрание не может быть распущено досрочно ни по чьей воле.',
+   eff:'досрочных выборов не бывает',
+   need:{h:290,s:67,ref:false}, self:7,
+   on:()=>S.cn.dissolve==='none', cond:()=>true,
+   apply(){ S.cn.dissolve='none'; }},
+
+  {id:'entrench', name:'Клотур в конституции', art:'ст. 100 ч. 4',
+   txt:'Порядок прекращения прений в Сенате определяется конституцией, а не регламентом палаты.',
+   eff:'порог клотура нельзя опустить голосованием палаты',
+   need:{h:290,s:67,ref:false}, self:9,
+   on:()=>S.cn.entrench, cond:()=>true,
+   apply(){ S.cn.entrench=true; S.senRules={cloture:CLOTURE,nuked:false,nukedBy:null,nukedQ:0}; }},
+
+  {id:'impeach', name:'Понижение порога отрешения', art:'ст. 93',
+   txt:'Для отрешения от должности достаточно трёх пятых Сената вместо двух третей.',
+   eff:'отрешение 67 → 60 голосов',
+   need:{h:290,s:67,ref:false}, self:-8,
+   on:()=>S.cn.impS<=60, cond:()=>true,
+   apply(){ S.cn.impS=60; }},
+
+  {id:'recall', name:'Отзыв депутата избирателями', art:'ст. 97 ч. 4',
+   txt:'Избиратели субъекта вправе досрочно прекратить полномочия своего депутата.',
+   eff:'мандат теряют вдвое чаще — и вы тоже',
+   need:{h:290,s:67,ref:true}, self:11,
+   on:()=>S.cn.recall, cond:()=>true,
+   apply(){ S.cn.recall=true; }},
+
+  {id:'emergency', name:'Чрезвычайные полномочия', art:'ст. 88',
+   txt:'При угрозе устройству страны президент правит указами в полную силу закона.',
+   eff:'указы работают как законы восемь кварталов',
+   need:{h:290,s:67,ref:false}, self:-28,
+   on:()=>!!S.cn.emerg&&S.cn.emerg>S.q, cond:()=>avgUnrest()>30||S.legitLow,
+   apply(){ S.cn.emerg=S.q+8; }},
+];
 /* ════════════════════════════════════════════════════════════════
    Ядро: состояние, экономика, настроения, парламент.
    ════════════════════════════════════════════════════════════════ */
@@ -1570,6 +1710,7 @@ function initState(pl){
     senRules:null, senLead:null, senHold:null, mate:null,   // регламент, лидер, повестка, напарник
     commHold:null, amend:null, inq:null, imp:null,          // комитет, поправки, комиссия, импичмент
     firms:null, capture:8, gifts:[],                        // корпорации, захват и память о деньгах
+    cn:null, rulers:null, legitLow:false,                   // конституция и архив правителей
     offers:[], evNo:0,                                      // предложения карьеры и счётчик событий
     pres:null, vp:null, presRel:58, vetoed:null, decrees:[], presRace:null,
     pm:null, ministers:{},                   // премьер и министры — люди, а не партии
@@ -1607,6 +1748,7 @@ function initState(pl){
   seedCourt();
   seedNeighbours();
   seedFirms();
+  S.cn=cnDefault(); if(!S.rulers)S.rulers={pres:[],pm:[]};
   formCoalition(true);
   seedCabinet();
   snapshot();
@@ -1714,7 +1856,7 @@ function seedSenate(){
       for(let i=0;i<n;i++,k++){
         const s=makeSen(pid,r.id,k%3,i);
         s.terms=ri(1,4);                       // палата не начинается с чистого листа
-        s.since=S.q-(s.terms-1)*SEN_CYCLE;
+        s.since=S.q-(s.terms-1)*senCyc();
         S.senate.push(s);
       }
     });
@@ -1725,7 +1867,7 @@ function seedSenate(){
 }
 function senSeatsOf(id){ return S.senSeats[id]||0; }
 function senCoalSeats(){ return coalition().reduce((a,id)=>a+senSeatsOf(id),0); }
-function senDue(){ return S.q>1 && (S.q-1)%SEN_CYCLE===0; }
+function senDue(){ return S.q>1 && (S.q-1)%senCyc()===0; }
 
 /* ─── регламент палаты ───────────────────────────────────────────
    Порог клотура — не константа, а состояние: его можно опустить,
@@ -1734,7 +1876,7 @@ function cloture(){ return (S.senRules&&S.senRules.cloture)||CLOTURE; }
 function nuked(){ return !!(S.senRules&&S.senRules.nuked); }
 /* регламент меняют простым большинством — но для этого нужны и палата,
    и председатель: без своего вице поправку к регламенту не поставят */
-function canNuke(){ return senCoalSeats()>=NUKE_MIN && isVP() && !nuked(); }
+function canNuke(){ return senCoalSeats()>=NUKE_MIN && isVP() && !nuked() && !CN().entrench; }
 
 /* ─── старшинство ────────────────────────────────────────────────
    В палате, где треть меняется раз в два года, стаж — валюта.
@@ -1922,15 +2064,15 @@ function makeJudge(by,q){
   const p=P(by)||me(), st={};
   AX.forEach(k=>st[k]=clamp(r1((p.st[k]||0)*0.7+rnd(-0.7,0.7)),-2,2));
   return {id:'j'+q+'-'+by+'-'+Math.round(Math.random()*1e6).toString(36),
-    name:depName(), by, st, since:q, until:q+JUDGE_LIFE};
+    name:depName(), by, st, since:q, until:q+judgeLife()};
 }
 function seedCourt(){
   S.court=[];
   // суд собирался десятилетиями: судьи разных лет и разных назначателей
   const pool=S.parties.map(p=>p.id);
   for(let i=0;i<COURT_SIZE;i++){
-    const by=pick(pool), age=ri(2,JUDGE_LIFE-6);
-    const j=makeJudge(by,S.q-age); j.until=S.q-age+JUDGE_LIFE;
+    const by=pick(pool), age=ri(2,judgeLife()-6);
+    const j=makeJudge(by,S.q-age); j.until=S.q-age+judgeLife();
     S.court.push(j);
   }
 }
@@ -1959,6 +2101,8 @@ function seedPresident(){
   S.pres={party:near.id, name:near.leader, since:S.q-11, until:S.q+12, term:1, vetoes:0, decrees:0};
   S.presRel=clamp(Math.round(72-axDist(near.st,me().st)*11),25,88);
   seatVP(near.id);
+  if(!S.rulers)S.rulers={pres:[],pm:[]};
+  openReign('pres',S.pres.name,S.pres.party);
 }
 /* вице-президент всегда из партии президента: они шли одним списком.
    Кем именно он окажется — решает жребий, если список не ваш; ваш
@@ -1985,6 +2129,8 @@ function makeMinister(post,party){
 }
 function seedCabinet(){
   S.pm={party:S.gov.lead, name:S.gov.lead===PL?S.you.name:P(S.gov.lead).leader, since:S.q, reshuffles:0};
+  if(!S.rulers)S.rulers={pres:[],pm:[]};
+  openReign('pm',S.pm.name,S.pm.party);
   S.ministers={};
   POSTS.forEach(p=>{ S.ministers[p.id]=makeMinister(p.id,S.gov.posts[p.id]||S.gov.lead); });
 }
@@ -1995,8 +2141,11 @@ function syncCabinet(){
     const want=S.gov.posts[p.id]||S.gov.lead, cur=S.ministers[p.id];
     if(!cur||cur.party!==want)S.ministers[p.id]=makeMinister(p.id,want);
   });
-  if(!S.pm||S.pm.party!==S.gov.lead)
+  if(!S.pm||S.pm.party!==S.gov.lead){
+    closeReign('pm','смена кабинета');
     S.pm={party:S.gov.lead, name:S.gov.lead===PL?S.you.name:P(S.gov.lead).leader, since:S.q, reshuffles:0};
+    openReign('pm',S.pm.name,S.pm.party);
+  }
 }
 /* вероятность вето: расхождение по теме плюс испорченные отношения */
 function vetoChance(bill){
@@ -2290,7 +2439,7 @@ function billSum(bill){
 function enact(bill,decree){
   const sum=billSum(bill), t=T(bill.topic);
   // указ работает вполсилы; смягчающая оговорка делает с законом то же самое
-  const k0=(decree?DECREE_POWER:1)*(bill.weak||1);
+  const k0=(decree?decreePower():1)*(bill.weak||1);
   if(k0!==1){
     ['money','growth','inf','unemp','invest','unrest','stab','once'].forEach(k=>{
       if(sum[k])sum[k]=r2(sum[k]*k0); });
@@ -2301,7 +2450,7 @@ function enact(bill,decree){
   if(prev>=0)S.laws.splice(prev,1);
   S.laws.push({no:++S.billNo, topic:bill.topic, stance:bill.stance, riders:[...(bill.riders||[])],
     q:S.q, sum, name:t.name, by:bill.by||PL, amend:bill.amend||null, weak:bill.weak||0,
-    decree:!!decree, until:decree?S.q+DECREE_LEN:(bill.sunset?S.q+bill.sunset:0),
+    decree:!!decree, until:decree?S.q+decreeLen():(bill.sunset?S.q+bill.sunset:0),
     sunset:!decree&&!!bill.sunset});
   if(sum.once)S.treasury=r1(S.treasury+sum.once);
   // указом ставку не трогаем: он истечёт, а изменённый налог остался бы навсегда
@@ -2453,6 +2602,114 @@ function inqDig(i){
 }
 function inqWord(v){ return v>=80?'состав налицо':v>=58?'улик много':v>=34?'кое-что есть':v>=14?'пока пусто':'ничего'; }
 function impeachment(){ return S.imp; }
+
+/* ════════════════════════════════════════════════════════════════
+   КОНСТИТУЦИЯ: действующая редакция
+   Все сроки и пороги читаются отсюда, а не из констант. Константа —
+   это то, с чего страна начинала; конституция — то, до чего дожила.
+   ════════════════════════════════════════════════════════════════ */
+function cnDefault(){
+  return {pterm:PTERM, term:TERM, sencyc:SEN_CYCLE, limit:2,
+    super:SUPER, impH:IMP_HOUSE, impS:IMP_SEN, judge:JUDGE_LIFE,
+    noconf:'plain', dissolve:'pres', senall:false, entrench:false,
+    recall:false, emerg:0, legit:LEGIT0, log:[]};
+}
+const CN = ()=>(S&&S.cn)||cnDefault();
+function pTerm(){ return CN().pterm; }
+function aTerm(){ return CN().term; }
+function senCyc(){ return CN().sencyc; }
+function superN(){ return CN().super; }
+function impH(){ return CN().impH; }
+function impS(){ return CN().impS; }
+function judgeLife(){ return CN().judge; }
+function termLimit(){ return CN().limit; }
+function noconfKind(){ return CN().noconf; }
+function canDissolve(){
+  const d=CN().dissolve;
+  return d==='pres'?isPres():d==='pm'?isPM():false;
+}
+function emergOn(){ return (CN().emerg||0)>S.q; }
+/* указ в чрезвычайном положении работает как закон */
+function decreePower(){ return emergOn()?1:DECREE_POWER; }
+function decreeLen(){ return emergOn()?DECREE_LEN*2:DECREE_LEN; }
+
+/* ─── легитимность ────────────────────────────────────────────────
+   Не рейтинг и не одобрение: вера в то, что правила одни для всех.
+   Она не спасает от поражения на выборах, но без неё перестают
+   работать сами выборы. */
+function legit(){ return Math.round(clamp(CN().legit,0,100)); }
+function legitWord(v){
+  return v>=78?'правила соблюдают':v>=60?'правила ещё уважают':v>=LEGIT_LOW?'правила гнутся':
+         v>=LEGIT_CR?'правила пишут под себя':'правил больше нет';
+}
+function bumpLegit(v){ S.cn.legit=clamp(r1((S.cn.legit||LEGIT0)+v),0,100); }
+/* поправка тем дороже, чем очевиднее, кому она выгодна */
+function cnCost(c){
+  let v=c.self;
+  if(v<0){
+    // своя же поправка при своём же президенте — вдвое заметнее
+    if(isPres()||isPM())v*=1.25;
+    if(legit()<LEGIT_LOW)v*=0.7;              // где правил и так нет, ломать дешевле
+    if(rep('honest')>66)v*=0.8;
+  }
+  return r1(v);
+}
+function cnList(){ return CONSTS.filter(c=>!c.on()&&(!c.cond||c.cond())); }
+function cnDone(){ return (CN().log||[]).slice(); }
+
+/* ════════════════════════════════════════════════════════════════
+   АРХИВ ПРАВИТЕЛЕЙ
+   Кто сидел в кресле, в какие годы и что после себя оставил.
+   Достижение не выдумывается: оно считается из того, что за срок
+   изменилось в стране.
+   ════════════════════════════════════════════════════════════════ */
+function rulers(){ if(!S.rulers)S.rulers={pres:[],pm:[]}; return S.rulers; }
+function openReign(kind,name,party){
+  const R0=rulers()[kind];
+  const last=R0[R0.length-1];
+  if(last&&!last.to&&last.name===name&&last.party===party)return;   // тот же человек
+  R0.push({name, party, from:S.q, gdp0:r1(S.econ.gdp), unr0:Math.round(avgUnrest()),
+    laws0:S.laws.length, ap0:Math.round(approval()), you:party===PL});
+}
+function closeReign(kind,how){
+  const R0=rulers()[kind];
+  const r=R0[R0.length-1];
+  if(!r||r.to)return;
+  r.to=S.q; r.how=how||'выборы';
+  r.terms=Math.max(1,Math.round((r.to-r.from)/(kind==='pres'?pTerm():aTerm())*10)/10);
+  if(kind==='pres'&&S.pres){ r.vetoes=S.pres.vetoes||0; r.decrees=S.pres.decrees||0; }
+  r.note=reignNote(kind,r);
+}
+/* краткое достижение: берётся самое крупное из того, что сдвинулось */
+function reignNote(kind,r){
+  const dq=Math.max(1,r.to-r.from);
+  const gdp=r1(S.econ.gdp-r.gdp0), unr=Math.round(avgUnrest()-r.unr0);
+  const laws=S.laws.length-r.laws0, ap=Math.round(approval()-r.ap0);
+  const c=[];
+  if(r.how==='импичмент')c.push(['Отрешение от должности палатами',100]);
+  if(r.how==='отставка')c.push(['Досрочный уход по собственной воле',60]);
+  if(r.how==='наследование')c.push(['Полномочия прекращены досрочно',55]);
+  if(gdp>=8)c.push(['Хозяйственный подъём: ВВП +'+gdp,Math.abs(gdp)*3]);
+  if(gdp<=-8)c.push(['Спад: ВВП '+gdp,Math.abs(gdp)*3]);
+  if(unr<=-10)c.push(['Страна успокоилась: напряжённость '+unr,Math.abs(unr)*2.4]);
+  if(unr>=12)c.push(['Страна на взводе: напряжённость +'+unr,Math.abs(unr)*2.4]);
+  if((r.decrees||0)>=5)c.push(['Правление указами: подписано '+r.decrees,r.decrees*5]);
+  if((r.vetoes||0)>=5)c.push(['Вето против палат: '+r.vetoes+' раз',r.vetoes*5]);
+  if(ap>=12)c.push(['Одобрение выросло на '+ap+'%',ap*1.8]);
+  if(ap<=-14)c.push(['Одобрение упало на '+Math.abs(ap)+'%',Math.abs(ap)*1.8]);
+  if(laws>=10)c.push(['Законодательный вал: '+laws+' законов за срок',laws*1.6]);
+  const amend=(CN().log||[]).filter(x=>x.q>=r.from&&x.q<=r.to);
+  if(amend.length)c.push(['Конституция переписана: '+plural(amend.length,'поправка','поправки','поправок'),
+    amend.length*26]);
+  if(!c.length)c.push([dq<=6?'Короткое и ничем не запомнившееся пребывание':'Ровное правление без потрясений',1]);
+  c.sort((a,b)=>b[1]-a[1]);
+  return c[0][0];
+}
+function reignYears(r){
+  const y0=2029+Math.floor((r.from-1)/4);
+  const y1=r.to?2029+Math.floor((r.to-1)/4):null;
+  return y1?(y0===y1?String(y0):y0+'—'+y1):y0+'—наст.';
+}
 /* ════════════════════════════════════════════════════════════════
    Ход игры: действия, события, коалиция, выборы.
    ════════════════════════════════════════════════════════════════ */
@@ -3241,7 +3498,7 @@ function presStage(b,low,up,cl,note){
     chron('Президент отклонил «'+t.name.toLowerCase()+'».','b');
     sheetOpen({eye:'Прохождение закона · '+dateLabel(),title:t.name,
       body:billPath(b,low,up,{veto:true},false,cl)+
-        `<p>Закон вернулся в Собрание. Преодолеть вето можно двумя третями — это ${SUPER} голосов из ${SEATS}, на сорок больше обычного большинства.</p>`,
+        `<p>Закон вернулся в Собрание. Преодолеть вето можно двумя третями — это ${superN()} голосов из ${SEATS}, на сорок больше обычного большинства.</p>`,
       acts:[{label:'Оставить в Собрании'}]});
     render(); return;
   }
@@ -3270,7 +3527,7 @@ function overrideVeto(){
   const v=S.vetoed; if(!v){toast('Отклонённых законов нет');return;}
   if(!useAP(1)||!payCap(capCost(14,'veto')))return;
   const b=v.bill, t=T(b.topic);
-  const res=resolveVote(b,SUPER);
+  const res=resolveVote(b,superN());
   v.tries++;
   S.votes.unshift({no:S.billNo,q:S.q,name:t.name+' · вето',stance:b.stance,yes:res.yes,no:res.no,pass:res.pass,house:'соб'});
   if(res.pass){
@@ -3282,15 +3539,15 @@ function overrideVeto(){
     chron('Собрание преодолело вето по «'+t.name.toLowerCase()+'».','g');
     sheetOpen({eye:'Преодоление вето · '+dateLabel(),title:'Вето преодолено',
       body:voteBar(res.yes,res.no)+
-        `<p>Нужно было ${SUPER}, собрано ${res.yes}. Закон вступает в силу через голову президента — такое не забывают.</p>`,
+        `<p>Нужно было ${superN()}, собрано ${res.yes}. Закон вступает в силу через голову президента — такое не забывают.</p>`,
       acts:[{label:'Закрыть'}]});
   } else {
     addCap(-6); shiftAll(-1);
-    logMsg('Вето устояло: за преодоление '+res.yes+' при нужных '+SUPER+'.',1);
+    logMsg('Вето устояло: за преодоление '+res.yes+' при нужных '+superN()+'.',1);
     if(v.tries>=2){ S.vetoed=null; chron('Закон окончательно похоронен вето.','b'); }
     sheetOpen({eye:'Преодоление вето · '+dateLabel(),title:'Вето устояло',
       body:voteBar(res.yes,res.no)+
-        `<p>Нужно было ${SUPER}, собрано ${res.yes}.</p>`+
+        `<p>Нужно было ${superN()}, собрано ${res.yes}.</p>`+
         (v.tries>=2?'<p class="hint">Две неудачные попытки подряд — проект снят с рассмотрения окончательно.</p>'
                    :'<p class="hint">Остаётся одна попытка. Между ними имеет смысл поработать с колеблющимися.</p>'),
       acts:[{label:'Закрыть'}]});
@@ -3389,7 +3646,8 @@ function budgetTick(){
 
 /* ─── досрочные выборы ───────────────────────────────────────── */
 function callSnapElection(){
-  if(!isPres()){toast('Распустить Собрание может только президент');return;}
+  if(CN().dissolve==='none'){toast('Конституция запрещает роспуск Собрания');return;}
+  if(!canDissolve()){toast('Право роспуска у '+(CN().dissolve==='pm'?'главы правительства':'президента'));return;}
   if((S.govAge||0)<4){toast('Собрание нельзя распустить в первый год работы кабинета');return;}
   if(S.camp){toast('Кампания уже идёт: выборы и так на носу');return;}
   sheetOpen({eye:'Роспуск Собрания · 25 веса',title:'Идти на выборы досрочно',
@@ -3397,7 +3655,7 @@ function callSnapElection(){
         Считается только то, что люди думают о вас сегодня.</p>
       <div class="res"><span>Одобрение сейчас</span><b class="${approval()<46?'bad':'good'}">${Math.round(approval())}%</b>
         <span>Прогноз мандатов</span><b>${forecast()} из ${SEATS}</b>
-        <span>До очередных выборов</span><b>${TERM-(S.q-S.termStart)} кварталов</b>
+        <span>До очередных выборов</span><b>${aTerm()-(S.q-S.termStart)} кварталов</b>
         <span>Роспусков за игру</span><b>${S.snaps||0}</b></div>
       <p class="hint">Каждый следующий роспуск избиратель принимает хуже предыдущего.</p>`,
     opts:[
@@ -4083,7 +4341,7 @@ function refSupport(topic,stance){
   return clamp(r1(v),2,98);
 }
 function callReferendum(topic,stance){
-  if(!isPres()&&!(isPM()&&seatsOf(PL)>=SUPER)){
+  if(!isPres()&&!(isPM()&&seatsOf(PL)>=superN())){
     toast('Референдум назначает президент или две трети Собрания');return; }
   if(S.ref){toast('Один референдум за раз');return;}
   if(!useAP(1)||!payCap(REF_CAP)||!payGold(REF_GOLD))return;
@@ -4377,10 +4635,11 @@ function runoffSplit(a,b,first,endorse){
 }
 function installPres(pid,share){
   const p=P(pid), was=S.pres?S.pres.party:null;
-  const same=was===pid, limited=same&&(S.pres.term||1)>=2;
+  closeReign('pres','выборы');
+  const same=was===pid, limited=same&&termLimit()>0&&(S.pres.term||1)>=termLimit();
   // два срока подряд — предел для человека, не для партии: та выставляет новое лицо
   const name=limited?depName():(pid===PL?me().leader:p.leader);
-  S.pres={party:pid, name, since:S.q, until:S.q+PTERM,
+  S.pres={party:pid, name, since:S.q, until:S.q+pTerm(),
           term:limited?1:(same?(S.pres.term||1)+1:1), vetoes:0, decrees:0};
   // вице шёл тем же списком: если список составляли вы, это ваш напарник
   if(pid===PL&&S.mate)seatVP(pid,null,S.mate);
@@ -4399,6 +4658,7 @@ function installPres(pid,share){
   if(pid===PL){ addCap(22); shiftAll(1.6); bumpRep('comp',5); bumpRep('folk',4);
     career('Избрание президентом республики — '+share+'% голосов.'); }
   else if(was===PL)career('Проиграно президентское кресло: победа '+p.short+'.');
+  openReign('pres',S.pres.name,S.pres.party);
   logMsg('Президентом избран'+(pid===PL?'а ваша партия: ':' ')+S.pres.name+' ('+p.short+') — '+share+'%.',1);
   chron('Президент — '+S.pres.name+' («'+p.name+'»).',pid===PL?'g':'');
 }
@@ -4414,7 +4674,7 @@ function presElection(){
 function presElectionRun(){
   const first=presScores();
   // отсидевший два срока не идёт третий: партия выставляет менее известного
-  if((S.pres.term||1)>=2){ const id=S.pres.party; first[id]=r1(first[id]*0.82); }
+  if(termLimit()>0&&(S.pres.term||1)>=termLimit()){ const id=S.pres.party; first[id]=r1(first[id]*0.82); }
   const order=S.parties.slice().sort((a,b)=>first[b.id]-first[a.id]);
   const rows=order.map(p=>presRow(p,first[p.id],p.id===PL?'ваша партия':'')).join('');
   const top=order[0], second=order[1];
@@ -4463,8 +4723,10 @@ function presVacancy(){
   if(Math.random()>risk)return;
   const old=S.pres.name, vpn=S.vp?S.vp.name:depName(), party=S.pres.party;
   const was=S.vp?{...S.vp}:null;
+  closeReign('pres','наследование');
   S.pres={party, name:vpn, since:S.q, until:S.pres.until, term:S.pres.term,
           vetoes:S.pres.vetoes, decrees:S.pres.decrees, succeeded:true};
+  openReign('pres',S.pres.name,S.pres.party);
   // кресло вице освободилось вместе с президентским: новую пару утверждает Сенат
   const cand=makeVP(party);
   const okVP=confirmSenate('vp',cand,party);
@@ -4585,9 +4847,13 @@ function stateOfThings(){
 }
 function confidenceVote(byPlayer){
   const going=stateOfThings();
+  // конструктивный вотум: свалить кабинет можно, только назвав преемника,
+  // а сговориться о преемнике оппозиции труднее, чем о недоверии
+  const constr=noconfKind()==='constructive';
   let yes=0,no=0;
   S.deputies.forEach(d=>{
     let v=(inCoal(d.party)?26:-17)+(going-50)*0.42+noise(d.id+'conf'+S.q,11);
+    if(constr)v+=isPM()?16:-16;
     v+=(d.rel-50)*(isPM()?0.5:-0.42);      // личные связи работают на ту сторону, где вы
     if(d.party===PL)v+=isPM()?32:-32;
     if(isPM()&&hasTrait('iron'))v+=5;      // против такого голосовать страшнее
@@ -4605,6 +4871,7 @@ function confidenceVote(byPlayer){
     sheetOpen({eye:'Вотум недоверия',title:govWins?'Правительство устояло':'Правительство пало',
       body:voteBar(yes,no)+`<div style="text-align:center;margin:14px 0 2px">
         <span class="stamp ${govWins?'y':'n'}">${govWins?'доверие':'отставка'}</span></div>`+
+        (constr?'<p class="hint">Вотум конструктивный: оппозиции пришлось называть преемника в том же голосовании.</p>':'')+
         (govWins?'<p class="hint">Оппозиция не соберёт новый вотум раньше чем через два квартала.</p>':
                  '<p>Кабинет переходит к другой фракции. Ваши мандаты и право вносить законы остаются при вас.</p>'),
       acts:[{label:'Дальше'}]});
@@ -5064,6 +5331,7 @@ function endQuarter(){
   inqTick();
   impAgainstYou();
   firmTick();
+  constTick();
   recallTick();
   offerTick();
   pressTick();
@@ -5088,8 +5356,8 @@ function endQuarter(){
 
   checkEnd();
   const t=S.q-S.termStart+1;
-  if(t===TERM-CAMP+1&&!S.camp)campaignStart();
-  if(t>TERM)election();
+  if(t===aTerm()-CAMP+1&&!S.camp)campaignStart();
+  if(t>aTerm())election();
   save();
   render();
 }
@@ -5464,7 +5732,7 @@ function load(){
     if(S.senate&&S.senate.length){
       let noRank=false;
       S.senate.forEach(x=>{ if(!x.terms){ noRank=true;
-        x.terms=Math.max(1,1+Math.floor(Math.max(0,S.q-(x.since||1))/SEN_CYCLE)); } });
+        x.terms=Math.max(1,1+Math.floor(Math.max(0,S.q-(x.since||1))/senCyc())); } });
       if(noRank)logMsg('Палата пересчитала стаж: у сенаторов появилось старшинство.',1);
     }
     if(!S.senLead&&S.senate&&S.senate.length){ seatSenLeader(true);
@@ -5477,6 +5745,16 @@ function load(){
     if(!S.firms||!Object.keys(S.firms).length){ seedFirms();
       logMsg('В стране объявились восемь групп капитала: у денег появилось имя.',1); }
     if(S.capture===undefined)S.capture=8;
+    // сохранение до конституции и архива правителей
+    if(!S.cn){ S.cn=cnDefault();
+      logMsg('Принята конституция Новарии: сроки, пороги и полномочия сведены в один текст.',1); }
+    ['pterm','term','sencyc','limit','super','impH','impS','judge','noconf','dissolve','legit']
+      .forEach(k=>{ if(S.cn[k]===undefined)S.cn[k]=cnDefault()[k]; });
+    S.cn.log=S.cn.log||[];
+    if(!S.rulers){ S.rulers={pres:[],pm:[]};
+      if(S.pres)openReign('pres',S.pres.name,S.pres.party);
+      if(S.pm)openReign('pm',S.pm.name,S.pm.party);
+      logMsg('Заведён архив правителей: кто сидел в кресле и что после себя оставил.',1); }
     if(S.you&&!S.you.seat){
       S.you.seat=S.gov.lead===PL?'pm':(S.role==='junior'?'dep':'lead');
       S.you.seatQ=S.q; S.you.primaries=0;
@@ -5669,8 +5947,8 @@ function askImpeach(kind){
     }).map(w=>({label:w.name,hint:w.txt,fn:()=>askImpeach(w.id)}));
     opts.push({label:'Не вносить',hint:'закрыть',fn(){}});
     sheetOpen({eye:'Импичмент',title:'Кого отрешать',
-      body:`<p class="lead">Обвинение выдвигает Собрание — нужно ${IMP_HOUSE} голосов из ${SEATS}.
-          Судит Сенат: чтобы отрешить, нужно ${IMP_SEN} из ${SEN_SEATS}. Проваленный импичмент
+      body:`<p class="lead">Обвинение выдвигает Собрание — нужно ${impH()} голосов из ${SEATS}.
+          Судит Сенат: чтобы отрешить, нужно ${impS()} из ${SEN_SEATS}. Проваленный импичмент
           укрепляет того, против кого он был.</p>
         <p class="hint">Внесение стоит ${IMP_CAP} веса. Материалы следственной комиссии
           прибавляют голосов в обеих палатах.</p>`,
@@ -5712,7 +5990,7 @@ function impeachHouse(){
     v+=noise(d.id+'imp'+i.kind+S.q,17);
     if(v>0)yes++;
   });
-  const pass=yes>=IMP_HOUSE;
+  const pass=yes>=impH();
   S.votes.unshift({no:++S.billNo,q:S.q,name:'Импичмент: '+i.who.name,stance:0,
     yes,no:SEATS-yes,pass,house:'соб'});
   const cells=[];
@@ -5725,9 +6003,9 @@ function impeachHouse(){
   sheetOpen({eye:'Обвинение · Собрание',title:'Импичмент: '+i.who.name,
     body:`<p class="lead">${k.name}. ${k.txt}</p>
       ${seatGrid(cells)}
-      ${voteBar(yes,SEATS-yes,IMP_HOUSE)}
+      ${voteBar(yes,SEATS-yes,impH())}
       <div class="res"><span>За обвинение</span><b class="${pass?'good':'bad'}">${yes}</b>
-        <span>Нужно</span><b>${IMP_HOUSE}</b>
+        <span>Нужно</span><b>${impH()}</b>
         <span>Материалы комиссии</span><b class="w">${i.ready?'на руках':'нет'}</b>
         <span>Тон печати</span><b>${pressWord(pressTone())}</b></div>
       <div style="text-align:center;margin:12px 0 2px"><span class="stamp ${pass?'y':'n'}">${
@@ -5749,15 +6027,15 @@ function impeachSenate(){
     v+=noise(s.id+'imp'+i.kind+S.q,16);
     if(v>0)yes++;
   });
-  const pass=yes>=IMP_SEN;
+  const pass=yes>=impS();
   S.votes.unshift({no:++S.billNo,q:S.q,name:'Отрешение: '+i.who.name,stance:0,
     yes,no:SEN_SEATS-yes,pass,house:'сен'});
   sheetOpen({eye:'Суд Сената',title:'Отрешение: '+i.who.name,
     body:`<p class="lead">Сенат заседает как суд. Председательствует не вице-президент, а старейшина палаты —
         и голосуют не за политику, а за то, оставлять ли человека в кресле.</p>
-      ${voteBar(yes,SEN_SEATS-yes,IMP_SEN)}
+      ${voteBar(yes,SEN_SEATS-yes,impS())}
       <div class="res"><span>За отрешение</span><b class="${pass?'good':'bad'}">${yes}</b>
-        <span>Нужно</span><b>${IMP_SEN} из ${SEN_SEATS}</b>
+        <span>Нужно</span><b>${impS()} из ${SEN_SEATS}</b>
         <span>У коалиции в палате</span><b>${senCoalSeats()}</b></div>
       <div style="text-align:center;margin:12px 0 2px"><span class="stamp ${pass?'y':'n'}">${
         pass?'отрешён от должности':'оправдан'}</span></div>`,
@@ -5771,8 +6049,10 @@ function impDone(){
     const vpn=S.vp?S.vp.name:depName(), party=S.pres.party;
     logMsg('Президент '+S.pres.name+' отрешён от должности. Полномочия принял '+vpn+'.',1);
     chron('Президент отрешён от должности.','b');
+    closeReign('pres','импичмент');
     S.pres={party,name:vpn,since:S.q,until:S.pres.until,term:S.pres.term,
             vetoes:0,decrees:S.pres.decrees,succeeded:true};
+    openReign('pres',S.pres.name,S.pres.party);
     const cand=makeVP(party); S.vp=confirmSenate('vp',cand,party)?cand:null;
     S.presRel=clamp(S.presRel-10,0,100);
   }
@@ -5809,7 +6089,7 @@ function impAgainstYou(){
   const opp=S.parties.filter(p=>p.id!==PL&&!inCoal(p.id)).sort((a,b)=>seatsOf(b.id)-seatsOf(a.id))[0];
   if(!opp)return;
   const hostile=SEATS-coalSeats();
-  const risk=(hostile>IMP_HOUSE?0.02:0.004)+(S.trail||0)*0.0012+(approval()<36?0.015:0);
+  const risk=(hostile>impH()?0.02:0.004)+(S.trail||0)*0.0012+(approval()<36?0.015:0);
   if(Math.random()>=risk)return;
   S.imp={kind:'you',who:{name:S.you.name,party:PL},q:S.q,by:opp.id,ready:(S.trail||0)>55};
   let yes=0;
@@ -5817,24 +6097,24 @@ function impAgainstYou(){
     let v=(d.party===PL?-40:inCoal(d.party)?-16:22)+(50-d.rel)*0.28+(S.trail||0)*0.14;
     v+=noise(d.id+'impyou'+S.q,14); if(v>0)yes++;
   });
-  const pass=yes>=IMP_HOUSE;
+  const pass=yes>=impH();
   sheetOpen({eye:'Обвинение против вас',title:'Собрание голосует за импичмент',
     body:`<p class="lead">«${P(opp.id).name}» внесла обвинение против вас. Собрание голосует,
         и голосует не о законе.</p>
-      ${voteBar(yes,SEATS-yes,IMP_HOUSE)}
+      ${voteBar(yes,SEATS-yes,impH())}
       <div class="res"><span>За обвинение</span><b class="${pass?'bad':'good'}">${yes}</b>
-        <span>Нужно им</span><b>${IMP_HOUSE}</b>
+        <span>Нужно им</span><b>${impH()}</b>
         <span>След за вами</span><b class="${(S.trail||0)>50?'bad':''}">${Math.round(S.trail||0)}</b></div>`,
     acts:[{label:pass?'В Сенат':'Выдохнуть',fn(){
       if(!pass){ S.imp=null; addCap(6); bumpRep('firm',4);
-        logMsg('Обвинение против вас отклонено Собранием ('+yes+' из '+IMP_HOUSE+').',1); render(); return; }
+        logMsg('Обвинение против вас отклонено Собранием ('+yes+' из '+impH()+').',1); render(); return; }
       let sy=0;
       S.senate.forEach(s=>{ let v=(s.party===PL?-36:inCoal(s.party)?-14:24)+(50-s.rel)*0.24
         +(S.trail||0)*0.12+noise(s.id+'impyou'+S.q,13); if(v>0)sy++; });
-      const out=sy>=IMP_SEN;
+      const out=sy>=impS();
       S.imp=null;
       sheetOpen({eye:'Суд Сената',title:out?'Вас отрешили':'Вы оправданы',
-        body:voteBar(sy,SEN_SEATS-sy,IMP_SEN)+
+        body:voteBar(sy,SEN_SEATS-sy,impS())+
           `<p>${out?'Сенат отрешил вас от должности президента. Полномочия перешли к вице-президенту.'
                   :'Сената не хватило двух третей: вы остаётесь в кресле, и это все запомнят.'}</p>`,
         acts:[{label:'Дальше',fn(){
@@ -6028,12 +6308,12 @@ function nationalise(id){
    Мандат отбирают трижды: за след, по суду и решением фракции. */
 function recallRisk(){
   if(!hasMandate())return 0;
-  let v=0;
+  let v=CN().recall?0.012:0;
   if((S.trail||0)>RECALL*100)v+=((S.trail-RECALL*100)/100)*0.09;
   if(S.probe&&S.probe.left<=1)v+=0.03;
   if(captureLevel()>CAP_HIGH+15)v+=0.012;
   if(rep('honest')<26)v+=0.015;
-  return clamp(v,0,0.14);
+  return clamp(v*(CN().recall?2:1),0,0.2);
 }
 function recallTick(){
   if(Math.random()>=recallRisk())return;
@@ -6456,6 +6736,234 @@ function genEvent(){
       <span>Чего добиваются</span><b class="w">${stake.txt}</b></div>`,
     opts};
 }
+
+/* ═══ КОНСТИТУЦИОННАЯ ПОПРАВКА ════════════════════════════════════
+   Проходит не как закон: две трети в обеих палатах, иногда всенародное
+   голосование, и никакого вето — здесь палаты выше президента.
+   Депутат голосует не о пользе, а о власти, поэтому фракция весит тут
+   больше всего остального. */
+function cnSupport(d,c,house){
+  const own=d.party===PL, coal=inCoal(d.party);
+  let v=own?34:coal?15:-30;
+  v+=(d.rel-50)*0.3;
+  // поправка, выгодная тому, кто её вносит, встречает больше сопротивления
+  v+=cnCost(c)*(own||coal?0.25:0.75);
+  // где правила и так гнутся, ломать их проще
+  v+=(LEGIT0-legit())*0.16;
+  if(c.self>0)v+=14;                              // укрепляющую поправку поддержат многие
+  if(house==='sen'&&senRank(d)>=4)v-=8;           // старейшина конституцию трогать не любит
+  if(house==='sen')v-=4;                          // верхняя палата консервативнее
+  v+=(rep('honest')-50)*0.12;
+  v+=noise(d.id+'cn'+c.id+S.q,15);
+  return v;
+}
+function cnForecast(c){
+  const h=S.deputies.filter(d=>cnSupport(d,c,'low')>0).length;
+  const s=S.senate.filter(d=>cnSupport(d,c,'sen')>0).length;
+  return {h,s,needH:c.need.h,needS:c.need.s,ok:h>=c.need.h&&s>=c.need.s};
+}
+function askAmend(){
+  const list=cnList();
+  if(!list.length){ toast('Все поправки, какие возможны, уже приняты'); return; }
+  sheetOpen({eye:'Конституция · '+dateLabel(),title:'Внести поправку',
+    body:`<p class="lead">Конституционная поправка проходит две трети Собрания и две трети Сената.
+        Президент её не подписывает и не отклоняет: здесь палаты выше него. Часть поправок требует
+        всенародного голосования.</p>
+      <div class="res"><span>Легитимность строя</span>
+        <b class="${legit()<LEGIT_LOW?'bad':legit()>=70?'good':'warn'}">${legit()} · ${legitWord(legit())}</b>
+        <span>Поправок принято</span><b>${(CN().log||[]).length}</b>
+        <span>Внесение стоит</span><b>вес ${CN_CAP}</b></div>
+      <p class="hint">Цена поправки — не вес, а вера в правила. Каждая, выгодная тому, кто её провёл,
+        отнимает у страны часть этой веры, и вернуть её труднее, чем рейтинг.</p>`,
+    opts:list.slice(0,9).map(c=>{
+      const f=cnForecast(c), cost=cnCost(c);
+      return {label:c.name,
+        hint:c.art+' · '+c.eff+' · Собрание '+f.h+'/'+f.needH+', Сенат '+f.s+'/'+f.needS+
+          (c.need.ref?', референдум':'')+' · легитимность '+sign(cost),
+        fn:()=>askAmendOne(c.id)};
+    }).concat([{label:'Не вносить',hint:'закрыть',fn(){}}])});
+}
+function askAmendOne(id){
+  const c=CONSTS.find(x=>x.id===id); if(!c)return;
+  const f=cnForecast(c), cost=cnCost(c);
+  const gold=c.need.ref?CN_GOLD:0, cap=CN_CAP+(c.need.ref?CN_REF:0);
+  sheetOpen({eye:c.art,title:c.name,
+    body:`<p class="lead">«${c.txt}»</p>
+      <div class="res"><span>Что меняется</span><b class="w">${c.eff}</b>
+        <span>Собрание</span><b class="${f.h>=f.needH?'good':'bad'}">${f.h} из ${f.needH}</b>
+        <span>Сенат</span><b class="${f.s>=f.needS?'good':'bad'}">${f.s} из ${f.needS}</b>
+        ${c.need.ref?`<span>Всенародное голосование</span><b class="warn">требуется · ${gold} млрд</b>`:''}
+        <span>Цена</span><b>вес ${cap}</b>
+        <span>Легитимность</span><b class="${cost<0?'bad':'good'}">${sign(cost)}</b></div>
+      <p class="hint">${cost<0
+        ? 'Поправка выгодна тому, кто её вносит, и это видно всем. Страна запомнит.'
+        : 'Поправка ограничивает власть, а не расширяет её: такие укрепляют доверие к правилам.'}</p>`,
+    opts:[
+      {label:'Вносить',hint:'вес '+cap+(gold?' и '+gold+' млрд':''),
+       fn(){ if(!useAP(1))return;
+         if(!payCap(cap)){S.ap++;return;}
+         if(gold&&!payGold(gold)){S.ap++;addCap(cap);return;}
+         amendHouse(c); }},
+      {label:'Передумать',hint:'закрыть',fn(){}}]});
+}
+function amendHouse(c){
+  const yes=S.deputies.filter(d=>cnSupport(d,c,'low')>0).length;
+  const pass=yes>=c.need.h;
+  S.votes.unshift({no:++S.billNo,q:S.q,name:'Поправка: '+c.name,stance:0,
+    yes,no:SEATS-yes,pass,house:'соб'});
+  const cells=[];
+  seatOrder().forEach(p=>S.deputies.filter(d=>d.party===p.id).forEach(d=>{
+    const v=cnSupport(d,c,'low');
+    cells.push({st:v>0?'yes':'no',color:v>0?p.color:'var(--surface-3)',
+      title:d.name+' · '+P(d.party).short}); }));
+  sheetOpen({eye:'Конституционное большинство · Собрание',title:c.name,
+    body:`<p class="lead">${c.art}. ${c.eff}.</p>
+      ${seatGrid(cells)}
+      ${voteBar(yes,SEATS-yes,c.need.h)}
+      <div class="res"><span>За поправку</span><b class="${pass?'good':'bad'}">${yes}</b>
+        <span>Нужно две трети</span><b>${c.need.h}</b>
+        <span>Легитимность сейчас</span><b>${legit()}</b></div>
+      <div style="text-align:center;margin:12px 0 2px"><span class="stamp ${pass?'y':'n'}">${
+        pass?'принята в первом чтении':'отклонена Собранием'}</span></div>`,
+    acts:[{label:pass?'В Сенат':'Закрыть',fn(){ pass?amendSenate(c):amendFail(c,'Собрание'); }}]});
+  render();
+}
+function amendSenate(c){
+  const yes=S.senate.filter(d=>cnSupport(d,c,'sen')>0).length;
+  const pass=yes>=c.need.s;
+  S.votes.unshift({no:++S.billNo,q:S.q,name:'Поправка: '+c.name,stance:0,
+    yes,no:SEN_SEATS-yes,pass,house:'сен'});
+  sheetOpen({eye:'Конституционное большинство · Сенат',title:c.name,
+    body:`<p class="lead">Палата субъектов голосует по-своему: поправка меняет и её собственный вес.</p>
+      ${voteBar(yes,SEN_SEATS-yes,c.need.s)}
+      <div class="res"><span>За поправку</span><b class="${pass?'good':'bad'}">${yes}</b>
+        <span>Нужно две трети</span><b>${c.need.s} из ${SEN_SEATS}</b>
+        <span>Старейшин в палате</span><b>${S.senate.filter(senElder).length}</b></div>
+      <div style="text-align:center;margin:12px 0 2px"><span class="stamp ${pass?'y':'n'}">${
+        pass?'одобрена Сенатом':'отклонена Сенатом'}</span></div>`,
+    acts:[{label:pass?(c.need.ref?'На всенародное голосование':'Дальше'):'Закрыть',
+      fn(){ if(!pass){amendFail(c,'Сенат');return;}
+        c.need.ref?amendRef(c):amendPass(c,null); }}]});
+  render();
+}
+function amendRef(c){
+  // всенародное голосование по поправке: страна судит не о статье, а о власти
+  // страна судит поправку по тому, кто её вносит: своекорыстную проводят
+  // только популярностью и дружелюбной печатью, и то не всегда
+  let yes=52+(approval()-46)*0.9+(rep('folk')-50)*0.3+cnCost(c)*0.45
+    +(legit()-LEGIT0)*0.12+pressTone()*0.4+rnd(-7,7);
+  yes=r1(clamp(yes,4,96));
+  const pass=yes>50;
+  sheetOpen({eye:'Всенародное голосование · '+dateLabel(),title:c.name,
+    body:`<p class="lead">Поправку вынесли на всенародное голосование. Страна судит не о статье,
+        а о том, кто и зачем её вносит.</p>
+      ${voteBar(Math.round(yes),Math.round(100-yes),51)}
+      <div class="res"><span>За</span><b class="${pass?'good':'bad'}">${yes}%</b>
+        <span>Против</span><b>${r1(100-yes)}%</b>
+        <span>Одобрение власти</span><b>${Math.round(approval())}%</b>
+        <span>Тон печати</span><b>${pressWord(pressTone())}</b></div>
+      <div style="text-align:center;margin:12px 0 2px"><span class="stamp ${pass?'y':'n'}">${
+        pass?'страна согласилась':'страна отказала'}</span></div>`,
+    acts:[{label:'Дальше',fn(){ pass?amendPass(c,yes):amendFail(c,'страна'); }}]});
+  render();
+}
+function amendPass(c,refShare){
+  c.apply();
+  const cost=cnCost(c);
+  S.cn.log.push({id:c.id,name:c.name,art:c.art,eff:c.eff,q:S.q,by:PL,ref:refShare||0,cost});
+  bumpLegit(cost);
+  addCap(cost<0?4:10);
+  if(cost<0){ shiftMood('intel',cost*0.24); shiftMood('urban',cost*0.14); shiftMood('youth',cost*0.16);
+    shiftMood('patr',-cost*0.1); pressAll(cost*0.35); bumpRep('firm',4); bumpRep('honest',cost*0.16); }
+  else { shiftAll(1.4); bumpRep('honest',4); pressAll(3); }
+  career('Принята конституционная поправка: '+c.name.toLowerCase()+'.');
+  logMsg('Конституция изменена: '+c.name.toLowerCase()+' ('+c.eff+').',1);
+  chron('Поправка к конституции: '+c.name.toLowerCase()+'.',cost<0?'b':'g');
+  cover({ax:'order',stance:cost<0?2:-1,
+    good:cost<0?'Конституцию привели в соответствие с жизнью':'Власть сама себя ограничила',
+    bad:cost<0?'Основной закон переписан под тех, кто у власти':'Поправка ослабила государство',
+    flat:'Принята поправка к конституции: '+c.name.toLowerCase()});
+  sheetOpen({eye:'Новая редакция · '+dateLabel(),title:'Конституция изменена',
+    body:`<p class="lead">${c.art}. ${c.txt}</p>
+      <div class="res"><span>Что теперь</span><b class="w">${c.eff}</b>
+        ${refShare?`<span>На голосовании</span><b>${refShare}% за</b>`:''}
+        <span>Легитимность</span><b class="${cost<0?'bad':'good'}">${legit()} · ${legitWord(legit())}</b>
+        <span>Поправок всего</span><b>${S.cn.log.length}</b></div>
+      <p class="hint">${legit()<LEGIT_LOW
+        ? 'Вера в правила упала ниже той черты, за которой их перестают считать общими. Дальше — своя цена у каждого решения.'
+        : 'Правила изменены по правилам. Пока это ещё что-то значит.'}</p>`,
+    acts:[{label:'Принять к сведению'},{label:'К конституции',fn(){S.tab='const';}}]});
+  render();
+}
+function amendFail(c,where){
+  addCap(-6); bumpRep('comp',-2);
+  logMsg('Поправка «'+c.name.toLowerCase()+'» отклонена: '+where+'.',1);
+  chron('Конституционная поправка провалилась.','');
+  sheetOpen({eye:'Поправка отклонена',title:c.name,
+    body:`<p>Не хватило конституционного большинства: остановил ${where}. Ту же поправку можно внести
+      снова, но зал запоминает, кто её предлагал.</p>`,
+    acts:[{label:'Закрыть'}]});
+  render();
+}
+
+/* ─── легитимность и конституционный кризис ──────────────────────
+   Легитимность не спасает от поражения на выборах — без неё
+   перестают работать сами выборы. */
+function constTick(){
+  if(!S.cn)S.cn=cnDefault();
+  const l=legit();
+  S.legitLow=l<LEGIT_LOW;
+  // вера в правила восстанавливается сама, но медленно и не до конца
+  if(l<70)bumpLegit(0.34); else if(l>92)bumpLegit(-0.1);
+  if(l<LEGIT_LOW){
+    const k=(LEGIT_LOW-l)/100;
+    REGIONS.forEach(r=>S.unrest[r.id]=clamp(S.unrest[r.id]+k*2.6,0,100));
+    shiftMood('intel',-k*4); shiftMood('urban',-k*2.4);
+    if(S.nb)Object.values(S.nb).forEach(n=>n.rel=clamp(n.rel-k*1.6,0,100));
+  }
+  if(emergOn()&&Math.random()<0.3){ bumpLegit(-1.2); shiftMood('intel',-1.4); }
+  if(l<LEGIT_CR&&Math.random()<0.16)constCrisis();
+}
+function constCrisis(){
+  const r=REGIONS.slice().sort((a,b)=>S.unrest[b.id]-S.unrest[a.id])[0];
+  bumpLegit(-3);
+  logMsg('Конституционный кризис: '+R(r.id).name+' отказывается исполнять решения центра.',1);
+  chron('Конституционный кризис.','b');
+  sheetOpen({eye:'Конституционный кризис',title:'Правила перестали работать',
+    body:`<p class="lead">Легитимность строя упала до ${legit()}. ${R(r.id).name} объявил,
+        что не будет исполнять решения, принятые «с нарушением духа конституции». За ним смотрят остальные.</p>
+      <div class="res"><span>Легитимность</span><b class="bad">${legit()} · ${legitWord(legit())}</b>
+        <span>Поправок принято</span><b>${(CN().log||[]).length}</b>
+        <span>Напряжённость в крае</span><b class="bad">${Math.round(S.unrest[r.id])}</b>
+        <span>Средняя по стране</span><b>${Math.round(avgUnrest())}</b></div>`,
+    opts:[
+      {label:'Ввести прямое управление',hint:'вес 14 · порядок сейчас, счёт потом',
+       fn(){ if(!payCap(14))return;
+         S.unrest[r.id]=clamp(S.unrest[r.id]-16,0,100); bumpLegit(-5);
+         shiftMood('patr',3); shiftMood('intel',-5); shiftMood('urban',-3);
+         const g=govOf(r.id); if(g)g.rel=clamp(g.rel-20,0,100);
+         logMsg('В '+R(r.id).name+' введено прямое управление.',1); }},
+      {label:'Созвать круглый стол',hint:'22 млрд и уступки · медленно и честно',
+       fn(){ if(!payGold(22))return;
+         S.unrest[r.id]=clamp(S.unrest[r.id]-10,0,100); bumpLegit(6);
+         S.rmod[r.id]=clamp(S.rmod[r.id]+3,-22,22);
+         bumpRep('honest',4); shiftMood('intel',3);
+         logMsg('Круглый стол с '+R(r.id).name+': кризис приглушён уступками.',1); }},
+      {label:'Отменить спорную поправку',hint:'если есть что отменять',
+       fn(){ const last=(CN().log||[]).slice().reverse().find(x=>x.cost<0);
+         if(!last){ toast('Отменять нечего'); return; }
+         const c=CONSTS.find(x=>x.id===last.id);
+         S.cn.log=S.cn.log.filter(x=>x!==last);
+         // возвращаем то, что поправка меняла
+         const d=cnDefault();
+         ['pterm','term','sencyc','limit','super','impH','impS','judge','noconf','dissolve','senall','emerg']
+           .forEach(k=>{ if(S.cn[k]!==d[k]&&c&&String(c.apply).indexOf(k)>=0)S.cn[k]=d[k]; });
+         bumpLegit(14); shiftAll(2); bumpRep('honest',6);
+         logMsg('Поправка «'+last.name.toLowerCase()+'» отменена под давлением кризиса.',1);
+         chron('Спорная поправка отменена.','g'); }},
+      {label:'Не отступать',hint:'кризис продолжится',
+       fn(){ bumpLegit(-4); REGIONS.forEach(x=>S.unrest[x.id]=clamp(S.unrest[x.id]+4,0,100)); }}]});
+}
 /* ════════════════════════════════════════════════════════════════
    Интерфейс. Вся разметка собрана из компонентов дизайн-системы
    (game/ui.html): panel, btn, table, stat, meter, chip, tag, stamp.
@@ -6575,6 +7083,7 @@ const TABS=[
   {id:'pres',   name:'Президент',    n:()=>presLeft(), dot:()=>!!S.vetoed},
   {id:'court',  name:'Суд и надзор',  short:'Суд', n:()=>Math.round(trail()),
    dot:()=>!!S.probe},
+  {id:'const',  name:'Конституция',    n:()=>legit(), dot:()=>legit()<LEGIT_LOW},
   {id:'country',name:'Регионы',      grp:'Страна', n:()=>Math.round(avgUnrest())},
   {id:'society',name:'Общество',     n:()=>Math.round(approval())+'%'},
   {id:'press',  name:'Печать',       n:()=>sign(Math.round(pressTone())), dot:()=>pressTone()<-14},
@@ -6582,12 +7091,13 @@ const TABS=[
   {id:'world',  name:'Соседи',       n:()=>Math.round(nbTrade())},
   {id:'camp',   name:'Кампания',     n:()=>Math.round(S.funds), only:()=>!!S.camp},
   {id:'arch',   name:'Летопись',     grp:'Прочее', n:()=>S.chron.length},
+  {id:'hist',   name:'Правители',     n:()=>rulers().pres.length},
   {id:'help',   name:'Справка',      n:()=>''},
 ];
 function renderStrip(){
   const ap=approval(), bal=balance();
   const cells=[
-    ['квартал',dateLabel()+' · '+(S.q-S.termStart+1)+'/'+TERM,''],
+    ['квартал',dateLabel()+' · '+(S.q-S.termStart+1)+'/'+aTerm(),''],
     ['действия',S.ap+' из 3',S.ap?'act':'warn'],
     ['одобрение',Math.round(shown(ap,'nat'))+'%',ap<35?'bad':ap>55?'good':''],
     ['мандаты',seatsOf(PL)+' · коалиция '+coalSeats(),coalSeats()>=MAJ?'good':'warn'],
@@ -6606,7 +7116,7 @@ const isNarrow=()=>window.matchMedia('(max-width:900px)').matches;
 function navItems(){ return TABS.filter(t=>!t.only||t.only()); }
 function navBtn(t,i){
   return `<button class="nav ${S.tab===t.id?'on':''}" data-t="${t.id}" title="${t.name}${
-    i!==undefined?' · клавиша '+(i+1):''}">${icon(t.id)}<span>${i===undefined&&t.short?t.short:t.name}</span>${
+    i!==undefined?' · клавиша '+(i+1):''}">${icon(t.id)}<span>${(i===undefined||t.name.length>13)&&t.short?t.short:t.name}</span>${
     t.dot&&t.dot()?'<span class="dot"></span>':''}<u>${t.n()}</u></button>`;
 }
 function renderNav(){
@@ -6648,6 +7158,7 @@ function render(){
   const f=({brief:tabBrief,self:tabSelf,party:tabParty,parl:tabParl,senate:tabSenate,bill:tabBill,
             budget:tabBudget,pm:tabPM,gov:tabGov,pres:tabPres,court:tabCourt,country:tabCountry,
             society:tabSociety,press:tabPress,world:tabWorld,camp:tabCamp,firms:tabFirms,
+            const:tabConst,hist:tabHist,
             arch:tabArch,help:tabHelp})[S.tab]||tabBrief;
   document.getElementById('view').innerHTML=f();
   bindActions();
@@ -6673,7 +7184,7 @@ function advice(){
   if(trail()>62)return['След слишком заметен',
     'Накоплено '+Math.round(trail())+' — '+trailWord()+'. Риск дела '+Math.round(probeRisk()*100)+'% за квартал.'];
   if(S.vetoed)return['Закон вернулся с вето',
-    'Президент не подписал «'+T(S.vetoed.bill.topic).name+'». Настоять можно только двумя третями Собрания — '+SUPER+' голосами.'];
+    'Президент не подписал «'+T(S.vetoed.bill.topic).name+'». Настоять можно только двумя третями Собрания — '+superN()+' голосами.'];
   if(isPM()&&coalSeats()<MAJ)return['Правительство меньшинства',
     'В коалиции '+coalSeats()+' из '+MAJ+' нужных мандатов. Отдайте портфель фракции или готовьтесь к вотуму.'];
   if(isPM()&&senCoalSeats()<SEN_MAJ)return['Сенат не ваш',
@@ -6693,7 +7204,7 @@ function advice(){
     'Средняя напряжённость '+Math.round(avgUnrest())+'. Поездки, соцвыплаты и полиция сбивают её по-разному.'];
   if(ap<40)return['Рейтинг у черты',
     'Одобрение '+Math.round(ap)+'%. Посмотрите на вкладке «Общество», какие группы ушли, и работайте адресно.'];
-  if(S.camp)return['Идёт кампания','До выборов '+quarters(TERM-(S.q-S.termStart))+'. Штаб тратит кассу, а не казну.'];
+  if(S.camp)return['Идёт кампания','До выборов '+quarters(aTerm()-(S.q-S.termStart))+'. Штаб тратит кассу, а не казну.'];
   if(!S.bill)return['Собрание ждёт',
     'Внесите законопроект: подберите позицию так, чтобы её приняли, но она ещё что-то меняла.'];
   return['Курс держится','Пользуйтесь спокойным кварталом: договаривайтесь с фракциями впрок.'];
@@ -6710,7 +7221,7 @@ function tabBrief(){
     ['poll','Заказать социологию','точные цифры вместо оценок','9 млн',''],
   ];
   acts.push(['press','Работа с печатью','интервью, утечка или отлучение издания','','askPress()']);
-  if(isPres()||(isPM()&&seatsOf(PL)>=SUPER))
+  if(isPres()||(isPM()&&seatsOf(PL)>=superN()))
     acts.push(['ref','Назначить референдум','вопрос стране мимо палат и мимо подписи',REF_CAP+' веса','askReferendum()']);
   if(!isPM())acts.push(['noconf','Вотум недоверия','свалить кабинет и получить мандат на формирование','22 веса','']);
   const actRows=acts.map(x=>`<tr><td><b>${x[1]}</b><div class="sub2">${x[2]}</div></td>
@@ -6727,7 +7238,7 @@ function tabBrief(){
     ||'<p class="hint">Однопартийное правительство: делить портфели не с кем.</p>';
 
   const promBlock=(S.promises&&S.promises.length)?panel({title:'Обещания',
-      meta:'спросят через '+quarters(Math.max(0,TERM-(S.q-S.termStart))),
+      meta:'спросят через '+quarters(Math.max(0,aTerm()-(S.q-S.termStart))),
       body:S.promises.map(pp=>{const pr=PR(pp.id); if(!pr)return '';
         const ok=pr.ok(), w=Math.round(pr.prog());
         return `<div style="padding:6px 0;border-bottom:var(--hair-2)">
@@ -6840,22 +7351,92 @@ function hemicycle(){
   return `<svg class="hemi" viewBox="0 0 ${W} ${H}">${list.map((c,i)=>{const s=slots[i];
     return `<circle cx="${s.x.toFixed(1)}" cy="${s.y.toFixed(1)}" r="3.6" fill="${c}"/>`;}).join('')}</svg>`;
 }
-/* ─── доска Сената ────────────────────────────────────────────────
-   Кольцо было красивым и ничего не говорило. Палата собрана по
-   субъектам — значит и рисовать её надо делегациями: одиннадцать
-   блоков, в каждом свои кресла. А под ними линейка с двумя числами,
-   вокруг которых крутится вся палата: 51, чтобы принять, и 60,
-   чтобы дать проголосовать. */
-function senDelegations(){
-  return `<div class="deleg">`+REGIONS.map(r=>{
-    const here=S.senate.filter(s=>s.region===r.id)
-      .sort((a,b)=>seatOrder().findIndex(p=>p.id===a.party)-seatOrder().findIndex(p=>p.id===b.party));
-    return `<div class="d"><u>${r.cap} · ${r.sen}</u><div>`+
-      here.map(s=>`<s style="background:${P(s.party).color}" title="${s.name} · ${P(s.party).short} · ${r.name}${
-        senElder(s)?' · старейшина':''}"></s>`).join('')+`</div></div>`;
-  }).join('')+`</div>`;
+/* ─── зал Сената ──────────────────────────────────────────────────
+   Полукруг, как чертёж античного театра: одиннадцать клиньев по числу
+   субъектов, между ними лучевые проходы, кресла квадратные и повёрнуты
+   к трибуне. Клин тем шире, чем больше делегация, — площадь на плане
+   и есть вес края в палате. Внизу орхестра: место председателя. */
+function senHemi(){
+  const rows=4, r0=112, dr=56, seat=19, gapDeg=1.7, edge=7;
+  const rOut=r0+(rows-1)*dr+seat/2+18, rIn=r0-seat/2-14;
+  const W=Math.round(rOut*2+120), cx=W/2, cy=rOut+16, H=Math.round(cy+56);
+  const tot=REGIONS.reduce((a,r)=>a+r.sen,0)||1;
+  // по краю полукруга оставлен запас: иначе крайние кресла свешиваются за черту
+  const free=180-edge*2-gapDeg*(REGIONS.length-1);
+  const ord=seatOrder();
+  let ang=180-edge; const cells=[], aisles=[], labels=[], paths=[];
+  REGIONS.forEach((rg,k)=>{
+    const span=free*rg.sen/tot, a0=ang, a1=ang-span;
+    // сенаторы края: сначала по фракциям, потом по стажу
+    const here=S.senate.filter(x=>x.region===rg.id)
+      .sort((a,b)=>ord.findIndex(p=>p.id===a.party)-ord.findIndex(p=>p.id===b.party)
+        ||senRank(b)-senRank(a));
+    // ряды: дальний ряд длиннее и потому вмещает больше
+    const rad=[]; for(let i=0;i<rows;i++)rad.push(r0+i*dr);
+    const wsum=rad.reduce((a,b)=>a+b,0);
+    let left=here.length; const cnt=[];
+    rad.forEach((r,i)=>{ const n=i===rows-1?left:Math.min(left,Math.round(here.length*r/wsum));
+      cnt.push(n); left-=n; });
+    let idx=0;
+    cnt.forEach((n,i)=>{
+      if(n<=0)return;
+      const r=rad[i];
+      // шаг задан размером кресла, а не шириной клина: так ряд стоит плотно,
+      // а свободное место уходит в проход между делегациями
+      const pitch=Math.min((seat*1.28)/r*180/Math.PI, span/n);
+      const mid=(a0+a1)/2, start=mid+pitch*(n-1)/2;
+      for(let j=0;j<n;j++){
+        const a=(start-pitch*j)*Math.PI/180;
+        const x=cx+Math.cos(a)*r, y=cy-Math.sin(a)*r;
+        const st=here[idx++]; if(!st)continue;
+        const deg=90-a*180/Math.PI, el=senElder(st);
+        cells.push(`<rect x="${(x-seat/2).toFixed(1)}" y="${(y-seat/2).toFixed(1)}" width="${seat}" height="${seat}"
+          transform="rotate(${deg.toFixed(1)} ${x.toFixed(1)} ${y.toFixed(1)})"
+          fill="${P(st.party).color}" stroke="var(--ink)" stroke-width="${el?1.8:0.8}"
+          ><title>${st.name} · ${P(st.party).short} · ${rg.name}${el?' · старейшина':''}</title></rect>`);
+      }
+    });
+    // лучевой проход по границе клина
+    if(k<REGIONS.length-1){
+      const a=(a1-gapDeg/2)*Math.PI/180;
+      aisles.push(`<line x1="${(cx+Math.cos(a)*rIn).toFixed(1)}" y1="${(cy-Math.sin(a)*rIn).toFixed(1)}"
+        x2="${(cx+Math.cos(a)*(rOut-6)).toFixed(1)}" y2="${(cy-Math.sin(a)*(rOut-6)).toFixed(1)}"
+        stroke="var(--ink)" stroke-width="1"/>`);
+    }
+    // подпись идёт по дуге, а не по касательной: длинное название тогда
+    // остаётся внутри своего клина и не наезжает на соседний
+    const rl=rOut-9, pid='sa'+k;
+    const px=a=>(cx+Math.cos(a*Math.PI/180)*rl).toFixed(1),
+          py=a=>(cy-Math.sin(a*Math.PI/180)*rl).toFixed(1);
+    paths.push(`<path id="${pid}" d="M ${px(a0)} ${py(a0)} A ${rl} ${rl} 0 0 1 ${px(a1)} ${py(a1)}" fill="none"/>`);
+    // кегль подписи считается от длины дуги: узкому клину — мелкий шрифт,
+    // иначе название вылезет за проход к соседям
+    const cap=rg.cap.toUpperCase(), arcLen=span*Math.PI/180*rl;
+    const fs=clamp(arcLen/(cap.length*0.74),5.4,8.5).toFixed(1);
+    labels.push(`<text class="sl" style="font-size:${fs}px"><textPath href="#${pid}" startOffset="50%"
+      text-anchor="middle">${cap}</textPath><title>${rg.name} · ${rg.sen}</title></text>`);
+    ang=a1-gapDeg;
+  });
+  const arc=(r,w)=>`<path d="M ${(cx-r).toFixed(1)} ${cy} A ${r} ${r} 0 0 1 ${(cx+r).toFixed(1)} ${cy}"
+    fill="none" stroke="var(--ink)" stroke-width="${w}"/>`;
+  const v=S.vp, half=W/2-6;
+  return `<svg class="hemi sen" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
+    <style>.sl{font:700 8.5px var(--f-cond);letter-spacing:.1em;fill:var(--ink-3)}
+      .so{font:700 8.5px var(--f-cond);letter-spacing:.14em;fill:var(--ink-2)}</style>
+    <defs>${paths.join('')}</defs>
+    ${arc(rOut+9,5)}${arc(rOut,1)}${arc(rIn,1)}
+    ${aisles.join('')}${cells.join('')}${labels.join('')}
+    <line x1="${cx-half}" y1="${cy+12}" x2="${cx+half}" y2="${cy+12}" stroke="var(--ink)" stroke-width="2"/>
+    <rect x="${cx-62}" y="${cy-20}" width="124" height="32" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.4"/>
+    <text x="${cx}" y="${cy}" text-anchor="middle" class="so">ПРЕДСЕДАТЕЛЬ</text>
+    <rect x="${cx-half}" y="${cy+14}" width="62" height="26" fill="none" stroke="var(--ink)" stroke-width="1.4"/>
+    <text x="${cx-half+31}" y="${cy+31}" text-anchor="middle" class="so">ЛОЖА</text>
+    <rect x="${cx+half-62}" y="${cy+14}" width="62" height="26" fill="none" stroke="var(--ink)" stroke-width="1.4"/>
+    <text x="${cx+half-31}" y="${cy+31}" text-anchor="middle" class="so">ПЕЧАТЬ</text>
+    <title>${v?'Председательствует '+v.name:'Кресло председателя пусто'}</title>
+  </svg>`;
 }
-/* линейка порогов: где стоит коалиция относительно 51 и 60 */
+/* линейка порогов: где стоит коалиция относительно 51 и клотура */
 function senThresholds(){
   const c=senCoalSeats(), need=cloture();
   const pos=v=>clamp(v,0,SEN_SEATS)/SEN_SEATS*100;
@@ -6869,7 +7450,7 @@ function senThresholds(){
       <span style="left:${pos(c)}%;top:14px;color:var(--mark)">коалиция ${c}</span>
     </div>`;
 }
-function senCircle(){ return senDelegations()+senThresholds(); }
+function senCircle(){ return senHemi()+senThresholds(); }
 function tabParl(){
   const b=S.bill;
   let deps=S.deputies.slice();
@@ -7121,7 +7702,7 @@ function tabSenate(){
       <td class="n ${mine*2>=r.sen?'good':'bad'}">${mine}</td>
       <td style="width:110px">${bar(seatOrder().map(p=>
         [here.filter(s=>s.party===p.id).length/r.sen*100,p.color]),8)}</td></tr>`;}).join('');
-  const cls=S.senCls, due=SEN_CYCLE-((S.q-1)%SEN_CYCLE);
+  const cls=S.senCls, due=senCyc()-((S.q-1)%senCyc());
   const upFor=S.senate.filter(s=>s.cls===cls).length;
   const elders=S.senate.filter(senElder).length;
 
@@ -7132,7 +7713,7 @@ function tabSenate(){
     body:`<p class="lead">Вторая палата собрана по субъектам, а не по стране: маленький край весит здесь больше.
         Но главное её правило не в подсчёте голосов, а в прениях: пока за клотур нет ${need} голосов,
         до голосования по существу дело не доходит вовсе.</p>
-      ${senDelegations()}
+      ${senHemi()}
       ${senThresholds()}
       <div class="legend" style="margin-top:10px">${S.parties.map(p=>
         `<span class="chip"><s style="background:${p.color}"></s>${p.short} — ${senSeatsOf(p.id)}</span>`).join('')}</div>
@@ -7286,11 +7867,11 @@ function tabBill(){
     const dirs=(cur==='all'?AXES:AXES.filter(a=>a.id===cur)).map(dirPanel).join('');
     const veto=S.vetoed?panel({cls:'warn',title:'Возвращён президентом',meta:'вето от '+shortDate(S.vetoed.q),
       body:`<p class="lead">${T(S.vetoed.bill.topic).name} — ${stanceLine(S.vetoed.bill)}</p>
-        <p>Обе палаты закон приняли, подписи не будет. Собрание может настоять: нужно ${SUPER} голосов из ${SEATS},
+        <p>Обе палаты закон приняли, подписи не будет. Собрание может настоять: нужно ${superN()} голосов из ${SEATS},
           то есть две трети, а не половина. ${S.vetoed.tries?'Попытка была одна и не удалась — осталась последняя.':'Попыток две.'}</p>
         <div class="res"><span>Было в Собрании</span><b>${S.vetoed.low.yes} : ${S.vetoed.low.no}</b>
-          <span>Нужно теперь</span><b class="w">${SUPER}</b>
-          <span>Прогноз сейчас</span><b class="${tally(S.vetoed.bill).yes>=SUPER?'good':'bad'}">${tally(S.vetoed.bill).yes}</b></div>`,
+          <span>Нужно теперь</span><b class="w">${superN()}</b>
+          <span>Прогноз сейчас</span><b class="${tally(S.vetoed.bill).yes>=superN()?'good':'bad'}">${tally(S.vetoed.bill).yes}</b></div>`,
       foot:`<button class="btn pri" onclick="overrideVeto()" ${S.ap&&S.cap>=capCost(14,'veto')?'':'disabled'}>Преодолеть вето<span class="cost">${capCost(14,'veto')}</span></button>
         <button class="btn" data-go="parl">Работать с депутатами</button>`}):'';
     const decree=isPres()?panel({title:'Указ президента',meta:DECREE_COST+' веса · '+quarters(DECREE_LEN),
@@ -7352,7 +7933,7 @@ function tabBill(){
         <span class="dim">${isPres()?'свой закон подпишете':vetoWord(vc)}</span></div>
      </div>
      <p class="hint" style="margin:8px 0 10px">Достаточно провалиться на одной ступени, чтобы проект остановился.
-       Вето снимается двумя третями Собрания — ${SUPER} голосами.</p>
+       Вето снимается двумя третями Собрания — ${superN()} голосами.</p>
      <table class="tight"><thead><tr><th>Фракция</th><th class="n">За</th><th class="n">?</th><th class="n">Против</th><th></th></tr></thead>
        <tbody>${byParty}</tbody></table>`,
     foot:`<button class="btn pri" onclick="submitBill()" ${S.ap&&S.cap>=8?'':'disabled'}>Внести на голосование<span class="cost">8</span></button>
@@ -7607,7 +8188,7 @@ function tabPres(){
         <td class="dim">вице-президент</td><td class="r">${vmine?'<span class="tag g">да</span>':'<span class="tag r">нет</span>'}</td></tr>
       </tbody></table>`,
     foot:mine?`<button class="btn" onclick="askDecree()" ${S.ap&&S.cap>=DECREE_COST?'':'disabled'}>Подписать указ<span class="cost">${DECREE_COST}</span></button>
-        <button class="btn danger" onclick="callSnapElection()" ${(S.govAge||0)>=4&&!S.camp?'':'disabled'}>Распустить Собрание<span class="cost">25</span></button>
+        <button class="btn danger" onclick="callSnapElection()" ${canDissolve()&&(S.govAge||0)>=4&&!S.camp?'':'disabled'}>Распустить Собрание<span class="cost">25</span></button>
         <span class="hint">${(S.govAge||0)<4?'роспуск — не раньше пятого квартала кабинета':'выборы пройдут сразу, без штаба'}</span>`
       :`<span class="hint">Кресло берут на выборах: ${presLeft()?'они пройдут через '+quarters(presLeft()):'они уже в этом квартале'}.
         Вице идёт тем же списком, поэтому выигрываются оба кресла разом.</span>`});
@@ -7618,7 +8199,7 @@ function tabPres(){
 
   const vetoP=S.vetoed?panel({cls:'warn',title:'Закон на возврате',
     body:`<p class="lead">${T(S.vetoed.bill.topic).name} — ${stanceLine(S.vetoed.bill)}</p>
-      <p>Прошёл обе палаты и завернут президентом. Настоять можно только двумя третями Собрания: ${SUPER} из ${SEATS}.</p>`,
+      <p>Прошёл обе палаты и завернут президентом. Настоять можно только двумя третями Собрания: ${superN()} из ${SEATS}.</p>`,
     foot:`<button class="btn pri" onclick="overrideVeto()" ${S.ap&&S.cap>=capCost(14,'veto')?'':'disabled'}>Преодолеть вето<span class="cost">${capCost(14,'veto')}</span></button>
       <button class="btn" data-go="bill">К законам</button>`}):'';
 
@@ -7644,8 +8225,8 @@ function tabPres(){
     foot:`<button class="btn" data-go="senate">К Сенату</button>`});
 
   const race=panel({title:'Как выбирают главу государства',
-    body:`<p class="hint" style="margin:0">Всенародно, в два тура, раз в ${quarters(PTERM)} — по своим часам,
-      не совпадающим с созывом Собрания (${quarters(TERM)}). Президент и вице идут одним списком: голосуют
+    body:`<p class="hint" style="margin:0">Всенародно, в два тура, раз в ${quarters(pTerm())} — по своим часам,
+      не совпадающим с созывом Собрания (${quarters(aTerm())}). Президент и вице идут одним списком: голосуют
       за пару, а не за человека. Если в первом туре никто не берёт половину, во второй выходят двое,
       а голоса выбывших расходятся по близости взглядов. Партия, не дошедшая до второго тура, решает,
       кого поддержать. Два срока подряд — предел для человека, но не для партии: она выставляет новое лицо.</p>`});
@@ -7726,7 +8307,7 @@ function tabCourt(){
       <div class="stat"><i>назначено вами</i><div class="v">${byMe}<u>из ${COURT_SIZE}</u></div>
         <span>${byMe>=COURT_MAJ?'суд ваш надолго':'состав вам не подчиняется'}</span></div>
      </div><div>
-      <p class="lead">Судья садится на ${quarters(JUDGE_LIFE)} — дольше, чем правит любой президент.
+      <p class="lead">Судья садится на ${quarters(judgeLife())} — дольше, чем правит любой президент.
         Кресло освобождается редко, назначает президент, утверждает Сенат. Поэтому состав суда — это
         наследство, а не текущая политика.</p>
       <div class="res" style="margin-bottom:0"><span>Независимость</span>
@@ -7783,19 +8364,19 @@ function inqPanel(){
         <span class="hint">Работает ${quarters(INQ_LEN)}. Пустые выводы стоят дороже, чем несозванная комиссия.</span>`});
 
   const impBox=panel({cls:im?'warn':'',title:'Импичмент',
-    meta:'Собрание '+IMP_HOUSE+' · Сенат '+IMP_SEN,
+    meta:'Собрание '+impH()+' · Сенат '+impS(),
     body:`<table class="tight"><tbody>
         <tr><td><b>Обвинение</b><div class="sub2">выдвигает нижняя палата</div></td>
-          <td class="n">${IMP_HOUSE} из ${SEATS}</td></tr>
+          <td class="n">${impH()} из ${SEATS}</td></tr>
         <tr><td><b>Отрешение</b><div class="sub2">судит верхняя, две трети</div></td>
-          <td class="n">${IMP_SEN} из ${SEN_SEATS}</td></tr>
+          <td class="n">${impS()} из ${SEN_SEATS}</td></tr>
         <tr><td><b>Материалы комиссии</b><div class="sub2">прибавляют голосов в обеих палатах</div></td>
           <td class="n ${S.impReady?'good':'dim'}">${S.impReady?'на руках':'нет'}</td></tr>
         <tr><td><b>Провал</b><div class="sub2">укрепляет того, против кого он был</div></td>
           <td class="n bad">−14 веса</td></tr>
       </tbody></table>
       ${isPres()?`<p class="hint">Вы президент — значит обвинение могут внести и против вас.
-        Оппозиция держит ${SEATS-coalSeats()} мандатов при нужных ${IMP_HOUSE}.</p>`:''}`,
+        Оппозиция держит ${SEATS-coalSeats()} мандатов при нужных ${impH()}.</p>`:''}`,
     foot:`<button class="btn danger" onclick="askImpeach()" ${S.ap&&S.cap>=IMP_CAP&&!S.imp?'':'disabled'}>Внести обвинение<span class="cost">${IMP_CAP}</span></button>`});
 
   return `<div class="cols c11"><div>`+box+`</div><div>`+impBox+`</div></div>`;
@@ -8053,7 +8634,7 @@ function forecast(){
 }
 function tabCamp(){
   if(!S.camp)return panel({title:'Штаб',body:'<div class="empty">Штаб развернётся за четыре квартала до выборов.</div>'});
-  const left=TERM-(S.q-S.termStart), fc=forecast();
+  const left=aTerm()-(S.q-S.termStart), fc=forecast();
   const ads=GROUPS.map(g=>`<tr><td>${g.name}</td><td class="n">${S.camp.ads[g.id]||0}</td>
     <td class="n ${S.mood[g.id]<46?'bad':''}">${Math.round(S.mood[g.id])}</td>
     <td class="r"><button class="btn sm" onclick="CAMPACT.ads('${g.id}')" ${S.funds>=16?'':'disabled'}>Ролики<span class="cost">16 млн</span></button></td></tr>`).join('');
@@ -8120,7 +8701,7 @@ function tabHelp(){
   return panel({cls:'info',title:'Как это работает',meta:'коротко о правилах',body:
    `<h3 class="sub">Время</h3>
     <p>Ход — квартал. В квартале три действия: поездка, речь, работа с депутатом или с колеблющимися, переговоры
-      с фракцией, сбор средств, опрос. Созыв длится ${TERM} кварталов, затем всеобщие выборы.
+      с фракцией, сбор средств, опрос. Созыв длится ${aTerm()} кварталов, затем всеобщие выборы.
       Больше трёх созывов подряд не бывает.</p>
     <h3 class="sub">Кто вы такой</h3>
     <p>У политика есть происхождение, две черты характера и молва по четырём шкалам — честность,
@@ -8150,13 +8731,13 @@ function tabHelp(){
       Число под пунктиром — оценка без свежего опроса.</p>
     <h3 class="sub">Три власти</h3>
     <p>Новария — полупрезидентская республика, и власть здесь намеренно не сходится в одних руках.
-      <b>Народное собрание</b> — ${SEATS} депутатов, избирается целиком раз в ${quarters(TERM)} по субъектам.
-      <b>Сенат</b> — ${SEN_SEATS} мест, тоже по субъектам, но обновляется третями раз в ${quarters(SEN_CYCLE)}:
-      он никогда не меняется весь сразу. <b>Президент</b> избирается всей страной на ${quarters(PTERM)} —
+      <b>Народное собрание</b> — ${SEATS} депутатов, избирается целиком раз в ${quarters(aTerm())} по субъектам.
+      <b>Сенат</b> — ${SEN_SEATS} мест, тоже по субъектам, но обновляется третями раз в ${quarters(senCyc())}:
+      он никогда не меняется весь сразу. <b>Президент</b> избирается всей страной на ${quarters(pTerm())} —
       по своим часам, не совпадающим с созывом.</p>
     <p>Закон идёт по трём ступеням: ${MAJ} голосов в Собрании, ${SEN_MAJ} в Сенате, подпись президента.
       Достаточно провалиться на одной, чтобы всё остановилось. Вето снимается двумя третями Собрания —
-      ${SUPER} голосами. Бюджет — исключение: он проходит только через Собрание.</p>
+      ${superN()} голосами. Бюджет — исключение: он проходит только через Собрание.</p>
     <h3 class="sub">Собрание</h3>
     <p>У каждого депутата своя позиция по шести осям, дисциплина фракции и личное отношение к вам.
       Голосуя, депутат складывает близость закона к своим взглядам, указание фракции, помноженное на дисциплину,
@@ -8205,7 +8786,7 @@ function tabHelp(){
     <p>Интервью поднимает одно издание и его группу, утечка бьёт по сопернику ценой вашей честности,
       отлучение доступно только при надзоре и настораживает остальные редакции.</p>
     <h3 class="sub">Конституционный суд</h3>
-    <p>Девять судей на ${quarters(JUDGE_LIFE)} — дольше, чем правит любой президент, поэтому состав суда
+    <p>Девять судей на ${quarters(judgeLife())} — дольше, чем правит любой президент, поэтому состав суда
       это наследство, а не текущая политика. Кресло освобождается редко: назначает президент, утверждает
       Сенат. Запрос в суд оспаривает действующий закон; отменяют ${COURT_MAJ} голосов из ${COURT_SIZE}.
       Суд смотрит не на пользу закона, а на то, как далеко он зашёл: крайние редакции и особенно указы
@@ -8252,6 +8833,154 @@ function tabHelp(){
     <p>Разделы переключаются цифрами <b>1</b>—<b>9</b> в том порядке, в каком они стоят в меню, соседний раздел —
       стрелками <b>←</b> и <b>→</b>, конец квартала — <b>Q</b>. Пока открыто окно с решением, клавиши молчат.</p>`});
 }
+
+/* ─── Конституция ────────────────────────────────────────────────
+   Действующая редакция и то, чем за неё заплачено. Обычный закон
+   говорит, что делать; конституционный — кто решает и как долго. */
+function tabConst(){
+  const c=CN(), l=legit(), log=(c.log||[]).slice().reverse();
+  const art=(n,name,val,note,warn)=>`<tr><td><b>${name}</b><div class="sub2">${note}</div></td>
+    <td class="dim hide-s">${n}</td><td class="n ${warn?'warn':''}">${val}</td></tr>`;
+  const table=`<table class="tight"><thead><tr><th>Норма</th><th class="hide-s">Статья</th>
+      <th class="r">Действует</th></tr></thead><tbody>
+    ${art('ст. 81','Срок президента','раз в '+quarters(pTerm()),
+      'избирается всей страной, отдельно от палат',pTerm()>PTERM)}
+    ${art('ст. 81 ч. 3','Ограничение сроков',termLimit()?termLimit()+' подряд':'нет',
+      'предел для человека, не для партии',termLimit()===0)}
+    ${art('ст. 96','Созыв Собрания',quarters(aTerm()),
+      'избирается целиком по субъектам',aTerm()>TERM)}
+    ${art('ст. 95','Обновление Сената',c.senall?'целиком с Собранием':'треть раз в '+quarters(senCyc()),
+      c.senall?'палата следует за большинством':'палата никогда не меняется вся сразу',c.senall||senCyc()>SEN_CYCLE)}
+    ${art('ст. 100','Порог клотура',cloture()+' из '+SEN_SEATS+(c.entrench?' · закреплён':''),
+      c.entrench?'изменить можно только поправкой':'задан регламентом палаты',cloture()<CLOTURE)}
+    ${art('ст. 107','Преодоление вето',superN()+' из '+SEATS,
+      superN()<=MAJ?'простое большинство':'две трети Собрания',superN()<=MAJ)}
+    ${art('ст. 109','Роспуск Собрания',c.dissolve==='none'?'запрещён':c.dissolve==='pm'?'у премьера':'у президента',
+      'досрочные выборы без предвыборного штаба',c.dissolve!=='pres')}
+    ${art('ст. 117','Вотум недоверия',noconfKind()==='constructive'?'конструктивный':'обычный',
+      noconfKind()==='constructive'?'валят, только назвав преемника':'валят простым большинством',false)}
+    ${art('ст. 93','Отрешение',impH()+' и '+impS(),'Собрание обвиняет, Сенат судит',impS()<67)}
+    ${art('ст. 97','Отзыв депутата',c.recall?'разрешён':'нет','избиратели края против своего депутата',c.recall)}
+    ${art('ст. 88','Чрезвычайные полномочия',emergOn()?'действуют до '+dateLabel(c.emerg):'нет',
+      'указ в полную силу закона',emergOn())}
+    </tbody></table>`;
+  const hist=log.length?log.map(x=>
+    `<tr><td><b>${x.name}</b><div class="sub2">${x.art} · ${x.eff}${x.ref?' · референдум '+x.ref+'%':''}</div></td>
+      <td class="n">${shortDate(x.q)}</td>
+      <td class="n ${x.cost<0?'bad':'good'}">${sign(x.cost)}</td></tr>`).join('')
+    :'<tr><td colspan="3" class="dim">Конституция в первоначальной редакции. Пока.</td></tr>';
+  const avail=cnList().slice(0,7).map(x=>{ const f=cnForecast(x), co=cnCost(x);
+    return `<tr><td><b>${x.name}</b><div class="sub2">${x.art} · ${x.eff}</div></td>
+      <td class="n ${f.h>=f.needH?'good':'bad'} hide-s">${f.h}/${f.needH}</td>
+      <td class="n ${f.s>=f.needS?'good':'bad'}">${f.s}/${f.needS}</td>
+      <td class="n ${co<0?'bad':'good'}">${sign(co)}</td>
+      <td class="r"><button class="btn sm" onclick="askAmendOne('${x.id}')"
+        ${S.ap&&S.cap>=CN_CAP?'':'disabled'}>Вносить</button></td></tr>`;}).join('')
+    ||'<tr><td colspan="5" class="dim">Вносить нечего: всё, что можно было изменить, изменено.</td></tr>';
+
+  return panel({cls:l<LEGIT_LOW?'warn':'info',title:'Конституция Новарии',
+    meta:(c.log||[]).length?'редакция с '+plural((c.log||[]).length,'поправкой','поправками','поправками'):'первоначальная редакция',
+    body:`<div class="cols c12"><div>
+      <div class="stat ${l<LEGIT_LOW?'bad':''}"><i>легитимность строя</i><div class="v">${l}</div>
+        <span>${legitWord(l)}</span></div>
+      ${bar([[l,l<LEGIT_CR?'var(--bad)':l<LEGIT_LOW?'var(--mark)':'var(--ink-2)']],12)}
+     </div><div>
+      <p class="lead">Обычный закон говорит, что делать. Конституционный — кто решает и как долго.
+        Поэтому он и проходит иначе: две трети Собрания, две трети Сената, иногда всенародное
+        голосование — и никакого вето: здесь палаты выше президента.</p>
+      <div class="res"><span>Поправок принято</span><b>${(c.log||[]).length}</b>
+        <span>Внесение стоит</span><b>вес ${CN_CAP}${' '}· с референдумом ${CN_CAP+CN_REF}</b>
+        <span>Черта доверия</span><b class="${l<LEGIT_LOW?'bad':''}">${LEGIT_LOW}</b>
+        <span>Черта кризиса</span><b class="${l<LEGIT_CR?'bad':''}">${LEGIT_CR}</b></div>
+      <p class="hint">${l<LEGIT_CR
+        ? 'Ниже этой черты края перестают исполнять решения центра: начинается конституционный кризис.'
+        : l<LEGIT_LOW
+        ? 'Вера в правила ушла ниже черты: напряжённость растёт сама, интеллигенция и город отворачиваются, соседи холодеют.'
+        : 'Цена поправки — не вес, а вера в правила. Её труднее вернуть, чем рейтинг.'}</p>
+     </div></div>`,
+    foot:`<button class="btn pri" onclick="askAmend()" ${S.ap&&S.cap>=CN_CAP?'':'disabled'}>Внести поправку<span class="cost">${CN_CAP}</span></button>
+      <span class="hint">Президент поправку не подписывает и не отклоняет.</span>`})
+  +`<div class="cols c21"><div>`
+  +panel({title:'Действующая редакция',meta:'что и где записано',flush:true,body:table})
+  +panel({title:'Что можно внести',meta:'прогноз голосов · цена легитимности',flush:true,
+    body:`<div class="scrollx"><table class="tight"><thead><tr><th>Поправка</th>
+      <th class="n hide-s">Собрание</th><th class="n">Сенат</th><th class="n">Лег.</th><th></th></tr></thead>
+      <tbody>${avail}</tbody></table></div>`})
+  +`</div><div>`
+  +panel({title:'Принятые поправки',meta:plural((c.log||[]).length,'поправка','поправки','поправок')+' в силе',flush:true,
+    body:`<table class="tight"><tbody>${hist}</tobody></table>`.replace('</tobody>','</tbody>')})
+  +panel({title:'Как проходит поправка',
+    body:`<div class="path">
+        <div class="stg ok"><i>Собрание</i><b>две трети</b><u>290 из 435</u><span class="stamp y">1</span></div>
+        <div class="stg ok"><i>Сенат</i><b>две трети</b><u>67 из 100</u><span class="stamp y">2</span></div>
+        <div class="stg ok"><i>Страна</i><b>для части поправок</b><u>&gt; 50%</u><span class="stamp y">3</span></div>
+      </div>
+      <p class="hint" style="margin-top:8px">Депутат голосует здесь не о пользе, а о власти: фракция весит
+        больше всего остального, а старейшины Сената конституцию трогать не любят вовсе.</p>`})
+  +`</div></div>`;
+}
+
+/* ─── Правители ──────────────────────────────────────────────────
+   Кто сидел в кресле, в какие годы и что после себя оставил.
+   Достижение не выдумано: оно посчитано по тому, что за срок
+   изменилось в стране. */
+function tabHist(){
+  const R0=rulers();
+  const row=r=>`<tr class="${r.you?'mine':''}">
+    <td><b>${r.name}</b>${r.you?' <span class="tag y">вы</span>':''}
+      <div class="sub2">${P(r.party)?P(r.party).name:'—'}${r.how?' · '+r.how:''}</div></td>
+    <td class="n">${reignYears(r)}</td>
+    <td class="n hide-s">${r.to?quarters(r.to-r.from):'идёт'}</td>
+    <td>${r.note||'<span class="dim">срок не окончен</span>'}</td></tr>`;
+  const pres=R0.pres.slice().reverse().map(row).join('')
+    ||'<tr><td colspan="4" class="dim">Ещё никто не успел уйти.</td></tr>';
+  const pm=R0.pm.slice().reverse().slice(0,14).map(row).join('')
+    ||'<tr><td colspan="4" class="dim">Кабинетов ещё не было.</td></tr>';
+  const cur=R0.pres.find(x=>!x.to);
+  const yours=R0.pres.filter(x=>x.you).length;
+  const amend=(CN().log||[]).slice().reverse().map(x=>
+    `<div class="crow"><s>${shortDate(x.q)}</s><span><b>${x.name}</b>
+      <b class="num-s ${x.cost<0?'bad':'good'}">${sign(x.cost)}</b>
+      <div class="sub2">${x.art} · ${x.eff}</div></span></div>`).join('')
+    ||'<div class="dim">Конституция не менялась.</div>';
+
+  return panel({cls:'lead-p',title:'Правители Новарии',
+    meta:'с '+2029+' года · '+plural(R0.pres.length,'президент','президента','президентов'),
+    body:`<div class="cols c12"><div>
+      <div class="stat"><i>${cur?(P(cur.party)?P(cur.party).name:'') :'кресло пусто'}</i>
+        <div class="v" style="font-family:var(--f-display);font-size:26px;letter-spacing:0">${cur?cur.name:'—'}</div>
+        <span>${cur?'в кресле с '+shortDate(cur.from)+' · '+quarters(S.q-cur.from):''}</span></div>
+     </div><div>
+      <p class="lead">Кресло переживает того, кто в нём сидит. Здесь записано, кто им владел,
+        в какие годы и что оставил после себя, — достижение не выдумано, оно посчитано по тому,
+        что за срок изменилось в стране.</p>
+      <div class="res"><span>Президентов всего</span><b>${R0.pres.length}</b>
+        <span>Из них ваших</span><b class="${yours?'good':''}">${yours}</b>
+        <span>Кабинетов сменилось</span><b>${R0.pm.length}</b>
+        <span>Поправок к конституции</span><b class="${(CN().log||[]).length?'warn':''}">${(CN().log||[]).length}</b>
+        <span>Отрешений</span><b class="${R0.pres.filter(x=>x.how==='импичмент').length?'bad':''}">${
+          R0.pres.filter(x=>x.how==='импичмент').length}</b>
+        <span>Досрочных передач</span><b>${R0.pres.filter(x=>x.how==='наследование').length}</b></div>
+     </div></div>`})
+  +`<div class="cols c21"><div>`
+  +panel({title:'Президенты',meta:'кто, когда и чем запомнился',flush:true,
+    body:`<div class="scrollx"><table><thead><tr><th>Президент</th><th class="n">Годы</th>
+      <th class="n hide-s">Срок</th><th>Достижение</th></tr></thead><tbody>${pres}</tbody>
+      <caption>Достижение выбирается из того, что за срок сдвинулось сильнее всего: хозяйство,
+        напряжённость, законы, указы, вето, поправки к конституции.</caption></table></div>`})
+  +panel({title:'Главы правительства',meta:'последние четырнадцать',flush:true,
+    body:`<div class="scrollx"><table class="tight"><tbody>${pm}</tbody></table></div>`})
+  +`</div><div>`
+  +panel({title:'Изменения конституции',meta:plural((CN().log||[]).length,'поправка','поправки','поправок'),flush:true,
+    body:`<div class="career" style="max-height:420px">${amend}</div>`,
+    foot:`<button class="btn sm" data-go="const">К конституции</button>`})
+  +panel({title:'Летопись',meta:'важнейшее',flush:true,
+    body:`<div class="career" style="max-height:300px">${S.chron.slice(0,18).map(c=>
+      `<div class="crow"><s>${shortDate(c.q)}</s><span class="${c.k==='g'?'good':c.k==='b'?'bad':''}">${c.t}</span></div>`).join('')
+      ||'<div class="dim">Пока ничего.</div>'}</div>`,
+    foot:`<button class="btn sm" data-go="arch">Вся летопись</button>`})
+  +`</div></div>`;
+}
 /* ════════════════════════════════════════════════════════════════
    Запуск: создание партии, загрузка сохранения.
    ════════════════════════════════════════════════════════════════ */
@@ -8260,7 +8989,7 @@ function newParty(){
   sheetOpen({eye:'Республика Новария · 2029 год',title:'Ваша партия идёт во власть',
     body:`<img src="${FLAG}" alt="Флаг Республики Новария" style="width:132px;display:block;border:1px solid var(--rule);margin:0 0 11px">
       <p>Одиннадцать субъектов от Балтики до Тихоокеанска, Народное собрание на ${SEATS} мандатов
-        и пять фракций, каждая со своим избирателем. Созыв длится ${TERM} кварталов, потом выборы.</p>
+        и пять фракций, каждая со своим избирателем. Созыв длится ${aTerm()} кварталов, потом выборы.</p>
       <p>Вы возглавляете партию, которая по итогам прошлых выборов получила право формировать правительство.
         Дальше всё зависит от того, что вы будете проводить через Собрание и чем за это платить.</p>
       <p class="hint">Программа — шесть позиций от −2 до +2. Избиратель и депутат смотрят на них по-своему:
@@ -8342,7 +9071,7 @@ function askName(base){
       sheetOpen({eye:'Присяга принята',title:'Кабинет ваш',
         body:`<p>«${base.name}» формирует правительство. В коалиции ${coalSeats()} мандатов из ${SEATS}, для большинства нужно ${MAJ}.</p>
           <div class="res"><span>Квартал</span><b class="w">${dateLabel()}</b>
-            <span>До выборов</span><b>${TERM} кварталов</b>
+            <span>До выборов</span><b>${aTerm()} кварталов</b>
             <span>Действий в квартал</span><b>3</b>
             <span>Сенат</span><b>${senSeatsOf(PL)} из ${SEN_SEATS}</b>
             <span>Президент</span><b class="w">${S.pres.name}</b>

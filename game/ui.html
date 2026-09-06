@@ -300,6 +300,9 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
 .board i{display:block;aspect-ratio:1;border:1px solid rgba(20,19,15,.14)}
 .board i.v-no{background:var(--surface-3)!important;border-style:dashed}
 .board i.v-und{opacity:.45}
+tr.mine td{background:var(--surface-2)}
+tr.mine td:first-child{box-shadow:inset 3px 0 0 var(--ink)}
+.hemi.sen{max-height:none}
 /* палата субъектов: делегации стоят блоками, а не общим кольцом */
 .deleg{display:flex;flex-wrap:wrap;gap:var(--x4);margin:var(--x4) 0}
 .deleg .d{border:1px solid var(--line-2);background:var(--surface-2);padding:5px 6px 6px}
@@ -441,7 +444,8 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
 .career{max-height:340px;overflow-y:auto}
 .crow{display:flex;gap:var(--x4);padding:5px var(--x5);border-bottom:var(--hair-2);font-size:12.5px}
 .crow:last-child{border-bottom:0}
-.crow s{text-decoration:none;font:400 11px var(--f-num);color:var(--ink-3);flex:none;width:34px}
+.crow s{text-decoration:none;font:400 11px var(--f-num);color:var(--ink-3);flex:none;width:48px}
+.crow span{flex:1;min-width:0}
 
 
 /* --- витрина иконок --------------------------------------------- */
@@ -943,8 +947,12 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
       перестаёт быть строчкой в журнале: до нажатия кнопки видно, чья фракция где сломалась,
       и с колеблющимися ещё можно работать. Той же доской показывают импичмент.</p>
   </div></div>
-  <div class="panel" style="margin:0"><header><h4>Палата субъектов</h4><span class="meta">делегации и пороги</span></header>
+  <div class="panel" style="margin:0"><header><h4>Палата субъектов</h4><span class="meta">зал и пороги</span></header>
   <div class="body">
+    <p class="note">Полукруг чертится как план античного театра: клин на каждый субъект, между клиньями
+      лучевые проходы, кресла квадратные и повёрнуты к трибуне. Клин тем шире, чем больше делегация, —
+      площадь на плане и есть вес края в палате. Подпись идёт по дуге, а кегль считается от её длины,
+      чтобы длинное название не наехало на соседний клин.</p>
     <div class="deleg" id="deleg"></div>
     <div class="meter tall">
       <i style="width:26%;background:var(--p1)"></i><i style="width:21%;background:var(--p2)"></i>
@@ -2008,6 +2016,10 @@ const ICON={
        '<circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/>'+
        '<circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none"/>',
   clock:'<circle cx="12" cy="12" r="8.5"/><path d="M12 6.5V12l3.6 2.6"/>',
+  const:'<path d="M6 3h9l3 3v15H6z"/><path d="M15 3v3h3"/>'+
+        '<path d="M9 10.5h6M9 14h6M9 17.5h3.5"/><path d="M4 3v18"/>',
+  hist:'<path d="M4 21V9l8-5.5L20 9v12"/><path d="M4 21h16"/>'+
+       '<path d="M9 21v-6h6v6"/><path d="M8 12h8"/>',
   firms:'<path d="M3 21h18"/><path d="M4.5 21V7l7-3.5V21"/><path d="M11.5 10.5H20V21"/>'+
         '<path d="M7 10h1.5M7 13.5h1.5M7 17h1.5M14.5 14h1.5M14.5 17.5h1.5"/>',
 };
