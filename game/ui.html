@@ -293,6 +293,25 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
 .dep .who b{display:block;font-size:13.5px}
 .dep .who span{font-size:11.5px;color:var(--ink-3)}
 .hemi{width:100%;display:block}
+/* доска голосования: один квадрат — один мандат. Сетка честнее
+   полукруга: на ней видно и счёт, и то, чья фракция где сломалась. */
+.board{display:grid;gap:2px;margin:var(--x5) 0;padding:var(--x4);
+  background:var(--surface-2);border:1px solid var(--line-2)}
+.board i{display:block;aspect-ratio:1;border:1px solid rgba(20,19,15,.14)}
+.board i.v-no{background:var(--surface-3)!important;border-style:dashed}
+.board i.v-und{opacity:.45}
+/* палата субъектов: делегации стоят блоками, а не общим кольцом */
+.deleg{display:flex;flex-wrap:wrap;gap:var(--x4);margin:var(--x4) 0}
+.deleg .d{border:1px solid var(--line-2);background:var(--surface-2);padding:5px 6px 6px}
+.deleg .d u{display:block;font:700 8px var(--f-cond);text-transform:uppercase;
+  letter-spacing:.12em;color:var(--ink-3);text-decoration:none;margin-bottom:4px;white-space:nowrap}
+.deleg .d div{display:grid;grid-auto-flow:column;grid-template-rows:repeat(2,9px);gap:2px}
+.deleg .d s{display:block;width:9px;height:9px;text-decoration:none;border:1px solid rgba(20,19,15,.18)}
+/* линейка порогов под доской Сената */
+.thr{position:relative;height:26px;margin-top:var(--x4);border-top:1px solid var(--line-2)}
+.thr i{position:absolute;top:0;bottom:0;width:1px;background:var(--ink)}
+.thr span{position:absolute;top:4px;font:700 8.5px var(--f-cond);text-transform:uppercase;
+  letter-spacing:.12em;white-space:nowrap;padding-left:4px}
 .axis-row{padding:var(--x4) 0;border-bottom:var(--hair-2)}
 .axis-row:last-child{border-bottom:0}
 
@@ -911,6 +930,36 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
     <div class="meter tall" style="margin-top:var(--x4)"><i style="width:41%;background:var(--good)"></i><i style="width:59%;background:var(--bad)"></i><span class="mid" style="left:60%"></span></div>
     <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:4px">
       <span class="good">за 41</span><span class="dim">порог 60</span><span class="bad">против 59</span></div>
+  </div></div>
+  <div class="panel" style="margin:0"><header><h4>Доска голосования</h4><span class="meta">435 мандатов</span></header>
+  <div class="body">
+    <div class="board" id="voteboard" style="grid-template-columns:repeat(39,1fr)"></div>
+    <div class="meter tall" style="margin:var(--x4) 0 4px">
+      <i style="width:44%;background:var(--good)"></i><i style="width:6%;background:var(--line-2)"></i>
+      <i style="width:50%;background:var(--bad)"></i><span class="mid" style="left:50.1%"></span></div>
+    <div style="display:flex;justify-content:space-between;font-size:12px">
+      <span class="good">за 191</span><span class="dim">колеблются 27 · порог 218</span><span class="bad">против 217</span></div>
+    <p class="note">Один квадрат — один мандат, порядок фракций тот же, что в зале. Голосование
+      перестаёт быть строчкой в журнале: до нажатия кнопки видно, чья фракция где сломалась,
+      и с колеблющимися ещё можно работать. Той же доской показывают импичмент.</p>
+  </div></div>
+  <div class="panel" style="margin:0"><header><h4>Палата субъектов</h4><span class="meta">делегации и пороги</span></header>
+  <div class="body">
+    <div class="deleg" id="deleg"></div>
+    <div class="meter tall">
+      <i style="width:26%;background:var(--p1)"></i><i style="width:21%;background:var(--p2)"></i>
+      <i style="width:12%;background:var(--p3)"></i><i style="width:3%;background:var(--p4)"></i>
+      <i style="width:21%;background:var(--p5)"></i><i style="width:17%;background:var(--p6)"></i>
+      <span class="mid" style="left:51%"></span></div>
+    <div class="thr">
+      <i style="left:51%"></i><span style="left:51%">51 · принять</span>
+      <i style="left:60%"></i><span style="left:60%">60 · клотур</span>
+      <i style="left:68%;background:var(--mark);width:2px"></i>
+      <span style="left:68%;top:14px;color:var(--mark)">коалиция 68</span>
+    </div>
+    <p class="note">Кольцо было красивым и ничего не говорило. Палата собрана по субъектам — значит
+      и рисовать её надо делегациями. Под ними линейка с двумя числами, вокруг которых крутится вся
+      палата: 51, чтобы принять, и 60, чтобы дать проголосовать.</p>
   </div></div>
   <div class="panel" style="margin:0"><header><h4>Зал заседаний</h4><span class="meta">120 мандатов</span></header>
   <div class="body">
@@ -1899,6 +1948,24 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
 </main>
 </div>
 <script>
+/* наполнение доски голосования и делегаций — только для витрины */
+window.addEventListener('DOMContentLoaded',()=>{
+  const vb=document.getElementById('voteboard');
+  if(vb){ const cols=['var(--p1)','var(--p2)','var(--p3)','var(--p4)','var(--p5)','var(--p6)'];
+    let h='';
+    for(let i=0;i<435;i++){
+      const g=Math.floor(i/73), yes=i%3!==2;
+      h+=`<i class="${yes?'v-yes':'v-no'}" style="background:${yes?cols[g]:'var(--surface-3)'}"></i>`;
+    }
+    vb.innerHTML=h; }
+  const dl=document.getElementById('deleg');
+  if(dl){ const caps=[['Новарград',16],['Лесогорск',8],['Приозерск',9],['Волжск',8],['Речной',10],
+      ['Солнечногорск',11],['Горный',7],['Каменьск',9],['Сибирск',10],['Тихоокеанск',8],['Нордск',4]];
+    const cols=['var(--p1)','var(--p2)','var(--p3)','var(--p4)','var(--p5)','var(--p6)'];
+    dl.innerHTML=caps.map(([c,n])=>`<div class="d"><u>${c} · ${n}</u><div>`+
+      Array.from({length:n},(_,i)=>`<s style="background:${cols[i%cols.length]}"></s>`).join('')+
+      `</div></div>`).join(''); }
+});
 /* ─── иконки разделов ────────────────────────────────────────────
    Сетка 24×24, обводка 1.7 без скруглений — та же геометрия, что
    у рамок и линеек интерфейса. Заливкой закрашена только точка «?». */
@@ -1941,6 +2008,8 @@ const ICON={
        '<circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/>'+
        '<circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none"/>',
   clock:'<circle cx="12" cy="12" r="8.5"/><path d="M12 6.5V12l3.6 2.6"/>',
+  firms:'<path d="M3 21h18"/><path d="M4.5 21V7l7-3.5V21"/><path d="M11.5 10.5H20V21"/>'+
+        '<path d="M7 10h1.5M7 13.5h1.5M7 17h1.5M14.5 14h1.5M14.5 17.5h1.5"/>',
 };
 function icon(id,size){
   return `<svg class="ic" viewBox="0 0 24 24" width="${size||19}" height="${size||19}" fill="none"
