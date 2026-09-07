@@ -56,6 +56,16 @@
     var diff = DIFFICULTY[opts.difficulty || 'normal'];
     var rng = new PP.Rng('init:' + seed);
 
+    /* Своя партия регистрируется до всего остального: её должны видеть
+       генератор округов, модель поддержки и соперники. */
+    PP.unregisterCustomParty('own');
+    var customDef = null;
+    if (opts.custom) {
+      customDef = PP.buildCustomParty(opts.custom);
+      PP.registerCustomParty(customDef);
+    }
+    var role = PP.ROLE_BY_ID[opts.role || 'leader'] || PP.ROLE_BY_ID.leader;
+
     var state = {
       version: VERSION,
       seed: seed,
@@ -63,11 +73,14 @@
       difficultyLabel: diff.label,
       aiSkill: diff.aiSkill,
       playerId: opts.playerId || 'lab',
+      roleId: role.id,
+      roleName: role.name,
+      customConfig: opts.custom ? JSON.parse(JSON.stringify(opts.custom)) : null,
       week: 1,
       totalWeeks: opts.weeks || 12,
       phase: 'campaign',
       ap: 0,
-      apMax: 4 + diff.apBonus,
+      apMax: 4 + diff.apBonus + (role.mods.ap || 0),
       stamina: 100,
       parties: {},
       salience: {},
@@ -84,14 +97,24 @@
       achievements: []
     };
 
+    state.bases = PP.buildBases(customDef);
+
     PP.PARTIES.forEach(function (def) {
       state.parties[def.id] = makePartyState(def, diff, def.id === state.playerId);
     });
     PP.ISSUES.forEach(function (i) { state.salience[i.id] = i.baseSalience; });
     PP.CAMPAIGN_REGIONS.forEach(function (r) {
       state.effort[r.id] = {};
-      Object.keys(r.base).forEach(function (pid) { state.effort[r.id][pid] = 0; });
+      Object.keys(state.bases[r.id]).forEach(function (pid) { state.effort[r.id][pid] = 0; });
     });
+
+    /* Бонусы роли получает только партия игрока. */
+    var me = state.parties[state.playerId];
+    if (me && role.start) {
+      if (role.start.funds) me.funds *= role.start.funds;
+      if (role.start.unity) me.unity = PP.clamp(me.unity + role.start.unity, 5, 100);
+      if (role.start.approval) me.leader.approval = PP.clamp(me.leader.approval + role.start.approval, -80, 80);
+    }
 
     state.seats = PP.generateSeats(seed);
     state.niSeats = makeNiSeats(rng);
@@ -107,6 +130,7 @@
     state.pollHistory.push({ week: 0, shares: poll });
 
     addNews(state, 'Парламент распущен. До дня голосования — ' + state.totalWeeks + ' недель.', 'system');
+    addNews(state, 'Вы — ' + role.name.toLowerCase() + ' партии ' + PP.PARTY_BY_ID[state.playerId].ru + '.', 'system');
     return state;
   }
 
@@ -130,6 +154,9 @@
       if (!raw) return null;
       var s = JSON.parse(raw);
       if (!s || s.version !== VERSION) return null;
+      /* Своя партия живёт в сохранении конфигурацией — пересобираем её. */
+      PP.unregisterCustomParty('own');
+      if (s.customConfig) PP.registerCustomParty(PP.buildCustomParty(s.customConfig));
       return s;
     } catch (e) {
       return null;

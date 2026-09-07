@@ -1,0 +1,4136 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Political Process: Britain — бета 1.0</title>
+<style>
+/* The Political Process: Britain — оформление */
+:root {
+  --bg: #0d1117;
+  --bg-2: #141b24;
+  --panel: #172130;
+  --panel-2: #1e2a3a;
+  --line: #2a3a4f;
+  --text: #e6edf5;
+  --muted: #90a2b8;
+  --accent: #d4af37;
+  --green: #3fb950;
+  --red: #f85149;
+  --blue: #58a6ff;
+  --radius: 10px;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: radial-gradient(1200px 700px at 50% -10%, #1b2735 0%, var(--bg) 60%);
+  color: var(--text);
+  font: 15px/1.5 "Segoe UI", Roboto, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  min-height: 100vh;
+}
+
+h1, h2, h3 { font-family: Georgia, "Times New Roman", serif; font-weight: 600; margin: 0 0 8px; }
+h1 { font-size: 28px; letter-spacing: 0.3px; }
+h2 { font-size: 20px; }
+h3 { font-size: 16px; }
+p { margin: 0 0 10px; }
+a { color: var(--blue); }
+
+.wrap { max-width: 1240px; margin: 0 auto; padding: 16px; }
+.hidden { display: none !important; }
+
+/* ---------- Кнопки ---------- */
+button {
+  font: inherit;
+  color: var(--text);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, transform .05s;
+}
+button:hover:not(:disabled) { background: #26374d; border-color: #3d5876; }
+button:active:not(:disabled) { transform: translateY(1px); }
+button:disabled { opacity: .45; cursor: not-allowed; }
+button.primary { background: linear-gradient(180deg, #b8912b, #8f6f1f); border-color: #d4af37; color: #14100a; font-weight: 600; }
+button.primary:hover:not(:disabled) { background: linear-gradient(180deg, #d4af37, #a8832a); }
+button.ghost { background: transparent; }
+button.danger { border-color: #6d2b2b; }
+
+/* ---------- Титульный экран ---------- */
+.title-screen { text-align: center; padding: 34px 16px 60px; }
+.title-screen h1 { font-size: 44px; margin-bottom: 4px; }
+.title-screen .sub { color: var(--muted); margin-bottom: 26px; }
+.crest { font-size: 54px; line-height: 1; margin-bottom: 8px; }
+
+.party-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; text-align: left; }
+.party-card {
+  background: var(--panel); border: 1px solid var(--line); border-left: 6px solid var(--pc, #888);
+  border-radius: var(--radius); padding: 12px 14px; cursor: pointer;
+}
+.party-card:hover { background: var(--panel-2); }
+.party-card.selected { outline: 2px solid var(--accent); }
+.party-card .pname { font-weight: 700; font-size: 17px; }
+.party-card .pru { color: var(--muted); font-size: 13px; margin-bottom: 6px; }
+.party-card .pblurb { font-size: 13px; color: #c3d0e0; }
+.party-card .pstats { font-size: 12px; color: var(--muted); margin-top: 8px; font-family: var(--mono); }
+
+.setup-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; margin: 18px 0; }
+select, input[type=text] {
+  font: inherit; color: var(--text); background: var(--panel-2);
+  border: 1px solid var(--line); border-radius: var(--radius); padding: 8px 10px;
+}
+
+/* ---------- Верхняя панель ---------- */
+.topbar {
+  position: sticky; top: 0; z-index: 30;
+  display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+  background: rgba(19, 26, 36, .96); backdrop-filter: blur(6px);
+  border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 10px 14px; margin-bottom: 14px;
+}
+.topbar .brand { font-family: Georgia, serif; font-weight: 700; }
+.stat { display: flex; flex-direction: column; line-height: 1.15; padding: 0 8px; border-left: 1px solid var(--line); }
+.stat .k { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+.stat .v { font-family: var(--mono); font-size: 15px; }
+.spacer { flex: 1; }
+
+.layout { display: grid; grid-template-columns: 320px 1fr; gap: 14px; align-items: start; }
+@media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; margin-bottom: 14px; }
+.panel h3 { display: flex; justify-content: space-between; align-items: baseline; }
+.panel .hint { font-size: 12px; color: var(--muted); font-weight: 400; }
+
+/* ---------- Опрос и места ---------- */
+.poll-row { display: grid; grid-template-columns: 46px 1fr 52px; gap: 8px; align-items: center; margin-bottom: 5px; font-size: 13px; }
+.poll-row .abbr { font-family: var(--mono); font-weight: 700; }
+.bar { height: 14px; background: #101822; border-radius: 4px; overflow: hidden; }
+.bar > span { display: block; height: 100%; border-radius: 4px; transition: width .4s; }
+.poll-row .num { text-align: right; font-family: var(--mono); }
+.delta { font-size: 11px; font-family: var(--mono); }
+.delta.up { color: var(--green); }
+.delta.down { color: var(--red); }
+
+.commons { display: flex; height: 22px; border-radius: 4px; overflow: hidden; border: 1px solid var(--line); margin: 6px 0; }
+.commons > span { display: block; height: 100%; }
+.majority-line { font-size: 11px; line-height: 1.35; color: var(--muted); margin: 4px 0 10px; }
+
+/* ---------- Вкладки ---------- */
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.tabs button { padding: 7px 12px; border-radius: 999px; font-size: 14px; }
+.tabs button.active { background: var(--accent); color: #14100a; border-color: var(--accent); font-weight: 600; }
+
+/* ---------- Действия ---------- */
+.action-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; }
+.action-card { background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; display: flex; flex-direction: column; }
+.action-card .ahead { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.action-card .aicon { font-size: 20px; }
+.action-card .adesc { font-size: 13px; color: var(--muted); margin: 6px 0 10px; flex: 1; }
+.action-card .acost { font-family: var(--mono); font-size: 12px; color: var(--accent); margin-bottom: 8px; }
+.action-card.disabled { opacity: .5; }
+
+/* ---------- Регионы ---------- */
+.region-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; }
+.region-card { background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; cursor: pointer; }
+.region-card:hover { border-color: #3d5876; }
+.region-card .rname { font-weight: 600; display: flex; justify-content: space-between; }
+.region-card .rseats { font-size: 12px; color: var(--muted); font-weight: 400; }
+.region-card .rlead { font-size: 12px; font-family: var(--mono); margin-top: 4px; }
+.region-card.selected { outline: 2px solid var(--accent); }
+.mini-bar { display: flex; height: 8px; border-radius: 3px; overflow: hidden; margin-top: 6px; }
+.mini-bar > span { display: block; height: 100%; }
+
+/* ---------- Темы и позиции ---------- */
+.issue { margin-bottom: 12px; }
+.issue .ihead { display: flex; justify-content: space-between; font-size: 14px; }
+.issue .isal { font-family: var(--mono); font-size: 12px; color: var(--accent); }
+.scale { position: relative; height: 26px; background: linear-gradient(90deg, #24405e, #2b2f3d, #5e2b2b); border-radius: 4px; margin-top: 5px; }
+.scale .tick { position: absolute; top: 2px; width: 3px; height: 22px; border-radius: 2px; }
+.scale .voter { position: absolute; top: -3px; font-size: 12px; transform: translateX(-50%); }
+.scale-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+/* ---------- Списки ---------- */
+.list { max-height: 460px; overflow-y: auto; }
+.news-item { border-left: 3px solid var(--line); padding: 6px 10px; margin-bottom: 6px; font-size: 13px; background: var(--panel-2); border-radius: 0 6px 6px 0; }
+.news-item .w { color: var(--muted); font-family: var(--mono); font-size: 11px; }
+.news-item.good { border-left-color: var(--green); }
+.news-item.bad { border-left-color: var(--red); }
+.news-item.event { border-left-color: var(--accent); }
+.news-item.poll { border-left-color: var(--blue); }
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+th { color: var(--muted); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: .4px; cursor: pointer; }
+tr:hover td { background: var(--panel-2); }
+td.num, th.num { text-align: right; font-family: var(--mono); }
+.pill { display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: 11px; font-weight: 700; color: #0d1117; }
+
+/* ---------- Модальные окна ---------- */
+.modal-back { position: fixed; inset: 0; background: rgba(5, 8, 12, .78); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+.modal { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; max-width: 620px; width: 100%; max-height: 88vh; overflow-y: auto; box-shadow: 0 24px 60px rgba(0,0,0,.6); }
+.modal h2 { border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+.modal .options { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+.modal .options button { text-align: left; }
+.modal .opt-hint { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+/* ---------- Ночь выборов ---------- */
+.night { max-width: 1100px; margin: 0 auto; }
+.clock { font-family: var(--mono); font-size: 34px; text-align: center; color: var(--accent); }
+.decl-feed { max-height: 300px; overflow-y: auto; font-size: 13px; }
+.decl { display: grid; grid-template-columns: 60px 1fr 90px 62px; gap: 8px; padding: 5px 8px; border-bottom: 1px solid var(--line); align-items: center; }
+.decl.gain { background: rgba(212, 175, 55, .10); }
+.tickers { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin: 12px 0; }
+.ticker { background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 8px; text-align: center; }
+.ticker .tn { font-family: var(--mono); font-size: 26px; }
+.ticker .tl { font-size: 12px; color: var(--muted); }
+.ticker .tc { font-size: 12px; font-family: var(--mono); }
+
+.result-hero { text-align: center; padding: 20px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); margin-bottom: 14px; }
+.result-hero .big { font-size: 30px; font-family: Georgia, serif; }
+.footer-note { color: var(--muted); font-size: 12px; text-align: center; padding: 20px 0 40px; }
+
+/* ============================================================
+   Меню запуска и английская атмосфера
+   ============================================================ */
+
+:root {
+  --bench: #1d4231;      /* зелень скамей Палаты общин */
+  --parchment: #f3ead6;
+  --ink: #1b1b1b;
+  --union-red: #c8102e;
+  --union-blue: #012169;
+}
+
+/* --- заставка --- */
+.hero {
+  position: relative;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 18px;
+  min-height: 500px;
+  display: flex;
+  align-items: flex-start;
+  background: linear-gradient(180deg, #16243d 0%, #2c4166 48%, #14203a 78%, #0b1017 100%);
+}
+.skyline { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: auto; z-index: 0; }
+.hero-scrim {
+  position: absolute; inset: 0; z-index: 1;
+  background: linear-gradient(180deg, rgba(11,16,23,.10) 0%, rgba(11,16,23,.22) 46%, rgba(11,16,23,.62) 78%, rgba(11,16,23,.92) 100%);
+}
+.hero-inner { position: relative; z-index: 2; padding: 34px 22px 26px; width: 100%; text-align: center; }
+.hero-inner .hero-actions { margin-top: 20px; }
+.flag { display: flex; justify-content: center; gap: 4px; margin-bottom: 10px; }
+.flag span { display: block; width: 30px; height: 5px; border-radius: 2px; }
+.flag span:nth-child(1) { background: var(--union-blue); }
+.flag span:nth-child(2) { background: #fff; }
+.flag span:nth-child(3) { background: var(--union-red); }
+
+.game-title {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(30px, 5.4vw, 54px);
+  letter-spacing: 1px;
+  margin: 0 0 2px;
+  text-shadow: 0 3px 18px rgba(0,0,0,.65);
+}
+.game-sub { color: var(--muted); letter-spacing: 2px; font-size: 12px; text-transform: uppercase; }
+.quote { font-family: Georgia, serif; font-style: italic; color: #cbd7e6; margin: 14px auto 18px; max-width: 640px; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+button.big { padding: 12px 22px; font-size: 15px; }
+
+.home-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.home-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
+.home-card .hc-icon { font-size: 24px; }
+.home-card h3 { margin: 6px 0 6px; }
+.home-card p { font-size: 13px; color: var(--muted); margin: 0; }
+
+/* --- шаги меню --- */
+.menu-screen { padding-bottom: 30px; }
+.menu-head { text-align: center; margin-bottom: 18px; }
+.menu-head h1 { font-size: 30px; margin: 8px 0 2px; }
+.crumbs { display: flex; gap: 8px; justify-content: center; align-items: center; font-size: 12px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+.crumb.now { color: var(--accent); font-weight: 700; }
+.crumb.done { color: #b9c8d9; }
+.crumb-sep { opacity: .5; }
+
+.pick-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+.pick-card {
+  background: var(--panel); border: 1px solid var(--line);
+  border-left: 6px solid var(--pc, #43536b);
+  border-radius: var(--radius); padding: 14px 16px; cursor: pointer;
+  transition: transform .1s, border-color .15s, background .15s;
+}
+.pick-card:hover { background: var(--panel-2); transform: translateY(-2px); }
+.pick-card.selected { outline: 2px solid var(--accent); }
+.pick-card.own { border-left-style: dashed; }
+.pick-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.pick-icon { font-size: 26px; }
+.pick-name { font-family: Georgia, serif; font-size: 18px; font-weight: 600; }
+.pick-en { font-size: 12px; color: var(--muted); letter-spacing: .6px; }
+.pick-desc { font-size: 13px; color: #c6d3e2; margin: 0 0 8px; }
+.pick-quote { font-family: Georgia, serif; font-style: italic; font-size: 12.5px; color: var(--accent); border-top: 1px solid var(--line); padding-top: 8px; }
+.perks { margin: 0 0 8px; padding-left: 18px; font-size: 12.5px; color: var(--muted); }
+.perks li { margin-bottom: 3px; }
+.stat-line { display: flex; gap: 12px; flex-wrap: wrap; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 6px; }
+.stat-line b { display: block; font-family: var(--mono); font-size: 13px; color: var(--text); text-transform: none; letter-spacing: 0; }
+.leader-line, .goal-line { font-size: 12px; color: var(--muted); }
+.goal-line { margin-top: 4px; color: var(--accent); }
+
+.menu-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 18px; }
+
+/* --- розетка кандидата --- */
+.rosette {
+  position: relative; display: inline-block;
+  width: var(--s, 30px); height: var(--s, 30px); flex: none;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, #fdfdfd 0 22%, var(--c) 24% 100%);
+  box-shadow: inset 0 0 0 2px rgba(0,0,0,.28), 0 2px 6px rgba(0,0,0,.4);
+  vertical-align: middle;
+}
+.rosette::before, .rosette::after {
+  content: ''; position: absolute; top: 72%; left: 50%;
+  width: calc(var(--s, 30px) * .22); height: calc(var(--s, 30px) * .55);
+  background: var(--c); border-radius: 0 0 3px 3px;
+}
+.rosette::before { transform: translateX(-115%) rotate(12deg); }
+.rosette::after { transform: translateX(15%) rotate(-12deg); }
+
+/* --- конструктор партии --- */
+.builder { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+@media (max-width: 900px) { .builder { grid-template-columns: 1fr; } }
+.mini-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 8px; }
+.mini-card { background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px; cursor: pointer; }
+.mini-card:hover { border-color: #3d5876; }
+.mini-card.selected { outline: 2px solid var(--accent); }
+.mini-card .mini-head { font-weight: 600; margin-bottom: 4px; }
+.mini-card p { font-size: 12px; color: var(--muted); margin: 0; }
+.mini-stat { font-size: 11px; font-family: var(--mono); color: var(--accent); margin-top: 6px; }
+
+.field-row { display: flex; flex-wrap: wrap; gap: 10px; }
+label { font-size: 12px; color: var(--muted); display: flex; flex-direction: column; gap: 4px; }
+label.wide { width: 100%; margin-bottom: 10px; }
+label input, label select { color: var(--text); }
+input[type=color] { width: 54px; height: 34px; padding: 2px; background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius); }
+
+.slider-row { margin-bottom: 12px; }
+.slider-head { display: flex; justify-content: space-between; font-size: 13px; }
+.slider-val { font-family: var(--mono); color: var(--accent); }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+
+.stat-alloc { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-top: 1px solid var(--line); font-size: 13px; }
+.stat-alloc .hint { font-size: 12px; }
+.alloc-controls { display: flex; align-items: center; gap: 8px; }
+.alloc-controls button { padding: 2px 12px; font-size: 16px; line-height: 1.2; }
+.alloc-val { font-family: var(--mono); min-width: 28px; text-align: center; }
+
+.preview-card { background: var(--panel-2); border: 1px solid var(--line); border-left: 6px solid var(--pc); border-radius: var(--radius); padding: 12px; }
+
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { border-radius: 999px; padding: 6px 14px; }
+.chip.active { background: var(--accent); color: #14100a; border-color: var(--accent); font-weight: 600; }
+
+.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+.sum-item { background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 8px 10px; }
+.sum-item .k { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); }
+.sum-item .v { display: flex; align-items: center; gap: 6px; font-size: 14px; }
+
+/* --- атмосфера в кампании --- */
+.topbar .brand { display: flex; align-items: center; gap: 8px; padding-right: 6px; }
+.brand-text { display: flex; flex-direction: column; line-height: 1.15; }
+.brand-name { font-family: Georgia, serif; font-size: 15px; }
+.brand-role { font-family: "Segoe UI", sans-serif; font-size: 11px; color: var(--muted); font-weight: 400; letter-spacing: .3px; }
+.topbar .stat { padding: 0 7px; }
+.topbar button { padding: 8px 12px; }
+
+.panel.press { background: linear-gradient(180deg, #efe7d4, #e2d8c1); border-color: #cbbf9f; color: #1e1b16; }
+.panel.press h3 { color: #1e1b16; font-family: Georgia, serif; border-bottom: 2px solid #1e1b16; padding-bottom: 4px; }
+.panel.press .hint { color: #5c5343; }
+.press-item { padding: 7px 0; border-bottom: 1px dotted #b3a888; }
+.press-item:last-child { border-bottom: 0; }
+.press-item .paper { font-size: 10px; letter-spacing: 1.4px; text-transform: uppercase; color: #6d6250; }
+.press-item .headline { font-family: Georgia, "Times New Roman", serif; font-size: 14.5px; font-weight: 700; line-height: 1.25; }
+.press-item.good .headline { color: #14532d; }
+.press-item.bad .headline { color: #8c1c1c; }
+
+.rflavour { font-family: Georgia, serif; font-style: italic; font-size: 12px; color: var(--muted); margin-top: 6px; }
+p.flavour { font-family: Georgia, serif; font-style: italic; color: #c9d6e5; }
+
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+/* src/core/rng.js */
+/* Детерминированный генератор случайных чисел (mulberry32) + утилиты. */
+(function (root) {
+  'use strict';
+
+  function hashString(str) {
+    var h = 2166136261 >>> 0;
+    for (var i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 16777619) >>> 0;
+    }
+    return h >>> 0;
+  }
+
+  function Rng(seed) {
+    if (typeof seed === 'string') seed = hashString(seed);
+    this.s = (seed >>> 0) || 1;
+  }
+
+  Rng.prototype.next = function () {
+    this.s = (this.s + 0x6d2b79f5) >>> 0;
+    var t = this.s;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+
+  /* Равномерное на [a, b). */
+  Rng.prototype.range = function (a, b) {
+    return a + (b - a) * this.next();
+  };
+
+  /* Целое на [a, b]. */
+  Rng.prototype.int = function (a, b) {
+    return Math.floor(this.range(a, b + 1));
+  };
+
+  /* Нормальное распределение (Бокс — Мюллер). */
+  Rng.prototype.normal = function (mean, sd) {
+    var u = 1 - this.next();
+    var v = this.next();
+    var z = Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+    return (mean || 0) + (sd === undefined ? 1 : sd) * z;
+  };
+
+  Rng.prototype.pick = function (arr) {
+    return arr[Math.floor(this.next() * arr.length)];
+  };
+
+  Rng.prototype.chance = function (p) {
+    return this.next() < p;
+  };
+
+  Rng.prototype.shuffle = function (arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(this.next() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  };
+
+  function clamp(x, lo, hi) { return x < lo ? lo : (x > hi ? hi : x); }
+
+  root.PP = root.PP || {};
+  root.PP.Rng = Rng;
+  root.PP.hashString = hashString;
+  root.PP.clamp = clamp;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+</script>
+<script>
+/* src/data/issues.js */
+/*
+ * Темы кампании. Позиция партии и предпочтение избирателя измеряются
+ * по одной шкале от -100 до +100.
+ *   -100 — «левый / либеральный / проевропейский / зелёный» полюс
+ *   +100 — «правый / жёсткий / евроскептический» полюс
+ * Исключение — union: -100 это независимость региона, +100 — жёсткий юнионизм.
+ */
+(function (root) {
+  'use strict';
+
+  var ISSUES = [
+    {
+      id: 'cost', name: 'Стоимость жизни', short: 'Цены',
+      baseSalience: 20,
+      leftLabel: 'Госрегулирование цен и субсидии',
+      rightLabel: 'Свободный рынок и снижение налогов'
+    },
+    {
+      id: 'nhs', name: 'NHS и здравоохранение', short: 'NHS',
+      baseSalience: 17,
+      leftLabel: 'Больше денег и персонала в NHS',
+      rightLabel: 'Реформа, частный сектор, эффективность'
+    },
+    {
+      id: 'immig', name: 'Иммиграция и границы', short: 'Границы',
+      baseSalience: 16,
+      leftLabel: 'Открытость и приём беженцев',
+      rightLabel: 'Жёсткий контроль и депортации'
+    },
+    {
+      id: 'tax', name: 'Налоги и экономика', short: 'Налоги',
+      baseSalience: 14,
+      leftLabel: 'Высокие налоги на богатых, госинвестиции',
+      rightLabel: 'Низкие налоги, сокращение расходов'
+    },
+    {
+      id: 'housing', name: 'Жильё', short: 'Жильё',
+      baseSalience: 9,
+      leftLabel: 'Массовое строительство и соцжильё',
+      rightLabel: 'Права местных сообществ, защита зелёного пояса'
+    },
+    {
+      id: 'crime', name: 'Преступность и порядок', short: 'Порядок',
+      baseSalience: 8,
+      leftLabel: 'Профилактика и реабилитация',
+      rightLabel: 'Больше полиции и сроков'
+    },
+    {
+      id: 'climate', name: 'Климат и энергетика', short: 'Климат',
+      baseSalience: 8,
+      leftLabel: 'Ускорить путь к нулевым выбросам',
+      rightLabel: 'Отложить «зелёные» расходы, свои нефть и газ'
+    },
+    {
+      id: 'europe', name: 'Отношения с ЕС', short: 'ЕС',
+      baseSalience: 5,
+      leftLabel: 'Сближение вплоть до таможенного союза',
+      rightLabel: 'Максимальная дистанция от Брюсселя'
+    },
+    {
+      id: 'union', name: 'Целостность Союза', short: 'Союз',
+      baseSalience: 3,
+      leftLabel: 'Право на независимость и деволюция',
+      rightLabel: 'Единое Соединённое Королевство'
+    }
+  ];
+
+  var BY_ID = {};
+  ISSUES.forEach(function (it) { BY_ID[it.id] = it; });
+
+  root.PP = root.PP || {};
+  root.PP.ISSUES = ISSUES;
+  root.PP.ISSUE_BY_ID = BY_ID;
+  root.PP.ISSUE_IDS = ISSUES.map(function (i) { return i.id; });
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+</script>
+<script>
+/* src/data/parties.js */
+/*
+ * Партии. Стартовая расстановка — вымышленный сценарий «канун всеобщих
+ * выборов», вдохновлённый реальной британской политикой, но не копирующий
+ * её цифры. Позиции — шкала -100..+100 (см. issues.js).
+ */
+(function (root) {
+  'use strict';
+
+  var PARTIES = [
+    {
+      id: 'lab', name: 'Labour', ru: 'Лейбористы', abbr: 'LAB',
+      color: '#e4003b', playable: true, scope: 'gb',
+      family: 'left',
+      leader: { name: 'Хелен Марш', charisma: 52, competence: 66, integrity: 58, approval: 4 },
+      funds: 9.5, activists: 62, unity: 74, target: 326,
+      goals: [{ seats: 180, label: 'Остаться главной оппозицией' }, { seats: 260, label: 'Крупнейшая партия Палаты' }, { seats: 326, label: 'Правительство большинства' }, { seats: 400, label: 'Разгром соперников' }],
+      positions: { cost: -32, nhs: -55, immig: -6, tax: -26, housing: -34, crime: 8, climate: -42, europe: -22, union: 55 },
+      competence: { cost: 52, nhs: 68, immig: 40, tax: 50, housing: 52, crime: 48, climate: 55, europe: 50, union: 55 },
+      affinity: { urban: 0.55, degree: 0.20, age: -0.45, leave: -0.10, prosperity: -0.40 },
+      concentration: 0.16,
+      blurb: 'Партия власти в этом сценарии: устала, но организована. Держит «красную стену» и большие города.'
+    },
+    {
+      id: 'con', name: 'Conservative', ru: 'Консерваторы', abbr: 'CON',
+      color: '#0087dc', playable: true, scope: 'gb',
+      family: 'right',
+      leader: { name: 'Эдвард Финчли', charisma: 48, competence: 60, integrity: 47, approval: -12 },
+      funds: 13.0, activists: 45, unity: 55, target: 326,
+      goals: [{ seats: 150, label: 'Удержать ядро партии' }, { seats: 230, label: 'Реванш начат' }, { seats: 300, label: 'Крупнейшая партия Палаты' }, { seats: 326, label: 'Правительство большинства' }],
+      positions: { cost: 28, nhs: 18, immig: 55, tax: 52, housing: 14, crime: 58, climate: 22, europe: 44, union: 70 },
+      competence: { cost: 45, nhs: 38, immig: 44, tax: 58, housing: 40, crime: 58, climate: 35, europe: 45, union: 62 },
+      affinity: { urban: -0.50, degree: -0.05, age: 0.70, leave: 0.25, prosperity: 0.45 },
+      concentration: 0.16,
+      blurb: 'Богатая касса и сельский юг. Проблема — Reform откусывает правый фланг, а центр не прощает.'
+    },
+    {
+      id: 'ld', name: 'Liberal Democrats', ru: 'Либдемы', abbr: 'LD',
+      color: '#faa61a', playable: true, scope: 'gb',
+      family: 'centre',
+      leader: { name: 'Роджер Стэнбридж', charisma: 55, competence: 54, integrity: 66, approval: 6 },
+      funds: 4.0, activists: 40, unity: 82, target: 75,
+      goals: [{ seats: 20, label: 'Сохранить фракцию' }, { seats: 45, label: 'Третья сила Палаты' }, { seats: 75, label: 'Ключ от подвешенного парламента' }, { seats: 110, label: 'Лучший результат за век' }],
+      positions: { cost: -14, nhs: -42, immig: -32, tax: -8, housing: -26, crime: -12, climate: -52, europe: -66, union: 25 },
+      competence: { cost: 42, nhs: 52, immig: 42, tax: 44, housing: 46, crime: 44, climate: 58, europe: 60, union: 48 },
+      affinity: { urban: -0.10, degree: 0.60, age: 0.15, leave: -0.60, prosperity: 0.35 },
+      concentration: 0.66,
+      blurb: 'Хирургическая партия: национальный процент мал, но там, где она вторая, она берёт округ целиком.'
+    },
+    {
+      id: 'ref', name: 'Reform UK', ru: 'Reform UK', abbr: 'REF',
+      color: '#12b6cf', playable: true, scope: 'gb',
+      family: 'right',
+      leader: { name: 'Дерек Хоулэнд', charisma: 72, competence: 44, integrity: 38, approval: -4 },
+      funds: 5.5, activists: 24, unity: 62, target: 60,
+      goals: [{ seats: 12, label: 'Плацдарм в Палате' }, { seats: 40, label: 'Прорыв' }, { seats: 80, label: 'Слом двухпартийной системы' }, { seats: 150, label: 'Новая правая партия власти' }],
+      positions: { cost: 22, nhs: 6, immig: 92, tax: 66, housing: 28, crime: 82, climate: 74, europe: 88, union: 58 },
+      competence: { cost: 38, nhs: 28, immig: 62, tax: 42, housing: 30, crime: 55, climate: 24, europe: 58, union: 45 },
+      affinity: { urban: -0.30, degree: -0.75, age: 0.40, leave: 0.90, prosperity: -0.35 },
+      concentration: 0.11,
+      blurb: 'Голоса размазаны ровным слоем по стране — худший из возможных раскладов при мажоритарной системе.'
+    },
+    {
+      id: 'grn', name: 'Green Party', ru: 'Зелёные', abbr: 'GRN',
+      color: '#5cb85c', playable: true, scope: 'gb',
+      family: 'left',
+      leader: { name: 'Айла Реншоу', charisma: 58, competence: 46, integrity: 74, approval: 8 },
+      funds: 1.6, activists: 30, unity: 78, target: 12,
+      goals: [{ seats: 3, label: 'Удержать своих' }, { seats: 10, label: 'Полноценная группа' }, { seats: 25, label: 'Зелёная волна' }, { seats: 50, label: 'Партия первого ряда' }],
+      positions: { cost: -60, nhs: -70, immig: -58, tax: -62, housing: -30, crime: -38, climate: -95, europe: -58, union: -5 },
+      competence: { cost: 34, nhs: 40, immig: 32, tax: 30, housing: 36, crime: 30, climate: 74, europe: 44, union: 38 },
+      affinity: { urban: 0.35, degree: 0.80, age: -0.55, leave: -0.70, prosperity: -0.05 },
+      concentration: 0.78,
+      blurb: 'Университетские города и левый фланг лейбористов. Мало денег, много волонтёров.'
+    },
+    {
+      id: 'snp', name: 'SNP', ru: 'ШНП', abbr: 'SNP',
+      color: '#fdf38e', playable: true, scope: 'scotland',
+      family: 'left',
+      leader: { name: 'Мойра Дункан', charisma: 60, competence: 58, integrity: 55, approval: 2 },
+      funds: 2.4, activists: 44, unity: 66, target: 30,
+      goals: [{ seats: 12, label: 'Пережить бурю' }, { seats: 28, label: 'Голос Шотландии' }, { seats: 40, label: 'Доминирование в Шотландии' }, { seats: 50, label: 'Мандат на референдум' }],
+      positions: { cost: -36, nhs: -52, immig: -38, tax: -30, housing: -28, crime: -8, climate: -56, europe: -68, union: -100 },
+      competence: { cost: 44, nhs: 46, immig: 42, tax: 42, housing: 44, crime: 46, climate: 52, europe: 54, union: 70 },
+      affinity: { urban: 0.20, degree: 0.10, age: -0.10, leave: -0.45, prosperity: -0.20 },
+      concentration: 0.17,
+      blurb: 'Играет только в Шотландии: 57 округов, но за них борются сразу четыре партии.'
+    },
+    {
+      id: 'pc', name: 'Plaid Cymru', ru: 'Плайд Камри', abbr: 'PC',
+      color: '#008142', playable: false, scope: 'wales',
+      family: 'left',
+      leader: { name: 'Гвен Ллойд', charisma: 50, competence: 50, integrity: 60, approval: 0 },
+      funds: 0.8, activists: 26, unity: 74, target: 6,
+      goals: [{ seats: 2, label: 'Сохранить представительство' }, { seats: 5, label: 'Голос Уэльса' }, { seats: 9, label: 'Хозяева Уэльса' }],
+      positions: { cost: -40, nhs: -55, immig: -35, tax: -34, housing: -25, crime: -10, climate: -60, europe: -62, union: -85 },
+      competence: { cost: 38, nhs: 44, immig: 36, tax: 36, housing: 40, crime: 40, climate: 50, europe: 48, union: 62 },
+      affinity: { urban: -0.15, degree: 0.10, age: 0.05, leave: -0.25, prosperity: -0.25 },
+      concentration: 0.5,
+      blurb: 'Валлийские националисты: сильны на западе и севере Уэльса.'
+    },
+    {
+      id: 'oth', name: 'Independents & others', ru: 'Независимые и прочие', abbr: 'IND',
+      color: '#8d8d8d', playable: false, scope: 'gb',
+      family: 'centre',
+      leader: { name: '—', charisma: 40, competence: 40, integrity: 50, approval: 0 },
+      funds: 0.5, activists: 10, unity: 50, target: 3,
+      goals: [{ seats: 1, label: 'Независимый депутат' }],
+      positions: { cost: -10, nhs: -20, immig: 0, tax: -5, housing: -5, crime: 5, climate: -15, europe: -10, union: 10 },
+      competence: { cost: 35, nhs: 35, immig: 35, tax: 35, housing: 35, crime: 35, climate: 35, europe: 35, union: 35 },
+      affinity: { urban: 0.25, degree: 0.0, age: -0.05, leave: 0.0, prosperity: -0.30 },
+      concentration: 0.85,
+      blurb: 'Местные кампании, отколовшиеся депутаты, «спикер» и прочие.'
+    }
+  ];
+
+  /* Партии Северной Ирландии моделируются отдельным блоком: игрок за них
+     не играет, но их места считаются в общем зачёте Палаты общин. */
+  var NI_PARTIES = [
+    { id: 'dup', name: 'DUP', ru: 'DUP', abbr: 'DUP', color: '#d46a4c', bloc: 'unionist', base: 5 },
+    { id: 'sf', name: 'Sinn Fein', ru: 'Шинн Фейн', abbr: 'SF', color: '#326760', bloc: 'nationalist', base: 7, abstains: true },
+    { id: 'apni', name: 'Alliance', ru: 'Alliance', abbr: 'APNI', color: '#f6cb2f', bloc: 'other', base: 2 },
+    { id: 'sdlp', name: 'SDLP', ru: 'SDLP', abbr: 'SDLP', color: '#2aa82c', bloc: 'nationalist', base: 2 },
+    { id: 'uup', name: 'UUP', ru: 'UUP', abbr: 'UUP', color: '#48a5ee', bloc: 'unionist', base: 1 },
+    { id: 'tuv', name: 'TUV', ru: 'TUV', abbr: 'TUV', color: '#0c3a6a', bloc: 'unionist', base: 1 }
+  ];
+
+  var BY_ID = {};
+  PARTIES.concat(NI_PARTIES).forEach(function (p) { BY_ID[p.id] = p; });
+
+  /* Идеологическая дистанция для коалиционных переговоров. */
+  function ideologyDistance(a, b) {
+    var pa = BY_ID[a], pb = BY_ID[b];
+    if (!pa || !pb || !pa.positions || !pb.positions) return 100;
+    var ids = root.PP.ISSUE_IDS, sum = 0;
+    for (var i = 0; i < ids.length; i++) {
+      sum += Math.abs(pa.positions[ids[i]] - pb.positions[ids[i]]);
+    }
+    return sum / ids.length;
+  }
+
+  root.PP = root.PP || {};
+  root.PP.PARTIES = PARTIES;
+  root.PP.NI_PARTIES = NI_PARTIES;
+  root.PP.PARTY_BY_ID = BY_ID;
+  root.PP.GB_PARTY_IDS = PARTIES.map(function (p) { return p.id; });
+  root.PP.ideologyDistance = ideologyDistance;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+</script>
+<script>
+/* src/data/regions.js */
+/*
+ * Регионы Великобритании: число мест в Палате общин (по границам 2024 года,
+ * всего 650), стартовые доли партий (вымышленный сценарий) и демография.
+ * Демография — индексы 0..100 относительно среднего по стране (50).
+ *   age        — доля пожилых избирателей
+ *   degree     — доля с высшим образованием
+ *   leave      — евроскептицизм и «антиистеблишментность»
+ *   urban      — урбанизация
+ *   prosperity — благосостояние
+ */
+(function (root) {
+  'use strict';
+
+  var REGIONS = [
+    {
+      id: 'north_east', name: 'Северо-Восток', seats: 27, nation: 'england',
+      demo: { age: 58, degree: 40, leave: 66, urban: 58, prosperity: 34 },
+      flavour: 'Верфи, шахтёрские посёлки и футбол. Голосуют по привычке — пока привычку кто-нибудь не сломает.',
+      base: { lab: 34, con: 21, ld: 8, ref: 24, grn: 8, oth: 5 }
+    },
+    {
+      id: 'north_west', name: 'Северо-Запад', seats: 73, nation: 'england',
+      demo: { age: 50, degree: 47, leave: 58, urban: 70, prosperity: 43 },
+      flavour: 'Манчестер и Ливерпуль против ланкаширских городков: два разных избирателя в одном регионе.',
+      base: { lab: 36, con: 23, ld: 9, ref: 20, grn: 7, oth: 5 }
+    },
+    {
+      id: 'yorkshire', name: 'Йоркшир и Хамбер', seats: 54, nation: 'england',
+      demo: { age: 52, degree: 44, leave: 63, urban: 60, prosperity: 41 },
+      flavour: 'Йоркшир любит, когда с ним говорят прямо, и не прощает, когда его считают решённым делом.',
+      base: { lab: 32, con: 25, ld: 9, ref: 23, grn: 7, oth: 4 }
+    },
+    {
+      id: 'east_midlands', name: 'Ист-Мидлендс', seats: 47, nation: 'england',
+      demo: { age: 55, degree: 43, leave: 68, urban: 48, prosperity: 46 },
+      flavour: 'Логистические склады вдоль M1 и старые шахтёрские городки. Здесь выигрывают выборы.',
+      base: { lab: 28, con: 30, ld: 8, ref: 24, grn: 6, oth: 4 }
+    },
+    {
+      id: 'west_midlands', name: 'Уэст-Мидлендс', seats: 57, nation: 'england',
+      demo: { age: 52, degree: 44, leave: 67, urban: 65, prosperity: 44 },
+      flavour: 'Бирмингем и Чёрная страна: заводы, мечети, пабы и самые качающиеся округа Англии.',
+      base: { lab: 30, con: 29, ld: 8, ref: 23, grn: 6, oth: 4 }
+    },
+    {
+      id: 'east', name: 'Восточная Англия', seats: 61, nation: 'england',
+      demo: { age: 58, degree: 50, leave: 62, urban: 45, prosperity: 58 },
+      flavour: 'Фермы, порты и новые пригороды. Тихий регион, который умеет удивлять в ночь подсчёта.',
+      base: { lab: 25, con: 34, ld: 11, ref: 20, grn: 6, oth: 4 }
+    },
+    {
+      id: 'london', name: 'Лондон', seats: 75, nation: 'england',
+      demo: { age: 34, degree: 74, leave: 30, urban: 98, prosperity: 60 },
+      flavour: 'Молодой, образованный, дорогой и упрямо не похожий на остальную страну.',
+      base: { lab: 40, con: 26, ld: 13, ref: 10, grn: 9, oth: 2 }
+    },
+    {
+      id: 'south_east', name: 'Юго-Восток', seats: 91, nation: 'england',
+      demo: { age: 56, degree: 58, leave: 50, urban: 52, prosperity: 68 },
+      flavour: 'Пояс достатка вокруг столицы: сады, пригородные поезда и очень много округов.',
+      base: { lab: 23, con: 36, ld: 16, ref: 17, grn: 6, oth: 2 }
+    },
+    {
+      id: 'south_west', name: 'Юго-Запад', seats: 58, nation: 'england',
+      demo: { age: 64, degree: 52, leave: 55, urban: 38, prosperity: 50 },
+      flavour: 'Курорты, деревни и университетский Бристоль. Классическая земля либдемов.',
+      base: { lab: 21, con: 33, ld: 20, ref: 18, grn: 7, oth: 1 }
+    },
+    {
+      id: 'wales', name: 'Уэльс', seats: 32, nation: 'wales',
+      demo: { age: 58, degree: 43, leave: 60, urban: 48, prosperity: 36 },
+      flavour: 'Долины, побережье и вопрос о языке. Лейбористская крепость с трещинами.',
+      base: { lab: 32, con: 22, ld: 6, ref: 18, grn: 5, pc: 15, oth: 2 }
+    },
+    {
+      id: 'scotland', name: 'Шотландия', seats: 57, nation: 'scotland',
+      demo: { age: 52, degree: 55, leave: 38, urban: 62, prosperity: 45 },
+      flavour: 'Четыре партии на пятьдесят семь округов и вечный вопрос о независимости.',
+      base: { lab: 26, con: 16, ld: 10, ref: 10, grn: 4, snp: 33, oth: 1 }
+    },
+    {
+      id: 'n_ireland', name: 'Северная Ирландия', seats: 18, nation: 'n_ireland',
+      demo: { age: 50, degree: 46, leave: 44, urban: 55, prosperity: 40 },
+      flavour: 'Отдельная партийная система: игрок здесь не выдвигается, но мандаты считаются.',
+      base: {}, ni: true
+    }
+  ];
+
+  var BY_ID = {};
+  REGIONS.forEach(function (r) { BY_ID[r.id] = r; });
+
+  var CAMPAIGN_REGIONS = REGIONS.filter(function (r) { return !r.ni; });
+
+  var TOTAL_SEATS = REGIONS.reduce(function (s, r) { return s + r.seats; }, 0);
+
+  /*
+   * Предпочтения избирателей региона по каждой теме выводятся из демографии,
+   * чтобы данные не расходились сами с собой.
+   */
+  function regionPreferences(region) {
+    var d = region.demo;
+    var age = d.age - 50, deg = d.degree - 50, leave = d.leave - 50;
+    var urb = d.urban - 50, pro = d.prosperity - 50;
+    var clamp = root.PP.clamp;
+    return {
+      cost: clamp(-8 + 0.55 * pro + 0.25 * age - 0.20 * urb, -100, 100),
+      nhs: clamp(-30 + 0.35 * pro - 0.25 * age, -100, 100),
+      immig: clamp(10 + 1.05 * leave - 0.65 * deg + 0.30 * age - 0.20 * urb, -100, 100),
+      tax: clamp(-2 + 0.75 * pro + 0.35 * age - 0.25 * urb, -100, 100),
+      housing: clamp(-6 + 0.55 * age - 0.45 * urb + 0.30 * pro, -100, 100),
+      crime: clamp(24 + 0.55 * age + 0.45 * leave - 0.50 * deg, -100, 100),
+      climate: clamp(-6 + 0.80 * leave - 0.70 * deg + 0.35 * age, -100, 100),
+      europe: clamp(1.35 * leave - 0.35 * deg, -100, 100),
+      union: region.nation === 'scotland' ? -10 : (region.nation === 'wales' ? 18 : 55)
+    };
+  }
+
+  root.PP = root.PP || {};
+  root.PP.REGIONS = REGIONS;
+  root.PP.REGION_BY_ID = BY_ID;
+  root.PP.CAMPAIGN_REGIONS = CAMPAIGN_REGIONS;
+  root.PP.TOTAL_SEATS = TOTAL_SEATS;
+  root.PP.regionPreferences = regionPreferences;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+</script>
+<script>
+/* src/data/places.js */
+/*
+ * Пул топонимов для процедурной генерации 650 округов. Названия округов
+ * в игре вымышленные: они собираются из настоящих городов и типовых
+ * британских суффиксов, но не повторяют реальную нарезку избирательных
+ * округов.
+ */
+(function (root) {
+  'use strict';
+
+  var PLACES = {
+    north_east: ['Ньюкасл', 'Гейтсхед', 'Сандерленд', 'Дарем', 'Мидлсбро', 'Хартлпул', 'Стоктон', 'Дарлингтон',
+      'Блайт', 'Норт-Шилдс', 'Саут-Шилдс', 'Уошингтон', 'Хексем', 'Морпет', 'Редкар', 'Питерли',
+      'Консетт', 'Бишоп-Окленд', 'Сигем', 'Уитли-Бей'],
+    north_west: ['Манчестер', 'Ливерпуль', 'Солфорд', 'Болтон', 'Рочдейл', 'Олдем', 'Стокпорт', 'Уиган',
+      'Уоррингтон', 'Престон', 'Блэкберн', 'Блэкпул', 'Бернли', 'Ланкастер', 'Карлайл', 'Честер',
+      'Крю', 'Макклсфилд', 'Биркенхед', 'Сент-Хеленс', 'Бери', 'Барроу', 'Кендал', 'Уиднес',
+      'Аккрингтон', 'Чорли', 'Саутпорт', 'Эклс'],
+    yorkshire: ['Лидс', 'Шеффилд', 'Брадфорд', 'Халл', 'Уэйкфилд', 'Донкастер', 'Ротерем', 'Барнсли',
+      'Хаддерсфилд', 'Йорк', 'Харрогейт', 'Скарборо', 'Гримсби', 'Скантроп', 'Дьюсбери', 'Кили',
+      'Понтефракт', 'Селби', 'Бридлингтон', 'Хэлифакс', 'Бевeрли', 'Морли'],
+    east_midlands: ['Ноттингем', 'Лестер', 'Дерби', 'Нортгемптон', 'Линкольн', 'Честерфилд', 'Мансфилд', 'Корби',
+      'Кеттеринг', 'Лафборо', 'Ньюарк', 'Бостон', 'Гримсторп', 'Уэллингборо', 'Аштон', 'Илкестон',
+      'Хинкли', 'Гейнсборо', 'Скегнесс', 'Матлок'],
+    west_midlands: ['Бирмингем', 'Ковентри', 'Вулверхэмптон', 'Уолсолл', 'Дадли', 'Сток-он-Трент', 'Вустер', 'Шрусбери',
+      'Телфорд', 'Стаффорд', 'Тамворт', 'Нанитон', 'Редитч', 'Кидерминстер', 'Регби', 'Лемингтон',
+      'Солихалл', 'Уэст-Бромидж', 'Стратфорд', 'Херефорд', 'Бёртон', 'Кэннок'],
+    east: ['Норидж', 'Ипсуич', 'Кембридж', 'Питерборо', 'Лутон', 'Челмсфорд', 'Колчестер', 'Саутенд',
+      'Бейзилдон', 'Тэрроук', 'Харлоу', 'Уотфорд', 'Стивенидж', 'Бедфорд', 'Сент-Олбанс', 'Хемел-Хемпстед',
+      'Грейт-Ярмут', 'Лоустофт', 'Кингс-Линн', 'Бери-Сент-Эдмундс', 'Кларктон', 'Брейнтри', 'Хантингдон'],
+    london: ['Кэмден', 'Излингтон', 'Хакни', 'Тауэр-Хамлетс', 'Ламбет', 'Саутуарк', 'Гринвич', 'Луишем',
+      'Ньюэм', 'Баркинг', 'Редбридж', 'Хаверинг', 'Бромли', 'Кройдон', 'Саттон', 'Мертон',
+      'Уондсуэрт', 'Кенсингтон', 'Хаммерсмит', 'Илинг', 'Хаунслоу', 'Ричмонд', 'Кингстон', 'Брент',
+      'Харроу', 'Барнет', 'Энфилд', 'Харингей', 'Уолтемстоу', 'Уэстминстер', 'Бексли', 'Хиллингдон'],
+    south_east: ['Брайтон', 'Саутгемптон', 'Портсмут', 'Рединг', 'Оксфорд', 'Милтон-Кинс', 'Кентербери', 'Мейдстон',
+      'Дувр', 'Фолкстон', 'Гастингс', 'Истборн', 'Уэртинг', 'Кроли', 'Гилфорд', 'Уокинг',
+      'Слау', 'Виндзор', 'Бракнелл', 'Бейзингсток', 'Уинчестер', 'Айл-оф-Уайт', 'Хай-Уиком', 'Эйлсбери',
+      'Банбери', 'Фарнборо', 'Хоршем', 'Чичестер', 'Тонбридж', 'Мейдхед', 'Ньюбери', 'Гравесенд'],
+    south_west: ['Бристоль', 'Плимут', 'Эксетер', 'Борнмут', 'Пул', 'Челтнем', 'Глостер', 'Суиндон',
+      'Бат', 'Тонтон', 'Труро', 'Пензанс', 'Ньюки', 'Торки', 'Барнстапл', 'Уэстон',
+      'Йовил', 'Солсбери', 'Чиппенем', 'Страуд', 'Бридпорт', 'Фалмут', 'Тивертон'],
+    wales: ['Кардифф', 'Суонси', 'Ньюпорт', 'Рексем', 'Бангор', 'Аберистуит', 'Мертир-Тидвил', 'Понтипридд',
+      'Бридженд', 'Нит', 'Лланелли', 'Кармартен', 'Кайрфилли', 'Рил', 'Колуин-Бей', 'Хаверфордуэст',
+      'Кумбран', 'Эббв-Вейл', 'Уэлшпул', 'Портмадог'],
+    scotland: ['Глазго', 'Эдинбург', 'Абердин', 'Данди', 'Стерлинг', 'Перт', 'Инвернесс', 'Фолкерк',
+      'Пейсли', 'Гринок', 'Ист-Килбрайд', 'Гамильтон', 'Мотеруэлл', 'Эйр', 'Килмарнок', 'Данфермлин',
+      'Кирколди', 'Ливингстон', 'Элгин', 'Обан', 'Дамфрис', 'Гэллоуэй', 'Форт-Уильям', 'Терсо']
+  };
+
+  var SUFFIXES = ['Север', 'Юг', 'Восток', 'Запад', 'Центр', 'и окрестности', 'Северо-Восток', 'Юго-Запад',
+    'Внешний', 'Долина', 'Побережье', 'и Хиллсайд'];
+
+  root.PP = root.PP || {};
+  root.PP.PLACES = PLACES;
+  root.PP.PLACE_SUFFIXES = SUFFIXES;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+</script>
+<script>
+/* src/data/roles.js */
+/*
+ * Роль игрока в партии. Роль не меняет партию, но меняет то, какими
+ * рычагами вы располагаете: лидер сам собирает залы, руководитель кампании
+ * работает сеткой отделений, казначей — деньгами, организатор — фракцией,
+ * пресс-секретарь — эфиром.
+ * Множители применяются к действиям (см. actions.js).
+ */
+(function (root) {
+  'use strict';
+
+  var ROLES = [
+    {
+      id: 'leader',
+      name: 'Лидер партии',
+      en: 'Party Leader',
+      icon: '🎩',
+      desc: 'Вы — лицо кампании. Автобус, залы, вечерние выпуски новостей. И весь спрос тоже с вас.',
+      flavour: '«Мне не нужен спичрайтер, мне нужна страна, которая слушает.»',
+      mods: { rally: 1.20, media: 1.25, unify: 1.10, stamina: 1.15 },
+      start: { approval: 3 },
+      perks: ['Митинги и интервью работают сильнее', 'Рейтинг лидера стартует выше', 'Поездки быстрее выматывают']
+    },
+    {
+      id: 'chief',
+      name: 'Руководитель кампании',
+      en: 'Campaign Chief',
+      icon: '🗂️',
+      desc: 'Вы сидите в штабе на Миллбанк, размечаете карту и решаете, куда поедет автобус.',
+      flavour: '«Выборы выигрываются в тридцати округах. Остальное — телевизор.»',
+      mods: { ap: 1, ground: 1.35, target: 1.45, rally: 0.85, media: 0.75, stamina: 0.7 },
+      perks: ['+1 очко расписания каждую неделю', 'Работа на земле и качающиеся округа заметно сильнее', 'Лидер слушается вас хуже: эфир и митинги слабее']
+    },
+    {
+      id: 'treasurer',
+      name: 'Казначей партии',
+      en: 'Party Treasurer',
+      icon: '💼',
+      desc: 'Ужины в Сити, красные кейсы, счета за эфир. Кампания стоит денег, и деньги — ваши.',
+      flavour: '«Дайте мне ещё два миллиона, и я дам вам двадцать округов.»',
+      mods: { fundraise: 1.70, broadcast: 1.30, ground: 0.85 },
+      start: { funds: 1.35 },
+      perks: ['Стартовая касса больше', 'Сбор средств и ролики работают сильнее', 'Сеть отделений вами занимается меньше']
+    },
+    {
+      id: 'whip',
+      name: 'Парламентский организатор',
+      en: 'Chief Whip',
+      icon: '🪢',
+      desc: 'Вы знаете, у кого какой скелет в шкафу, и держите фракцию в узде.',
+      flavour: '«Я не прошу их соглашаться. Я прошу их проголосовать.»',
+      mods: { unify: 1.80, policyUnity: 0.45, attack: 1.25, fundraise: 0.85 },
+      start: { unity: 10 },
+      perks: ['Единство фракции стартует выше и чинится вдвое быстрее', 'Смена позиций почти не бьёт по фракции', 'На деньги вы влияете плохо']
+    },
+    {
+      id: 'spin',
+      name: 'Пресс-секретарь',
+      en: 'Director of Communications',
+      icon: '📰',
+      desc: 'Утро начинается с обзора таблоидов, а заканчивается звонком редактору.',
+      flavour: '«Плохих новостей не бывает. Бывает плохо выбранный четверг.»',
+      mods: { media: 1.55, attack: 1.40, broadcast: 1.15, scandalDecay: 2.2, rally: 0.9 },
+      perks: ['Интервью и негативная кампания заметно сильнее', 'Скандалы гаснут вдвое быстрее', 'Митинги без вашего участия слабее']
+    }
+  ];
+
+  var BY_ID = {};
+  ROLES.forEach(function (r) { BY_ID[r.id] = r; });
+
+  root.PP = root.PP || {};
+  root.PP.ROLES = ROLES;
+  root.PP.ROLE_BY_ID = BY_ID;
+
+  /* Множитель роли для действия; по умолчанию 1. */
+  root.PP.roleMod = function (state, key) {
+    var role = BY_ID[(state && state.roleId) || 'leader'];
+    if (!role || !role.mods || role.mods[key] === undefined) return 1;
+    return role.mods[key];
+  };
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+</script>
+<script>
+/* src/data/press.js */
+/*
+ * Пресса. Каждую неделю газеты дают свои заголовки — они ничего не решают,
+ * но по ним видно, как выглядит кампания со стороны.
+ * Издания вымышленные.
+ */
+(function (root) {
+  'use strict';
+
+  var PP = root.PP;
+
+  var PAPERS = [
+    { id: 'herald', name: 'The Westminster Herald', lean: 'centre', style: 'broadsheet' },
+    { id: 'blaze', name: 'The Daily Blaze', lean: 'right', style: 'tabloid' },
+    { id: 'clarion', name: 'The Morning Clarion', lean: 'left', style: 'broadsheet' },
+    { id: 'chronicle', name: 'The Evening Chronicle', lean: 'centre', style: 'tabloid' },
+    { id: 'ledger', name: 'The City Ledger', lean: 'right', style: 'broadsheet' }
+  ];
+
+  function pick(rng, arr) { return arr[Math.floor(rng.next() * arr.length)]; }
+
+  function headlines(state, rng) {
+    var out = [];
+    var me = state.parties[state.playerId];
+    var def = PP.PARTY_BY_ID[state.playerId];
+    var hist = state.pollHistory;
+    var last = hist[hist.length - 1], prev = hist.length > 1 ? hist[hist.length - 2] : null;
+    var move = prev ? (last.shares[state.playerId] || 0) - (prev.shares[state.playerId] || 0) : 0;
+    var leader = me.leader.name;
+
+    if (move > 1.2) {
+      out.push({ tone: 'good', text: pick(rng, [
+        def.ru + ' идут вверх: плюс ' + move.toFixed(1) + ' пункта за неделю',
+        'Штабы соперников пересчитывают округа: ' + def.ru.toLowerCase() + ' прибавляют',
+        leader + ': «Мы только разогреваемся»'
+      ]) });
+    } else if (move < -1.2) {
+      out.push({ tone: 'bad', text: pick(rng, [
+        'Тревога в штабе: ' + def.ru.toLowerCase() + ' теряют ' + Math.abs(move).toFixed(1) + ' пункта',
+        'Кто виноват в провальной неделе ' + leader + '?',
+        'Источники в партии: «Так дальше нельзя»'
+      ]) });
+    }
+
+    if ((me.scandal || 0) > 18) {
+      out.push({ tone: 'bad', text: pick(rng, [
+        leader + ': вопросы, на которые нет ответов',
+        'Что ещё мы не знаем о партийной кассе?',
+        'Пресс-служба ушла в глухую оборону'
+      ]) });
+    }
+    if (me.unity < 52) {
+      out.push({ tone: 'bad', text: pick(rng, [
+        'Заднескамеечники точат ножи',
+        'Фракция ' + def.ru.toLowerCase() + ' на грани открытого бунта',
+        'Аноним из партии: «Мы это ещё обсудим после выборов»'
+      ]) });
+    }
+    if (me.leader.approval > 12) {
+      out.push({ tone: 'good', text: pick(rng, [
+        leader + ' — самый популярный политик недели',
+        'Залы полны: турне ' + leader + ' собирает очереди',
+        'Даже оппоненты признают: у ' + leader + ' хорошая неделя'
+      ]) });
+    }
+
+    var topIssue = PP.ISSUE_IDS.slice().sort(function (a, b) { return state.salience[b] - state.salience[a]; })[0];
+    out.push({ tone: 'neutral', text: pick(rng, [
+      'Главная тема кампании — ' + PP.ISSUE_BY_ID[topIssue].name.toLowerCase(),
+      'Опрос: избирателей больше всего волнует ' + PP.ISSUE_BY_ID[topIssue].name.toLowerCase(),
+      'Студии спорят до полуночи: ' + PP.ISSUE_BY_ID[topIssue].name.toLowerCase() + ' и ничего больше'
+    ]) });
+
+    out.push({ tone: 'neutral', text: pick(rng, [
+      'Дождь над Манчестером, но зал всё равно полон',
+      'Автобус кампании застрял на M6 — виноваты дорожные работы',
+      'В пабах спорят о выборах и о судействе в субботнем матче',
+      'Букмекеры принимают ставки на подвешенный парламент',
+      'В Вестминстере считают дни до роспуска предвыборных штабов',
+      'Королевский протокол: Дворец сохраняет нейтралитет',
+      'Чай остыл: пресс-конференцию перенесли в третий раз'
+    ]) });
+
+    return rng.shuffle(out).slice(0, 3).map(function (h) {
+      return { paper: pick(rng, PAPERS).name, text: h.text, tone: h.tone };
+    });
+  }
+
+  PP.PAPERS = PAPERS;
+  PP.generatePress = headlines;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+</script>
+<script>
+/* src/core/custom.js */
+/*
+ * Своя партия. Игрок задаёт название, цвет, базовую коалицию избирателей,
+ * позиции по темам и лидера; отсюда собирается полноценное описание партии
+ * и её стартовые доли отбираются у идеологически близких соперников.
+ */
+(function (root) {
+  'use strict';
+
+  var PP = root.PP;
+  var clamp = PP.clamp;
+
+  /* Базовая коалиция избирателей: кто за вас голосует и насколько плотно. */
+  var ARCHETYPES = [
+    {
+      id: 'populist', name: 'Народный фронт', icon: '📣',
+      desc: 'Малые города, промышленные окраины, недоверие к Лондону. Голоса размазаны по стране — мажоритарная система таких не любит.',
+      family: 'right', concentration: 0.13, share: 7,
+      affinity: { urban: -0.30, degree: -0.75, age: 0.35, leave: 0.85, prosperity: -0.35 },
+      funds: 3.0, activists: 26, unity: 58
+    },
+    {
+      id: 'liberal', name: 'Городские либералы', icon: '🎓',
+      desc: 'Университетские города, зажиточные пригороды, проевропейский избиратель. Голоса собраны плотно — округа берутся точечно.',
+      family: 'centre', concentration: 0.62, share: 5,
+      affinity: { urban: 0.25, degree: 0.80, age: -0.15, leave: -0.70, prosperity: 0.30 },
+      funds: 4.0, activists: 34, unity: 76
+    },
+    {
+      id: 'labourist', name: 'Рабочее движение', icon: '⚒️',
+      desc: 'Профсоюзы, большие города, север Англии и Уэльс. Много волонтёров, мало денег.',
+      family: 'left', concentration: 0.34, share: 6,
+      affinity: { urban: 0.55, degree: -0.05, age: -0.20, leave: 0.10, prosperity: -0.60 },
+      funds: 2.2, activists: 52, unity: 66
+    },
+    {
+      id: 'shire', name: 'Консервативная провинция', icon: '🌾',
+      desc: 'Графства, деревни, пожилой и зажиточный избиратель. Хорошие деньги и плотная география.',
+      family: 'right', concentration: 0.40, share: 6,
+      affinity: { urban: -0.65, degree: -0.05, age: 0.65, leave: 0.30, prosperity: 0.45 },
+      funds: 5.5, activists: 24, unity: 70
+    },
+    {
+      id: 'green', name: 'Экологическое движение', icon: '🌱',
+      desc: 'Молодые, образованные, городские районы и университетские кварталы. Мало кассы, много энтузиазма.',
+      family: 'left', concentration: 0.72, share: 4,
+      affinity: { urban: 0.35, degree: 0.80, age: -0.55, leave: -0.65, prosperity: -0.05 },
+      funds: 1.4, activists: 46, unity: 78
+    },
+    {
+      id: 'national', name: 'Национальное движение', icon: '🏴',
+      desc: 'Партия одной нации Союза: выдвигается только в Шотландии или Уэльсе, зато сразу за треть тамошних голосов.',
+      family: 'left', concentration: 0.28, share: 22, regional: true,
+      affinity: { urban: 0.15, degree: 0.10, age: -0.05, leave: -0.40, prosperity: -0.25 },
+      funds: 2.0, activists: 42, unity: 68
+    }
+  ];
+
+  var ARCH_BY_ID = {};
+  ARCHETYPES.forEach(function (a) { ARCH_BY_ID[a.id] = a; });
+
+  var RESOURCES = [
+    { id: 'grassroots', name: 'Низовая сеть', icon: '🚪', desc: 'Отделения по всей стране, тысячи волонтёров, пустая касса.', funds: 0.45, activists: 1.6, unity: 1.05 },
+    { id: 'balanced', name: 'Обычная партия', icon: '⚖️', desc: 'Ни бедные, ни богатые: всего поровну.', funds: 1.0, activists: 1.0, unity: 1.0 },
+    { id: 'donors', name: 'Крупные доноры', icon: '💷', desc: 'Несколько щедрых спонсоров, слабая сетка на местах и вопросы от прессы.', funds: 2.2, activists: 0.55, unity: 0.95 }
+  ];
+
+  var RES_BY_ID = {};
+  RESOURCES.forEach(function (r) { RES_BY_ID[r.id] = r; });
+
+  var DEFAULT_POSITIONS = { cost: 0, nhs: -20, immig: 0, tax: 0, housing: -10, crime: 10, climate: -10, europe: 0, union: 40 };
+
+  function defaultConfig() {
+    return {
+      id: 'own',
+      name: 'New Britain Party',
+      ru: 'Новая партия',
+      abbr: 'NEW',
+      color: '#a35cff',
+      archetype: 'populist',
+      resources: 'balanced',
+      scope: 'gb',
+      positions: JSON.parse(JSON.stringify(DEFAULT_POSITIONS)),
+      leader: { name: 'Дж. Уиллоуби', charisma: 60, competence: 60, integrity: 60 }
+    };
+  }
+
+  var LEADER_POOL = 180;
+  var LEADER_MIN = 25;
+  var LEADER_MAX = 85;
+
+  function leaderSpent(cfg) {
+    return cfg.leader.charisma + cfg.leader.competence + cfg.leader.integrity;
+  }
+
+  /* Полное описание партии из конфигурации конструктора. */
+  function buildDef(cfg) {
+    var arch = ARCH_BY_ID[cfg.archetype] || ARCHETYPES[0];
+    var res = RES_BY_ID[cfg.resources] || RESOURCES[1];
+    var scope = arch.regional ? (cfg.scope === 'wales' ? 'wales' : 'scotland') : 'gb';
+    var competence = {};
+    PP.ISSUE_IDS.forEach(function (id) {
+      /* Новая партия по умолчанию считается менее компетентной, но там, где
+         у неё внятная позиция, избиратель ей чуть больше верит. */
+      competence[id] = clamp(34 + Math.abs(cfg.positions[id]) / 12 + (cfg.leader.competence - 50) / 5, 20, 70);
+    });
+    var goals = arch.regional
+      ? [{ seats: 2, label: 'Первые депутаты' }, { seats: 8, label: 'Голос нации в Вестминстере' }, { seats: 18, label: 'Хозяева своей нации' }, { seats: 30, label: 'Мандат на референдум' }]
+      : [{ seats: 3, label: 'Первые депутаты' }, { seats: 15, label: 'Полноценная фракция' }, { seats: 45, label: 'Третья сила Палаты' }, { seats: 100, label: 'Слом двухпартийной системы' }];
+
+    return {
+      id: 'own',
+      custom: true,
+      name: cfg.name || 'New Party',
+      ru: cfg.ru || cfg.name || 'Своя партия',
+      abbr: (cfg.abbr || 'NEW').toUpperCase().slice(0, 4),
+      color: cfg.color || '#a35cff',
+      playable: true,
+      scope: scope,
+      family: arch.family,
+      archetype: arch.id,
+      leader: {
+        name: cfg.leader.name || 'Лидер',
+        charisma: cfg.leader.charisma,
+        competence: cfg.leader.competence,
+        integrity: cfg.leader.integrity,
+        approval: Math.round((cfg.leader.charisma + cfg.leader.integrity) / 2 - 52)
+      },
+      funds: Math.round(arch.funds * res.funds * 10) / 10,
+      activists: Math.round(clamp(arch.activists * res.activists, 5, 95)),
+      unity: Math.round(clamp(arch.unity * res.unity, 20, 95)),
+      target: goals[1].seats,
+      goals: goals,
+      positions: JSON.parse(JSON.stringify(cfg.positions)),
+      competence: competence,
+      affinity: arch.affinity,
+      concentration: arch.concentration,
+      baseShare: arch.share,
+      blurb: arch.desc
+    };
+  }
+
+  /* Регистрация в общих справочниках: без этого партию не увидят остальные модули. */
+  function register(def) {
+    if (!def) return;
+    PP.PARTY_BY_ID[def.id] = def;
+    var i = PP.PARTIES.map(function (p) { return p.id; }).indexOf(def.id);
+    if (i >= 0) PP.PARTIES[i] = def; else PP.PARTIES.push(def);
+    if (PP.GB_PARTY_IDS.indexOf(def.id) < 0) PP.GB_PARTY_IDS.push(def.id);
+  }
+
+  function unregister(id) {
+    delete PP.PARTY_BY_ID[id];
+    PP.PARTIES = PP.PARTIES.filter(function (p) { return p.id !== id; });
+    PP.GB_PARTY_IDS = PP.GB_PARTY_IDS.filter(function (p) { return p !== id; });
+  }
+
+  /*
+   * Стартовые доли по регионам с учётом новой партии: её голоса отбираются
+   * у идеологически близких соперников, а не берутся из воздуха.
+   */
+  function buildBases(def) {
+    var bases = {};
+    PP.CAMPAIGN_REGIONS.forEach(function (region) {
+      var base = {};
+      Object.keys(region.base).forEach(function (pid) { base[pid] = region.base[pid]; });
+      if (def) {
+        var inScope = def.scope === 'gb'
+          || (def.scope === 'scotland' && region.id === 'scotland')
+          || (def.scope === 'wales' && region.id === 'wales');
+        if (inScope) {
+          /* Насколько регион вообще подходит партии: демография против её ядра. */
+          var fit = 1;
+          var aff = def.affinity;
+          ['age', 'degree', 'leave', 'urban', 'prosperity'].forEach(function (a) {
+            fit += (aff[a] || 0) * ((region.demo[a] - 50) / 100);
+          });
+          var want = clamp(def.baseShare * clamp(fit, 0.35, 1.9), 0.8, 40);
+          var weights = {}, wsum = 0;
+          Object.keys(base).forEach(function (pid) {
+            var dist = PP.ideologyDistance(def.id, pid);
+            var w = base[pid] * Math.exp(-dist / 38);
+            weights[pid] = w;
+            wsum += w;
+          });
+          if (wsum > 0) {
+            Object.keys(base).forEach(function (pid) {
+              base[pid] = Math.max(base[pid] - want * (weights[pid] / wsum), 0.4);
+            });
+          }
+          base[def.id] = want;
+        }
+      }
+      var total = 0;
+      Object.keys(base).forEach(function (pid) { total += base[pid]; });
+      Object.keys(base).forEach(function (pid) { base[pid] = base[pid] / total * 100; });
+      bases[region.id] = base;
+    });
+    return bases;
+  }
+
+  PP.ARCHETYPES = ARCHETYPES;
+  PP.ARCHETYPE_BY_ID = ARCH_BY_ID;
+  PP.CUSTOM_RESOURCES = RESOURCES;
+  PP.defaultCustomConfig = defaultConfig;
+  PP.buildCustomParty = buildDef;
+  PP.registerCustomParty = register;
+  PP.unregisterCustomParty = unregister;
+  PP.buildBases = buildBases;
+  PP.LEADER_POOL = LEADER_POOL;
+  PP.LEADER_MIN = LEADER_MIN;
+  PP.LEADER_MAX = LEADER_MAX;
+  PP.leaderPointsSpent = leaderSpent;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+</script>
+<script>
+/* src/core/seats.js */
+/*
+ * Процедурная генерация 650 округов и расчёт результата в отдельном округе.
+ * Профиль округа — отклонение от средней демографии региона, поэтому в сумме
+ * округа воспроизводят региональные доли, а разброс даёт эффект мажоритарной
+ * системы: партия с ровным по стране результатом мест почти не получает.
+ */
+(function (root) {
+  'use strict';
+
+  var PP = root.PP;
+  var clamp = PP.clamp;
+  var AXES = ['age', 'degree', 'leave', 'urban', 'prosperity'];
+
+  function makeName(rng, region, used) {
+    var pool = PP.PLACES[region.id] || ['Округ'];
+    for (var attempt = 0; attempt < 40; attempt++) {
+      var town = rng.pick(pool);
+      var name = town;
+      if (used[name] || rng.chance(0.55)) {
+        name = town + ' — ' + rng.pick(PP.PLACE_SUFFIXES);
+      }
+      if (!used[name]) { used[name] = true; return name; }
+    }
+    var n = town + ' #' + rng.int(2, 99);
+    used[n] = true;
+    return n;
+  }
+
+  function generateSeats(seed) {
+    var rng = new PP.Rng('seats:' + seed);
+    var seats = [];
+    PP.CAMPAIGN_REGIONS.forEach(function (region) {
+      var used = {};
+      for (var i = 0; i < region.seats; i++) {
+        var demo = {};
+        /* Урбанизация задаёт округ, остальные оси частично следуют за ней. */
+        var urbanDev = rng.normal(0, 24);
+        demo.urban = clamp(region.demo.urban + urbanDev, 1, 99);
+        demo.degree = clamp(region.demo.degree + 0.35 * urbanDev + rng.normal(0, 13), 1, 99);
+        demo.age = clamp(region.demo.age - 0.30 * urbanDev + rng.normal(0, 11), 1, 99);
+        demo.leave = clamp(region.demo.leave - 0.55 * (demo.degree - region.demo.degree) + rng.normal(0, 10), 1, 99);
+        demo.prosperity = clamp(region.demo.prosperity + 0.20 * (demo.degree - region.demo.degree) + rng.normal(0, 15), 1, 99);
+
+        /* Концентрация: у либдемов и зелёных голоса собраны в отдельных
+           округах, у Reform размазаны ровным слоем. Вычитаем sd^2/2, чтобы
+           разброс не завышал средний результат партии. */
+        var local = {};
+        PP.GB_PARTY_IDS.forEach(function (pid) {
+          var sd = PP.PARTY_BY_ID[pid].concentration || 0.15;
+          local[pid] = rng.normal(-sd * sd / 2, sd);
+        });
+
+        seats.push({
+          id: region.id + '-' + i,
+          name: makeName(rng, region, used),
+          region: region.id,
+          demo: demo,
+          local: local,
+          holder: null,
+          holderMargin: 0,
+          electorate: Math.round(rng.range(62000, 79000))
+        });
+      }
+    });
+    return seats;
+  }
+
+  /* Множитель партии в округе относительно её же региональной доли. */
+  function seatFactor(seat, region, party) {
+    var aff = party.affinity, s = 0;
+    for (var i = 0; i < AXES.length; i++) {
+      var a = AXES[i];
+      s += (aff[a] || 0) * ((seat.demo[a] - region.demo[a]) / 50);
+    }
+    return Math.exp(0.95 * s + (seat.local[party.id] || 0));
+  }
+
+  /*
+   * Тактическое голосование: часть сторонников безнадёжных здесь партий
+   * переходит к тому из двух лидеров, кто им идеологически ближе.
+   */
+  function applyTactical(shares, intensity) {
+    var ids = Object.keys(shares);
+    var sorted = ids.slice().sort(function (a, b) { return shares[b] - shares[a]; });
+    var first = sorted[0], second = sorted[1];
+    if (!second) return shares;
+    for (var i = 2; i < sorted.length; i++) {
+      var pid = sorted[i];
+      if (shares[pid] < 1) continue;
+      var dFirst = PP.ideologyDistance(pid, first);
+      var dSecond = PP.ideologyDistance(pid, second);
+      var pull = (dFirst - dSecond) / 60; /* > 0 — ближе второй */
+      var frac = clamp(Math.abs(pull) * intensity, 0, 0.32);
+      var moved = shares[pid] * frac;
+      shares[pid] -= moved;
+      if (pull > 0) shares[second] += moved; else shares[first] += moved;
+    }
+    return shares;
+  }
+
+  /*
+   * Итог в округе. regionShares — доли партий в регионе (в процентах).
+   * noise = 0 даёт «нотационный» результат без случайности.
+   */
+  function seatResult(seat, regionShares, opts) {
+    opts = opts || {};
+    var rng = opts.rng;
+    var region = PP.REGION_BY_ID[seat.region];
+    var raw = {}, total = 0;
+    Object.keys(regionShares).forEach(function (pid) {
+      var party = PP.PARTY_BY_ID[pid];
+      if (!party || !party.affinity) return;
+      var v = regionShares[pid] * seatFactor(seat, region, party);
+      if (rng) v *= Math.exp(rng.normal(0, opts.noise === undefined ? 0.10 : opts.noise));
+      if (seat.holder === pid) v *= 1 + (opts.incumbency === undefined ? 0.05 : opts.incumbency);
+      raw[pid] = Math.max(v, 0.05);
+      total += raw[pid];
+    });
+    Object.keys(raw).forEach(function (pid) { raw[pid] = (raw[pid] / total) * 100; });
+    applyTactical(raw, opts.tactical === undefined ? 0.55 : opts.tactical);
+
+    var order = Object.keys(raw).sort(function (a, b) { return raw[b] - raw[a]; });
+    return {
+      shares: raw,
+      winner: order[0],
+      runnerUp: order[1],
+      margin: raw[order[0]] - raw[order[1]],
+      order: order
+    };
+  }
+
+  /* Назначает «действующих депутатов» по нотационному результату. */
+  function assignHolders(seats, regionSharesByRegion) {
+    seats.forEach(function (seat) {
+      var res = seatResult(seat, regionSharesByRegion[seat.region], { noise: 0, incumbency: 0 });
+      seat.holder = res.winner;
+      seat.holderMargin = res.margin;
+      seat.notional = res.shares;
+    });
+    return seats;
+  }
+
+  PP.generateSeats = generateSeats;
+  PP.seatResult = seatResult;
+  PP.assignHolders = assignHolders;
+  PP.seatFactor = seatFactor;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+</script>
+<script>
+/* src/core/polling.js */
+/*
+ * Модель поддержки. Для каждого региона считается «истинная» доля партии,
+ * из неё уже собираются публичные опросы (с шумом социологии) и итог выборов.
+ */
+(function (root) {
+  'use strict';
+
+  var PP = root.PP;
+  var clamp = PP.clamp;
+
+  var FIT_WEIGHT = 0.55;      /* вклад совпадения позиций с настроением региона */
+  var LEADER_WEIGHT = 0.30;   /* вклад рейтинга лидера */
+  var UNITY_WEIGHT = 0.12;    /* вклад единства партии */
+
+  function normalisedSalience(salience) {
+    var total = 0, out = {};
+    PP.ISSUE_IDS.forEach(function (id) { total += Math.max(salience[id] || 0, 0); });
+    if (total <= 0) total = 1;
+    PP.ISSUE_IDS.forEach(function (id) { out[id] = Math.max(salience[id] || 0, 0) / total; });
+    return out;
+  }
+
+  /* Насколько партия «попадает» в настроение региона: примерно -1..+1. */
+  function issueFit(partyState, prefs, salNorm) {
+    var total = 0;
+    PP.ISSUE_IDS.forEach(function (id) {
+      var pos = partyState.positions[id];
+      var align = 1 - Math.abs(pos - prefs[id]) / 200;   /* 0.5..1 */
+      var centred = (align - 0.80) * 4;                  /* примерно -1..+0.8 */
+      var comp = ((partyState.competence[id] || 40) - 45) / 45;
+      total += salNorm[id] * (0.72 * centred + 0.40 * comp);
+    });
+    return clamp(total, -1.2, 1.2);
+  }
+
+  function leaderTerm(partyState) {
+    var l = partyState.leader;
+    return clamp(l.approval / 100, -0.6, 0.6) * LEADER_WEIGHT
+      + ((l.charisma - 50) / 50) * 0.05
+      - clamp(partyState.scandal || 0, 0, 60) / 100 * 0.55;
+  }
+
+  /* Истинные доли партий в регионе, в процентах, сумма = 100. */
+  function regionShares(state, region) {
+    var prefs = PP.regionPreferences(region);
+    var salNorm = normalisedSalience(state.salience);
+    var raw = {}, total = 0;
+    /* Стартовые доли берутся из партии игры: своя партия отбирает голоса
+       у соперников, и общий расклад региона меняется. */
+    var bases = (state.bases && state.bases[region.id]) || region.base;
+
+    Object.keys(bases).forEach(function (pid) {
+      var ps = state.parties[pid];
+      if (!ps) return;
+      var base = bases[pid];
+      var mult = 1;
+      if (pid !== 'oth') {
+        mult += FIT_WEIGHT * issueFit(ps, prefs, salNorm);
+        mult += leaderTerm(ps);
+        mult += UNITY_WEIGHT * ((ps.unity - 65) / 100);
+        mult += clamp(ps.momentum || 0, -12, 12) / 100;
+      }
+      var push = (state.effort[region.id] && state.effort[region.id][pid]) || 0;
+      var value = Math.max(base * Math.max(mult, 0.15) + push, 0.4);
+      raw[pid] = value;
+      total += value;
+    });
+
+    Object.keys(raw).forEach(function (pid) { raw[pid] = (raw[pid] / total) * 100; });
+    return raw;
+  }
+
+  function allRegionShares(state) {
+    var out = {};
+    PP.CAMPAIGN_REGIONS.forEach(function (r) { out[r.id] = regionShares(state, r); });
+    return out;
+  }
+
+  /* Национальная доля (Великобритания без Северной Ирландии), взвешенная по избирателям. */
+  function nationalShares(state, byRegion) {
+    byRegion = byRegion || allRegionShares(state);
+    var totals = {}, weightSum = 0;
+    PP.CAMPAIGN_REGIONS.forEach(function (r) {
+      var w = r.seats;
+      weightSum += w;
+      var sh = byRegion[r.id];
+      Object.keys(sh).forEach(function (pid) {
+        totals[pid] = (totals[pid] || 0) + sh[pid] * w;
+      });
+    });
+    Object.keys(totals).forEach(function (pid) { totals[pid] = totals[pid] / weightSum; });
+    return totals;
+  }
+
+  /* Публикуемый опрос: истина плюс шум социологической службы. */
+  function publishedPoll(state, rng, house) {
+    var nat = nationalShares(state);
+    var out = {};
+    var sum = 0;
+    Object.keys(nat).forEach(function (pid) {
+      /* Погрешность растёт вместе с размером партии: у мелких она не может
+         быть больше их самих. */
+      var sd = clamp(0.35 + nat[pid] * 0.045, 0.3, 1.6);
+      var v = nat[pid] + rng.normal(0, sd) + (house && house[pid] ? house[pid] : 0);
+      out[pid] = Math.max(v, 0.3);
+      sum += out[pid];
+    });
+    Object.keys(out).forEach(function (pid) { out[pid] = Math.round((out[pid] / sum) * 1000) / 10; });
+    return out;
+  }
+
+  /* Быстрая проекция мест по текущим долям (используется на дашборде). */
+  function projectSeats(state, byRegion, opts) {
+    opts = opts || {};
+    byRegion = byRegion || allRegionShares(state);
+    var counts = {};
+    state.seats.forEach(function (seat) {
+      var res = PP.seatResult(seat, byRegion[seat.region], {
+        noise: 0,
+        rng: opts.rng,
+        incumbency: opts.incumbency
+      });
+      counts[res.winner] = (counts[res.winner] || 0) + 1;
+    });
+    /* Северная Ирландия — отдельный блок, места фиксированы до дня выборов. */
+    (state.niSeats || []).forEach(function (s) {
+      counts[s.party] = (counts[s.party] || 0) + 1;
+    });
+    return counts;
+  }
+
+  PP.regionShares = regionShares;
+  PP.allRegionShares = allRegionShares;
+  PP.nationalShares = nationalShares;
+  PP.publishedPoll = publishedPoll;
+  PP.projectSeats = projectSeats;
+  PP.normalisedSalience = normalisedSalience;
+  PP.issueFit = issueFit;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+</script>
+<script>
+/* src/core/state.js */
+/* Создание, сохранение и загрузка состояния игры. */
+(function (root) {
+  'use strict';
+
+  var PP = root.PP;
+  var SAVE_KEY = 'pp-uk-save-v1';
+  var VERSION = '1.0.0-beta';
+
+  var DIFFICULTY = {
+    easy: { label: 'Заднескамеечник', aiSkill: 0.6, fundsMult: 1.35, apBonus: 1 },
+    normal: { label: 'Министр теневого кабинета', aiSkill: 1.0, fundsMult: 1.0, apBonus: 0 },
+    hard: { label: 'Кандидат в премьеры', aiSkill: 1.35, fundsMult: 0.8, apBonus: 0 }
+  };
+
+  function deepCopy(o) { return JSON.parse(JSON.stringify(o)); }
+
+  function makePartyState(def, diff, isPlayer) {
+    return {
+      id: def.id,
+      positions: deepCopy(def.positions),
+      corePositions: deepCopy(def.positions),
+      competence: deepCopy(def.competence),
+      leader: deepCopy(def.leader),
+      funds: def.funds * (isPlayer ? diff.fundsMult : 1),
+      activists: def.activists,
+      unity: def.unity,
+      momentum: 0,
+      scandal: 0,
+      spent: 0,
+      broadcastsLeft: 5,
+      history: []
+    };
+  }
+
+  function makeNiSeats(rng) {
+    var seats = [];
+    var names = ['Белфаст-Север', 'Белфаст-Юг', 'Белфаст-Восток', 'Белфаст-Запад', 'Северный Даун',
+      'Южный Даун', 'Ньюри и Арма', 'Фермана и Южный Тирон', 'Средний Ольстер', 'Восточный Лондондерри',
+      'Фойл', 'Западный Тирон', 'Ларн и Антрим', 'Северный Антрим', 'Южный Антрим', 'Восточный Антрим',
+      'Стрэнгфорд', 'Аппер-Банн'];
+    var pool = [];
+    PP.NI_PARTIES.forEach(function (p) {
+      for (var i = 0; i < p.base; i++) pool.push(p.id);
+    });
+    while (pool.length < 18) pool.push('apni');
+    pool = rng.shuffle(pool).slice(0, 18);
+    for (var i = 0; i < 18; i++) {
+      seats.push({ id: 'ni-' + i, name: names[i], region: 'n_ireland', party: pool[i] });
+    }
+    return seats;
+  }
+
+  function newGame(opts) {
+    opts = opts || {};
+    var seed = opts.seed || String(Date.now());
+    var diff = DIFFICULTY[opts.difficulty || 'normal'];
+    var rng = new PP.Rng('init:' + seed);
+
+    /* Своя партия регистрируется до всего остального: её должны видеть
+       генератор округов, модель поддержки и соперники. */
+    PP.unregisterCustomParty('own');
+    var customDef = null;
+    if (opts.custom) {
+      customDef = PP.buildCustomParty(opts.custom);
+      PP.registerCustomParty(customDef);
+    }
+    var role = PP.ROLE_BY_ID[opts.role || 'leader'] || PP.ROLE_BY_ID.leader;
+
+    var state = {
+      version: VERSION,
+      seed: seed,
+      difficulty: opts.difficulty || 'normal',
+      difficultyLabel: diff.label,
+      aiSkill: diff.aiSkill,
+      playerId: opts.playerId || 'lab',
+      roleId: role.id,
+      roleName: role.name,
+      customConfig: opts.custom ? JSON.parse(JSON.stringify(opts.custom)) : null,
+      week: 1,
+      totalWeeks: opts.weeks || 12,
+      phase: 'campaign',
+      ap: 0,
+      apMax: 4 + diff.apBonus + (role.mods.ap || 0),
+      stamina: 100,
+      parties: {},
+      salience: {},
+      effort: {},
+      news: [],
+      pollHistory: [],
+      debatesDone: [],
+      pendingEvent: null,
+      groundGame: {},
+      targeted: {},
+      turnLog: [],
+      result: null,
+      government: null,
+      achievements: []
+    };
+
+    state.bases = PP.buildBases(customDef);
+
+    PP.PARTIES.forEach(function (def) {
+      state.parties[def.id] = makePartyState(def, diff, def.id === state.playerId);
+    });
+    PP.ISSUES.forEach(function (i) { state.salience[i.id] = i.baseSalience; });
+    PP.CAMPAIGN_REGIONS.forEach(function (r) {
+      state.effort[r.id] = {};
+      Object.keys(state.bases[r.id]).forEach(function (pid) { state.effort[r.id][pid] = 0; });
+    });
+
+    /* Бонусы роли получает только партия игрока. */
+    var me = state.parties[state.playerId];
+    if (me && role.start) {
+      if (role.start.funds) me.funds *= role.start.funds;
+      if (role.start.unity) me.unity = PP.clamp(me.unity + role.start.unity, 5, 100);
+      if (role.start.approval) me.leader.approval = PP.clamp(me.leader.approval + role.start.approval, -80, 80);
+    }
+
+    state.seats = PP.generateSeats(seed);
+    state.niSeats = makeNiSeats(rng);
+    state.ap = state.apMax;
+
+    /* Нотационный расклад «прошлых выборов» — от него считаются приросты. */
+    var byRegion = PP.allRegionShares(state);
+    PP.assignHolders(state.seats, byRegion);
+    state.startingSeats = PP.projectSeats(state, byRegion, { incumbency: 0 });
+    state.startingNational = PP.nationalShares(state, byRegion);
+
+    var poll = PP.publishedPoll(state, new PP.Rng('poll:' + seed + ':0'));
+    state.pollHistory.push({ week: 0, shares: poll });
+
+    addNews(state, 'Парламент распущен. До дня голосования — ' + state.totalWeeks + ' недель.', 'system');
+    addNews(state, 'Вы — ' + role.name.toLowerCase() + ' партии ' + PP.PARTY_BY_ID[state.playerId].ru + '.', 'system');
+    return state;
+  }
+
+  function addNews(state, text, kind, partyId) {
+    state.news.unshift({ week: state.week, text: text, kind: kind || 'news', party: partyId || null });
+    if (state.news.length > 120) state.news.pop();
+  }
+
+  function save(state) {
+    try {
+      root.localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function load() {
+    try {
+      var raw = root.localStorage.getItem(SAVE_KEY);
+      if (!raw) return null;
+      var s = JSON.parse(raw);
+      if (!s || s.version !== VERSION) return null;
+      /* Своя партия живёт в сохранении конфигурацией — пересобираем её. */
+      PP.unregisterCustomParty('own');
+      if (s.customConfig) PP.registerCustomParty(PP.buildCustomParty(s.customConfig));
+      return s;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function clearSave() {
+    try { root.localStorage.removeItem(SAVE_KEY); } catch (e) { /* нет хранилища — не беда */ }
+  }
+
+  function hasSave() {
+    try { return !!root.localStorage.getItem(SAVE_KEY); } catch (e) { return false; }
+  }
+
+  PP.VERSION = VERSION;
+  PP.DIFFICULTY = DIFFICULTY;
+  PP.newGame = newGame;
+  PP.addNews = addNews;
+  PP.saveGame = save;
+  PP.loadGame = load;
+  PP.clearSave = clearSave;
+  PP.hasSave = hasSave;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+</script>
+<script>
+/* src/core/actions.js */
+/*
+ * Действия кампании. Каждое действие тратит очко расписания (AP), иногда
+ * деньги и силы лидера, и меняет состояние. Эффекты в регионах копятся в
+ * state.effort и еженедельно затухают — кампанию нужно поддерживать.
+ */
+(function (root) {
+  'use strict';
+
+  var PP = root.PP;
+  var clamp = PP.clamp;
+
+  /* Множитель роли игрока: соперникам роли не достаются. */
+  function mod(state, params, key) {
+    if (!params || params.partyId !== state.playerId) return 1;
+    return PP.roleMod(state, key);
+  }
+
+  function addEffort(state, regionId, partyId, value) {
+    var r = state.effort[regionId];
+    if (!r) return;
+    r[partyId] = clamp((r[partyId] || 0) + value, -14, 22);
+  }
+
+  function baseOf(state, region) {
+    return (state.bases && state.bases[region.id]) || region.base;
+  }
+
+  function nationalEffort(state, partyId, value) {
+    PP.CAMPAIGN_REGIONS.forEach(function (r) {
+      if (baseOf(state, r)[partyId] === undefined) return;
+      addEffort(state, r.id, partyId, value);
+    });
+  }
+
+  function partyScope(partyId) {
+    return PP.PARTY_BY_ID[partyId].scope;
+  }
+
+  /* Регионы, где партия вообще выдвигается: у своей партии список берётся
+     из стартовых долей текущей игры. */
+  function regionsFor(state, partyId) {
+    var scope = partyScope(partyId);
+    return PP.CAMPAIGN_REGIONS.filter(function (r) {
+      if (scope === 'scotland') return r.id === 'scotland';
+      if (scope === 'wales') return r.id === 'wales';
+      return baseOf(state, r)[partyId] !== undefined;
+    });
+  }
+
+  /* Насколько эффективен лидер прямо сейчас: харизма, силы, скандалы. */
+  function leaderForm(ps, stamina) {
+    var l = ps.leader;
+    return clamp(0.6 + (l.charisma - 50) / 120 + (stamina - 60) / 260 - (ps.scandal || 0) / 160, 0.25, 1.6);
+  }
+
+  function marginalSeats(state, regionId, partyId, count) {
+    var byRegion = state._cacheRegionShares || PP.allRegionShares(state);
+    var shares = byRegion[regionId];
+    var scored = state.seats.filter(function (s) { return s.region === regionId; }).map(function (seat) {
+      var res = PP.seatResult(seat, shares, { noise: 0 });
+      var mine = res.shares[partyId] || 0;
+      var best = res.shares[res.winner];
+      return { seat: seat, gap: res.winner === partyId ? -(best - res.shares[res.runnerUp]) : (best - mine) };
+    });
+    scored.sort(function (a, b) { return Math.abs(a.gap) - Math.abs(b.gap); });
+    return scored.slice(0, count).map(function (x) { return x.seat; });
+  }
+
+  var ACTIONS = [
+    {
+      id: 'rally',
+      name: 'Тур по региону',
+      icon: '🎤',
+      desc: 'Лидер объезжает регион: митинги, заводы, местная пресса. Сильный, но короткий эффект.',
+      ap: 1, cost: 0.12, stamina: 14, needs: 'region',
+      run: function (state, p, rng) {
+        var ps = state.parties[p.partyId];
+        var form = leaderForm(ps, state.stamina);
+        var gain = 2.1 * form * rng.range(0.8, 1.2) * mod(state, p, 'rally');
+        addEffort(state, p.regionId, p.partyId, gain);
+        ps.momentum = clamp(ps.momentum + 0.6 * form, -14, 14);
+        return {
+          text: 'Митинги в регионе «' + PP.REGION_BY_ID[p.regionId].name + '»: +' + gain.toFixed(1) + ' п.п. в местных опросах.',
+          delta: gain
+        };
+      }
+    },
+    {
+      id: 'ground',
+      name: 'Работа на земле',
+      icon: '🚪',
+      desc: 'Обход квартир, листовки, база сторонников. Эффект скромнее, но держится дольше.',
+      ap: 1, cost: 0.05, stamina: 3, needs: 'region',
+      run: function (state, p, rng) {
+        var ps = state.parties[p.partyId];
+        var gain = (0.7 + ps.activists / 45) * rng.range(0.85, 1.15) * mod(state, p, 'ground');
+        addEffort(state, p.regionId, p.partyId, gain);
+        state.groundGame[p.regionId] = state.groundGame[p.regionId] || {};
+        state.groundGame[p.regionId][p.partyId] = (state.groundGame[p.regionId][p.partyId] || 0) + 1;
+        return {
+          text: 'Активисты обошли округа региона «' + PP.REGION_BY_ID[p.regionId].name + '»: +' + gain.toFixed(1) + ' п.п. и лучше явка сторонников.',
+          delta: gain
+        };
+      }
+    },
+    {
+      id: 'target',
+      name: 'Кампания в качающихся округах',
+      icon: '🎯',
+      desc: 'Все силы — в шесть самых близких округов региона. Голоса не растут по региону, но конвертируются в мандаты.',
+      ap: 1, cost: 0.10, stamina: 6, needs: 'region',
+      run: function (state, p, rng) {
+        var seats = marginalSeats(state, p.regionId, p.partyId, 6);
+        var bonus = 0.055 * rng.range(0.8, 1.25) * (1 + state.parties[p.partyId].activists / 200) * mod(state, p, 'target');
+        seats.forEach(function (s) {
+          s.local[p.partyId] = (s.local[p.partyId] || 0) + bonus;
+          state.targeted[s.id] = (state.targeted[s.id] || 0) + 1;
+        });
+        return {
+          text: 'Целевая кампания в округах: ' + seats.map(function (s) { return s.name; }).join(', ') + '.',
+          delta: 0
+        };
+      }
+    },
+    {
+      id: 'broadcast',
+      name: 'Партийный ролик',
+      icon: '📺',
+      desc: 'Общенациональный эфир и реклама в сети. Дорого, зато бьёт по всей стране.',
+      ap: 1, cost: 0.35, stamina: 2, needs: 'none',
+      available: function (state, partyId) { return state.parties[partyId].broadcastsLeft > 0; },
+      unavailableText: 'Эфирное время на эту кампанию исчерпано.',
+      run: function (state, p, rng) {
+        var ps = state.parties[p.partyId];
+        ps.broadcastsLeft--;
+        var quality = rng.range(0.7, 1.3) * (0.75 + ps.leader.competence / 200);
+        var gain = 0.85 * quality * mod(state, p, 'broadcast');
+        nationalEffort(state, p.partyId, gain);
+        ps.momentum = clamp(ps.momentum + 1.1 * quality, -14, 14);
+        return { text: 'Ролик вышел в эфир: +' + gain.toFixed(1) + ' п.п. по всей стране.', delta: gain };
+      }
+    },
+    {
+      id: 'media',
+      name: 'Большое интервью',
+      icon: '🎙️',
+      desc: 'Час в прямом эфире. Может поднять рейтинг лидера, а может стоить кампании недели.',
+      ap: 1, cost: 0, stamina: 10, needs: 'none',
+      run: function (state, p, rng) {
+        var ps = state.parties[p.partyId];
+        var roll = (rng.normal((ps.leader.charisma + ps.leader.competence) / 2 - 48, 16) + (state.stamina - 60) / 8) * mod(state, p, 'media');
+        if (roll > 22) {
+          ps.leader.approval = clamp(ps.leader.approval + 5, -80, 80);
+          ps.momentum = clamp(ps.momentum + 2.0, -14, 14);
+          return { text: 'Интервью разошлось на цитаты. Рейтинг лидера +5.', delta: 5, tone: 'good' };
+        }
+        if (roll < -18) {
+          ps.leader.approval = clamp(ps.leader.approval - 6, -80, 80);
+          ps.momentum = clamp(ps.momentum - 2.2, -14, 14);
+          return { text: 'Лидер запутался в цифрах в прямом эфире. Рейтинг -6.', delta: -6, tone: 'bad' };
+        }
+        ps.leader.approval = clamp(ps.leader.approval + 1, -80, 80);
+        return { text: 'Ровное интервью без происшествий. Рейтинг +1.', delta: 1, tone: 'neutral' };
+      }
+    },
+    {
+      id: 'fundraise',
+      name: 'Ужин с донорами',
+      icon: '💷',
+      desc: 'Деньги на кампанию. Пресса такие вечера не любит.',
+      ap: 1, cost: 0, stamina: 6, needs: 'none',
+      run: function (state, p, rng) {
+        var ps = state.parties[p.partyId];
+        var def = PP.PARTY_BY_ID[p.partyId];
+        var appeal = (def.family === 'right' ? 1.25 : def.family === 'centre' ? 1.0 : 0.9);
+        var raised = rng.range(0.45, 1.15) * appeal * (0.8 + ps.leader.approval / 200 + ps.unity / 200) * mod(state, p, 'fundraise');
+        ps.funds += raised;
+        var res = { text: 'Собрано £' + raised.toFixed(2) + ' млн.', delta: raised };
+        if (rng.chance(0.14 + (60 - ps.leader.integrity) / 260)) {
+          ps.scandal = clamp((ps.scandal || 0) + 12, 0, 100);
+          res.text += ' Но журналисты уже спрашивают, кто именно платил за вечер.';
+          res.tone = 'bad';
+        }
+        return res;
+      }
+    },
+    {
+      id: 'policy',
+      name: 'Заявление о политике',
+      icon: '📜',
+      desc: 'Сдвинуть позицию партии по теме и поднять её значимость в повестке.',
+      ap: 1, cost: 0.03, stamina: 5, needs: 'policy',
+      run: function (state, p, rng) {
+        var ps = state.parties[p.partyId];
+        var issue = PP.ISSUE_BY_ID[p.issueId];
+        var dir = p.direction > 0 ? 1 : -1;
+        var before = ps.positions[p.issueId];
+        ps.positions[p.issueId] = clamp(before + dir * 9, -100, 100);
+        state.salience[p.issueId] = clamp(state.salience[p.issueId] + 3.5, 1, 45);
+        ps.competence[p.issueId] = clamp(ps.competence[p.issueId] + 2, 0, 95);
+        var drift = Math.abs(ps.positions[p.issueId] - ps.corePositions[p.issueId]);
+        var unityHit = (drift > 25 ? (drift - 25) / 14 : 0) * mod(state, p, 'policyUnity');
+        ps.unity = clamp(ps.unity - unityHit, 5, 100);
+        var res = {
+          text: 'Новая линия по теме «' + issue.name + '»: ' +
+            (dir > 0 ? issue.rightLabel : issue.leftLabel) + '.',
+          delta: 0
+        };
+        if (unityHit > 1.5) {
+          res.text += ' Заднескамеечники недовольны: единство партии -' + unityHit.toFixed(0) + '.';
+          res.tone = 'bad';
+        }
+        return res;
+      }
+    },
+    {
+      id: 'attack',
+      name: 'Негативная кампания',
+      icon: '🗡️',
+      desc: 'Ударить по конкретному сопернику в конкретном регионе. Иногда прилетает в ответ.',
+      ap: 1, cost: 0.15, stamina: 5, needs: 'attack',
+      run: function (state, p, rng) {
+        var ps = state.parties[p.partyId];
+        var target = state.parties[p.targetId];
+        var backfire = rng.chance(0.24 - (ps.leader.charisma - 50) / 400);
+        if (backfire) {
+          addEffort(state, p.regionId, p.partyId, -1.0);
+          ps.leader.approval = clamp(ps.leader.approval - 4, -80, 80);
+          return {
+            text: 'Атака на ' + PP.PARTY_BY_ID[p.targetId].ru + ' выглядела мелочно. Отдача по своим: -1.0 п.п.',
+            delta: -1, tone: 'bad'
+          };
+        }
+        var hit = 1.5 * rng.range(0.8, 1.25) * mod(state, p, 'attack');
+        addEffort(state, p.regionId, p.targetId, -hit);
+        target.leader.approval = clamp(target.leader.approval - 2, -80, 80);
+        return {
+          text: PP.PARTY_BY_ID[p.targetId].ru + ' теряет ' + hit.toFixed(1) + ' п.п. в регионе «' +
+            PP.REGION_BY_ID[p.regionId].name + '».',
+          delta: hit, tone: 'good'
+        };
+      }
+    },
+    {
+      id: 'organise',
+      name: 'Набор активистов',
+      icon: '🧑‍🤝‍🧑',
+      desc: 'Вложиться в сеть отделений. Окупается ближе к дню голосования.',
+      ap: 1, cost: 0.08, stamina: 2, needs: 'none',
+      run: function (state, p, rng) {
+        var ps = state.parties[p.partyId];
+        var gain = rng.range(4, 9) * (0.7 + ps.unity / 140) * mod(state, p, 'organise');
+        ps.activists = clamp(ps.activists + gain, 0, 100);
+        return { text: 'В отделения пришли новые волонтёры: +' + gain.toFixed(0) + ' к сети активистов.', delta: gain };
+      }
+    },
+    {
+      id: 'unify',
+      name: 'Собрание фракции',
+      icon: '🤝',
+      desc: 'Успокоить заднескамеечников и погасить утечки в прессу.',
+      ap: 1, cost: 0.02, stamina: 6, needs: 'none',
+      run: function (state, p, rng) {
+        var ps = state.parties[p.partyId];
+        var gain = rng.range(5, 11) * mod(state, p, 'unify');
+        ps.unity = clamp(ps.unity + gain, 5, 100);
+        ps.scandal = clamp((ps.scandal || 0) - 6, 0, 100);
+        return { text: 'Фракция притихла: единство +' + gain.toFixed(0) + '.', delta: gain };
+      }
+    }
+  ];
+
+  var BY_ID = {};
+  ACTIONS.forEach(function (a) { BY_ID[a.id] = a; });
+
+  function canRun(state, partyId, actionId) {
+    var a = BY_ID[actionId];
+    var ps = state.parties[partyId];
+    if (!a) return { ok: false, why: 'Неизвестное действие.' };
+    if (state.phase !== 'campaign') return { ok: false, why: 'Кампания окончена.' };
+    if (state.ap < a.ap) return { ok: false, why: 'Не осталось очков расписания на эту неделю.' };
+    if (ps.funds < a.cost) return { ok: false, why: 'Не хватает денег: нужно £' + a.cost.toFixed(2) + ' млн.' };
+    if (a.available && !a.available(state, partyId)) return { ok: false, why: a.unavailableText || 'Недоступно.' };
+    return { ok: true };
+  }
+
+  /* Выполнить действие игрока или ИИ. params: {partyId, regionId, issueId, ...} */
+  function perform(state, partyId, actionId, params, rng) {
+    var a = BY_ID[actionId];
+    var ps = state.parties[partyId];
+    var p = params || {};
+    p.partyId = partyId;
+    ps.funds -= a.cost;
+    ps.spent += a.cost;
+    if (partyId === state.playerId) {
+      state.ap -= a.ap;
+      state.stamina = clamp(state.stamina - a.stamina * PP.roleMod(state, 'stamina'), 0, 100);
+    }
+    state._cacheRegionShares = null;
+    var out = a.run(state, p, rng);
+    out.action = a;
+    if (partyId === state.playerId) {
+      PP.addNews(state, a.icon + ' ' + out.text, out.tone || 'action', partyId);
+    }
+    return out;
+  }
+
+  PP.ACTIONS = ACTIONS;
+  PP.ACTION_BY_ID = BY_ID;
+  PP.canRunAction = canRun;
+  PP.performAction = perform;
+  PP.regionsForParty = regionsFor;
+  PP.regionBase = baseOf;
+  PP.addEffort = addEffort;
+  PP.marginalSeats = marginalSeats;
+  PP.leaderForm = leaderForm;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+</script>
+<script>
+/* src/core/events.js */
+/*
+ * Случайные события недели и телевизионные дебаты. У события есть варианты
+ * ответа: выбор игрока меняет рейтинги, деньги, единство и повестку.
+ */
+(function (root) {
+  'use strict';
+
+  var PP = root.PP;
+  var clamp = PP.clamp;
+
+  function me(state) { return state.parties[state.playerId]; }
+  function bump(state, field, value) {
+    var ps = me(state);
+    if (field === 'approval') ps.leader.approval = clamp(ps.leader.approval + value, -80, 80);
+    else if (field === 'unity') ps.unity = clamp(ps.unity + value, 5, 100);
+    else if (field === 'funds') ps.funds = Math.max(ps.funds + value, 0);
+    else if (field === 'activists') ps.activists = clamp(ps.activists + value, 0, 100);
+    else if (field === 'momentum') ps.momentum = clamp(ps.momentum + value, -14, 14);
+    else if (field === 'scandal') ps.scandal = clamp((ps.scandal || 0) + value, 0, 100);
+    else if (field === 'stamina') state.stamina = clamp(state.stamina + value, 0, 100);
+  }
+  function salience(state, issueId, value) {
+    state.salience[issueId] = clamp(state.salience[issueId] + value, 1, 45);
+  }
+
+  var EVENTS = [
+    {
+      id: 'inflation',
+      title: 'Свежие данные по инфляции',
+      text: 'Статистика вышла хуже прогноза: продукты и аренда снова подорожали. Тема цен выходит на первый план.',
+      weight: 10,
+      options: [
+        { label: 'Обвинить правительство и торговые сети', run: function (s) { salience(s, 'cost', 5); bump(s, 'momentum', 1.2); return 'Тема цен гремит всю неделю, вы задаёте повестку.'; } },
+        { label: 'Предложить адресную помощь семьям', run: function (s) { salience(s, 'cost', 3); bump(s, 'approval', 3); bump(s, 'funds', -0.15); return 'План помощи встречен тепло, но стоил денег на промо.'; } },
+        { label: 'Промолчать: тема не наша', run: function (s) { salience(s, 'cost', 2); bump(s, 'momentum', -0.6); return 'Повестку на неделю забрали конкуренты.'; } }
+      ]
+    },
+    {
+      id: 'nhs_winter',
+      title: 'Очереди в отделениях скорой помощи',
+      text: 'Телевидение показывает каталки в коридорах больницы в Северной Англии. NHS — снова главная тема.',
+      weight: 10,
+      options: [
+        { label: 'Ехать в больницу и говорить с врачами', run: function (s) { salience(s, 'nhs', 5); bump(s, 'approval', 4); bump(s, 'stamina', -8); return 'Кадры с врачами весь вечер в новостях.'; } },
+        { label: 'Объявить экстренный план финансирования', run: function (s) { salience(s, 'nhs', 6); me(s).competence.nhs = clamp(me(s).competence.nhs + 4, 0, 95); bump(s, 'unity', -3); return 'Обещание услышали. Казначейские ястребы в партии ворчат.'; } },
+        { label: 'Перевести разговор на экономику', run: function (s) { salience(s, 'tax', 3); salience(s, 'nhs', -2); return 'Вы уводите дискуссию к налогам.'; } }
+      ]
+    },
+    {
+      id: 'boats',
+      title: 'Кризис на побережье Кента',
+      text: 'За сутки Ла-Манш пересекли несколько сотен человек. Таблоиды требуют реакции.',
+      weight: 9,
+      options: [
+        { label: 'Жёсткая линия: контроль границ прежде всего', run: function (s) { var ps = me(s); ps.positions.immig = clamp(ps.positions.immig + 8, -100, 100); salience(s, 'immig', 6); bump(s, 'unity', -4); return 'Заголовки ваши, часть партии в ярости.'; } },
+        { label: 'Говорить о разгоне очереди на рассмотрение дел', run: function (s) { salience(s, 'immig', 3); me(s).competence.immig = clamp(me(s).competence.immig + 5, 0, 95); return 'Скучный, но компетентный ответ.'; } },
+        { label: 'Обвинить оппонентов в разжигании', run: function (s) { salience(s, 'immig', 4); bump(s, 'approval', -2); bump(s, 'unity', 3); return 'Своя аудитория довольна, колеблющиеся — нет.'; } }
+      ]
+    },
+    {
+      id: 'donor',
+      title: 'Вопрос о пожертвовании',
+      text: 'Газета выяснила, что крупный донор партии получал государственные контракты.',
+      weight: 8,
+      condition: function (s) { return me(s).funds > 2; },
+      options: [
+        { label: 'Вернуть деньги немедленно', run: function (s) { bump(s, 'funds', -1.2); bump(s, 'scandal', -8); bump(s, 'approval', 2); return 'Дорого, но история умерла за два дня.'; } },
+        { label: 'Всё законно, комментариев не будет', run: function (s) { bump(s, 'scandal', 14); return 'История живёт своей жизнью всю неделю.'; } },
+        { label: 'Опубликовать все пожертвования разом', run: function (s) { bump(s, 'scandal', 4); bump(s, 'approval', 3); bump(s, 'unity', -3); return 'Прозрачность оценили, пара коллег теперь объясняется сама.'; } }
+      ]
+    },
+    {
+      id: 'defection',
+      title: 'Депутат готов перейти к вам',
+      text: 'Заднескамеечник соперника намекает, что готов сменить партию — если ему обещают безопасный округ.',
+      weight: 6,
+      options: [
+        { label: 'Обещать округ и устроить пресс-конференцию', run: function (s, rng) { bump(s, 'momentum', 2.5); bump(s, 'unity', -7); return 'Красивая картинка перехода. В местном отделении скандал.'; } },
+        { label: 'Взять без обещаний', run: function (s, rng) { if (rng.chance(0.5)) { bump(s, 'momentum', 1.2); return 'Он всё равно перешёл.'; } bump(s, 'momentum', -0.5); return 'Передумал и остался — над вами смеются.'; } },
+        { label: 'Отказаться', run: function (s) { bump(s, 'unity', 4); return 'Своя фракция оценила верность принципам.'; } }
+      ]
+    },
+    {
+      id: 'endorsement',
+      title: 'Редакция крупной газеты выбирает сторону',
+      text: 'Влиятельное издание намекает, что готово поддержать вас — при определённой правке манифеста.',
+      weight: 7,
+      options: [
+        { label: 'Пойти навстречу по налогам', run: function (s) { var ps = me(s); ps.positions.tax = clamp(ps.positions.tax + 10, -100, 100); bump(s, 'momentum', 2.2); bump(s, 'unity', -5); return 'Передовица за вас, актив недоволен.'; } },
+        { label: 'Ничего не менять', run: function (s, rng) { if (rng.chance(0.35)) { bump(s, 'momentum', 1.0); return 'Поддержали и так — «за неимением лучшего».'; } bump(s, 'momentum', -1.0); return 'Газета выбрала соперника.'; } }
+      ]
+    },
+    {
+      id: 'gaffe',
+      title: 'Кандидат наговорил лишнего',
+      text: 'Ваш кандидат в одном из округов оставил в сети такое, что читать неловко.',
+      weight: 8,
+      options: [
+        { label: 'Снять с выборов сегодня же', run: function (s) { bump(s, 'scandal', 3); bump(s, 'unity', -4); return 'Быстро и жёстко — история прожила один день.'; } },
+        { label: 'Защищать: слова вырваны из контекста', run: function (s, rng) { if (rng.chance(0.45)) { bump(s, 'scandal', 16); return 'История тянется всю неделю.'; } bump(s, 'unity', 3); return 'Пронесло, фракция оценила защиту своего.'; } }
+      ]
+    },
+    {
+      id: 'strike',
+      title: 'Забастовка на железной дороге',
+      text: 'Профсоюз объявил стачку в разгар кампании. Страна стоит.',
+      weight: 7,
+      options: [
+        { label: 'Встать на сторону бастующих', run: function (s) { var ps = me(s); ps.positions.cost = clamp(ps.positions.cost - 6, -100, 100); bump(s, 'activists', 6); bump(s, 'approval', -2); return 'Профсоюзы шлют волонтёров, средний избиратель хмурится.'; } },
+        { label: 'Потребовать вернуться к работе', run: function (s) { bump(s, 'approval', 3); bump(s, 'activists', -5); return 'Уставшие пассажиры вам благодарны.'; } },
+        { label: 'Призвать стороны к переговорам', run: function (s) { bump(s, 'approval', 1); me(s).competence.cost = clamp(me(s).competence.cost + 3, 0, 95); return 'Нейтрально и солидно.'; } }
+      ]
+    },
+    {
+      id: 'energy',
+      title: 'Счета за электричество снова растут',
+      text: 'Регулятор поднял потолок цен. Спор о зелёной повестке вспыхнул заново.',
+      weight: 7,
+      options: [
+        { label: 'Ускорить переход на возобновляемую энергию', run: function (s) { var ps = me(s); ps.positions.climate = clamp(ps.positions.climate - 8, -100, 100); salience(s, 'climate', 5); return 'Вы связали счета с зелёной энергетикой.'; } },
+        { label: 'Отложить климатические расходы', run: function (s) { var ps = me(s); ps.positions.climate = clamp(ps.positions.climate + 8, -100, 100); salience(s, 'climate', 4); salience(s, 'cost', 2); return 'Вы обещали снять «зелёные» надбавки со счетов.'; } },
+        { label: 'Обещать заморозку тарифов', run: function (s) { salience(s, 'cost', 5); bump(s, 'approval', 3); bump(s, 'unity', -2); return 'Популярно. Экономисты спрашивают, кто заплатит.'; } }
+      ]
+    },
+    {
+      id: 'poll_shock',
+      title: 'Опрос-выброс',
+      text: 'Одна социологическая служба выдала цифры, резко отличающиеся от остальных. В студиях паника.',
+      weight: 6,
+      options: [
+        { label: 'Играть ожиданиями: «мы отстаём»', run: function (s) { bump(s, 'activists', 5); bump(s, 'momentum', -0.3); return 'Актив мобилизован страхом поражения.'; } },
+        { label: 'Объявить, что победа близка', run: function (s, rng) { if (rng.chance(0.5)) { bump(s, 'momentum', 1.5); return 'Инерция успеха работает на вас.'; } bump(s, 'activists', -4); return 'Сторонники расслабились.'; } }
+      ]
+    },
+    {
+      id: 'health',
+      title: 'Лидер валится с ног',
+      text: 'Врач советует снять два дня из графика.',
+      weight: 5,
+      condition: function (s) { return s.stamina < 55; },
+      options: [
+        { label: 'Отменить поездки и отдохнуть', run: function (s) { bump(s, 'stamina', 26); bump(s, 'momentum', -0.8); return 'График расчищен, лидер выспался.'; } },
+        { label: 'Ехать дальше', run: function (s, rng) { if (rng.chance(0.4)) { bump(s, 'stamina', -14); bump(s, 'approval', -4); return 'Лидер сорвал голос прямо в эфире.'; } bump(s, 'approval', 2); return 'Выдержал. Пресса пишет о выносливости.'; } }
+      ]
+    },
+    {
+      id: 'union_row',
+      title: 'Спор о будущем Союза',
+      text: 'В Эдинбурге снова говорят о референдуме. Лондонские студии требуют вашего ответа.',
+      weight: 5,
+      options: [
+        { label: 'Категорическое «нет» новому референдуму', run: function (s) { var ps = me(s); ps.positions.union = clamp(ps.positions.union + 10, -100, 100); salience(s, 'union', 4); return 'Юнионисты довольны, Шотландия — нет.'; } },
+        { label: 'Референдум — дело шотландцев', run: function (s) { var ps = me(s); ps.positions.union = clamp(ps.positions.union - 10, -100, 100); salience(s, 'union', 4); return 'В Шотландии вас услышали, в Англии запомнили.'; } },
+        { label: 'Говорить о деньгах, а не о флагах', run: function (s) { salience(s, 'cost', 3); salience(s, 'union', -1); return 'Тема Союза ушла из эфира.'; } }
+      ]
+    },
+    {
+      id: 'crime_wave',
+      title: 'Громкое преступление',
+      text: 'Нападение в центре большого города открывает все выпуски новостей.',
+      weight: 6,
+      options: [
+        { label: 'Обещать 10 000 новых полицейских', run: function (s) { var ps = me(s); ps.positions.crime = clamp(ps.positions.crime + 7, -100, 100); salience(s, 'crime', 5); return 'Жёсткий ответ занял вечерние эфиры.'; } },
+        { label: 'Говорить о причинах и профилактике', run: function (s) { var ps = me(s); ps.positions.crime = clamp(ps.positions.crime - 6, -100, 100); salience(s, 'crime', 3); return 'Вдумчиво, но таблоиды недовольны.'; } }
+      ]
+    },
+    {
+      id: 'housing',
+      title: 'Протест против застройки',
+      text: 'В зажиточном пригороде жители вышли против нового микрорайона.',
+      weight: 5,
+      options: [
+        { label: 'Строить: стране нужно жильё', run: function (s) { var ps = me(s); ps.positions.housing = clamp(ps.positions.housing - 8, -100, 100); salience(s, 'housing', 4); return 'Молодые избиратели заметили.'; } },
+        { label: 'Поддержать местных жителей', run: function (s) { var ps = me(s); ps.positions.housing = clamp(ps.positions.housing + 8, -100, 100); salience(s, 'housing', 3); return 'В пригородах вам аплодируют.'; } }
+      ]
+    }
+  ];
+
+  function pickEvent(state, rng) {
+    var pool = EVENTS.filter(function (e) {
+      if (state.usedEvents && state.usedEvents.indexOf(e.id) >= 0) return false;
+      return !e.condition || e.condition(state);
+    });
+    if (!pool.length) return null;
+    var total = pool.reduce(function (s, e) { return s + e.weight; }, 0);
+    var r = rng.next() * total;
+    for (var i = 0; i < pool.length; i++) {
+      r -= pool[i].weight;
+      if (r <= 0) return pool[i];
+    }
+    return pool[pool.length - 1];
+  }
+
+  /* ---- Телевизионные дебаты ---- */
+
+  var DEBATE_MOVES = [
+    {
+      id: 'attack', label: 'Атаковать соперника',
+      hint: 'Работает при высокой харизме и слабом рейтинге оппонента.',
+      score: function (ps, state, rng) {
+        var lead = state.parties[topRival(state)];
+        return (ps.leader.charisma - 50) * 0.9 - lead.leader.approval * 0.3 + rng.normal(0, 14);
+      },
+      effect: function (state, ok) {
+        var rival = topRival(state);
+        if (ok) { state.parties[rival].leader.approval -= 4; PP.addEffort(state, 'london', rival, -0.4); }
+        else { me(state).leader.approval -= 3; }
+      }
+    },
+    {
+      id: 'detail', label: 'Уйти в детали программы',
+      hint: 'Ставка на компетентность: цифры, сроки, источники финансирования.',
+      score: function (ps, state, rng) { return (ps.leader.competence - 50) * 1.1 + rng.normal(0, 12); },
+      effect: function (state, ok) {
+        var ps = me(state);
+        PP.ISSUE_IDS.forEach(function (id) { ps.competence[id] = clamp(ps.competence[id] + (ok ? 2 : 0), 0, 95); });
+      }
+    },
+    {
+      id: 'presidential', label: 'Держаться государственно',
+      hint: 'Спокойный тон, обращение к камере, никаких склок.',
+      score: function (ps, state, rng) { return (ps.leader.integrity - 45) * 0.8 + (ps.leader.approval) * 0.3 + rng.normal(0, 11); },
+      effect: function (state, ok) { if (ok) me(state).unity = clamp(me(state).unity + 4, 5, 100); }
+    },
+    {
+      id: 'signature', label: 'Бить в одну тему',
+      hint: 'Всё сводить к теме, где партия сильнее всего.',
+      score: function (ps, state, rng) {
+        var best = 0;
+        PP.ISSUE_IDS.forEach(function (id) {
+          var w = (state.salience[id] / 20) * (ps.competence[id] - 45);
+          if (w > best) best = w;
+        });
+        return best * 1.3 + rng.normal(0, 13);
+      },
+      effect: function (state, ok) {
+        if (!ok) return;
+        var ps = me(state), bestId = PP.ISSUE_IDS[0], best = -99;
+        PP.ISSUE_IDS.forEach(function (id) {
+          var w = (state.salience[id] / 20) * (ps.competence[id] - 45);
+          if (w > best) { best = w; bestId = id; }
+        });
+        state.salience[bestId] = clamp(state.salience[bestId] + 4, 1, 45);
+      }
+    }
+  ];
+
+  function topRival(state) {
+    var nat = PP.nationalShares(state);
+    var best = null, bestVal = -1;
+    Object.keys(nat).forEach(function (pid) {
+      if (pid === state.playerId || pid === 'oth') return;
+      if (!PP.PARTY_BY_ID[pid].playable && pid !== 'pc') return;
+      if (nat[pid] > bestVal) { bestVal = nat[pid]; best = pid; }
+    });
+    return best || 'con';
+  }
+
+  function resolveDebate(state, moveId, rng) {
+    var move = DEBATE_MOVES.filter(function (m) { return m.id === moveId; })[0];
+    var ps = me(state);
+    var raw = move.score(ps, state, rng) + (state.stamina - 60) / 6;
+    var ok = raw > 0;
+    var big = Math.abs(raw) > 22;
+    move.effect(state, ok);
+    var swing = clamp(raw / 12, -3.5, 3.5);
+    ps.momentum = clamp(ps.momentum + swing, -14, 14);
+    ps.leader.approval = clamp(ps.leader.approval + swing * 1.6, -80, 80);
+    state.stamina = clamp(state.stamina - 10, 0, 100);
+    var verdict;
+    if (big && ok) verdict = 'Разгром: опросы после эфира отдают вечер вам с большим отрывом.';
+    else if (ok) verdict = 'Вы выиграли вечер по очкам.';
+    else if (big) verdict = 'Провал. Комментаторы называют это худшим выступлением кампании.';
+    else verdict = 'Ничья, склоняющаяся не в вашу пользу.';
+    return { ok: ok, swing: swing, text: verdict };
+  }
+
+  PP.EVENTS = EVENTS;
+  PP.pickEvent = pickEvent;
+  PP.DEBATE_MOVES = DEBATE_MOVES;
+  PP.resolveDebate = resolveDebate;
+  PP.topRival = topRival;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+</script>
+<script>
+/* src/core/ai.js */
+/*
+ * Соперники. Каждую неделю партия под управлением компьютера тратит свои
+ * очки расписания: чинит финансы, защищает сильные регионы, бьёт по лидеру
+ * гонки и осторожно двигает позиции к настроению избирателя.
+ */
+(function (root) {
+  'use strict';
+
+  var PP = root.PP;
+  var clamp = PP.clamp;
+
+  function partyStrengthByRegion(state, partyId) {
+    var byRegion = PP.allRegionShares(state);
+    var list = [];
+    PP.regionsForParty(state, partyId).forEach(function (r) {
+      var sh = byRegion[r.id];
+      var mine = sh[partyId] || 0;
+      var best = 0, bestId = null;
+      Object.keys(sh).forEach(function (pid) {
+        if (pid !== partyId && sh[pid] > best) { best = sh[pid]; bestId = pid; }
+      });
+      list.push({ region: r, mine: mine, gap: mine - best, rival: bestId, seats: r.seats });
+    });
+    return list;
+  }
+
+  /* Регионы, где партия близка к победе: там кампания даёт больше всего мандатов. */
+  function priorityRegions(state, partyId) {
+    return partyStrengthByRegion(state, partyId)
+      .map(function (x) {
+        x.value = x.seats * Math.exp(-Math.pow(x.gap / 9, 2)) * (0.5 + x.mine / 40);
+        return x;
+      })
+      .sort(function (a, b) { return b.value - a.value; });
+  }
+
+  function driftPositions(state, partyId, rng, skill) {
+    var ps = state.parties[partyId];
+    var def = PP.PARTY_BY_ID[partyId];
+    /* Ориентир — настроение регионов, где партия борется за места. */
+    var prio = priorityRegions(state, partyId).slice(0, 4);
+    if (!prio.length) return;
+    var target = {};
+    PP.ISSUE_IDS.forEach(function (id) { target[id] = 0; });
+    prio.forEach(function (x) {
+      var prefs = PP.regionPreferences(x.region);
+      PP.ISSUE_IDS.forEach(function (id) { target[id] += prefs[id] / prio.length; });
+    });
+    /* Двигаться можно недалеко от идентичности партии — иначе бунт фракции. */
+    PP.ISSUE_IDS.forEach(function (id) {
+      var want = target[id];
+      var core = ps.corePositions[id];
+      var maxDrift = 22 + skill * 8;
+      var step = clamp((want - ps.positions[id]) * 0.10 * skill, -4, 4);
+      var next = clamp(ps.positions[id] + step, core - maxDrift, core + maxDrift);
+      if (Math.abs(next - ps.positions[id]) > 0.1 && rng.chance(0.5)) {
+        ps.positions[id] = clamp(next, -100, 100);
+        ps.unity = clamp(ps.unity - Math.abs(next - core) / 220, 5, 100);
+      }
+    });
+    if (def.id === 'ref') ps.unity = clamp(ps.unity - 0.3, 5, 100);
+  }
+
+  function chooseAction(state, partyId, rng, skill) {
+    var ps = state.parties[partyId];
+    var prio = priorityRegions(state, partyId);
+    var top = prio[0];
+    var options = [];
+
+    if (ps.funds < 1.2) options.push({ id: 'fundraise', w: 9 });
+    else options.push({ id: 'fundraise', w: 2 });
+
+    if (top) {
+      options.push({ id: 'rally', w: ps.funds > 0.4 ? 6 * skill : 0, params: { regionId: top.region.id } });
+      options.push({ id: 'ground', w: 5, params: { regionId: top.region.id } });
+      options.push({ id: 'target', w: 4.5 * skill, params: { regionId: top.region.id } });
+      if (top.rival && ps.funds > 1.0) {
+        options.push({ id: 'attack', w: 3.2 * skill, params: { regionId: top.region.id, targetId: top.rival } });
+      }
+    }
+    if (ps.broadcastsLeft > 0 && ps.funds > 2.2) options.push({ id: 'broadcast', w: 4.5 * skill });
+    if (ps.activists < 55) options.push({ id: 'organise', w: 3 });
+    if (ps.unity < 60) options.push({ id: 'unify', w: 5 });
+    if (ps.scandal > 20) options.push({ id: 'unify', w: 3 });
+    options.push({ id: 'media', w: 2.5 + (ps.leader.charisma - 50) / 12 });
+
+    options = options.filter(function (o) {
+      return o.w > 0 && PP.canRunAction(state, partyId, o.id).ok;
+    });
+    if (!options.length) return null;
+    var total = options.reduce(function (s, o) { return s + o.w; }, 0);
+    var r = rng.next() * total;
+    for (var i = 0; i < options.length; i++) {
+      r -= options[i].w;
+      if (r <= 0) return options[i];
+    }
+    return options[options.length - 1];
+  }
+
+  function runWeek(state, rng) {
+    var skill = state.aiSkill || 1;
+    PP.PARTIES.forEach(function (def) {
+      if (def.id === state.playerId || def.id === 'oth') return;
+      var ps = state.parties[def.id];
+      var ap = def.id === 'pc' ? 2 : 4;
+      driftPositions(state, def.id, rng, skill);
+      for (var i = 0; i < ap; i++) {
+        var choice = chooseAction(state, def.id, rng, skill);
+        if (!choice) break;
+        PP.performAction(state, def.id, choice.id, choice.params || {}, rng);
+      }
+      /* Мелкая жизнь партии между решениями. */
+      ps.leader.approval = clamp(ps.leader.approval + rng.normal(0, 1.6), -80, 80);
+    });
+  }
+
+  PP.aiRunWeek = runWeek;
+  PP.aiPriorityRegions = priorityRegions;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+</script>
+<script>
+/* src/core/turn.js */
+/* Ход недели: соперники, затухание кампании, деньги, повестка, событие, опрос. */
+(function (root) {
+  'use strict';
+
+  var PP = root.PP;
+  var clamp = PP.clamp;
+
+  var EFFORT_DECAY = 0.72;
+  var MOMENTUM_DECAY = 0.65;
+
+  function debateWeeks(state) {
+    return [Math.max(2, Math.round(state.totalWeeks * 0.35)), Math.round(state.totalWeeks * 0.75)];
+  }
+
+  function weeklyIncome(state, partyId, rng) {
+    var def = PP.PARTY_BY_ID[partyId];
+    var ps = state.parties[partyId];
+    var members = ps.activists / 100;
+    var base = (def.family === 'right' ? 0.55 : 0.40) + members * 0.55;
+    var mood = 1 + ps.momentum / 30 + ps.leader.approval / 260;
+    var income = Math.max(base * mood * rng.range(0.85, 1.15), 0.05);
+    if (def.id === 'oth') income = 0.05;
+    ps.funds += income;
+    return income;
+  }
+
+  function endWeek(state) {
+    if (state.phase !== 'campaign') return { ended: true };
+    var rng = new PP.Rng('week:' + state.seed + ':' + state.week);
+
+    /* 1. Ходы соперников. */
+    PP.aiRunWeek(state, rng);
+
+    /* 2. Кампания выдыхается: эффект прошлых поездок затухает. */
+    Object.keys(state.effort).forEach(function (rid) {
+      var r = state.effort[rid];
+      Object.keys(r).forEach(function (pid) {
+        var keep = EFFORT_DECAY;
+        var ground = (state.groundGame[rid] && state.groundGame[rid][pid]) || 0;
+        keep = Math.min(keep + ground * 0.03, 0.90); /* работа на земле держится дольше */
+        r[pid] *= keep;
+        if (Math.abs(r[pid]) < 0.05) r[pid] = 0;
+      });
+    });
+
+    /* 3. Деньги, силы, единство, скандалы. */
+    Object.keys(state.parties).forEach(function (pid) {
+      var ps = state.parties[pid];
+      ps.momentum *= MOMENTUM_DECAY;
+      var decay = 4 * (pid === state.playerId ? PP.roleMod(state, 'scandalDecay') : 1);
+      ps.scandal = Math.max((ps.scandal || 0) - decay, 0);
+      ps.unity = clamp(ps.unity + (ps.unity < 70 ? 0.8 : -0.2), 5, 100);
+      weeklyIncome(state, pid, rng);
+    });
+    state.stamina = clamp(state.stamina + 22, 0, 100);
+
+    /* 4. Повестка сползает к «нормальной» — единичный инфоповод не вечен. */
+    PP.ISSUES.forEach(function (issue) {
+      var cur = state.salience[issue.id];
+      state.salience[issue.id] = cur + (issue.baseSalience - cur) * 0.18 + rng.normal(0, 0.5);
+      state.salience[issue.id] = clamp(state.salience[issue.id], 1, 45);
+    });
+
+    /* 5. Публикуется опрос недели, газеты выходят со своими заголовками. */
+    var poll = PP.publishedPoll(state, rng);
+    state.pollHistory.push({ week: state.week, shares: poll });
+    state.press = PP.generatePress(state, rng);
+
+    state.week++;
+    state.ap = state.apMax;
+    state._cacheRegionShares = null;
+
+    if (state.week > state.totalWeeks) {
+      state.phase = 'election';
+      PP.addNews(state, 'Кампания окончена. Избирательные участки открыты.', 'system');
+      return { ended: true, poll: poll };
+    }
+
+    /* 6. Событие недели или дебаты. */
+    var out = { poll: poll, week: state.week };
+    if (debateWeeks(state).indexOf(state.week) >= 0 && state.debatesDone.indexOf(state.week) < 0) {
+      state.pendingDebate = { week: state.week, rival: PP.topRival(state) };
+      out.debate = state.pendingDebate;
+    } else if (rng.chance(0.8)) {
+      var ev = PP.pickEvent(state, rng);
+      if (ev) {
+        state.pendingEvent = { id: ev.id, title: ev.title, text: ev.text, options: ev.options.map(function (o, i) { return { i: i, label: o.label }; }) };
+        out.event = state.pendingEvent;
+      }
+    }
+    PP.addNews(state, 'Неделя ' + state.week + ' из ' + state.totalWeeks + '. Опрос: ' + topLine(poll) + '.', 'poll');
+    return out;
+  }
+
+  function topLine(poll) {
+    return Object.keys(poll)
+      .filter(function (p) { return poll[p] >= 2; })
+      .sort(function (a, b) { return poll[b] - poll[a]; })
+      .slice(0, 4)
+      .map(function (p) { return PP.PARTY_BY_ID[p].abbr + ' ' + poll[p].toFixed(1) + '%'; })
+      .join(', ');
+  }
+
+  function resolveEvent(state, optionIndex) {
+    var pending = state.pendingEvent;
+    if (!pending) return null;
+    var ev = PP.EVENTS.filter(function (e) { return e.id === pending.id; })[0];
+    var rng = new PP.Rng('event:' + state.seed + ':' + state.week + ':' + optionIndex);
+    var text = ev.options[optionIndex].run(state, rng);
+    state.usedEvents = state.usedEvents || [];
+    state.usedEvents.push(ev.id);
+    state.pendingEvent = null;
+    state._cacheRegionShares = null;
+    PP.addNews(state, '📰 ' + ev.title + ' — ' + text, 'event');
+    return text;
+  }
+
+  function resolveDebate(state, moveId) {
+    var rng = new PP.Rng('debate:' + state.seed + ':' + state.week + ':' + moveId);
+    var res = PP.resolveDebate(state, moveId, rng);
+    state.debatesDone.push(state.week);
+    state.pendingDebate = null;
+    state._cacheRegionShares = null;
+    PP.addNews(state, '📺 Теледебаты: ' + res.text, res.ok ? 'good' : 'bad');
+    return res;
+  }
+
+  PP.endWeek = endWeek;
+  PP.resolveEventChoice = resolveEvent;
+  PP.resolveDebateChoice = resolveDebate;
+  PP.debateWeeks = debateWeeks;
+  PP.pollTopLine = topLine;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+</script>
+<script>
+/* src/core/election.js */
+/*
+ * Ночь выборов: национальная погрешность, результат в каждом из 650 округов,
+ * порядок объявления результатов и итоговая арифметика Палаты общин.
+ */
+(function (root) {
+  'use strict';
+
+  var PP = root.PP;
+  var clamp = PP.clamp;
+
+  function niResults(state, rng) {
+    return state.niSeats.map(function (s) {
+      var party = s.party;
+      /* Небольшая вероятность перехода округа между блоками. */
+      if (rng.chance(0.10)) {
+        var pool = PP.NI_PARTIES.filter(function (p) { return p.id !== party; });
+        party = rng.pick(pool).id;
+      }
+      return {
+        seatId: s.id, name: s.name, region: 'n_ireland',
+        winner: party, previous: s.party, shares: null, margin: rng.range(2, 20),
+        time: rng.range(1.5, 8), ni: true
+      };
+    });
+  }
+
+  /* Время объявления: города считают быстро, сельские округа — до утра. */
+  function declarationTime(seat, rng) {
+    var urbanFactor = (100 - seat.demo.urban) / 100;
+    return clamp(1.0 + urbanFactor * 5.8 + rng.range(0, 2.8), 0.7, 9);
+  }
+
+  function runElection(state) {
+    var rng = new PP.Rng('election:' + state.seed);
+    var byRegion = PP.allRegionShares(state);
+
+    /* Системная ошибка опросов: одинаковая по стране для каждой партии. */
+    var nationalError = {};
+    PP.GB_PARTY_IDS.forEach(function (pid) { nationalError[pid] = rng.normal(0, 1.5); });
+
+    var adjusted = {};
+    PP.CAMPAIGN_REGIONS.forEach(function (r) {
+      var sh = byRegion[r.id], out = {}, total = 0;
+      Object.keys(sh).forEach(function (pid) {
+        var v = sh[pid] * (1 + (nationalError[pid] || 0) / 25) + rng.normal(0, 0.8);
+        out[pid] = Math.max(v, 0.3);
+        total += out[pid];
+      });
+      Object.keys(out).forEach(function (pid) { out[pid] = out[pid] / total * 100; });
+      adjusted[r.id] = out;
+    });
+
+    var results = [], votes = {}, totalVotes = 0;
+    state.seats.forEach(function (seat) {
+      var ground = (state.groundGame[seat.region] && state.groundGame[seat.region]) || {};
+      var res = PP.seatResult(seat, adjusted[seat.region], { rng: rng, noise: 0.085 });
+      var turnout = clamp(rng.normal(0.62, 0.05) + (state.targeted[seat.id] ? 0.02 : 0), 0.4, 0.85);
+      var cast = Math.round(seat.electorate * turnout);
+      Object.keys(res.shares).forEach(function (pid) {
+        var v = Math.round(cast * res.shares[pid] / 100);
+        votes[pid] = (votes[pid] || 0) + v;
+        totalVotes += v;
+      });
+      results.push({
+        seatId: seat.id, name: seat.name, region: seat.region,
+        winner: res.winner, runnerUp: res.runnerUp, previous: seat.holder,
+        shares: res.shares, margin: res.margin, votes: cast,
+        turnout: turnout, time: declarationTime(seat, rng),
+        ground: ground
+      });
+    });
+
+    results = results.concat(niResults(state, rng));
+    results.sort(function (a, b) { return a.time - b.time; });
+
+    var seatCounts = {};
+    results.forEach(function (r) { seatCounts[r.winner] = (seatCounts[r.winner] || 0) + 1; });
+
+    var voteShares = {};
+    Object.keys(votes).forEach(function (pid) { voteShares[pid] = votes[pid] / totalVotes * 100; });
+
+    /* Экзитпол: близко к правде, но с собственной ошибкой. */
+    var exitPoll = {};
+    Object.keys(seatCounts).forEach(function (pid) {
+      exitPoll[pid] = Math.max(0, Math.round(seatCounts[pid] + rng.normal(0, Math.max(1.5, seatCounts[pid] * 0.06))));
+    });
+
+    var out = {
+      results: results,
+      seats: seatCounts,
+      votes: voteShares,
+      rawVotes: votes,
+      totalVotes: totalVotes,
+      exitPoll: exitPoll,
+      regionShares: adjusted,
+      majority: majorityThreshold(seatCounts)
+    };
+    out.gains = countChanges(results);
+    return out;
+  }
+
+  function countChanges(results) {
+    var gains = {};
+    results.forEach(function (r) {
+      if (!r.previous || r.previous === r.winner) return;
+      gains[r.winner] = gains[r.winner] || { gained: 0, from: {} };
+      gains[r.winner].gained++;
+      gains[r.winner].from[r.previous] = (gains[r.winner].from[r.previous] || 0) + 1;
+      gains[r.previous] = gains[r.previous] || { gained: 0, from: {}, lost: 0 };
+      gains[r.previous].lost = (gains[r.previous].lost || 0) + 1;
+    });
+    return gains;
+  }
+
+  /*
+   * Порог большинства с поправкой на «Шинн Фейн»: их депутаты не занимают
+   * места в Палате общин, поэтому реальная планка ниже 326.
+   */
+  function majorityThreshold(seatCounts) {
+    var abstain = seatCounts.sf || 0;
+    var sitting = PP.TOTAL_SEATS - abstain;
+    return { formal: 326, effective: Math.floor(sitting / 2) + 1, abstaining: abstain };
+  }
+
+  PP.runElection = runElection;
+  PP.majorityThreshold = majorityThreshold;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+</script>
+<script>
+/* src/core/coalition.js */
+/*
+ * Подвешенный парламент: переговоры о правительстве. Партнёр соглашается,
+ * если он идеологически близок, если союз даёт большинство и если ему
+ * достаётся достаточно за участие.
+ */
+(function (root) {
+  'use strict';
+
+  var PP = root.PP;
+  var clamp = PP.clamp;
+
+  var NEGOTIABLE = ['lab', 'con', 'ld', 'ref', 'grn', 'snp', 'pc', 'dup', 'uup', 'apni', 'sdlp', 'tuv'];
+
+  function seatsOf(result, pid) { return result.seats[pid] || 0; }
+
+  /* Готовность партии войти в правительство лидера: 0..100. */
+  function willingness(state, result, leaderId, partnerId, offer) {
+    if (partnerId === leaderId) return 100;
+    var dist = PP.ideologyDistance(leaderId, partnerId);
+    if (!PP.PARTY_BY_ID[partnerId].positions) dist = 55; /* партии Северной Ирландии */
+    var score = 100 - dist * 1.35;
+    var lead = seatsOf(result, leaderId), mine = seatsOf(result, partnerId);
+    if (mine > lead) score -= 40;                       /* младшим партнёром идти не хотят */
+    score += clamp((lead - mine) / 12, 0, 12);
+    score += (offer && offer.cabinet ? 14 : 0);
+    score += (offer && offer.referendum && (partnerId === 'snp' || partnerId === 'pc') ? 25 : 0);
+    score += (offer && offer.pr ? (partnerId === 'ld' || partnerId === 'grn' || partnerId === 'ref' ? 18 : 0) : 0);
+    score -= (offer && offer.pr ? (partnerId === 'lab' || partnerId === 'con' ? 8 : 0) : 0);
+    if (state.parties[partnerId]) score += (state.parties[partnerId].leader.approval) / 12;
+    return clamp(score, 0, 100);
+  }
+
+  function options(state, result, leaderId, offer) {
+    return NEGOTIABLE.filter(function (pid) {
+      return pid !== leaderId && seatsOf(result, pid) > 0 && pid !== 'sf';
+    }).map(function (pid) {
+      return {
+        id: pid,
+        seats: seatsOf(result, pid),
+        willing: willingness(state, result, leaderId, pid, offer),
+        distance: PP.ideologyDistance(leaderId, pid)
+      };
+    }).sort(function (a, b) { return b.willing - a.willing; });
+  }
+
+  /* Итог переговоров: кто формирует правительство и какого типа. */
+  function formGovernment(state, result, leaderId, partnerIds, offer) {
+    var threshold = result.majority.effective;
+    var total = seatsOf(result, leaderId);
+    var accepted = [], refused = [];
+    (partnerIds || []).forEach(function (pid) {
+      var w = willingness(state, result, leaderId, pid, offer);
+      var need = offer && offer.confidence ? 42 : 55;
+      if (w >= need) { accepted.push(pid); total += seatsOf(result, pid); }
+      else refused.push({ id: pid, willing: w });
+    });
+    var kind;
+    if (seatsOf(result, leaderId) >= threshold) kind = 'majority';
+    else if (total >= threshold) kind = offer && offer.confidence ? 'confidence' : 'coalition';
+    else kind = 'minority';
+    return {
+      leader: leaderId, partners: accepted, refused: refused,
+      seats: total, threshold: threshold, kind: kind,
+      viable: total >= threshold || kind === 'minority'
+    };
+  }
+
+  /* Кто вообще может собрать большинство — для оценки положения игрока. */
+  function viableCoalitions(state, result) {
+    var out = [];
+    ['lab', 'con'].concat(NEGOTIABLE).filter(function (v, i, a) { return a.indexOf(v) === i; })
+      .forEach(function (leaderId) {
+        if (seatsOf(result, leaderId) < 40) return;
+        var opts = options(state, result, leaderId, { cabinet: true });
+        var total = seatsOf(result, leaderId), partners = [];
+        for (var i = 0; i < opts.length && total < result.majority.effective; i++) {
+          if (opts[i].willing < 55) continue;
+          partners.push(opts[i].id);
+          total += opts[i].seats;
+        }
+        if (total >= result.majority.effective) {
+          out.push({ leader: leaderId, partners: partners, seats: total });
+        }
+      });
+    return out;
+  }
+
+  PP.coalitionOptions = options;
+  PP.formGovernment = formGovernment;
+  PP.viableCoalitions = viableCoalitions;
+  PP.coalitionWillingness = willingness;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+</script>
+<script>
+/* src/ui/menu.js */
+/*
+ * Меню запуска: заставка, выбор роли, выбор партии, конструктор своей
+ * партии и настройки кампании.
+ */
+(function (root) {
+  'use strict';
+
+  var PP = root.PP;
+  var clamp = PP.clamp;
+
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c];
+    });
+  }
+  function money(v) { return '£' + v.toFixed(2) + ' млн'; }
+
+  function rosette(color, size) {
+    return '<span class="rosette" style="--c:' + color + ';--s:' + (size || 30) + 'px"></span>';
+  }
+
+  /* Силуэт Вестминстера — чистый SVG, без внешних файлов. */
+  var SKYLINE =
+    '<svg class="skyline" viewBox="0 0 1200 300" preserveAspectRatio="xMidYMax meet" aria-hidden="true">' +
+    '<defs>' +
+    '<radialGradient id="towerGlow" cx="50%" cy="50%" r="50%">' +
+    '<stop offset="0%" stop-color="rgba(246,230,180,.34)"/><stop offset="100%" stop-color="rgba(246,230,180,0)"/>' +
+    '</radialGradient>' +
+    '</defs>' +
+    /* звёзды */
+    '<g fill="#dfe8f5" opacity=".55">' +
+    '<circle cx="120" cy="46" r="1.6"/><circle cx="300" cy="28" r="1.2"/><circle cx="455" cy="62" r="1.5"/>' +
+    '<circle cx="640" cy="34" r="1.1"/><circle cx="735" cy="70" r="1.4"/><circle cx="1105" cy="52" r="1.3"/>' +
+    '<circle cx="1010" cy="120" r="1.1"/><circle cx="205" cy="96" r="1.2"/>' +
+    '</g>' +
+    '<circle cx="1010" cy="66" r="30" fill="#f2e7c9" opacity=".9"/>' +
+    '<circle cx="998" cy="58" r="26" fill="#101a2a" opacity=".55"/>' +
+    '<ellipse cx="840" cy="110" rx="170" ry="130" fill="url(#towerGlow)"/>' +
+    /* здание парламента */
+    '<g fill="#080d14">' +
+    '<rect x="180" y="206" width="620" height="94"/>' +
+    '<rect x="200" y="186" width="24" height="26"/><rect x="260" y="180" width="20" height="32"/>' +
+    '<rect x="330" y="192" width="18" height="20"/><rect x="420" y="186" width="22" height="26"/>' +
+    '<rect x="520" y="178" width="20" height="34"/><rect x="620" y="190" width="18" height="22"/>' +
+    '<rect x="700" y="182" width="22" height="30"/><rect x="760" y="194" width="18" height="18"/>' +
+    /* башня Виктории */
+    '<rect x="150" y="130" width="70" height="170"/><polygon points="150,130 185,92 220,130"/>' +
+    /* часовая башня */
+    '<rect x="812" y="76" width="56" height="224"/><polygon points="812,76 840,30 868,76"/>' +
+    '<rect x="806" y="130" width="68" height="10"/>' +
+    /* городская застройка по краям */
+    '<rect x="40" y="238" width="96" height="62"/><rect x="900" y="224" width="118" height="76"/>' +
+    '<rect x="1030" y="248" width="150" height="52"/>' +
+    '</g>' +
+    /* окна */
+    '<g fill="rgba(246,230,180,.55)">' +
+    '<rect x="215" y="228" width="7" height="12"/><rect x="245" y="228" width="7" height="12"/>' +
+    '<rect x="470" y="228" width="7" height="12"/><rect x="500" y="228" width="7" height="12"/>' +
+    '<rect x="690" y="228" width="7" height="12"/><rect x="930" y="248" width="8" height="12"/>' +
+    '<rect x="965" y="248" width="8" height="12"/><rect x="1070" y="266" width="8" height="12"/>' +
+    '</g>' +
+    /* циферблат */
+    '<circle cx="840" cy="106" r="17" fill="#f6e6b4"/>' +
+    '<circle cx="840" cy="106" r="17" fill="none" stroke="#080d14" stroke-width="3"/>' +
+    '<line x1="840" y1="106" x2="840" y2="96" stroke="#080d14" stroke-width="2.5"/>' +
+    '<line x1="840" y1="106" x2="847" y2="110" stroke="#080d14" stroke-width="2.5"/>' +
+    /* Темза */
+    '<rect y="286" width="1200" height="14" fill="#08131c"/>' +
+    '<g stroke="rgba(246,230,180,.30)" stroke-width="2">' +
+    '<line x1="822" y1="292" x2="862" y2="292"/><line x1="176" y1="296" x2="236" y2="296"/>' +
+    '<line x1="520" y1="290" x2="580" y2="290"/></g>' +
+    '</svg>';
+
+  var QUOTES = [
+    '«Неделя — большой срок в политике.» — расхожая присказка Вестминстера',
+    'Пятница, 7:40 утра. Пресса уже стоит под дверью штаба.',
+    'Ящики для голосования опечатаны. Осталось убедить страну.',
+    'На Даунинг-стрит переносят мебель — на всякий случай.',
+    'Автобус кампании заправлен. Маршрут — вся страна.'
+  ];
+
+  function crumbs(menu) {
+    var steps = [
+      { id: 'role', label: 'Роль' },
+      { id: 'party', label: 'Партия' },
+      { id: 'setup', label: 'Кампания' }
+    ];
+    var order = ['role', 'party', 'custom', 'setup'];
+    var current = order.indexOf(menu.step);
+    return '<div class="crumbs">' + steps.map(function (s, i) {
+      var stepIndex = order.indexOf(s.id === 'party' ? 'party' : s.id);
+      var cls = (menu.step === s.id || (s.id === 'party' && menu.step === 'custom')) ? 'now'
+        : (current > stepIndex ? 'done' : '');
+      return '<span class="crumb ' + cls + '">' + (i + 1) + '. ' + s.label + '</span>';
+    }).join('<span class="crumb-sep">›</span>') + '</div>';
+  }
+
+  /* ---------- заставка ---------- */
+
+  function renderHome(menu) {
+    return '<div class="hero">' + SKYLINE + '<div class="hero-scrim"></div>' +
+      '<div class="hero-inner">' +
+      '<div class="flag"><span></span><span></span><span></span></div>' +
+      '<h1 class="game-title">The Political Process</h1>' +
+      '<div class="game-sub">BRITAIN · всеобщие выборы · 650 округов · бета 1.0</div>' +
+      '<div class="quote">' + esc(menu.quote || QUOTES[0]) + '</div>' +
+      '<div class="hero-actions">' +
+      '<button class="primary big" data-m="new">Новая кампания</button>' +
+      (PP.hasSave() ? '<button class="big" data-m="continue">Продолжить</button>' : '') +
+      '<button class="big" data-m="quick">Быстрый старт</button>' +
+      '<button class="ghost big" data-m="rules">Правила</button>' +
+      '</div>' +
+      '</div></div>' +
+      '<div class="home-cards">' +
+      homeCard('🗳️', 'Мажоритарная система', 'В каждом из 650 округов побеждает первый. Ровный результат по стране почти не даёт мандатов — важна концентрация.') +
+      homeCard('🎭', 'Пять ролей', 'Лидер, руководитель кампании, казначей, парламентский организатор, пресс-секретарь. У каждого свои рычаги.') +
+      homeCard('🏴', 'Своя партия', 'Название, цвет, коалиция избирателей, программа по девяти темам и лидер под ваш стиль игры.') +
+      '</div>' +
+      '<div class="footer-note">Сценарий вымышленный: партии, регионы и система выборов узнаваемы, но лидеры, округа, газеты и стартовые цифры придуманы для игры.</div>';
+  }
+
+  function homeCard(icon, title, text) {
+    return '<div class="home-card"><div class="hc-icon">' + icon + '</div><h3>' + esc(title) + '</h3><p>' + esc(text) + '</p></div>';
+  }
+
+  /* ---------- роль ---------- */
+
+  function renderRole(menu) {
+    var cards = PP.ROLES.map(function (r) {
+      return '<div class="pick-card' + (menu.role === r.id ? ' selected' : '') + '" data-m="role" data-id="' + r.id + '">' +
+        '<div class="pick-head"><span class="pick-icon">' + r.icon + '</span>' +
+        '<div><div class="pick-name">' + esc(r.name) + '</div><div class="pick-en">' + esc(r.en) + '</div></div></div>' +
+        '<p class="pick-desc">' + esc(r.desc) + '</p>' +
+        '<ul class="perks">' + r.perks.map(function (p) { return '<li>' + esc(p) + '</li>'; }).join('') + '</ul>' +
+        (r.flavour ? '<div class="pick-quote">' + esc(r.flavour) + '</div>' : '') +
+        '</div>';
+    }).join('');
+    return section('Кто вы в партии?', 'Роль меняет не партию, а то, чем вы можете на неё влиять.', menu,
+      '<div class="pick-grid">' + cards + '</div>',
+      [{ m: 'home', label: '← Назад', cls: 'ghost' }, { m: 'to-party', label: 'Дальше: партия →', cls: 'primary' }]);
+  }
+
+  /* ---------- партия ---------- */
+
+  function renderParty(menu) {
+    var cards = PP.PARTIES.filter(function (p) { return p.playable && p.id !== 'own'; }).map(function (p) {
+      var goals = p.goals || [];
+      return '<div class="pick-card party' + (menu.party === p.id ? ' selected' : '') + '" style="--pc:' + p.color + '" data-m="party" data-id="' + p.id + '">' +
+        '<div class="pick-head">' + rosette(p.color, 34) +
+        '<div><div class="pick-name" style="color:' + p.color + '">' + esc(p.name) + '</div>' +
+        '<div class="pick-en">' + esc(p.ru) + (p.scope !== 'gb' ? ' · только ' + (p.scope === 'scotland' ? 'Шотландия' : 'Уэльс') : '') + '</div></div></div>' +
+        '<p class="pick-desc">' + esc(p.blurb) + '</p>' +
+        '<div class="stat-line">' +
+        '<span>Касса<b>' + money(p.funds) + '</b></span>' +
+        '<span>Актив<b>' + p.activists + '</b></span>' +
+        '<span>Единство<b>' + p.unity + '</b></span>' +
+        '</div>' +
+        '<div class="leader-line">' + esc(p.leader.name) + ' · харизма ' + p.leader.charisma +
+        ' · компетентность ' + p.leader.competence + ' · порядочность ' + p.leader.integrity + '</div>' +
+        (goals.length ? '<div class="goal-line">Ступени: ' + goals.map(function (g) { return g.seats; }).join(' → ') + ' мандатов</div>' : '') +
+        '</div>';
+    }).join('');
+
+    var own = menu.customDef;
+    var ownCard = '<div class="pick-card party own' + (menu.party === 'own' ? ' selected' : '') + '" style="--pc:' + (own ? own.color : '#a35cff') + '" data-m="custom-open">' +
+      '<div class="pick-head">' + rosette(own ? own.color : '#a35cff', 34) +
+      '<div><div class="pick-name">' + (own ? esc(own.name) : 'Создать свою партию') + '</div>' +
+      '<div class="pick-en">' + (own ? esc(own.ru) + ' · ' + own.abbr : 'название, цвет, программа, лидер') + '</div></div></div>' +
+      '<p class="pick-desc">' + (own ? esc(own.blurb) : 'Соберите партию с нуля: коалиция избирателей, девять тем программы, ресурсы и лидер под ваш стиль игры.') + '</p>' +
+      '<div class="goal-line">' + (own ? 'Открыть конструктор ещё раз' : 'Открыть конструктор') + '</div></div>';
+
+    return section('За кого играем?', 'Стартовые цифры — вымышленный сценарий кануна выборов.', menu,
+      '<div class="pick-grid">' + cards + ownCard + '</div>',
+      [{ m: 'to-role', label: '← Роль', cls: 'ghost' }, { m: 'to-setup', label: 'Дальше: кампания →', cls: 'primary' }]);
+  }
+
+  /* ---------- конструктор партии ---------- */
+
+  function renderCustom(menu) {
+    var cfg = menu.custom;
+    var def = PP.buildCustomParty(cfg);
+    var arch = PP.ARCHETYPE_BY_ID[cfg.archetype];
+    var spent = PP.leaderPointsSpent(cfg);
+    var left = PP.LEADER_POOL - spent;
+
+    var archCards = PP.ARCHETYPES.map(function (a) {
+      return '<div class="mini-card' + (cfg.archetype === a.id ? ' selected' : '') + '" data-m="arch" data-id="' + a.id + '">' +
+        '<div class="mini-head">' + a.icon + ' ' + esc(a.name) + '</div>' +
+        '<p>' + esc(a.desc) + '</p>' +
+        '<div class="mini-stat">старт ≈ ' + a.share + '% · концентрация голосов ' +
+        (a.concentration > 0.5 ? 'высокая' : a.concentration > 0.3 ? 'средняя' : 'низкая') + '</div></div>';
+    }).join('');
+
+    var resCards = PP.CUSTOM_RESOURCES.map(function (r) {
+      return '<div class="mini-card' + (cfg.resources === r.id ? ' selected' : '') + '" data-m="res" data-id="' + r.id + '">' +
+        '<div class="mini-head">' + r.icon + ' ' + esc(r.name) + '</div><p>' + esc(r.desc) + '</p></div>';
+    }).join('');
+
+    var sliders = PP.ISSUES.map(function (i) {
+      return '<div class="slider-row">' +
+        '<div class="slider-head"><b>' + esc(i.name) + '</b><span id="pv-' + i.id + '" class="slider-val">' + cfg.positions[i.id] + '</span></div>' +
+        '<input type="range" min="-100" max="100" step="5" value="' + cfg.positions[i.id] + '" data-pos="' + i.id + '">' +
+        '<div class="scale-labels"><span>' + esc(i.leftLabel) + '</span><span>' + esc(i.rightLabel) + '</span></div>' +
+        '</div>';
+    }).join('');
+
+    var stats = [
+      { id: 'charisma', label: 'Харизма', hint: 'митинги, интервью, дебаты' },
+      { id: 'competence', label: 'Компетентность', hint: 'ролики, детали программы' },
+      { id: 'integrity', label: 'Порядочность', hint: 'скандалы и доверие' }
+    ].map(function (st) {
+      var v = cfg.leader[st.id];
+      return '<div class="stat-alloc"><div><b>' + st.label + '</b><span class="hint"> — ' + st.hint + '</span></div>' +
+        '<div class="alloc-controls"><button data-m="stat" data-id="' + st.id + '" data-d="-5">−</button>' +
+        '<span class="alloc-val" id="lv-' + st.id + '">' + v + '</span>' +
+        '<button data-m="stat" data-id="' + st.id + '" data-d="5">+</button></div></div>';
+    }).join('');
+
+    var preview = '<div class="preview-card" style="--pc:' + def.color + '">' +
+      '<div class="pick-head">' + rosette(def.color, 40) +
+      '<div><div class="pick-name" style="color:' + def.color + '">' + esc(def.name) + '</div>' +
+      '<div class="pick-en">' + esc(def.ru) + ' · ' + esc(def.abbr) + ' · ' +
+      (def.scope === 'gb' ? 'вся Великобритания' : def.scope === 'scotland' ? 'только Шотландия' : 'только Уэльс') + '</div></div></div>' +
+      '<div class="stat-line"><span>Касса<b>' + money(def.funds) + '</b></span>' +
+      '<span>Актив<b>' + def.activists + '</b></span><span>Единство<b>' + def.unity + '</b></span></div>' +
+      '<div class="leader-line">' + esc(def.leader.name) + ' · рейтинг ' + (def.leader.approval > 0 ? '+' : '') + def.leader.approval + '</div>' +
+      '<div class="goal-line">Ступени целей: ' + def.goals.map(function (g) { return g.seats; }).join(' → ') + ' мандатов</div>' +
+      '<div class="goal-line">Ядро избирателя: ' + esc(arch.name) + '</div>' +
+      '</div>';
+
+    var body =
+      '<div class="builder">' +
+      '<div class="builder-col">' +
+      '<div class="panel"><h3>Название и цвет</h3>' +
+      '<div class="field-row"><label>Английское название<input type="text" data-cf="name" value="' + esc(cfg.name) + '" maxlength="40"></label>' +
+      '<label>Как её зовут по-русски<input type="text" data-cf="ru" value="' + esc(cfg.ru) + '" maxlength="40"></label></div>' +
+      '<div class="field-row"><label>Аббревиатура<input type="text" data-cf="abbr" value="' + esc(cfg.abbr) + '" maxlength="4" size="6"></label>' +
+      '<label>Цвет розетки<input type="color" data-cf="color" value="' + esc(cfg.color) + '"></label>' +
+      (arch.regional ? '<label>Нация<select data-cf="scope">' +
+        '<option value="scotland"' + (cfg.scope === 'scotland' ? ' selected' : '') + '>Шотландия</option>' +
+        '<option value="wales"' + (cfg.scope === 'wales' ? ' selected' : '') + '>Уэльс</option></select></label>' : '') +
+      '</div></div>' +
+      '<div class="panel"><h3>Коалиция избирателей <span class="hint">кто за вас голосует</span></h3><div class="mini-grid">' + archCards + '</div></div>' +
+      '<div class="panel"><h3>Ресурсы партии</h3><div class="mini-grid">' + resCards + '</div></div>' +
+      '<div class="panel"><h3>Лидер <span class="hint">осталось очков: <b id="pool-left">' + left + '</b> из ' + PP.LEADER_POOL + '</span></h3>' +
+      '<label class="wide">Имя лидера<input type="text" data-cf="leaderName" value="' + esc(cfg.leader.name) + '" maxlength="40"></label>' +
+      stats + '</div>' +
+      '</div>' +
+      '<div class="builder-col">' +
+      '<div class="panel"><h3>Как это выглядит</h3>' + preview + '</div>' +
+      '<div class="panel"><h3>Программа <span class="hint">девять тем, шкала от левого полюса к правому</span></h3>' + sliders + '</div>' +
+      '</div></div>';
+
+    return section('Своя партия', 'Партия появится в бюллетене по всей стране и отберёт голоса у идеологически близких соперников.', menu, body,
+      [{ m: 'to-party', label: '← К списку партий', cls: 'ghost' },
+       { m: 'custom-random', label: '🎲 Случайная партия', cls: '' },
+       { m: 'custom-done', label: 'Взять эту партию →', cls: 'primary' }]);
+  }
+
+  /* ---------- настройки ---------- */
+
+  function renderSetup(menu) {
+    var role = PP.ROLE_BY_ID[menu.role];
+    var party = menu.party === 'own' ? menu.customDef : PP.PARTY_BY_ID[menu.party];
+    var diffCards = Object.keys(PP.DIFFICULTY).map(function (k) {
+      var d = PP.DIFFICULTY[k];
+      var hint = k === 'easy' ? 'Соперники осторожны, касса больше, +1 очко расписания.'
+        : k === 'normal' ? 'Честная гонка без поблажек.'
+        : 'Соперники играют жёстко, денег меньше.';
+      return '<div class="mini-card' + (menu.difficulty === k ? ' selected' : '') + '" data-m="diff" data-id="' + k + '">' +
+        '<div class="mini-head">' + esc(d.label) + '</div><p>' + hint + '</p></div>';
+    }).join('');
+
+    var weekChips = [6, 9, 12, 16].map(function (w) {
+      return '<button class="chip' + (menu.weeks === w ? ' active' : '') + '" data-m="weeks" data-id="' + w + '">' + w + ' недель</button>';
+    }).join('');
+
+    var summary = '<div class="summary">' +
+      '<div class="sum-item"><span class="k">Роль</span><span class="v">' + role.icon + ' ' + esc(role.name) + '</span></div>' +
+      '<div class="sum-item"><span class="k">Партия</span><span class="v">' + rosette(party.color, 22) + ' ' + esc(party.ru) + '</span></div>' +
+      '<div class="sum-item"><span class="k">Лидер</span><span class="v">' + esc(party.leader.name) + '</span></div>' +
+      '<div class="sum-item"><span class="k">Первая цель</span><span class="v">' +
+      ((party.goals && party.goals[0]) ? party.goals[0].seats + ' мандатов — «' + esc(party.goals[0].label) + '»' : party.target + '+ мандатов') + '</span></div>' +
+      '</div>';
+
+    var body = '<div class="panel"><h3>Сложность</h3><div class="mini-grid">' + diffCards + '</div></div>' +
+      '<div class="panel"><h3>Длина кампании</h3><div class="chips">' + weekChips + '</div>' +
+      '<p class="hint">Короткая кампания — меньше ходов и меньше времени вытащить отставание.</p></div>' +
+      '<div class="panel"><h3>Зерно генерации <span class="hint">одинаковое зерно даёт одинаковую нарезку округов</span></h3>' +
+      '<input type="text" id="inp-seed" value="' + esc(menu.seed || '') + '" placeholder="оставьте пустым для случайного"></div>' +
+      '<div class="panel"><h3>Ваш выбор</h3>' + summary + '</div>';
+
+    return section('Кампания', 'Последний шаг перед роспуском парламента.', menu, body,
+      [{ m: 'to-party', label: '← Партия', cls: 'ghost' }, { m: 'start', label: 'Начать кампанию', cls: 'primary' }]);
+  }
+
+  function section(title, sub, menu, body, buttons) {
+    return '<div class="menu-screen">' +
+      '<div class="menu-head">' + crumbs(menu) +
+      '<h1>' + esc(title) + '</h1><div class="game-sub">' + esc(sub) + '</div></div>' +
+      body +
+      '<div class="menu-actions">' + buttons.map(function (b) {
+        return '<button class="' + (b.cls || '') + '" data-m="' + b.m + '">' + esc(b.label) + '</button>';
+      }).join('') + '</div></div>';
+  }
+
+  function render(menu) {
+    if (menu.step === 'role') return renderRole(menu);
+    if (menu.step === 'party') return renderParty(menu);
+    if (menu.step === 'custom') return renderCustom(menu);
+    if (menu.step === 'setup') return renderSetup(menu);
+    return renderHome(menu);
+  }
+
+  /* ---------- изменения конфигурации ---------- */
+
+  function randomCustom(menu, rng) {
+    var arch = rng.pick(PP.ARCHETYPES);
+    var res = rng.pick(PP.CUSTOM_RESOURCES);
+    var names = [['New Britain Party', 'Новая Британия', 'NBP'], ['The Peoples Alliance', 'Народный альянс', 'TPA'],
+      ['Common Sense Party', 'Партия здравого смысла', 'CSP'], ['Britain Forward', 'Британия вперёд', 'BFW'],
+      ['The Reform League', 'Лига реформ', 'TRL'], ['Union & Country', 'Союз и страна', 'UNC'],
+      ['Workers Voice', 'Голос труда', 'WKV'], ['The Green Commons', 'Зелёная община', 'GRC']];
+    var leaders = ['Маргарет Эйнсли', 'Дункан Фэрбёрн', 'Приа Наир', 'Оуэн Бересфорд', 'Кларисса Дав',
+      'Тарик Мансур', 'Ирис Голдинг', 'Хэмиш Крейг'];
+    var colors = ['#a35cff', '#ff7a45', '#2ec4b6', '#e94f8a', '#7ac74f', '#f2c14e', '#4d7cff'];
+    var n = rng.pick(names);
+    var cfg = PP.defaultCustomConfig();
+    cfg.name = n[0]; cfg.ru = n[1]; cfg.abbr = n[2];
+    cfg.color = rng.pick(colors);
+    cfg.archetype = arch.id;
+    cfg.resources = res.id;
+    cfg.scope = rng.chance(0.5) ? 'scotland' : 'wales';
+    cfg.leader.name = rng.pick(leaders);
+    var pool = PP.LEADER_POOL;
+    var a = rng.int(30, 80), b = rng.int(30, Math.min(80, pool - a - 25));
+    cfg.leader.charisma = a;
+    cfg.leader.competence = b;
+    cfg.leader.integrity = clamp(pool - a - b, PP.LEADER_MIN, PP.LEADER_MAX);
+    PP.ISSUE_IDS.forEach(function (id) {
+      cfg.positions[id] = Math.round(rng.range(-90, 90) / 5) * 5;
+    });
+    if (arch.family === 'left') { cfg.positions.nhs = -Math.abs(cfg.positions.nhs); cfg.positions.tax = -Math.abs(cfg.positions.tax); }
+    if (arch.family === 'right') { cfg.positions.tax = Math.abs(cfg.positions.tax); }
+    if (arch.regional) cfg.positions.union = -100;
+    menu.custom = cfg;
+    menu.customDef = PP.buildCustomParty(cfg);
+  }
+
+  function setStat(menu, id, delta) {
+    var cfg = menu.custom;
+    var next = clamp(cfg.leader[id] + delta, PP.LEADER_MIN, PP.LEADER_MAX);
+    var spentOthers = PP.leaderPointsSpent(cfg) - cfg.leader[id];
+    if (spentOthers + next > PP.LEADER_POOL) next = PP.LEADER_POOL - spentOthers;
+    cfg.leader[id] = clamp(next, PP.LEADER_MIN, PP.LEADER_MAX);
+    menu.customDef = PP.buildCustomParty(cfg);
+  }
+
+  /*
+   * Обработка клика в меню. Возвращает 'render', 'start', 'continue',
+   * 'rules' или null — решение принимает ui.js.
+   */
+  function handleClick(menu, target) {
+    var node = target.closest ? target.closest('[data-m]') : null;
+    if (!node) return null;
+    var m = node.dataset.m, id = node.dataset.id;
+    switch (m) {
+      case 'new': menu.step = 'role'; return 'render';
+      case 'quick': return 'quick';
+      case 'continue': return 'continue';
+      case 'rules': return 'rules';
+      case 'home': menu.step = 'home'; return 'render';
+      case 'role': menu.role = id; return 'render';
+      case 'to-role': menu.step = 'role'; return 'render';
+      case 'to-party': menu.step = 'party'; return 'render';
+      case 'to-setup': menu.step = 'setup'; return 'render';
+      case 'party': menu.party = id; return 'render';
+      case 'custom-open':
+        menu.custom = menu.custom || PP.defaultCustomConfig();
+        menu.customDef = PP.buildCustomParty(menu.custom);
+        menu.step = 'custom';
+        return 'render';
+      case 'custom-random':
+        randomCustom(menu, new PP.Rng('rnd:' + Math.random()));
+        return 'render';
+      case 'custom-done':
+        menu.customDef = PP.buildCustomParty(menu.custom);
+        menu.party = 'own';
+        menu.step = 'setup';
+        return 'render';
+      case 'arch':
+        menu.custom.archetype = id;
+        menu.customDef = PP.buildCustomParty(menu.custom);
+        return 'render';
+      case 'res':
+        menu.custom.resources = id;
+        menu.customDef = PP.buildCustomParty(menu.custom);
+        return 'render';
+      case 'stat': setStat(menu, id, parseInt(node.dataset.d, 10)); return 'render';
+      case 'diff': menu.difficulty = id; return 'render';
+      case 'weeks': menu.weeks = parseInt(id, 10); return 'render';
+      case 'start': return 'start';
+      default: return null;
+    }
+  }
+
+  /* Ввод текста и ползунков: без перерисовки, чтобы не терять фокус. */
+  function handleInput(menu, target, doc) {
+    if (target.dataset && target.dataset.pos) {
+      var v = parseInt(target.value, 10);
+      menu.custom.positions[target.dataset.pos] = v;
+      var label = doc.getElementById('pv-' + target.dataset.pos);
+      if (label) label.textContent = v;
+      menu.customDef = PP.buildCustomParty(menu.custom);
+      return true;
+    }
+    var f = target.dataset && target.dataset.cf;
+    if (!f) return false;
+    if (f === 'leaderName') menu.custom.leader.name = target.value;
+    else if (f === 'scope') menu.custom.scope = target.value;
+    else if (f === 'abbr') menu.custom.abbr = target.value.toUpperCase();
+    else menu.custom[f] = target.value;
+    menu.customDef = PP.buildCustomParty(menu.custom);
+    return true;
+  }
+
+  function newMenu() {
+    return {
+      step: 'home',
+      role: 'leader',
+      party: 'lab',
+      custom: null,
+      customDef: null,
+      difficulty: 'normal',
+      weeks: 12,
+      seed: '',
+      quote: QUOTES[Math.floor(Math.random() * QUOTES.length)]
+    };
+  }
+
+  PP.Menu = {
+    render: render,
+    handleClick: handleClick,
+    handleInput: handleInput,
+    newMenu: newMenu,
+    randomCustom: randomCustom,
+    rosette: rosette,
+    QUOTES: QUOTES
+  };
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+</script>
+<script>
+/* src/ui/ui.js */
+/* Интерфейс: экраны, вкладки, модальные окна, ночь выборов. */
+(function (root) {
+  'use strict';
+
+  var PP = root.PP;
+  var doc = root.document;
+  var app = { screen: 'title', tab: 'actions', region: null, state: null, night: null, menu: null };
+
+  function $(sel) { return doc.querySelector(sel); }
+  function el(id) { return doc.getElementById(id); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); }
+  function color(pid) { var p = PP.PARTY_BY_ID[pid]; return p ? p.color : '#777'; }
+  function pname(pid) { var p = PP.PARTY_BY_ID[pid]; return p ? p.ru : pid; }
+  function abbr(pid) { var p = PP.PARTY_BY_ID[pid]; return p ? p.abbr : pid; }
+  function money(v) { return '£' + v.toFixed(2) + ' млн'; }
+  function pct(v) { return v.toFixed(1) + '%'; }
+
+  function sortedShares(shares, min) {
+    return Object.keys(shares)
+      .filter(function (p) { return shares[p] >= (min === undefined ? 0.8 : min); })
+      .sort(function (a, b) { return shares[b] - shares[a]; });
+  }
+
+  /* ================= Титульный экран ================= */
+
+  function renderTitle() {
+    if (!app.menu) app.menu = PP.Menu.newMenu();
+    return PP.Menu.render(app.menu);
+  }
+
+  /* ================= Кампания ================= */
+
+  function currentShares() {
+    var st = app.state;
+    if (!st._cacheRegionShares) st._cacheRegionShares = PP.allRegionShares(st);
+    return st._cacheRegionShares;
+  }
+
+  function renderTopbar() {
+    var st = app.state, ps = st.parties[st.playerId];
+    var def = PP.PARTY_BY_ID[st.playerId];
+    var role = PP.ROLE_BY_ID[st.roleId] || PP.ROLE_BY_ID.leader;
+    return '<div class="topbar">' +
+      '<div class="brand" style="color:' + def.color + '">' + PP.Menu.rosette(def.color, 26) +
+      '<span class="brand-text"><span class="brand-name">' + esc(def.name) + '</span>' +
+      '<span class="brand-role" title="' + esc(role.desc) + '">' + role.icon + ' ' + esc(role.name) + '</span></span></div>' +
+      stat('Неделя', st.week + ' / ' + st.totalWeeks) +
+      stat('Расписание', st.ap + ' / ' + st.apMax + ' AP') +
+      stat('Касса', money(ps.funds)) +
+      stat('Активисты', Math.round(ps.activists)) +
+      stat('Единство', Math.round(ps.unity)) +
+      stat('Силы лидера', Math.round(st.stamina)) +
+      stat('Рейтинг лидера', (ps.leader.approval > 0 ? '+' : '') + ps.leader.approval.toFixed(0)) +
+      (ps.scandal > 5 ? stat('Скандал', Math.round(ps.scandal)) : '') +
+      '<div class="spacer"></div>' +
+      '<button id="btn-help" title="Правила игры">?</button>' +
+      '<button id="btn-save" title="Сохранить кампанию">💾</button>' +
+      '<button class="primary" id="btn-week">' + (st.week >= st.totalWeeks ? 'День голосования →' : 'Завершить неделю →') + '</button>' +
+      '</div>';
+  }
+
+  function stat(k, v) { return '<div class="stat"><span class="k">' + k + '</span><span class="v">' + v + '</span></div>'; }
+
+  function renderPollPanel() {
+    var st = app.state;
+    var hist = st.pollHistory;
+    var last = hist[hist.length - 1].shares;
+    var prev = hist.length > 1 ? hist[hist.length - 2].shares : null;
+    var rows = sortedShares(last, 1).map(function (pid) {
+      var d = prev ? last[pid] - prev[pid] : 0;
+      return '<div class="poll-row">' +
+        '<span class="abbr" style="color:' + color(pid) + '">' + abbr(pid) + '</span>' +
+        '<span class="bar"><span style="width:' + Math.min(last[pid] * 2.2, 100) + '%;background:' + color(pid) + '"></span></span>' +
+        '<span class="num">' + last[pid].toFixed(1) +
+        (prev ? '<br><span class="delta ' + (d >= 0 ? 'up' : 'down') + '">' + (d >= 0 ? '+' : '') + d.toFixed(1) + '</span>' : '') +
+        '</span></div>';
+    }).join('');
+    return '<div class="panel"><h3>Опрос недели <span class="hint">публикуется с погрешностью</span></h3>' + rows + '</div>';
+  }
+
+  function renderProjectionPanel() {
+    var st = app.state;
+    var proj = PP.projectSeats(st, currentShares(), { incumbency: 0.05 });
+    var order = Object.keys(proj).sort(function (a, b) { return proj[b] - proj[a]; });
+    var bar = order.map(function (pid) {
+      return '<span style="width:' + (proj[pid] / PP.TOTAL_SEATS * 100) + '%;background:' + color(pid) + '" title="' + pname(pid) + ': ' + proj[pid] + '"></span>';
+    }).join('');
+    var mine = proj[st.playerId] || 0;
+    var start = st.startingSeats[st.playerId] || 0;
+    var rows = order.filter(function (p) { return proj[p] >= 3 || p === st.playerId; }).map(function (pid) {
+      var d = (proj[pid] || 0) - (st.startingSeats[pid] || 0);
+      return '<div class="poll-row"><span class="abbr" style="color:' + color(pid) + '">' + abbr(pid) + '</span>' +
+        '<span class="bar"><span style="width:' + (proj[pid] / 400 * 100) + '%;background:' + color(pid) + '"></span></span>' +
+        '<span class="num">' + proj[pid] + '<br><span class="delta ' + (d >= 0 ? 'up' : 'down') + '">' + (d >= 0 ? '+' : '') + d + '</span></span></div>';
+    }).join('');
+    return '<div class="panel"><h3>Проекция мест <span class="hint">большинство — 326</span></h3>' +
+      '<div class="commons">' + bar + '</div>' +
+      '<div class="majority-line">Ваши мандаты: <b>' + mine + '</b> (старт ' + start + ', ближайшая цель — ' + nextGoal(st, mine) + ')</div>' +
+      rows + '</div>';
+  }
+
+  /* Ближайшая невзятая ступень целей кампании. */
+  function nextGoal(st, mine) {
+    var def = PP.PARTY_BY_ID[st.playerId];
+    var goals = def.goals || [{ seats: def.target, label: 'цель кампании' }];
+    for (var i = 0; i < goals.length; i++) {
+      if (mine < goals[i].seats) return goals[i].seats + ' («' + goals[i].label + '»)';
+    }
+    return 'все ступени взяты';
+  }
+
+  function renderSidebar() {
+    return renderPollPanel() + renderProjectionPanel() + renderPressPanel() + renderAgendaPanel();
+  }
+
+  function renderPressPanel() {
+    var st = app.state;
+    if (!st.press || !st.press.length) return '';
+    var items = st.press.map(function (h) {
+      return '<div class="press-item ' + esc(h.tone) + '"><div class="paper">' + esc(h.paper) + '</div>' +
+        '<div class="headline">' + esc(h.text) + '</div></div>';
+    }).join('');
+    return '<div class="panel press"><h3>Утренние газеты <span class="hint">неделя ' + st.week + '</span></h3>' + items + '</div>';
+  }
+
+  function renderAgendaPanel() {
+    var st = app.state;
+    var ids = PP.ISSUE_IDS.slice().sort(function (a, b) { return st.salience[b] - st.salience[a]; }).slice(0, 5);
+    var rows = ids.map(function (id) {
+      var issue = PP.ISSUE_BY_ID[id];
+      return '<div class="poll-row"><span class="abbr" style="font-size:11px">' + esc(issue.short) + '</span>' +
+        '<span class="bar"><span style="width:' + (st.salience[id] / 30 * 100) + '%;background:var(--accent)"></span></span>' +
+        '<span class="num">' + st.salience[id].toFixed(0) + '</span></div>';
+    }).join('');
+    return '<div class="panel"><h3>Повестка недели <span class="hint">что волнует страну</span></h3>' + rows + '</div>';
+  }
+
+  var TABS = [
+    { id: 'actions', label: 'Кампания' },
+    { id: 'regions', label: 'Регионы' },
+    { id: 'policy', label: 'Программа' },
+    { id: 'seats', label: 'Округа' },
+    { id: 'rivals', label: 'Соперники' },
+    { id: 'news', label: 'Новости' }
+  ];
+
+  function renderTabs() {
+    return '<div class="tabs">' + TABS.map(function (t) {
+      return '<button data-tab="' + t.id + '" class="' + (app.tab === t.id ? 'active' : '') + '">' + t.label + '</button>';
+    }).join('') + '</div>';
+  }
+
+  function renderActions() {
+    var st = app.state;
+    var cards = PP.ACTIONS.map(function (a) {
+      var check = PP.canRunAction(st, st.playerId, a.id);
+      return '<div class="action-card' + (check.ok ? '' : ' disabled') + '">' +
+        '<div class="ahead"><span class="aicon">' + a.icon + '</span>' + esc(a.name) + '</div>' +
+        '<div class="adesc">' + esc(a.desc) + '</div>' +
+        '<div class="acost">' + a.ap + ' AP · ' + (a.cost ? money(a.cost) : 'бесплатно') + (a.stamina ? ' · силы -' + a.stamina : '') +
+        (a.id === 'broadcast' ? ' · осталось эфиров: ' + st.parties[st.playerId].broadcastsLeft : '') + '</div>' +
+        '<button data-action="' + a.id + '"' + (check.ok ? '' : ' disabled title="' + esc(check.why) + '"') + '>' +
+        (check.ok ? 'Сделать' : esc(check.why)) + '</button></div>';
+    }).join('');
+    var log = (st.turnLog || []).slice(0, 6).map(function (l) { return '<div class="news-item ' + (l.tone || '') + '">' + esc(l.text) + '</div>'; }).join('');
+    return '<div class="panel"><h3>Расписание недели <span class="hint">осталось ' + st.ap + ' из ' + st.apMax + ' AP</span></h3>' +
+      '<div class="action-grid">' + cards + '</div></div>' +
+      (log ? '<div class="panel"><h3>Что вышло на этой неделе</h3>' + log + '</div>' : '');
+  }
+
+  function renderRegions() {
+    var st = app.state, shares = currentShares();
+    var cards = PP.CAMPAIGN_REGIONS.map(function (r) {
+      var sh = shares[r.id];
+      var order = sortedShares(sh, 1.5);
+      var mine = sh[st.playerId];
+      var effort = (st.effort[r.id] && st.effort[r.id][st.playerId]) || 0;
+      var bar = order.map(function (pid) { return '<span style="width:' + sh[pid] + '%;background:' + color(pid) + '"></span>'; }).join('');
+      return '<div class="region-card" data-region="' + r.id + '">' +
+        '<div class="rname">' + esc(r.name) + '<span class="rseats">' + r.seats + ' мест</span></div>' +
+        '<div class="mini-bar">' + bar + '</div>' +
+        (r.flavour ? '<div class="rflavour">' + esc(r.flavour) + '</div>' : '') +
+        '<div class="rlead">' + order.slice(0, 3).map(function (pid) {
+          return '<span style="color:' + color(pid) + '">' + abbr(pid) + ' ' + sh[pid].toFixed(1) + '</span>';
+        }).join(' · ') +
+        (mine !== undefined ? '<br>вы: ' + mine.toFixed(1) + '% ' + (effort > 0.2 ? '(кампания +' + effort.toFixed(1) + ')' : '') : '<br>здесь вы не выдвигаетесь') +
+        '</div></div>';
+    }).join('');
+    return '<div class="panel"><h3>Регионы <span class="hint">клик — подробности округов</span></h3><div class="region-grid">' + cards + '</div></div>' +
+      (app.region ? renderRegionDetail(app.region) : '');
+  }
+
+  function renderRegionDetail(rid) {
+    var st = app.state, region = PP.REGION_BY_ID[rid], shares = currentShares()[rid];
+    var seats = st.seats.filter(function (s) { return s.region === rid; }).map(function (seat) {
+      var res = PP.seatResult(seat, shares, { noise: 0, incumbency: 0.05 });
+      return { seat: seat, res: res };
+    }).sort(function (a, b) { return a.res.margin - b.res.margin; });
+    var rows = seats.slice(0, 24).map(function (x) {
+      var mine = x.res.shares[st.playerId] || 0;
+      return '<tr><td>' + esc(x.seat.name) + '</td>' +
+        '<td><span class="pill" style="background:' + color(x.res.winner) + '">' + abbr(x.res.winner) + '</span></td>' +
+        '<td class="num">' + x.res.margin.toFixed(1) + '</td>' +
+        '<td class="num" style="color:' + color(st.playerId) + '">' + mine.toFixed(1) + '</td>' +
+        '<td>' + (st.targeted[x.seat.id] ? '🎯' : '') + (x.seat.holder === st.playerId ? ' 🪑' : '') + '</td></tr>';
+    }).join('');
+    var d = region.demo;
+    return '<div class="panel"><h3>' + esc(region.name) + ' <span class="hint">' + region.seats + ' мест · самые близкие округа</span></h3>' +
+      (region.flavour ? '<p class="flavour">' + esc(region.flavour) + '</p>' : '') +
+      '<p class="hint">Демография: пожилые ' + d.age + ' · высшее образование ' + d.degree + ' · евроскептицизм ' + d.leave + ' · города ' + d.urban + ' · достаток ' + d.prosperity + '</p>' +
+      '<table><thead><tr><th>Округ</th><th>Лидирует</th><th class="num">Отрыв</th><th class="num">Вы</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+  }
+
+  function renderPolicy() {
+    var st = app.state, ps = st.parties[st.playerId];
+    var refRegion = PP.CAMPAIGN_REGIONS[0];
+    var prio = PP.aiPriorityRegions(st, st.playerId).slice(0, 3);
+    var prefs = {};
+    PP.ISSUE_IDS.forEach(function (id) { prefs[id] = 0; });
+    prio.forEach(function (x) {
+      var p = PP.regionPreferences(x.region);
+      PP.ISSUE_IDS.forEach(function (id) { prefs[id] += p[id] / prio.length; });
+    });
+    var items = PP.ISSUES.map(function (issue) {
+      var pos = ps.positions[issue.id];
+      var core = ps.corePositions[issue.id];
+      var want = prefs[issue.id];
+      var toPct = function (v) { return (v + 100) / 2; };
+      return '<div class="issue">' +
+        '<div class="ihead"><b>' + esc(issue.name) + '</b><span class="isal">значимость ' + st.salience[issue.id].toFixed(0) +
+        ' · компетентность ' + Math.round(ps.competence[issue.id]) + '</span></div>' +
+        '<div class="scale">' +
+        '<div class="tick" style="left:' + toPct(core) + '%;background:#5b6b80" title="Историческая позиция партии"></div>' +
+        '<div class="tick" style="left:' + toPct(pos) + '%;background:' + color(st.playerId) + ';width:5px" title="Ваша позиция"></div>' +
+        '<div class="voter" style="left:' + toPct(want) + '%" title="Настроение ключевых регионов">▼</div>' +
+        '</div>' +
+        '<div class="scale-labels"><span>' + esc(issue.leftLabel) + '</span><span>' + esc(issue.rightLabel) + '</span></div>' +
+        '</div>';
+    }).join('');
+    return '<div class="panel"><h3>Программа партии <span class="hint">▼ — настроение регионов, где решается ваша судьба</span></h3>' +
+      '<p class="hint">Позицию двигает действие «Заявление о политике». Уход далеко от исторической линии партии (серая метка) бьёт по единству фракции.</p>' +
+      items + '</div>';
+  }
+
+  function renderSeatsTab() {
+    var st = app.state, shares = currentShares();
+    var rows = st.seats.map(function (seat) {
+      var res = PP.seatResult(seat, shares[seat.region], { noise: 0, incumbency: 0.05 });
+      var mine = res.shares[st.playerId] || 0;
+      return { seat: seat, res: res, gap: res.winner === st.playerId ? -res.margin : (res.shares[res.winner] - mine) };
+    }).sort(function (a, b) { return a.gap - b.gap; });
+    var held = rows.filter(function (r) { return r.res.winner === st.playerId; }).length;
+    var targets = rows.filter(function (r) { return r.gap > 0 && r.gap < 8; }).slice(0, 30);
+    var defend = rows.filter(function (r) { return r.gap < 0 && r.gap > -6; }).slice(0, 20);
+    function table(list, title) {
+      return '<h3>' + title + '</h3><table><thead><tr><th>Округ</th><th>Регион</th><th>Лидирует</th><th class="num">Разрыв</th></tr></thead><tbody>' +
+        list.map(function (x) {
+          return '<tr><td>' + esc(x.seat.name) + (st.targeted[x.seat.id] ? ' 🎯' : '') + '</td><td>' + esc(PP.REGION_BY_ID[x.seat.region].name) + '</td>' +
+            '<td><span class="pill" style="background:' + color(x.res.winner) + '">' + abbr(x.res.winner) + '</span></td>' +
+            '<td class="num">' + Math.abs(x.gap).toFixed(1) + '</td></tr>';
+        }).join('') + '</tbody></table>';
+    }
+    return '<div class="panel"><h3>Карта борьбы <span class="hint">по текущим настроениям вы ведёте в ' + held + ' округах</span></h3>' +
+      '<div class="list">' + table(defend, 'Под угрозой (ваши, но с малым отрывом)') + table(targets, 'Ближайшие цели') + '</div></div>';
+  }
+
+  function renderRivals() {
+    var st = app.state, shares = currentShares();
+    var nat = PP.nationalShares(st, shares);
+    var rows = PP.PARTIES.filter(function (p) { return p.id !== 'oth'; }).map(function (def) {
+      var ps = st.parties[def.id];
+      return '<tr><td><span class="pill" style="background:' + def.color + '">' + def.abbr + '</span> ' + esc(def.ru) + '</td>' +
+        '<td>' + esc(ps.leader.name) + '</td>' +
+        '<td class="num">' + (nat[def.id] || 0).toFixed(1) + '</td>' +
+        '<td class="num">' + (ps.leader.approval > 0 ? '+' : '') + ps.leader.approval.toFixed(0) + '</td>' +
+        '<td class="num">' + money(ps.funds) + '</td>' +
+        '<td class="num">' + Math.round(ps.unity) + '</td>' +
+        '<td class="num">' + (ps.momentum > 0 ? '+' : '') + ps.momentum.toFixed(1) + '</td></tr>';
+    }).join('');
+    return '<div class="panel"><h3>Соперники <span class="hint">разведка кампании</span></h3>' +
+      '<table><thead><tr><th>Партия</th><th>Лидер</th><th class="num">%</th><th class="num">Рейтинг</th><th class="num">Касса</th><th class="num">Единство</th><th class="num">Инерция</th></tr></thead>' +
+      '<tbody>' + rows + '</tbody></table></div>';
+  }
+
+  function renderNews() {
+    var st = app.state;
+    var items = st.news.map(function (n) {
+      return '<div class="news-item ' + esc(n.kind) + '"><span class="w">нед. ' + n.week + '</span> ' + esc(n.text) + '</div>';
+    }).join('');
+    return '<div class="panel"><h3>Хроника кампании</h3><div class="list">' + items + '</div></div>';
+  }
+
+  function renderCampaign() {
+    var body;
+    if (app.tab === 'actions') body = renderActions();
+    else if (app.tab === 'regions') body = renderRegions();
+    else if (app.tab === 'policy') body = renderPolicy();
+    else if (app.tab === 'seats') body = renderSeatsTab();
+    else if (app.tab === 'rivals') body = renderRivals();
+    else body = renderNews();
+    return renderTopbar() +
+      '<div class="layout"><div>' + renderSidebar() + '</div>' +
+      '<div>' + renderTabs() + body + '</div></div>';
+  }
+
+  /* ================= Модальные окна ================= */
+
+  function modal(html) {
+    var back = doc.createElement('div');
+    back.className = 'modal-back';
+    back.innerHTML = '<div class="modal">' + html + '</div>';
+    doc.body.appendChild(back);
+    return back;
+  }
+
+  function closeModals() {
+    Array.prototype.forEach.call(doc.querySelectorAll('.modal-back'), function (m) { m.remove(); });
+  }
+
+  function pickRegion(title, cb) {
+    var st = app.state, shares = currentShares();
+    var regions = PP.regionsForParty(st, st.playerId);
+    var html = '<h2>' + esc(title) + '</h2><div class="options">' + regions.map(function (r) {
+      var sh = shares[r.id];
+      var order = sortedShares(sh, 1.5);
+      var mine = sh[st.playerId] || 0;
+      return '<button data-pick="' + r.id + '">' + esc(r.name) + ' — ' + r.seats + ' мест' +
+        '<span class="opt-hint">вы ' + mine.toFixed(1) + '% · лидирует ' + abbr(order[0]) + ' ' + sh[order[0]].toFixed(1) + '%</span></button>';
+    }).join('') + '<button data-pick="cancel" class="ghost">Отмена</button></div>';
+    var m = modal(html);
+    m.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-pick]');
+      if (!b) return;
+      closeModals();
+      if (b.dataset.pick !== 'cancel') cb(b.dataset.pick);
+    });
+  }
+
+  function pickPolicy(cb) {
+    var st = app.state, ps = st.parties[st.playerId];
+    var html = '<h2>Заявление о политике</h2><p class="hint">Сдвиг позиции на 9 пунктов и рост значимости темы в повестке.</p><div class="options">' +
+      PP.ISSUES.map(function (i) {
+        return '<button data-issue="' + i.id + '" data-dir="-1">' + esc(i.name) + ': ' + esc(i.leftLabel) +
+          '<span class="opt-hint">сейчас ' + ps.positions[i.id].toFixed(0) + ' · значимость ' + st.salience[i.id].toFixed(0) + '</span></button>' +
+          '<button data-issue="' + i.id + '" data-dir="1">' + esc(i.name) + ': ' + esc(i.rightLabel) +
+          '<span class="opt-hint">сейчас ' + ps.positions[i.id].toFixed(0) + ' · значимость ' + st.salience[i.id].toFixed(0) + '</span></button>';
+      }).join('') + '<button data-issue="cancel" class="ghost">Отмена</button></div>';
+    var m = modal(html);
+    m.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-issue]');
+      if (!b) return;
+      closeModals();
+      if (b.dataset.issue !== 'cancel') cb(b.dataset.issue, parseInt(b.dataset.dir, 10));
+    });
+  }
+
+  function pickAttack(cb) {
+    var st = app.state, shares = currentShares();
+    var nat = PP.nationalShares(st, shares);
+    var rivals = Object.keys(nat).filter(function (p) { return p !== st.playerId && p !== 'oth' && nat[p] > 2; })
+      .sort(function (a, b) { return nat[b] - nat[a]; });
+    var html = '<h2>По кому бьём?</h2><div class="options">' + rivals.map(function (pid) {
+      return '<button data-target="' + pid + '">' + esc(pname(pid)) + '<span class="opt-hint">' + nat[pid].toFixed(1) + '% по стране</span></button>';
+    }).join('') + '<button data-target="cancel" class="ghost">Отмена</button></div>';
+    var m = modal(html);
+    m.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-target]');
+      if (!b) return;
+      closeModals();
+      if (b.dataset.target === 'cancel') return;
+      var target = b.dataset.target;
+      pickRegion('Где бьём по ' + pname(target) + '?', function (rid) { cb(target, rid); });
+    });
+  }
+
+  function showEvent() {
+    var st = app.state, ev = st.pendingEvent;
+    var html = '<h2>' + esc(ev.title) + '</h2><p>' + esc(ev.text) + '</p><div class="options">' +
+      ev.options.map(function (o) { return '<button data-opt="' + o.i + '">' + esc(o.label) + '</button>'; }).join('') + '</div>';
+    var m = modal(html);
+    m.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-opt]');
+      if (!b) return;
+      var text = PP.resolveEventChoice(st, parseInt(b.dataset.opt, 10));
+      closeModals();
+      modalInfo('Итог', text);
+      render();
+    });
+  }
+
+  function showDebate() {
+    var st = app.state, d = st.pendingDebate;
+    var html = '<h2>📺 Теледебаты лидеров</h2><p>Главный соперник вечера — ' + esc(pname(d.rival)) +
+      '. Как вы проводите этот час?</p><div class="options">' +
+      PP.DEBATE_MOVES.map(function (mv) {
+        return '<button data-move="' + mv.id + '">' + esc(mv.label) + '<span class="opt-hint">' + esc(mv.hint) + '</span></button>';
+      }).join('') + '</div>';
+    var m = modal(html);
+    m.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-move]');
+      if (!b) return;
+      var res = PP.resolveDebateChoice(st, b.dataset.move);
+      closeModals();
+      modalInfo('После эфира', res.text);
+      render();
+    });
+  }
+
+  function modalInfo(title, text, onClose) {
+    var m = modal('<h2>' + esc(title) + '</h2><p>' + esc(text) + '</p><div class="options"><button class="primary" data-close="1">Дальше</button></div>');
+    m.addEventListener('click', function (e) {
+      if (e.target.closest('[data-close]')) { closeModals(); if (onClose) onClose(); }
+    });
+  }
+
+  /* ================= Ночь выборов ================= */
+
+  function startNight() {
+    var st = app.state;
+    var result = PP.runElection(st);
+    app.night = { result: result, index: 0, clock: 0, counts: {}, running: true, timer: null };
+    st.result = { seats: result.seats, votes: result.votes };
+    app.screen = 'night';
+    render();
+    tickNight();
+  }
+
+  function tickNight() {
+    var n = app.night;
+    if (!n || !n.running) return;
+    var batch = Math.max(1, Math.round(n.result.results.length / 90));
+    for (var i = 0; i < batch && n.index < n.result.results.length; i++) {
+      countDeclaration(n, n.result.results[n.index++]);
+    }
+    renderNightBody();
+    if (n.index >= n.result.results.length) {
+      n.running = false;
+      setTimeout(finishNight, 900);
+      return;
+    }
+    n.timer = setTimeout(tickNight, 130);
+  }
+
+  function skipNight() {
+    var n = app.night;
+    if (!n) return;
+    if (n.timer) clearTimeout(n.timer);
+    while (n.index < n.result.results.length) {
+      countDeclaration(n, n.result.results[n.index++]);
+    }
+    n.running = false;
+    renderNightBody();
+    finishNight();
+  }
+
+  /* Счёт ночи: мандаты и чистое изменение относительно прошлого состава. */
+  function countDeclaration(n, r) {
+    n.counts[r.winner] = (n.counts[r.winner] || 0) + 1;
+    n.net = n.net || {};
+    if (r.previous) {
+      n.net[r.previous] = (n.net[r.previous] || 0) - 1;
+    }
+    n.net[r.winner] = (n.net[r.winner] || 0) + 1;
+    n.clock = r.time;
+  }
+
+  function clockText(t) {
+    var hour = (22 + Math.floor(t)) % 24;
+    var min = Math.floor((t % 1) * 60);
+    return (hour < 10 ? '0' : '') + hour + ':' + (min < 10 ? '0' : '') + min;
+  }
+
+  function renderNight() {
+    var n = app.night;
+    var exit = n.result.exitPoll;
+    var order = Object.keys(exit).sort(function (a, b) { return exit[b] - exit[a]; }).slice(0, 6);
+    return '<div class="night">' +
+      '<div class="panel"><h3>Экзитпол в 22:00 <span class="hint">прогноз, а не результат</span></h3>' +
+      order.map(function (pid) {
+        return '<div class="poll-row"><span class="abbr" style="color:' + color(pid) + '">' + abbr(pid) + '</span>' +
+          '<span class="bar"><span style="width:' + (exit[pid] / 400 * 100) + '%;background:' + color(pid) + '"></span></span>' +
+          '<span class="num">' + exit[pid] + '</span></div>';
+      }).join('') + '</div>' +
+      '<div class="clock" id="night-clock">22:00</div>' +
+      '<div id="night-body"></div>' +
+      '<div class="setup-row"><button id="btn-skip">Промотать ночь</button></div></div>';
+  }
+
+  function renderNightBody() {
+    var n = app.night;
+    var clock = el('night-clock');
+    if (clock) clock.textContent = clockText(n.clock);
+    var counted = n.index;
+    var order = Object.keys(n.counts).sort(function (a, b) { return n.counts[b] - n.counts[a]; }).slice(0, 7);
+    var tickers = order.map(function (pid) {
+      var d = (n.net && n.net[pid]) || 0;
+      return '<div class="ticker"><div class="tl" style="color:' + color(pid) + '">' + abbr(pid) + '</div>' +
+        '<div class="tn">' + n.counts[pid] + '</div>' +
+        '<div class="tc ' + (d >= 0 ? 'up' : 'down') + '" style="color:' + (d >= 0 ? 'var(--green)' : 'var(--red)') + '">' + (d >= 0 ? '+' : '') + d + '</div></div>';
+    }).join('');
+    var feed = n.result.results.slice(Math.max(0, n.index - 14), n.index).reverse().map(function (r) {
+      var gain = r.previous && r.previous !== r.winner;
+      return '<div class="decl' + (gain ? ' gain' : '') + '">' +
+        '<span class="tc">' + clockText(r.time) + '</span>' +
+        '<span>' + esc(r.name) + '</span>' +
+        '<span><span class="pill" style="background:' + color(r.winner) + '">' + abbr(r.winner) + '</span> ' +
+        (gain ? 'перехват у ' + abbr(r.previous) : 'удержание') + '</span>' +
+        '<span class="tc">' + (r.shares ? '+' + r.margin.toFixed(1) : '') + '</span></div>';
+    }).join('');
+    var body = el('night-body');
+    if (body) {
+      var lead = order[0];
+      var toMajority = lead ? Math.max(0, n.result.majority.effective - n.counts[lead]) : 0;
+      body.innerHTML = '<div class="tickers">' + tickers + '</div>' +
+        '<div class="panel"><h3>Объявлено округов: ' + counted + ' из ' + PP.TOTAL_SEATS +
+        (lead ? ' <span class="hint">' + abbr(lead) + ' до большинства: ' + toMajority + '</span>' : '') + '</h3>' +
+        '<div class="decl-feed">' + feed + '</div></div>';
+    }
+  }
+
+  function finishNight() {
+    app.screen = 'result';
+    render();
+  }
+
+  /* ================= Результат и переговоры ================= */
+
+  function renderResult() {
+    var st = app.state, res = app.night.result;
+    var seats = res.seats;
+    var order = Object.keys(seats).sort(function (a, b) { return seats[b] - seats[a]; });
+    var mine = seats[st.playerId] || 0;
+    var winner = order[0];
+    var maj = res.majority;
+    var gov = st.government;
+
+    var headline;
+    if (seats[winner] >= maj.effective) headline = pname(winner) + ': большинство в Палате общин';
+    else headline = 'Подвешенный парламент';
+
+    var bar = order.map(function (pid) {
+      return '<span style="width:' + (seats[pid] / PP.TOTAL_SEATS * 100) + '%;background:' + color(pid) + '" title="' + pname(pid) + ' ' + seats[pid] + '"></span>';
+    }).join('');
+
+    var table = '<table><thead><tr><th>Партия</th><th class="num">Мест</th><th class="num">Изм.</th><th class="num">Голосов</th></tr></thead><tbody>' +
+      order.map(function (pid) {
+        var d = seats[pid] - (st.startingSeats[pid] || 0);
+        return '<tr><td><span class="pill" style="background:' + color(pid) + '">' + abbr(pid) + '</span> ' + esc(pname(pid)) + '</td>' +
+          '<td class="num">' + seats[pid] + '</td>' +
+          '<td class="num" style="color:' + (d >= 0 ? 'var(--green)' : 'var(--red)') + '">' + (d >= 0 ? '+' : '') + d + '</td>' +
+          '<td class="num">' + (res.votes[pid] ? res.votes[pid].toFixed(1) + '%' : '—') + '</td></tr>';
+      }).join('') + '</tbody></table>';
+
+    var verdict = gov ? renderVerdict(gov, mine) : renderNegotiation(res, mine);
+
+    return '<div class="night">' +
+      '<div class="result-hero"><div class="big">' + esc(headline) + '</div>' +
+      '<p>Ваш результат: <b>' + mine + '</b> мандатов (' + (res.votes[st.playerId] || 0).toFixed(1) + '% голосов). ' +
+      'Порог большинства: ' + maj.effective + ' с учётом ' + maj.abstaining + ' неголосующих депутатов.</p>' +
+      '<div class="commons">' + bar + '</div></div>' +
+      verdict +
+      '<div class="panel"><h3>Палата общин</h3>' + table + '</div>' +
+      '<div class="setup-row"><button id="btn-restart">Новая кампания</button></div></div>';
+  }
+
+  function renderNegotiation(res, mine) {
+    var st = app.state;
+    var order = Object.keys(res.seats).sort(function (a, b) { return res.seats[b] - res.seats[a]; });
+    var largest = order[0];
+    var offer = app.offer || { cabinet: true, confidence: false, pr: false, referendum: false };
+    if (res.seats[st.playerId] >= res.majority.effective) {
+      return '<div class="panel"><h3>Правительство</h3><p>Вы получили абсолютное большинство. Формальности займут день, а дальше — Даунинг-стрит.</p>' +
+        '<button class="primary" data-gov="solo">Сформировать правительство</button></div>';
+    }
+    if (mine < 2) {
+      return '<div class="panel"><h3>Итог</h3><p>Мандатов слишком мало для переговоров. Вы наблюдаете за формированием правительства со стороны.</p>' +
+        '<button class="primary" data-gov="observe">Смотреть, как это делают другие</button></div>';
+    }
+    var opts = PP.coalitionOptions(st, res, st.playerId, offer);
+    var selected = app.partners || [];
+    var total = res.seats[st.playerId] + selected.reduce(function (s, p) { return s + (res.seats[p] || 0); }, 0);
+    var rows = opts.map(function (o) {
+      var on = selected.indexOf(o.id) >= 0;
+      return '<tr><td><label><input type="checkbox" data-partner="' + o.id + '"' + (on ? ' checked' : '') + '> ' +
+        '<span class="pill" style="background:' + color(o.id) + '">' + abbr(o.id) + '</span> ' + esc(pname(o.id)) + '</label></td>' +
+        '<td class="num">' + o.seats + '</td>' +
+        '<td class="num">' + o.distance.toFixed(0) + '</td>' +
+        '<td class="num" style="color:' + (o.willing > 55 ? 'var(--green)' : o.willing > 40 ? 'var(--accent)' : 'var(--red)') + '">' + o.willing.toFixed(0) + '</td></tr>';
+    }).join('');
+    return '<div class="panel"><h3>Переговоры о правительстве <span class="hint">нужно ' + res.majority.effective + ' мандатов</span></h3>' +
+      '<p>Крупнейшая партия: ' + esc(pname(largest)) + ' (' + res.seats[largest] + '). У вас с выбранными партнёрами: <b>' + total + '</b>.</p>' +
+      '<div class="setup-row" style="justify-content:flex-start">' +
+      '<label><input type="checkbox" data-offer="cabinet"' + (offer.cabinet ? ' checked' : '') + '> Места в кабинете</label>' +
+      '<label><input type="checkbox" data-offer="pr"' + (offer.pr ? ' checked' : '') + '> Реформа избирательной системы</label>' +
+      '<label><input type="checkbox" data-offer="referendum"' + (offer.referendum ? ' checked' : '') + '> Референдум для Шотландии</label>' +
+      '<label><input type="checkbox" data-offer="confidence"' + (offer.confidence ? ' checked' : '') + '> Только поддержка без кабинета</label>' +
+      '</div>' +
+      '<table><thead><tr><th>Партия</th><th class="num">Мест</th><th class="num">Дистанция</th><th class="num">Готовность</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+      '<div class="setup-row" style="justify-content:flex-start"><button class="primary" data-gov="try">Предложить союз</button>' +
+      '<button data-gov="observe">Уйти в оппозицию</button></div></div>';
+  }
+
+  function renderVerdict(gov, mine) {
+    var st = app.state;
+    var def = PP.PARTY_BY_ID[st.playerId];
+    var title, text;
+    if (gov.kind === 'majority') {
+      title = 'Даунинг-стрит, 10';
+      text = 'Вы формируете однопартийное правительство большинства: ' + gov.seats + ' мандатов при пороге ' + gov.threshold + '.';
+    } else if (gov.kind === 'coalition') {
+      title = 'Коалиционное правительство';
+      text = 'Союз с ' + gov.partners.map(pname).join(', ') + ' даёт ' + gov.seats + ' мандатов. Кабинет придётся делить.';
+    } else if (gov.kind === 'confidence') {
+      title = 'Правительство меньшинства с внешней поддержкой';
+      text = gov.partners.map(pname).join(', ') + ' обещали не валить вас на вотумах доверия и бюджете. Каждый закон — отдельные переговоры.';
+    } else if (gov.kind === 'opposition') {
+      var res = app.night.result;
+      var ranked = Object.keys(res.seats).sort(function (a, b) { return res.seats[b] - res.seats[a]; })
+        .filter(function (pid) { return pid !== gov.leader; });
+      var official = ranked[0] === st.playerId;
+      title = official ? 'Официальная оппозиция Его Величества' : 'Оппозиционные скамьи';
+      text = 'Правительство формирует ' + pname(gov.leader) + '. У вас ' + mine + ' мандатов' +
+        (official ? ' и статус главной оппозиции' : '') + ' — и четыре года на подготовку реванша.';
+    } else {
+      title = 'Правительство меньшинства';
+      text = 'Ни один союз не собрался. Вы пытаетесь править без большинства — до первого серьёзного голосования.';
+    }
+    var goals = def.goals || [{ seats: def.target, label: 'Цель кампании' }];
+    var achieved = null, next = null;
+    goals.forEach(function (g) {
+      if (mine >= g.seats) achieved = g;
+      else if (!next) next = g;
+    });
+    var verdictLine = achieved
+      ? 'Достигнуто: ' + achieved.label + ' (' + achieved.seats + '+ мандатов).'
+      : 'Ни одна из целей кампании не взята.';
+    if (next) verdictLine += ' До следующей ступени «' + next.label + '» не хватило ' + (next.seats - mine) + '.';
+    var ladder = '<table><thead><tr><th>Ступень</th><th class="num">Нужно мест</th><th></th></tr></thead><tbody>' +
+      goals.map(function (g) {
+        return '<tr><td>' + esc(g.label) + '</td><td class="num">' + g.seats + '</td><td>' +
+          (mine >= g.seats ? '<span style="color:var(--green)">✔ взято</span>' : '<span class="hint">—</span>') + '</td></tr>';
+      }).join('') + '</tbody></table>';
+    var refused = gov.refused && gov.refused.length
+      ? '<p class="hint">Отказали: ' + gov.refused.map(function (r) { return pname(r.id) + ' (готовность ' + r.willing.toFixed(0) + ')'; }).join(', ') + '.</p>'
+      : '';
+    return '<div class="panel"><h3>' + esc(title) + '</h3><p>' + esc(text) + '</p>' + refused +
+      '<p><b>' + esc(verdictLine) + '</b></p>' + ladder + '</div>';
+  }
+
+  /* ================= Роутинг и события ================= */
+
+  function render() {
+    var wrap = el('app');
+    if (app.screen === 'title') wrap.innerHTML = renderTitle();
+    else if (app.screen === 'campaign') wrap.innerHTML = renderCampaign();
+    else if (app.screen === 'night') { wrap.innerHTML = renderNight(); renderNightBody(); }
+    else if (app.screen === 'result') wrap.innerHTML = renderResult();
+  }
+
+  function runPlayerAction(actionId) {
+    var st = app.state;
+    var check = PP.canRunAction(st, st.playerId, actionId);
+    if (!check.ok) return;
+    var rng = new PP.Rng('act:' + st.seed + ':' + st.week + ':' + st.ap + ':' + actionId);
+    var a = PP.ACTION_BY_ID[actionId];
+    var go = function (params) {
+      var out = PP.performAction(st, st.playerId, actionId, params, rng);
+      st.turnLog.unshift({ text: a.icon + ' ' + out.text, tone: out.tone });
+      st._cacheRegionShares = null;
+      render();
+    };
+    if (a.needs === 'region') pickRegion(a.name + ': выберите регион', function (rid) { go({ regionId: rid }); });
+    else if (a.needs === 'policy') pickPolicy(function (issueId, dir) { go({ issueId: issueId, direction: dir }); });
+    else if (a.needs === 'attack') pickAttack(function (target, rid) { go({ targetId: target, regionId: rid }); });
+    else go({});
+  }
+
+  function endWeek() {
+    var st = app.state;
+    st.turnLog = [];
+    var out = PP.endWeek(st);
+    PP.saveGame(st);
+    if (out.ended) { startNight(); return; }
+    render();
+    if (st.pendingDebate) showDebate();
+    else if (st.pendingEvent) showEvent();
+  }
+
+  function startGame() {
+    var menu = app.menu;
+    var seedInput = el('inp-seed');
+    var seed = (seedInput && seedInput.value.trim()) || menu.seed;
+    app.state = PP.newGame({
+      playerId: menu.party,
+      role: menu.role,
+      custom: menu.party === 'own' ? menu.custom : null,
+      difficulty: menu.difficulty,
+      weeks: menu.weeks,
+      seed: seed || String(Math.floor(Math.random() * 1e9))
+    });
+    app.screen = 'campaign';
+    app.tab = 'actions';
+    app.region = null;
+    PP.saveGame(app.state);
+    render();
+  }
+
+  /* Быстрый старт: случайная роль, случайная партия, стандартные настройки. */
+  function quickStart() {
+    var rng = new PP.Rng('quick:' + Math.random());
+    var playable = PP.PARTIES.filter(function (p) { return p.playable && p.id !== 'own'; });
+    app.menu.role = rng.pick(PP.ROLES).id;
+    app.menu.party = rng.pick(playable).id;
+    app.menu.difficulty = 'normal';
+    app.menu.weeks = 12;
+    app.menu.seed = '';
+    startGame();
+  }
+
+  function continueGame() {
+    var loaded = PP.loadGame();
+    if (!loaded) { modalInfo('Сохранение', 'Сохранённой кампании не нашлось.'); return; }
+    app.state = loaded;
+    app.screen = 'campaign';
+    render();
+    resumePending();
+  }
+
+  function bind() {
+    doc.addEventListener('click', function (e) {
+      var t = e.target;
+      if (app.screen === 'title') {
+        var res = PP.Menu.handleClick(app.menu, t);
+        if (res === 'render') { render(); return; }
+        if (res === 'start') { startGame(); return; }
+        if (res === 'quick') { quickStart(); return; }
+        if (res === 'rules') { showHelp(); return; }
+        if (res === 'continue') { continueGame(); return; }
+        if (res) return;
+      }
+      var tab = t.closest && t.closest('[data-tab]');
+      if (tab) { app.tab = tab.dataset.tab; render(); return; }
+      var region = t.closest && t.closest('[data-region]');
+      if (region && app.screen === 'campaign' && app.tab === 'regions') {
+        app.region = app.region === region.dataset.region ? null : region.dataset.region;
+        render(); return;
+      }
+      var act = t.closest && t.closest('[data-action]');
+      if (act) { runPlayerAction(act.dataset.action); return; }
+      var gov = t.closest && t.closest('[data-gov]');
+      if (gov) { handleGovernment(gov.dataset.gov); return; }
+      if (t.id === 'btn-start') { startGame(); return; }
+      if (t.id === 'btn-week') { endWeek(); return; }
+      if (t.id === 'btn-help') { showHelp(); return; }
+      if (t.id === 'btn-save') { modalInfo('Сохранение', PP.saveGame(app.state) ? 'Кампания сохранена в этом браузере.' : 'Браузер не разрешил сохранение.'); return; }
+      if (t.id === 'btn-skip') { skipNight(); return; }
+      if (t.id === 'btn-restart') { PP.clearSave(); app.screen = 'title'; app.state = null; app.night = null; app.offer = null; app.partners = null; render(); return; }
+    });
+
+    doc.addEventListener('input', function (e) {
+      if (app.screen !== 'title' || !app.menu) return;
+      if (e.target.id === 'inp-seed') { app.menu.seed = e.target.value; return; }
+      PP.Menu.handleInput(app.menu, e.target, doc);
+    });
+
+    doc.addEventListener('change', function (e) {
+      var t = e.target;
+      if (app.screen === 'title' && app.menu) {
+        if (t.id === 'inp-seed') { app.menu.seed = t.value; return; }
+        if (PP.Menu.handleInput(app.menu, t, doc)) {
+          if (t.dataset.cf === 'scope' || t.dataset.cf === 'color') render();
+          return;
+        }
+      }
+      if (t.dataset && t.dataset.partner) {
+        app.partners = app.partners || [];
+        var i = app.partners.indexOf(t.dataset.partner);
+        if (t.checked && i < 0) app.partners.push(t.dataset.partner);
+        if (!t.checked && i >= 0) app.partners.splice(i, 1);
+        render(); return;
+      }
+      if (t.dataset && t.dataset.offer) {
+        app.offer = app.offer || { cabinet: true, confidence: false, pr: false, referendum: false };
+        app.offer[t.dataset.offer] = t.checked;
+        render(); return;
+      }
+    });
+  }
+
+  function handleGovernment(kind) {
+    var st = app.state, res = app.night.result;
+    if (kind === 'solo') {
+      st.government = PP.formGovernment(st, res, st.playerId, [], {});
+    } else if (kind === 'observe') {
+      var viable = PP.viableCoalitions(st, res);
+      var other = viable.filter(function (v) { return v.leader !== st.playerId; })[0];
+      st.government = { kind: 'opposition', leader: other ? other.leader : 'con', partners: other ? other.partners : [], seats: other ? other.seats : 0, threshold: res.majority.effective };
+    } else {
+      st.government = PP.formGovernment(st, res, st.playerId, app.partners || [], app.offer || { cabinet: true });
+      if (st.government.kind === 'minority' && (res.seats[st.playerId] || 0) < (res.seats[Object.keys(res.seats).sort(function (a, b) { return res.seats[b] - res.seats[a]; })[0]] || 0)) {
+        st.government.kind = 'opposition';
+      }
+    }
+    PP.saveGame(st);
+    render();
+  }
+
+  var HELP = [
+    'Каждую неделю у вас есть очки расписания (AP). Тратьте их на поездки, рекламу, деньги и программу.',
+    'Поддержка считается по регионам. Эффект кампании затухает примерно на четверть в неделю, поэтому регион нужно «дожимать».',
+    'Мандаты берутся по округам: побеждает первый, остальные голоса пропадают. Ровный результат по всей стране почти не даёт мест — важна концентрация.',
+    'Позиции партии по темам сравниваются с настроением региона и взвешиваются по значимости темы в повестке. Значимость меняется от событий.',
+    'Уход далеко от исторической линии партии бьёт по единству фракции, а низкое единство снижает поддержку.',
+    'Дебаты проходят дважды за кампанию. Выбор тактики сверяется с харизмой, компетентностью и силами лидера.',
+    'Порог большинства — 326 мандатов, но депутаты «Шинн Фейн» не занимают места, поэтому фактическая планка ниже.',
+    'Если большинства нет, начинаются переговоры: партнёр соглашается тем охотнее, чем ближе он идеологически и чем больше вы ему предлагаете.'
+  ];
+
+  function showHelp() {
+    modal('<h2>Как это работает</h2><ul>' + HELP.map(function (h) { return '<li>' + esc(h) + '</li>'; }).join('') +
+      '</ul><div class="options"><button class="primary" data-close="1">Понятно</button></div>')
+      .addEventListener('click', function (e) { if (e.target.closest('[data-close]')) closeModals(); });
+  }
+
+  /* Модальное окно, зависшее с прошлой сессии (например, после загрузки). */
+  function resumePending() {
+    var st = app.state;
+    if (!st) return;
+    if (st.pendingDebate) showDebate();
+    else if (st.pendingEvent) showEvent();
+  }
+
+  function boot() {
+    bind();
+    render();
+  }
+
+  PP.ui = { boot: boot, app: app, render: render };
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+</script>
+<script>
+/* src/main.js */
+/* Точка входа. */
+(function (root) {
+  'use strict';
+  root.document.addEventListener('DOMContentLoaded', function () {
+    root.PP.ui.boot();
+  });
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+</script>
+</body>
+</html>

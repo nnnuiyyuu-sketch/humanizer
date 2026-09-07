@@ -12,7 +12,7 @@
   function partyStrengthByRegion(state, partyId) {
     var byRegion = PP.allRegionShares(state);
     var list = [];
-    PP.regionsForParty(partyId).forEach(function (r) {
+    PP.regionsForParty(state, partyId).forEach(function (r) {
       var sh = byRegion[r.id];
       var mine = sh[partyId] || 0;
       var best = 0, bestId = null;

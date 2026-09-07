@@ -111,7 +111,7 @@ select, input[type=text] {
 
 .commons { display: flex; height: 22px; border-radius: 4px; overflow: hidden; border: 1px solid var(--line); margin: 6px 0; }
 .commons > span { display: block; height: 100%; }
-.majority-line { position: relative; height: 10px; margin-bottom: 8px; font-size: 11px; color: var(--muted); }
+.majority-line { font-size: 11px; line-height: 1.35; color: var(--muted); margin: 4px 0 10px; }
 
 /* ---------- Вкладки ---------- */
 .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
@@ -186,3 +186,169 @@ td.num, th.num { text-align: right; font-family: var(--mono); }
 .result-hero { text-align: center; padding: 20px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); margin-bottom: 14px; }
 .result-hero .big { font-size: 30px; font-family: Georgia, serif; }
 .footer-note { color: var(--muted); font-size: 12px; text-align: center; padding: 20px 0 40px; }
+
+/* ============================================================
+   Меню запуска и английская атмосфера
+   ============================================================ */
+
+:root {
+  --bench: #1d4231;      /* зелень скамей Палаты общин */
+  --parchment: #f3ead6;
+  --ink: #1b1b1b;
+  --union-red: #c8102e;
+  --union-blue: #012169;
+}
+
+/* --- заставка --- */
+.hero {
+  position: relative;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 18px;
+  min-height: 500px;
+  display: flex;
+  align-items: flex-start;
+  background: linear-gradient(180deg, #16243d 0%, #2c4166 48%, #14203a 78%, #0b1017 100%);
+}
+.skyline { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: auto; z-index: 0; }
+.hero-scrim {
+  position: absolute; inset: 0; z-index: 1;
+  background: linear-gradient(180deg, rgba(11,16,23,.10) 0%, rgba(11,16,23,.22) 46%, rgba(11,16,23,.62) 78%, rgba(11,16,23,.92) 100%);
+}
+.hero-inner { position: relative; z-index: 2; padding: 34px 22px 26px; width: 100%; text-align: center; }
+.hero-inner .hero-actions { margin-top: 20px; }
+.flag { display: flex; justify-content: center; gap: 4px; margin-bottom: 10px; }
+.flag span { display: block; width: 30px; height: 5px; border-radius: 2px; }
+.flag span:nth-child(1) { background: var(--union-blue); }
+.flag span:nth-child(2) { background: #fff; }
+.flag span:nth-child(3) { background: var(--union-red); }
+
+.game-title {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(30px, 5.4vw, 54px);
+  letter-spacing: 1px;
+  margin: 0 0 2px;
+  text-shadow: 0 3px 18px rgba(0,0,0,.65);
+}
+.game-sub { color: var(--muted); letter-spacing: 2px; font-size: 12px; text-transform: uppercase; }
+.quote { font-family: Georgia, serif; font-style: italic; color: #cbd7e6; margin: 14px auto 18px; max-width: 640px; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+button.big { padding: 12px 22px; font-size: 15px; }
+
+.home-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.home-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
+.home-card .hc-icon { font-size: 24px; }
+.home-card h3 { margin: 6px 0 6px; }
+.home-card p { font-size: 13px; color: var(--muted); margin: 0; }
+
+/* --- шаги меню --- */
+.menu-screen { padding-bottom: 30px; }
+.menu-head { text-align: center; margin-bottom: 18px; }
+.menu-head h1 { font-size: 30px; margin: 8px 0 2px; }
+.crumbs { display: flex; gap: 8px; justify-content: center; align-items: center; font-size: 12px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+.crumb.now { color: var(--accent); font-weight: 700; }
+.crumb.done { color: #b9c8d9; }
+.crumb-sep { opacity: .5; }
+
+.pick-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+.pick-card {
+  background: var(--panel); border: 1px solid var(--line);
+  border-left: 6px solid var(--pc, #43536b);
+  border-radius: var(--radius); padding: 14px 16px; cursor: pointer;
+  transition: transform .1s, border-color .15s, background .15s;
+}
+.pick-card:hover { background: var(--panel-2); transform: translateY(-2px); }
+.pick-card.selected { outline: 2px solid var(--accent); }
+.pick-card.own { border-left-style: dashed; }
+.pick-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.pick-icon { font-size: 26px; }
+.pick-name { font-family: Georgia, serif; font-size: 18px; font-weight: 600; }
+.pick-en { font-size: 12px; color: var(--muted); letter-spacing: .6px; }
+.pick-desc { font-size: 13px; color: #c6d3e2; margin: 0 0 8px; }
+.pick-quote { font-family: Georgia, serif; font-style: italic; font-size: 12.5px; color: var(--accent); border-top: 1px solid var(--line); padding-top: 8px; }
+.perks { margin: 0 0 8px; padding-left: 18px; font-size: 12.5px; color: var(--muted); }
+.perks li { margin-bottom: 3px; }
+.stat-line { display: flex; gap: 12px; flex-wrap: wrap; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 6px; }
+.stat-line b { display: block; font-family: var(--mono); font-size: 13px; color: var(--text); text-transform: none; letter-spacing: 0; }
+.leader-line, .goal-line { font-size: 12px; color: var(--muted); }
+.goal-line { margin-top: 4px; color: var(--accent); }
+
+.menu-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 18px; }
+
+/* --- розетка кандидата --- */
+.rosette {
+  position: relative; display: inline-block;
+  width: var(--s, 30px); height: var(--s, 30px); flex: none;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, #fdfdfd 0 22%, var(--c) 24% 100%);
+  box-shadow: inset 0 0 0 2px rgba(0,0,0,.28), 0 2px 6px rgba(0,0,0,.4);
+  vertical-align: middle;
+}
+.rosette::before, .rosette::after {
+  content: ''; position: absolute; top: 72%; left: 50%;
+  width: calc(var(--s, 30px) * .22); height: calc(var(--s, 30px) * .55);
+  background: var(--c); border-radius: 0 0 3px 3px;
+}
+.rosette::before { transform: translateX(-115%) rotate(12deg); }
+.rosette::after { transform: translateX(15%) rotate(-12deg); }
+
+/* --- конструктор партии --- */
+.builder { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+@media (max-width: 900px) { .builder { grid-template-columns: 1fr; } }
+.mini-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 8px; }
+.mini-card { background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px; cursor: pointer; }
+.mini-card:hover { border-color: #3d5876; }
+.mini-card.selected { outline: 2px solid var(--accent); }
+.mini-card .mini-head { font-weight: 600; margin-bottom: 4px; }
+.mini-card p { font-size: 12px; color: var(--muted); margin: 0; }
+.mini-stat { font-size: 11px; font-family: var(--mono); color: var(--accent); margin-top: 6px; }
+
+.field-row { display: flex; flex-wrap: wrap; gap: 10px; }
+label { font-size: 12px; color: var(--muted); display: flex; flex-direction: column; gap: 4px; }
+label.wide { width: 100%; margin-bottom: 10px; }
+label input, label select { color: var(--text); }
+input[type=color] { width: 54px; height: 34px; padding: 2px; background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius); }
+
+.slider-row { margin-bottom: 12px; }
+.slider-head { display: flex; justify-content: space-between; font-size: 13px; }
+.slider-val { font-family: var(--mono); color: var(--accent); }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+
+.stat-alloc { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-top: 1px solid var(--line); font-size: 13px; }
+.stat-alloc .hint { font-size: 12px; }
+.alloc-controls { display: flex; align-items: center; gap: 8px; }
+.alloc-controls button { padding: 2px 12px; font-size: 16px; line-height: 1.2; }
+.alloc-val { font-family: var(--mono); min-width: 28px; text-align: center; }
+
+.preview-card { background: var(--panel-2); border: 1px solid var(--line); border-left: 6px solid var(--pc); border-radius: var(--radius); padding: 12px; }
+
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { border-radius: 999px; padding: 6px 14px; }
+.chip.active { background: var(--accent); color: #14100a; border-color: var(--accent); font-weight: 600; }
+
+.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+.sum-item { background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 8px 10px; }
+.sum-item .k { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); }
+.sum-item .v { display: flex; align-items: center; gap: 6px; font-size: 14px; }
+
+/* --- атмосфера в кампании --- */
+.topbar .brand { display: flex; align-items: center; gap: 8px; padding-right: 6px; }
+.brand-text { display: flex; flex-direction: column; line-height: 1.15; }
+.brand-name { font-family: Georgia, serif; font-size: 15px; }
+.brand-role { font-family: "Segoe UI", sans-serif; font-size: 11px; color: var(--muted); font-weight: 400; letter-spacing: .3px; }
+.topbar .stat { padding: 0 7px; }
+.topbar button { padding: 8px 12px; }
+
+.panel.press { background: linear-gradient(180deg, #efe7d4, #e2d8c1); border-color: #cbbf9f; color: #1e1b16; }
+.panel.press h3 { color: #1e1b16; font-family: Georgia, serif; border-bottom: 2px solid #1e1b16; padding-bottom: 4px; }
+.panel.press .hint { color: #5c5343; }
+.press-item { padding: 7px 0; border-bottom: 1px dotted #b3a888; }
+.press-item:last-child { border-bottom: 0; }
+.press-item .paper { font-size: 10px; letter-spacing: 1.4px; text-transform: uppercase; color: #6d6250; }
+.press-item .headline { font-family: Georgia, "Times New Roman", serif; font-size: 14.5px; font-weight: 700; line-height: 1.25; }
+.press-item.good .headline { color: #14532d; }
+.press-item.bad .headline { color: #8c1c1c; }
+
+.rflavour { font-family: Georgia, serif; font-style: italic; font-size: 12px; color: var(--muted); margin-top: 6px; }
+p.flavour { font-family: Georgia, serif; font-style: italic; color: #c9d6e5; }

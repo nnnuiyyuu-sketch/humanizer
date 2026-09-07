@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 const rootDir = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const FILES = [
   'src/core/rng.js', 'src/data/issues.js', 'src/data/parties.js', 'src/data/regions.js',
-  'src/data/places.js', 'src/core/seats.js', 'src/core/polling.js', 'src/core/state.js',
+  'src/data/places.js', 'src/data/roles.js', 'src/data/press.js', 'src/core/custom.js', 'src/core/seats.js', 'src/core/polling.js', 'src/core/state.js',
   'src/core/actions.js', 'src/core/events.js', 'src/core/ai.js', 'src/core/turn.js',
   'src/core/election.js', 'src/core/coalition.js'
 ];
@@ -209,6 +209,85 @@ test('коалиция набирает большинство и меняет �
   const gov = PP.formGovernment(s, result, 'lab', ['ld', 'grn'], { cabinet: true });
   assert(gov.kind === 'coalition' || gov.kind === 'majority', gov.kind);
   assert(gov.seats >= gov.threshold, 'мандатов не хватило: ' + gov.seats);
+});
+
+/* ---------- роли ---------- */
+
+test('роль руководителя кампании даёт лишнее очко расписания', () => {
+  const a = PP.newGame({ seed: 'role', playerId: 'lab', role: 'leader' });
+  const b = PP.newGame({ seed: 'role', playerId: 'lab', role: 'chief' });
+  assert(b.apMax === a.apMax + 1, a.apMax + ' vs ' + b.apMax);
+});
+
+test('казначей собирает больше денег, чем лидер партии', () => {
+  function raised(role) {
+    const s = PP.newGame({ seed: 'money', playerId: 'con', role: role });
+    const before = s.parties.con.funds;
+    PP.performAction(s, 'con', 'fundraise', {}, new PP.Rng('same-seed'));
+    return s.parties.con.funds - before;
+  }
+  const t = raised('treasurer'), l = raised('leader');
+  assert(t > l, 'казначей: ' + t.toFixed(2) + ', лидер: ' + l.toFixed(2));
+});
+
+test('роль соперникам не достаётся', () => {
+  const s = PP.newGame({ seed: 'rolemod', playerId: 'lab', role: 'treasurer' });
+  function raise(pid) {
+    const before = s.parties[pid].funds;
+    PP.performAction(s, pid, 'fundraise', {}, new PP.Rng('one-seed'));
+    return s.parties[pid].funds - before;
+  }
+  assert(raise('lab') > raise('con'), 'бонус казначея достался и сопернику');
+});
+
+/* ---------- своя партия ---------- */
+
+test('своя партия попадает в бюллетень и отбирает голоса у близких', () => {
+  const cfg = PP.defaultCustomConfig();
+  cfg.archetype = 'populist';
+  cfg.positions.immig = 90;
+  cfg.positions.europe = 90;
+  const s = PP.newGame({ seed: 'own', playerId: 'own', custom: cfg, weeks: 6 });
+  PP.CAMPAIGN_REGIONS.forEach(r => {
+    const sum = Object.values(s.bases[r.id]).reduce((a, b) => a + b, 0);
+    near(sum, 100, 0.001, r.id);
+    assert(s.bases[r.id].own > 0, 'своей партии нет в ' + r.id);
+  });
+  /* Голоса отбираются пропорционально идеологической близости: у Reform,
+     ближайшего соседа такой программы, уходит большая доля его базы. */
+  const refLoss = (PP.REGION_BY_ID.east.base.ref - s.bases.east.ref) / PP.REGION_BY_ID.east.base.ref;
+  const labLoss = (PP.REGION_BY_ID.east.base.lab - s.bases.east.lab) / PP.REGION_BY_ID.east.base.lab;
+  assert(refLoss > labLoss, 'доля потерь: ref ' + refLoss.toFixed(3) + ', lab ' + labLoss.toFixed(3));
+  const r = PP.runElection(s);
+  assert(typeof r.votes.own === 'number' && r.votes.own > 0, 'своя партия не получила голосов');
+});
+
+test('региональная своя партия выдвигается только в своей нации', () => {
+  const cfg = PP.defaultCustomConfig();
+  cfg.archetype = 'national';
+  cfg.scope = 'wales';
+  const s = PP.newGame({ seed: 'ownw', playerId: 'own', custom: cfg });
+  assert(s.bases.wales.own > 0, 'нет в Уэльсе');
+  assert(s.bases.scotland.own === undefined, 'просочилась в Шотландию');
+  const regions = PP.regionsForParty(s, 'own');
+  assert(regions.length === 1 && regions[0].id === 'wales', 'кампанию можно вести не только в Уэльсе');
+});
+
+test('партия предыдущей игры не протекает в следующую', () => {
+  const cfg = PP.defaultCustomConfig();
+  PP.newGame({ seed: 'leak1', playerId: 'own', custom: cfg });
+  const plain = PP.newGame({ seed: 'leak2', playerId: 'lab' });
+  assert(plain.parties.own === undefined, 'своя партия осталась в обычной игре');
+  assert(PP.PARTY_BY_ID.own === undefined, 'своя партия осталась в справочнике');
+});
+
+/* ---------- пресса ---------- */
+
+test('газеты выходят каждую неделю', () => {
+  const s = PP.newGame({ seed: 'press', playerId: 'lab', weeks: 6 });
+  PP.endWeek(s);
+  assert(Array.isArray(s.press) && s.press.length === 3, 'заголовков: ' + (s.press || []).length);
+  s.press.forEach(h => assert(h.paper && h.text, 'пустой заголовок'));
 });
 
 /* ---------- сохранение ---------- */

@@ -47,7 +47,8 @@
     Object.keys(state.parties).forEach(function (pid) {
       var ps = state.parties[pid];
       ps.momentum *= MOMENTUM_DECAY;
-      ps.scandal = Math.max((ps.scandal || 0) - 4, 0);
+      var decay = 4 * (pid === state.playerId ? PP.roleMod(state, 'scandalDecay') : 1);
+      ps.scandal = Math.max((ps.scandal || 0) - decay, 0);
       ps.unity = clamp(ps.unity + (ps.unity < 70 ? 0.8 : -0.2), 5, 100);
       weeklyIncome(state, pid, rng);
     });
@@ -60,9 +61,10 @@
       state.salience[issue.id] = clamp(state.salience[issue.id], 1, 45);
     });
 
-    /* 5. Публикуется опрос недели. */
+    /* 5. Публикуется опрос недели, газеты выходят со своими заголовками. */
     var poll = PP.publishedPoll(state, rng);
     state.pollHistory.push({ week: state.week, shares: poll });
+    state.press = PP.generatePress(state, rng);
 
     state.week++;
     state.ap = state.apMax;

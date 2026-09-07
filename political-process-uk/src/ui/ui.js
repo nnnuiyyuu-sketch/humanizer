@@ -4,7 +4,7 @@
 
   var PP = root.PP;
   var doc = root.document;
-  var app = { screen: 'title', tab: 'actions', region: null, state: null, night: null, setup: { party: 'lab', difficulty: 'normal', weeks: 12 } };
+  var app = { screen: 'title', tab: 'actions', region: null, state: null, night: null, menu: null };
 
   function $(sel) { return doc.querySelector(sel); }
   function el(id) { return doc.getElementById(id); }
@@ -24,39 +24,8 @@
   /* ================= Титульный экран ================= */
 
   function renderTitle() {
-    var s = app.setup;
-    var cards = PP.PARTIES.filter(function (p) { return p.playable; }).map(function (p) {
-      return '<div class="party-card' + (s.party === p.id ? ' selected' : '') + '" style="--pc:' + p.color + '" data-party="' + p.id + '">' +
-        '<div class="pname" style="color:' + p.color + '">' + esc(p.name) + '</div>' +
-        '<div class="pru">' + esc(p.ru) + (p.scope !== 'gb' ? ' · только ' + (p.scope === 'scotland' ? 'Шотландия' : 'Уэльс') : '') + '</div>' +
-        '<div class="pblurb">' + esc(p.blurb) + '</div>' +
-        '<div class="pstats">Касса ' + money(p.funds) + ' · актив ' + p.activists + ' · единство ' + p.unity +
-        '<br>Лидер: ' + esc(p.leader.name) + ' (харизма ' + p.leader.charisma + ', компетентность ' + p.leader.competence + ')' +
-        '<br>Цель кампании: ' + p.target + '+ мандатов</div>' +
-        '</div>';
-    }).join('');
-
-    var diffOpts = Object.keys(PP.DIFFICULTY).map(function (k) {
-      return '<option value="' + k + '"' + (s.difficulty === k ? ' selected' : '') + '>' + PP.DIFFICULTY[k].label + '</option>';
-    }).join('');
-
-    return '<div class="title-screen">' +
-      '<div class="crest">🏛️</div>' +
-      '<h1>The Political Process: Britain</h1>' +
-      '<div class="sub">Бета 1.0 · всеобщие выборы в Соединённом Королевстве · 650 округов, мажоритарная система</div>' +
-      (PP.hasSave() ? '<div class="setup-row"><button class="primary" id="btn-continue">Продолжить сохранённую кампанию</button></div>' : '') +
-      '<h2>Выберите партию</h2>' +
-      '<div class="party-grid">' + cards + '</div>' +
-      '<div class="setup-row">' +
-      '<label>Сложность <select id="sel-diff">' + diffOpts + '</select></label>' +
-      '<label>Длина кампании <select id="sel-weeks">' +
-      [6, 9, 12, 16].map(function (w) { return '<option value="' + w + '"' + (s.weeks === w ? ' selected' : '') + '>' + w + ' недель</option>'; }).join('') +
-      '</select></label>' +
-      '<label>Зерно генерации <input type="text" id="inp-seed" value="' + esc(s.seed || '') + '" placeholder="случайное" size="12"></label>' +
-      '</div>' +
-      '<div class="setup-row"><button class="primary" id="btn-start">Начать кампанию</button></div>' +
-      '<div class="footer-note">Сценарий вымышленный. Партии, регионы и система выборов узнаваемы, но лидеры, округа и стартовые цифры придуманы для игры.</div>' +
-      '</div>';
+    if (!app.menu) app.menu = PP.Menu.newMenu();
+    return PP.Menu.render(app.menu);
   }
 
   /* ================= Кампания ================= */
@@ -70,8 +39,11 @@
   function renderTopbar() {
     var st = app.state, ps = st.parties[st.playerId];
     var def = PP.PARTY_BY_ID[st.playerId];
+    var role = PP.ROLE_BY_ID[st.roleId] || PP.ROLE_BY_ID.leader;
     return '<div class="topbar">' +
-      '<div class="brand" style="color:' + def.color + '">' + esc(def.name) + '</div>' +
+      '<div class="brand" style="color:' + def.color + '">' + PP.Menu.rosette(def.color, 26) +
+      '<span class="brand-text"><span class="brand-name">' + esc(def.name) + '</span>' +
+      '<span class="brand-role" title="' + esc(role.desc) + '">' + role.icon + ' ' + esc(role.name) + '</span></span></div>' +
       stat('Неделя', st.week + ' / ' + st.totalWeeks) +
       stat('Расписание', st.ap + ' / ' + st.apMax + ' AP') +
       stat('Касса', money(ps.funds)) +
@@ -81,8 +53,8 @@
       stat('Рейтинг лидера', (ps.leader.approval > 0 ? '+' : '') + ps.leader.approval.toFixed(0)) +
       (ps.scandal > 5 ? stat('Скандал', Math.round(ps.scandal)) : '') +
       '<div class="spacer"></div>' +
-      '<button id="btn-help">Правила</button>' +
-      '<button id="btn-save">Сохранить</button>' +
+      '<button id="btn-help" title="Правила игры">?</button>' +
+      '<button id="btn-save" title="Сохранить кампанию">💾</button>' +
       '<button class="primary" id="btn-week">' + (st.week >= st.totalWeeks ? 'День голосования →' : 'Завершить неделю →') + '</button>' +
       '</div>';
   }
@@ -138,7 +110,17 @@
   }
 
   function renderSidebar() {
-    return renderPollPanel() + renderProjectionPanel() + renderAgendaPanel();
+    return renderPollPanel() + renderProjectionPanel() + renderPressPanel() + renderAgendaPanel();
+  }
+
+  function renderPressPanel() {
+    var st = app.state;
+    if (!st.press || !st.press.length) return '';
+    var items = st.press.map(function (h) {
+      return '<div class="press-item ' + esc(h.tone) + '"><div class="paper">' + esc(h.paper) + '</div>' +
+        '<div class="headline">' + esc(h.text) + '</div></div>';
+    }).join('');
+    return '<div class="panel press"><h3>Утренние газеты <span class="hint">неделя ' + st.week + '</span></h3>' + items + '</div>';
   }
 
   function renderAgendaPanel() {
@@ -197,6 +179,7 @@
       return '<div class="region-card" data-region="' + r.id + '">' +
         '<div class="rname">' + esc(r.name) + '<span class="rseats">' + r.seats + ' мест</span></div>' +
         '<div class="mini-bar">' + bar + '</div>' +
+        (r.flavour ? '<div class="rflavour">' + esc(r.flavour) + '</div>' : '') +
         '<div class="rlead">' + order.slice(0, 3).map(function (pid) {
           return '<span style="color:' + color(pid) + '">' + abbr(pid) + ' ' + sh[pid].toFixed(1) + '</span>';
         }).join(' · ') +
@@ -223,6 +206,7 @@
     }).join('');
     var d = region.demo;
     return '<div class="panel"><h3>' + esc(region.name) + ' <span class="hint">' + region.seats + ' мест · самые близкие округа</span></h3>' +
+      (region.flavour ? '<p class="flavour">' + esc(region.flavour) + '</p>' : '') +
       '<p class="hint">Демография: пожилые ' + d.age + ' · высшее образование ' + d.degree + ' · евроскептицизм ' + d.leave + ' · города ' + d.urban + ' · достаток ' + d.prosperity + '</p>' +
       '<table><thead><tr><th>Округ</th><th>Лидирует</th><th class="num">Отрыв</th><th class="num">Вы</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>';
   }
@@ -335,7 +319,7 @@
 
   function pickRegion(title, cb) {
     var st = app.state, shares = currentShares();
-    var regions = PP.regionsForParty(st.playerId);
+    var regions = PP.regionsForParty(st, st.playerId);
     var html = '<h2>' + esc(title) + '</h2><div class="options">' + regions.map(function (r) {
       var sh = shares[r.id];
       var order = sortedShares(sh, 1.5);
@@ -703,12 +687,15 @@
   }
 
   function startGame() {
+    var menu = app.menu;
     var seedInput = el('inp-seed');
-    var seed = seedInput && seedInput.value.trim();
+    var seed = (seedInput && seedInput.value.trim()) || menu.seed;
     app.state = PP.newGame({
-      playerId: app.setup.party,
-      difficulty: app.setup.difficulty,
-      weeks: app.setup.weeks,
+      playerId: menu.party,
+      role: menu.role,
+      custom: menu.party === 'own' ? menu.custom : null,
+      difficulty: menu.difficulty,
+      weeks: menu.weeks,
       seed: seed || String(Math.floor(Math.random() * 1e9))
     });
     app.screen = 'campaign';
@@ -718,11 +705,39 @@
     render();
   }
 
+  /* Быстрый старт: случайная роль, случайная партия, стандартные настройки. */
+  function quickStart() {
+    var rng = new PP.Rng('quick:' + Math.random());
+    var playable = PP.PARTIES.filter(function (p) { return p.playable && p.id !== 'own'; });
+    app.menu.role = rng.pick(PP.ROLES).id;
+    app.menu.party = rng.pick(playable).id;
+    app.menu.difficulty = 'normal';
+    app.menu.weeks = 12;
+    app.menu.seed = '';
+    startGame();
+  }
+
+  function continueGame() {
+    var loaded = PP.loadGame();
+    if (!loaded) { modalInfo('Сохранение', 'Сохранённой кампании не нашлось.'); return; }
+    app.state = loaded;
+    app.screen = 'campaign';
+    render();
+    resumePending();
+  }
+
   function bind() {
     doc.addEventListener('click', function (e) {
       var t = e.target;
-      var card = t.closest && t.closest('[data-party]');
-      if (card && app.screen === 'title') { app.setup.party = card.dataset.party; render(); return; }
+      if (app.screen === 'title') {
+        var res = PP.Menu.handleClick(app.menu, t);
+        if (res === 'render') { render(); return; }
+        if (res === 'start') { startGame(); return; }
+        if (res === 'quick') { quickStart(); return; }
+        if (res === 'rules') { showHelp(); return; }
+        if (res === 'continue') { continueGame(); return; }
+        if (res) return;
+      }
       var tab = t.closest && t.closest('[data-tab]');
       if (tab) { app.tab = tab.dataset.tab; render(); return; }
       var region = t.closest && t.closest('[data-region]');
@@ -735,11 +750,6 @@
       var gov = t.closest && t.closest('[data-gov]');
       if (gov) { handleGovernment(gov.dataset.gov); return; }
       if (t.id === 'btn-start') { startGame(); return; }
-      if (t.id === 'btn-continue') {
-        var loaded = PP.loadGame();
-        if (loaded) { app.state = loaded; app.screen = 'campaign'; render(); resumePending(); }
-        return;
-      }
       if (t.id === 'btn-week') { endWeek(); return; }
       if (t.id === 'btn-help') { showHelp(); return; }
       if (t.id === 'btn-save') { modalInfo('Сохранение', PP.saveGame(app.state) ? 'Кампания сохранена в этом браузере.' : 'Браузер не разрешил сохранение.'); return; }
@@ -747,10 +757,21 @@
       if (t.id === 'btn-restart') { PP.clearSave(); app.screen = 'title'; app.state = null; app.night = null; app.offer = null; app.partners = null; render(); return; }
     });
 
+    doc.addEventListener('input', function (e) {
+      if (app.screen !== 'title' || !app.menu) return;
+      if (e.target.id === 'inp-seed') { app.menu.seed = e.target.value; return; }
+      PP.Menu.handleInput(app.menu, e.target, doc);
+    });
+
     doc.addEventListener('change', function (e) {
       var t = e.target;
-      if (t.id === 'sel-diff') { app.setup.difficulty = t.value; return; }
-      if (t.id === 'sel-weeks') { app.setup.weeks = parseInt(t.value, 10); return; }
+      if (app.screen === 'title' && app.menu) {
+        if (t.id === 'inp-seed') { app.menu.seed = t.value; return; }
+        if (PP.Menu.handleInput(app.menu, t, doc)) {
+          if (t.dataset.cf === 'scope' || t.dataset.cf === 'color') render();
+          return;
+        }
+      }
       if (t.dataset && t.dataset.partner) {
         app.partners = app.partners || [];
         var i = app.partners.indexOf(t.dataset.partner);

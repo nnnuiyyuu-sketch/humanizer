@@ -45,11 +45,14 @@
     var prefs = PP.regionPreferences(region);
     var salNorm = normalisedSalience(state.salience);
     var raw = {}, total = 0;
+    /* Стартовые доли берутся из партии игры: своя партия отбирает голоса
+       у соперников, и общий расклад региона меняется. */
+    var bases = (state.bases && state.bases[region.id]) || region.base;
 
-    Object.keys(region.base).forEach(function (pid) {
+    Object.keys(bases).forEach(function (pid) {
       var ps = state.parties[pid];
       if (!ps) return;
-      var base = region.base[pid];
+      var base = bases[pid];
       var mult = 1;
       if (pid !== 'oth') {
         mult += FIT_WEIGHT * issueFit(ps, prefs, salNorm);

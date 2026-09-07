@@ -9,15 +9,25 @@
   var PP = root.PP;
   var clamp = PP.clamp;
 
+  /* Множитель роли игрока: соперникам роли не достаются. */
+  function mod(state, params, key) {
+    if (!params || params.partyId !== state.playerId) return 1;
+    return PP.roleMod(state, key);
+  }
+
   function addEffort(state, regionId, partyId, value) {
     var r = state.effort[regionId];
     if (!r) return;
     r[partyId] = clamp((r[partyId] || 0) + value, -14, 22);
   }
 
+  function baseOf(state, region) {
+    return (state.bases && state.bases[region.id]) || region.base;
+  }
+
   function nationalEffort(state, partyId, value) {
     PP.CAMPAIGN_REGIONS.forEach(function (r) {
-      if (r.base[partyId] === undefined) return;
+      if (baseOf(state, r)[partyId] === undefined) return;
       addEffort(state, r.id, partyId, value);
     });
   }
@@ -26,12 +36,14 @@
     return PP.PARTY_BY_ID[partyId].scope;
   }
 
-  function regionsFor(partyId) {
+  /* Регионы, где партия вообще выдвигается: у своей партии список берётся
+     из стартовых долей текущей игры. */
+  function regionsFor(state, partyId) {
     var scope = partyScope(partyId);
     return PP.CAMPAIGN_REGIONS.filter(function (r) {
       if (scope === 'scotland') return r.id === 'scotland';
       if (scope === 'wales') return r.id === 'wales';
-      return r.base[partyId] !== undefined;
+      return baseOf(state, r)[partyId] !== undefined;
     });
   }
 
@@ -64,7 +76,7 @@
       run: function (state, p, rng) {
         var ps = state.parties[p.partyId];
         var form = leaderForm(ps, state.stamina);
-        var gain = 2.1 * form * rng.range(0.8, 1.2);
+        var gain = 2.1 * form * rng.range(0.8, 1.2) * mod(state, p, 'rally');
         addEffort(state, p.regionId, p.partyId, gain);
         ps.momentum = clamp(ps.momentum + 0.6 * form, -14, 14);
         return {
@@ -81,7 +93,7 @@
       ap: 1, cost: 0.05, stamina: 3, needs: 'region',
       run: function (state, p, rng) {
         var ps = state.parties[p.partyId];
-        var gain = (0.7 + ps.activists / 45) * rng.range(0.85, 1.15);
+        var gain = (0.7 + ps.activists / 45) * rng.range(0.85, 1.15) * mod(state, p, 'ground');
         addEffort(state, p.regionId, p.partyId, gain);
         state.groundGame[p.regionId] = state.groundGame[p.regionId] || {};
         state.groundGame[p.regionId][p.partyId] = (state.groundGame[p.regionId][p.partyId] || 0) + 1;
@@ -99,7 +111,7 @@
       ap: 1, cost: 0.10, stamina: 6, needs: 'region',
       run: function (state, p, rng) {
         var seats = marginalSeats(state, p.regionId, p.partyId, 6);
-        var bonus = 0.055 * rng.range(0.8, 1.25) * (1 + state.parties[p.partyId].activists / 200);
+        var bonus = 0.055 * rng.range(0.8, 1.25) * (1 + state.parties[p.partyId].activists / 200) * mod(state, p, 'target');
         seats.forEach(function (s) {
           s.local[p.partyId] = (s.local[p.partyId] || 0) + bonus;
           state.targeted[s.id] = (state.targeted[s.id] || 0) + 1;
@@ -122,7 +134,7 @@
         var ps = state.parties[p.partyId];
         ps.broadcastsLeft--;
         var quality = rng.range(0.7, 1.3) * (0.75 + ps.leader.competence / 200);
-        var gain = 0.85 * quality;
+        var gain = 0.85 * quality * mod(state, p, 'broadcast');
         nationalEffort(state, p.partyId, gain);
         ps.momentum = clamp(ps.momentum + 1.1 * quality, -14, 14);
         return { text: 'Ролик вышел в эфир: +' + gain.toFixed(1) + ' п.п. по всей стране.', delta: gain };
@@ -136,7 +148,7 @@
       ap: 1, cost: 0, stamina: 10, needs: 'none',
       run: function (state, p, rng) {
         var ps = state.parties[p.partyId];
-        var roll = rng.normal((ps.leader.charisma + ps.leader.competence) / 2 - 48, 16) + (state.stamina - 60) / 8;
+        var roll = (rng.normal((ps.leader.charisma + ps.leader.competence) / 2 - 48, 16) + (state.stamina - 60) / 8) * mod(state, p, 'media');
         if (roll > 22) {
           ps.leader.approval = clamp(ps.leader.approval + 5, -80, 80);
           ps.momentum = clamp(ps.momentum + 2.0, -14, 14);
@@ -161,7 +173,7 @@
         var ps = state.parties[p.partyId];
         var def = PP.PARTY_BY_ID[p.partyId];
         var appeal = (def.family === 'right' ? 1.25 : def.family === 'centre' ? 1.0 : 0.9);
-        var raised = rng.range(0.45, 1.15) * appeal * (0.8 + ps.leader.approval / 200 + ps.unity / 200);
+        var raised = rng.range(0.45, 1.15) * appeal * (0.8 + ps.leader.approval / 200 + ps.unity / 200) * mod(state, p, 'fundraise');
         ps.funds += raised;
         var res = { text: 'Собрано £' + raised.toFixed(2) + ' млн.', delta: raised };
         if (rng.chance(0.14 + (60 - ps.leader.integrity) / 260)) {
@@ -187,7 +199,7 @@
         state.salience[p.issueId] = clamp(state.salience[p.issueId] + 3.5, 1, 45);
         ps.competence[p.issueId] = clamp(ps.competence[p.issueId] + 2, 0, 95);
         var drift = Math.abs(ps.positions[p.issueId] - ps.corePositions[p.issueId]);
-        var unityHit = drift > 25 ? (drift - 25) / 14 : 0;
+        var unityHit = (drift > 25 ? (drift - 25) / 14 : 0) * mod(state, p, 'policyUnity');
         ps.unity = clamp(ps.unity - unityHit, 5, 100);
         var res = {
           text: 'Новая линия по теме «' + issue.name + '»: ' +
@@ -219,7 +231,7 @@
             delta: -1, tone: 'bad'
           };
         }
-        var hit = 1.5 * rng.range(0.8, 1.25);
+        var hit = 1.5 * rng.range(0.8, 1.25) * mod(state, p, 'attack');
         addEffort(state, p.regionId, p.targetId, -hit);
         target.leader.approval = clamp(target.leader.approval - 2, -80, 80);
         return {
@@ -237,7 +249,7 @@
       ap: 1, cost: 0.08, stamina: 2, needs: 'none',
       run: function (state, p, rng) {
         var ps = state.parties[p.partyId];
-        var gain = rng.range(4, 9) * (0.7 + ps.unity / 140);
+        var gain = rng.range(4, 9) * (0.7 + ps.unity / 140) * mod(state, p, 'organise');
         ps.activists = clamp(ps.activists + gain, 0, 100);
         return { text: 'В отделения пришли новые волонтёры: +' + gain.toFixed(0) + ' к сети активистов.', delta: gain };
       }
@@ -250,7 +262,7 @@
       ap: 1, cost: 0.02, stamina: 6, needs: 'none',
       run: function (state, p, rng) {
         var ps = state.parties[p.partyId];
-        var gain = rng.range(5, 11);
+        var gain = rng.range(5, 11) * mod(state, p, 'unify');
         ps.unity = clamp(ps.unity + gain, 5, 100);
         ps.scandal = clamp((ps.scandal || 0) - 6, 0, 100);
         return { text: 'Фракция притихла: единство +' + gain.toFixed(0) + '.', delta: gain };
@@ -282,7 +294,7 @@
     ps.spent += a.cost;
     if (partyId === state.playerId) {
       state.ap -= a.ap;
-      state.stamina = clamp(state.stamina - a.stamina, 0, 100);
+      state.stamina = clamp(state.stamina - a.stamina * PP.roleMod(state, 'stamina'), 0, 100);
     }
     state._cacheRegionShares = null;
     var out = a.run(state, p, rng);
@@ -298,6 +310,7 @@
   PP.canRunAction = canRun;
   PP.performAction = perform;
   PP.regionsForParty = regionsFor;
+  PP.regionBase = baseOf;
   PP.addEffort = addEffort;
   PP.marginalSeats = marginalSeats;
   PP.leaderForm = leaderForm;
