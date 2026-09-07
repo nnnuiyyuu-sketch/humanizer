@@ -293,13 +293,41 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
 .dep .who b{display:block;font-size:13.5px}
 .dep .who span{font-size:11.5px;color:var(--ink-3)}
 .hemi{width:100%;display:block}
-/* доска голосования: один квадрат — один мандат. Сетка честнее
-   полукруга: на ней видно и счёт, и то, чья фракция где сломалась. */
-.board{display:grid;gap:2px;margin:var(--x5) 0;padding:var(--x4);
-  background:var(--surface-2);border:1px solid var(--line-2)}
-.board i{display:block;aspect-ratio:1;border:1px solid rgba(20,19,15,.14)}
-.board i.v-no{background:var(--surface-3)!important;border-style:dashed}
-.board i.v-und{opacity:.45}
+/* ── табло голосования ───────────────────────────────────────
+   Счёт крупно, как на щите в зале: за, колеблются, против и порог.
+   Клетка «за» темнеет, когда голосов набралось. */
+.tblo{display:grid;grid-template-columns:repeat(4,1fr);border-top:var(--rule);
+  border-bottom:1px solid var(--line-2);margin:var(--x5) 0 0}
+.tblo div{padding:8px 10px 9px;border-right:1px solid var(--line-3);text-align:center}
+.tblo div:last-child{border-right:0}
+.tblo i{display:block;font:700 8.5px var(--f-cond);text-transform:uppercase;
+  letter-spacing:.18em;color:var(--ink-3);font-style:normal;margin-bottom:2px}
+.tblo b{display:block;font:400 34px/1 var(--f-num);letter-spacing:-.05em}
+.tblo .t b{color:var(--ink-3)}
+.tblo .win{background:var(--ink);color:var(--ink-inv)}
+.tblo .win i{color:rgba(255,253,249,.62)}
+.tblo .lose b{color:var(--bad)}
+/* ── ленты голосования ──────────────────────────────────────
+   Верхняя — палата по фракциям: у каждой видно, как она раскололась.
+   Нижняя — итог с чертой порога. Сплошное «за», штриховка «против». */
+.tab2{display:flex;height:26px;border:1px solid var(--line);position:relative;
+  background:var(--surface);margin:0}
+.tab2.sum{height:18px;margin-top:var(--x4)}
+.tab2 i{display:block;height:100%;position:relative}
+.tab2 i.u{opacity:.3}
+.tab2 i.n::after{content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(45deg,var(--surface) 0 1.5px,transparent 1.5px 4px);
+  opacity:.9}
+.tab2 i.n{opacity:.5}
+.tab2 b.sep{width:1px;background:var(--surface);flex:none}
+.tab2 .mid{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink);z-index:2}
+.tabkey{display:flex;gap:var(--x5);flex-wrap:wrap;font-size:11px;color:var(--ink-3);margin-top:5px}
+.tabkey span{display:inline-flex;align-items:center;gap:5px}
+.tabkey s{width:16px;height:9px;text-decoration:none;border:1px solid var(--line);display:inline-block}
+.tabkey s.u{opacity:.3;background:var(--ink-2)}
+.tabkey s.y{background:var(--ink-2)}
+.tabkey s.n{background:var(--ink-2);opacity:.5;
+  background-image:repeating-linear-gradient(45deg,var(--surface) 0 1.5px,transparent 1.5px 4px)}
 tr.mine td{background:var(--surface-2)}
 tr.mine td:first-child{box-shadow:inset 3px 0 0 var(--ink)}
 .hemi.sen{max-height:none}
@@ -935,17 +963,33 @@ tr.mine td:first-child{box-shadow:inset 3px 0 0 var(--ink)}
     <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:4px">
       <span class="good">за 41</span><span class="dim">порог 60</span><span class="bad">против 59</span></div>
   </div></div>
-  <div class="panel" style="margin:0"><header><h4>Доска голосования</h4><span class="meta">435 мандатов</span></header>
+  <div class="panel" style="margin:0"><header><h4>Табло голосования</h4><span class="meta">435 мандатов</span></header>
   <div class="body">
-    <div class="board" id="voteboard" style="grid-template-columns:repeat(39,1fr)"></div>
-    <div class="meter tall" style="margin:var(--x4) 0 4px">
-      <i style="width:44%;background:var(--good)"></i><i style="width:6%;background:var(--line-2)"></i>
-      <i style="width:50%;background:var(--bad)"></i><span class="mid" style="left:50.1%"></span></div>
-    <div style="display:flex;justify-content:space-between;font-size:12px">
-      <span class="good">за 191</span><span class="dim">колеблются 27 · порог 218</span><span class="bad">против 217</span></div>
-    <p class="note">Один квадрат — один мандат, порядок фракций тот же, что в зале. Голосование
-      перестаёт быть строчкой в журнале: до нажатия кнопки видно, чья фракция где сломалась,
-      и с колеблющимися ещё можно работать. Той же доской показывают импичмент.</p>
+    <div class="tblo">
+      <div class="win"><i>за</i><b>231</b></div>
+      <div><i>колеблются</i><b>27</b></div>
+      <div><i>против</i><b>177</b></div>
+      <div class="t"><i>нужно</i><b>218</b></div>
+    </div>
+    <div class="tab2">
+      <i class="y" style="width:18.2%;background:var(--p1)"></i><i class="n" style="width:7.8%;background:var(--p1)"></i><b class="sep"></b>
+      <i class="y" style="width:14.5%;background:var(--p2)"></i><i class="u" style="width:3.7%;background:var(--p2)"></i><b class="sep"></b>
+      <i class="n" style="width:13.3%;background:var(--p3)"></i><b class="sep"></b>
+      <i class="y" style="width:7.8%;background:var(--p4)"></i><b class="sep"></b>
+      <i class="y" style="width:12.6%;background:var(--p5)"></i><i class="u" style="width:2.5%;background:var(--p5)"></i><b class="sep"></b>
+      <i class="n" style="width:19.6%;background:var(--p6)"></i>
+    </div>
+    <div class="tab2 sum">
+      <i style="width:53.1%;background:var(--good)"></i>
+      <i style="width:6.2%;background:var(--line-2)"></i>
+      <i style="width:40.7%;background:var(--bad)"></i>
+      <span class="mid" style="left:50.1%"></span></div>
+    <div class="tabkey"><span><s class="y"></s>за</span><span><s class="u"></s>колеблются</span>
+      <span><s class="n"></s>против</span><span>черта — порог 218 из 435</span></div>
+    <p class="note">Россыпь из четырёхсот тридцати пяти квадратов честна, но нечитаема: точки не
+      складываются в мысль. Табло складывается — счёт крупно, лента палаты по фракциям, где у каждой
+      видно, как она раскололась, и под ней итог с чертой порога. Тем же табло показывают импичмент
+      и конституционную поправку.</p>
   </div></div>
   <div class="panel" style="margin:0"><header><h4>Палата субъектов</h4><span class="meta">зал и пороги</span></header>
   <div class="body">
@@ -1958,14 +2002,6 @@ tr.mine td:first-child{box-shadow:inset 3px 0 0 var(--ink)}
 <script>
 /* наполнение доски голосования и делегаций — только для витрины */
 window.addEventListener('DOMContentLoaded',()=>{
-  const vb=document.getElementById('voteboard');
-  if(vb){ const cols=['var(--p1)','var(--p2)','var(--p3)','var(--p4)','var(--p5)','var(--p6)'];
-    let h='';
-    for(let i=0;i<435;i++){
-      const g=Math.floor(i/73), yes=i%3!==2;
-      h+=`<i class="${yes?'v-yes':'v-no'}" style="background:${yes?cols[g]:'var(--surface-3)'}"></i>`;
-    }
-    vb.innerHTML=h; }
   const dl=document.getElementById('deleg');
   if(dl){ const caps=[['Новарград',16],['Лесогорск',8],['Приозерск',9],['Волжск',8],['Речной',10],
       ['Солнечногорск',11],['Горный',7],['Каменьск',9],['Сибирск',10],['Тихоокеанск',8],['Нордск',4]];

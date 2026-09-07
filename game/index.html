@@ -337,13 +337,41 @@ input:focus,select:focus{outline:2px solid var(--mark);outline-offset:-1px}
 .dep .who span{font-size:11.5px;color:var(--ink-3)}
 .hemi{width:100%;display:block;max-height:270px}
 .hemi.sen{max-height:none}
-/* доска голосования: один квадрат — один мандат. Сетка честнее
-   полукруга: на ней видно и счёт, и то, чья фракция где сломалась. */
-.board{display:grid;gap:2px;margin:var(--x5) 0;padding:var(--x4);
-  background:var(--surface-2);border:1px solid var(--line-2)}
-.board i{display:block;aspect-ratio:1;border:1px solid rgba(20,19,15,.14)}
-.board i.v-no{background:var(--surface-3)!important;border-style:dashed}
-.board i.v-und{opacity:.45}
+/* ── табло голосования ───────────────────────────────────────
+   Счёт крупно, как на щите в зале: за, колеблются, против и порог.
+   Клетка «за» темнеет, когда голосов набралось. */
+.tblo{display:grid;grid-template-columns:repeat(4,1fr);border-top:var(--rule);
+  border-bottom:1px solid var(--line-2);margin:var(--x5) 0 0}
+.tblo div{padding:8px 10px 9px;border-right:1px solid var(--line-3);text-align:center}
+.tblo div:last-child{border-right:0}
+.tblo i{display:block;font:700 8.5px var(--f-cond);text-transform:uppercase;
+  letter-spacing:.18em;color:var(--ink-3);font-style:normal;margin-bottom:2px}
+.tblo b{display:block;font:400 34px/1 var(--f-num);letter-spacing:-.05em}
+.tblo .t b{color:var(--ink-3)}
+.tblo .win{background:var(--ink);color:var(--ink-inv)}
+.tblo .win i{color:rgba(255,253,249,.62)}
+.tblo .lose b{color:var(--bad)}
+/* ── ленты голосования ──────────────────────────────────────
+   Верхняя — палата по фракциям: у каждой видно, как она раскололась.
+   Нижняя — итог с чертой порога. Сплошное «за», штриховка «против». */
+.tab2{display:flex;height:26px;border:1px solid var(--line);position:relative;
+  background:var(--surface);margin:0}
+.tab2.sum{height:18px;margin-top:var(--x4)}
+.tab2 i{display:block;height:100%;position:relative}
+.tab2 i.u{opacity:.3}
+.tab2 i.n::after{content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(45deg,var(--surface) 0 1.5px,transparent 1.5px 4px);
+  opacity:.9}
+.tab2 i.n{opacity:.5}
+.tab2 b.sep{width:1px;background:var(--surface);flex:none}
+.tab2 .mid{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink);z-index:2}
+.tabkey{display:flex;gap:var(--x5);flex-wrap:wrap;font-size:11px;color:var(--ink-3);margin-top:5px}
+.tabkey span{display:inline-flex;align-items:center;gap:5px}
+.tabkey s{width:16px;height:9px;text-decoration:none;border:1px solid var(--line);display:inline-block}
+.tabkey s.u{opacity:.3;background:var(--ink-2)}
+.tabkey s.y{background:var(--ink-2)}
+.tabkey s.n{background:var(--ink-2);opacity:.5;
+  background-image:repeating-linear-gradient(45deg,var(--surface) 0 1.5px,transparent 1.5px 4px)}
 /* своя строка в архиве правителей — вынесена тоном, а не цветом */
 tr.mine td{background:var(--surface-2)}
 tr.mine td:first-child{box-shadow:inset 3px 0 0 var(--ink)}
@@ -2586,6 +2614,7 @@ function inqTarget(){
   if(i.kind==='gov'){ const g=govOf(i.who); return g?g.name+' ('+R(i.who).name+')':'глава края'; }
   if(i.kind==='pres')return S.pres?S.pres.name:'президент';
   if(i.kind==='firm'){ const f=FM(i.who); return f?f.name:'корпорация'; }
+  if(i.kind==='amend'){ const a=(CN().log||[]).find(x=>x.id===i.who); return a?a.name:'поправка'; }
   if(i.kind==='you')return S.you.name;
   return '—';
 }
@@ -2597,6 +2626,13 @@ function inqDig(i){
   if(i.kind==='min'){ const m=minOf(i.who); if(m)v+=(60-m.comp)*0.16; }
   if(i.kind==='firm'){ const f=firmOf(i.who); if(f)v+=Math.min(f.given,50)*0.3; }
   if(i.kind==='pres')v+=(S.pres&&S.pres.decrees?S.pres.decrees*1.6:0);
+  if(i.kind==='amend'){
+    // разбирают не статью, а то, как её проводили: своекорыстие текста,
+    // след от сделок в те кварталы и тон печати вокруг голосования
+    const a=(CN().log||[]).find(x=>x.id===i.who);
+    if(a){ v+=Math.abs(Math.min(0,a.cost))*0.55+(a.bought||0)*0.14; if(a.ref)v-=12; }
+    v+=(LEGIT0-legit())*0.1;
+  }
   if(!friendly&&i.kind!=='you')v-=5;               // против чужой комиссии есть чем помешать
   return Math.round(clamp(v,2,34));
 }
@@ -2654,6 +2690,9 @@ function cnCost(c){
   }
   return r1(v);
 }
+const CN_FIELDS=['pterm','term','sencyc','limit','super','impH','impS','judge',
+  'noconf','dissolve','senall','entrench','recall','emerg'];
+function cnSnap(){ const o={}; CN_FIELDS.forEach(k=>o[k]=CN()[k]); return o; }
 function cnList(){ return CONSTS.filter(c=>!c.on()&&(!c.cond||c.cond())); }
 function cnDone(){ return (CN().log||[]).slice(); }
 
@@ -3092,12 +3131,47 @@ function applyAmend(b,am){
    Голосование перестало быть строчкой в журнале. Доска показывает
    каждый мандат, счёт по фракциям и порог — и до нажатия кнопки
    с колеблющимися ещё можно работать. */
-function seatGrid(list,cols){
-  const c=cols||Math.ceil(Math.sqrt(list.length*3.4));
-  return `<div class="board" style="grid-template-columns:repeat(${c},1fr)">`+
-    list.map(x=>`<i class="v-${x.st}" style="background:${x.color}" title="${x.title}"></i>`).join('')+`</div>`;
+/* ─── табло голосования ───────────────────────────────────────────
+   Россыпь квадратов честна, но нечитаема: четыреста тридцать пять
+   точек не складываются в мысль. Табло складывается: счёт крупно,
+   лента палаты по фракциям — у каждой видно, как она раскололась, —
+   и под ней итог с чертой порога. */
+function tblo(yes,und,no,need){
+  const win=yes>=need;
+  return `<div class="tblo">
+    <div class="${win?'win':''}"><i>за</i><b>${yes}</b></div>
+    <div><i>колеблются</i><b>${und}</b></div>
+    <div class="${win?'':'lose'}"><i>против</i><b>${no}</b></div>
+    <div class="t"><i>нужно</i><b>${need}</b></div>
+  </div>`;
 }
-function voteRows(b,fn){
+/* лента палаты: фракции подряд, внутри каждой — как она разошлась */
+function tabBand(rows,tot,need){
+  const w=v=>(v/tot*100).toFixed(2);
+  const seg=rows.map(r=>
+    (r.y?`<i class="y" style="width:${w(r.y)}%;background:${r.p.color}"><title>${r.p.name}: за ${r.y}</title></i>`:'')+
+    (r.u?`<i class="u" style="width:${w(r.u)}%;background:${r.p.color}"><title>${r.p.name}: колеблются ${r.u}</title></i>`:'')+
+    (r.n?`<i class="n" style="width:${w(r.n)}%;background:${r.p.color}"><title>${r.p.name}: против ${r.n}</title></i>`:'')+
+    `<b class="sep"></b>`).join('');
+  return `<div class="tab2">${seg}</div>`;
+}
+/* итоговая лента: за, колеблющиеся, против и порог */
+function sumBand(yes,und,no,need,tot){
+  const w=v=>(v/tot*100).toFixed(2);
+  return `<div class="tab2 sum">
+    <i style="width:${w(yes)}%;background:var(--good)"></i>
+    <i style="width:${w(und)}%;background:var(--line-2)"></i>
+    <i style="width:${w(no)}%;background:var(--bad)"></i>
+    <span class="mid" style="left:${clamp(need/tot*100,0,100)}%"></span></div>`;
+}
+/* всё вместе: табло, две ленты и подпись к штриховке */
+function voteFrame(rows,yes,und,no,need,tot){
+  return tblo(yes,und,no,need)+tabBand(rows,tot,need)+sumBand(yes,und,no,need,tot)+
+    `<div class="tabkey"><span><s class="y"></s>за</span>
+      <span><s class="u"></s>колеблются</span><span><s class="n"></s>против</span>
+      <span>черта — порог ${need} из ${tot}</span></div>`;
+}
+function voteRows(b,fn){   // b может быть null: доска нужна и не для закона
   const rows=[];
   seatOrder().forEach(p=>{
     const mine=S.deputies.filter(d=>d.party===p.id);
@@ -3121,23 +3195,12 @@ function voteStage(b,rep0,am){
   const t=T(b.topic);
   const draw=()=>{
     const tl=tally(b);
-    const cells=[];
-    seatOrder().forEach(p=>{
-      S.deputies.filter(d=>d.party===p.id).forEach(d=>{
-        const v=support(d,b), st=v>10?'yes':v<-10?'no':'und';
-        cells.push({st,color:st==='yes'?p.color:st==='no'?'var(--surface-3)':'var(--line-2)',
-          title:d.name+' · '+P(d.party).short+' · '+(st==='yes'?'за':st==='no'?'против':'колеблется')});
-      });
-    });
     const rows=voteRows(b,d=>{const v=support(d,b);return v>10?'yes':v<-10?'no':'und';});
     const rec=rep0&&rep0.verdict==='back'?'<span class="tag g">комитет рекомендует</span>':
               rep0&&rep0.verdict==='forced'?'<span class="tag r">в обход комитета</span>':'';
     sheetOpen({eye:'Голосование в Собрании · '+dateLabel(),title:t.name,
       body:`<p class="lead">${stanceLine(b)} ${rec}</p>
-        ${seatGrid(cells)}
-        <div class="whip"><div><i>за</i><b class="good">${tl.yes}</b></div>
-          <div><i>?</i><b>${tl.und}</b></div><div><i>против</i><b class="bad">${tl.no}</b></div></div>
-        ${splitBar(tl.yes,tl.und,tl.no,MAJ,SEATS)}
+        ${voteFrame(rows,tl.yes,tl.und,tl.no,MAJ,SEATS)}
         <div class="scrollx" style="margin-top:10px">${whipTable(rows)}</div>
         <p class="hint">Прогноз, а не итог: колеблющиеся падают в свою сторону в момент подачи голосов.
           Кворум — ${QUORUM} мандатов, при явке ниже голосование переносят.</p>`,
@@ -3182,20 +3245,12 @@ function callVote(b,rep0,am){
   if(rep0&&rep0.verdict==='back')low.yes=Math.min(SEATS,low.yes+ri(3,9));
   low.no=SEATS-low.yes; low.pass=low.yes>=MAJ;
   S.votes.unshift({no:S.billNo,q:S.q,name:t.name,stance:b.stance,yes:low.yes,no:low.no,pass:low.pass,house:'соб'});
-  const cells=[];
-  seatOrder().forEach(p=>{
-    const mine=S.deputies.filter(d=>d.party===p.id);
-    mine.forEach(d=>{ const v=support(d,b), st=v>0?'yes':'no';
-      cells.push({st,color:st==='yes'?p.color:'var(--surface-3)',
-        title:d.name+' · '+P(d.party).short+' · '+(st==='yes'?'за':'против')}); });
-  });
+  const rows=voteRows(b,d=>support(d,b)>0?'yes':'no');
   sheetOpen({eye:'Поимённое голосование · '+dateLabel(),title:t.name,
     body:`<p class="lead">${stanceLine(b)}</p>
-      ${seatGrid(cells)}
-      ${voteBar(low.yes,low.no,MAJ)}
+      ${voteFrame(rows,low.yes,0,low.no,MAJ,SEATS)}
+      <div class="scrollx" style="margin-top:10px">${whipTable(rows)}</div>
       <div class="res"><span>Явка</span><b>${present} из ${SEATS}</b>
-        <span>За</span><b class="good">${low.yes}</b><span>Против</span><b class="bad">${low.no}</b>
-        <span>Нужно</span><b>${MAJ}</b>
         ${am?`<span>Текст с поправкой</span><b class="w">${am.a.name.toLowerCase()}</b>`:''}</div>
       <div style="text-align:center;margin:12px 0 2px"><span class="stamp ${low.pass?'y':'n'}">${
         low.pass?'принят в Собрании':'отклонён'}</span></div>`,
@@ -5790,11 +5845,18 @@ function askInquiry(){
   const rich=FIRMS.slice().sort((a,b)=>(firmOf(b.id).given||0)-(firmOf(a.id).given||0))[0];
   opts.push({label:'Корпорация: '+rich.name,hint:rich.sec+' · дано вам '+Math.round(firmOf(rich.id).given)+' млн',
     fn:()=>openInquiry('firm',rich.id)});
+  // конституционную поправку разбирают не по существу, а по тому, как её проводили
+  (CN().log||[]).slice().reverse().slice(0,3).forEach(a=>{
+    opts.push({label:'Поправка: '+a.name,
+      hint:a.art+' · принята '+shortDate(a.q)+(a.ref?' · с референдумом':'')+
+        ' · легитимность '+sign(a.cost),
+      fn:()=>openInquiry('amend',a.id)});
+  });
   opts.push({label:'Не созывать',hint:'закрыть',fn(){}});
   sheetOpen({eye:'Следственная комиссия',title:'Кого расследовать',
     body:`<p class="lead">Комиссия работает ${quarters(INQ_LEN)} и всё это время собирает улики.
-        Итог зачитывают с трибуны: отставка, передача в суд, повод для импичмента — или пшик,
-        который дорого обходится тому, кто комиссию созвал.</p>
+        Итог зачитывают с трибуны: отставка, передача в суд, повод для импичмента, отмена поправки —
+        или пшик, который дорого обходится тому, кто комиссию созвал.</p>
       <p class="hint">Созыв стоит ${INQ_CAP} веса и одного действия. Одна комиссия за раз.</p>`,
     opts});
 }
@@ -5818,6 +5880,25 @@ function inqAgainstYou(){
   if(!opp||seatsOf(opp.id)<60)return;
   const risk=0.012+(S.trail||0)*0.0016+(captureLevel()>CAP_HIGH?0.012:0)+(approval()<40?0.01:0);
   if(Math.random()>=risk)return;
+  // если вы недавно правили конституцию, разбирать будут именно это
+  const mine=(CN().log||[]).filter(x=>x.cost<0&&S.q-x.q<=12);
+  if(mine.length&&Math.random()<0.5){
+    const a=mine[mine.length-1];
+    S.inq={kind:'amend',who:a.id,by:opp.id,q:S.q,left:INQ_LEN,ev:ri(12,28),leaks:0};
+    logMsg('Оппозиция созвала комиссию по поправке «'+a.name.toLowerCase()+'».',1);
+    chron('Комиссия разбирает вашу поправку к конституции.','b');
+    sheetOpen({eye:'Следственная комиссия',title:'Разбирают вашу поправку',
+      body:`<p class="lead">«${P(opp.id).name}» добилась комиссии по порядку принятия поправки
+          «${a.name.toLowerCase()}». Разбирать будут не статью, а то, как за неё голосовали.</p>
+        <div class="res"><span>Поправка</span><b class="w">${a.name}</b>
+          <span>Принята</span><b>${shortDate(a.q)}${a.ref?' · с референдумом':''}</b>
+          <span>След тогда</span><b class="${(a.bought||0)>40?'bad':''}">${a.bought||0}</b>
+          <span>Работа комиссии</span><b>${quarters(INQ_LEN)}</b></div>
+        <p class="hint">Полный состав даёт палате право отменить поправку как принятую с нарушением порядка.
+          Всенародное голосование такую комиссию сильно осложняет.</p>`,
+      acts:[{label:'Принять к сведению'}]});
+    render(); return;
+  }
   S.inq={kind:'you',who:null,by:opp.id,q:S.q,left:INQ_LEN,ev:ri(10,26),leaks:0};
   logMsg('Оппозиция созвала комиссию по вашим делам.',1);
   chron('Против вас созвана следственная комиссия.','b');
@@ -5893,6 +5974,25 @@ function inqVerdict(){
               logMsg('Материалы комиссии по президенту оставлены в резерве.'); }}];
     } else { S.presRel=clamp(S.presRel-(some?4:-6),0,100); addCap(some?0:-8);
       body=`<p class="lead">${some?'Отдельные вопросы остались без ответа, и только.':'Против президента не нашлось ничего: удар пришёлся по вам.'}</p>`; }
+  } else if(i.kind==='amend'){
+    const a=(CN().log||[]).find(x=>x.id===i.who);
+    if(!a){ body='<p class="lead">Поправки, о которой шла речь, в основном законе уже нет.</p>'; }
+    else if(strong){
+      body=`<p class="lead">Комиссия разбирала не статью, а то, как её проводили. Нашлось достаточно:
+        сделки в те кварталы, спешка, подписи, собранные не там, где положено. Поправку можно отменить
+        как принятую с нарушением порядка.</p>`;
+      acts=[{label:'Отменить поправку',fn(){
+          if(revokeAmend(a,'по выводам комиссии')){ shiftAll(2.4); bumpRep('honest',7); addCap(6);
+            cover({ax:'order',stance:-1,
+              good:'Основной закон вернули в прежний вид',
+              bad:'Поправку отменили не по праву, а по силе',
+              flat:'Отменена поправка «'+a.name.toLowerCase()+'»'}); } }},
+        {label:'Оставить как есть',fn(){ bumpLegit(-6); addCap(-4);
+          logMsg('Выводы комиссии по поправке «'+a.name.toLowerCase()+'» положены под сукно.',1); }}];
+    } else if(some){ bumpLegit(-3);
+      body=`<p class="lead">Нашли спешку и неаккуратность, но не подлог. Поправка остаётся, вопросы — тоже.</p>`;
+    } else { addCap(-6); bumpLegit(2);
+      body=`<p class="lead">Порядок принятия оказался чист. Тем, кто затевал разбор, придётся объясняться.</p>`; }
   } else if(i.kind==='firm'){
     const f=firmOf(i.who), d=FM(i.who);
     if(strong){ f.rel=clamp(f.rel-24,0,100); f.angry=(f.angry||0)+2; bumpCapture(-9);
@@ -5993,20 +6093,14 @@ function impeachHouse(){
   const pass=yes>=impH();
   S.votes.unshift({no:++S.billNo,q:S.q,name:'Импичмент: '+i.who.name,stance:0,
     yes,no:SEATS-yes,pass,house:'соб'});
-  const cells=[];
-  seatOrder().forEach(p=>S.deputies.filter(d=>d.party===p.id).forEach((d,n)=>{
-    // цвет по фракции для «за», серый для «против» — как на общей доске
-    const v=(d.party===PL?26:inCoal(d.party)?10:-28)+(d.rel-50)*0.3
+  const impV=d=>(d.party===PL?26:inCoal(d.party)?10:-28)+(d.rel-50)*0.3
       +(i.who.party===d.party?-40:0)+bonus*0.38+noise(d.id+'imp'+i.kind+S.q,17);
-    cells.push({st:v>0?'yes':'no',color:v>0?p.color:'var(--surface-3)',
-      title:d.name+' · '+P(d.party).short}); }));
+  const rows=voteRows(null,d=>impV(d)>0?'yes':'no');
   sheetOpen({eye:'Обвинение · Собрание',title:'Импичмент: '+i.who.name,
     body:`<p class="lead">${k.name}. ${k.txt}</p>
-      ${seatGrid(cells)}
-      ${voteBar(yes,SEATS-yes,impH())}
-      <div class="res"><span>За обвинение</span><b class="${pass?'good':'bad'}">${yes}</b>
-        <span>Нужно</span><b>${impH()}</b>
-        <span>Материалы комиссии</span><b class="w">${i.ready?'на руках':'нет'}</b>
+      ${voteFrame(rows,yes,0,SEATS-yes,impH(),SEATS)}
+      <div class="scrollx" style="margin-top:10px">${whipTable(rows)}</div>
+      <div class="res"><span>Материалы комиссии</span><b class="w">${i.ready?'на руках':'нет'}</b>
         <span>Тон печати</span><b>${pressWord(pressTone())}</b></div>
       <div style="text-align:center;margin:12px 0 2px"><span class="stamp ${pass?'y':'n'}">${
         pass?'обвинение выдвинуто':'обвинение отклонено'}</span></div>`,
@@ -6811,17 +6905,12 @@ function amendHouse(c){
   const pass=yes>=c.need.h;
   S.votes.unshift({no:++S.billNo,q:S.q,name:'Поправка: '+c.name,stance:0,
     yes,no:SEATS-yes,pass,house:'соб'});
-  const cells=[];
-  seatOrder().forEach(p=>S.deputies.filter(d=>d.party===p.id).forEach(d=>{
-    const v=cnSupport(d,c,'low');
-    cells.push({st:v>0?'yes':'no',color:v>0?p.color:'var(--surface-3)',
-      title:d.name+' · '+P(d.party).short}); }));
+  const rows=voteRows(null,d=>cnSupport(d,c,'low')>0?'yes':'no');
   sheetOpen({eye:'Конституционное большинство · Собрание',title:c.name,
     body:`<p class="lead">${c.art}. ${c.eff}.</p>
-      ${seatGrid(cells)}
-      ${voteBar(yes,SEATS-yes,c.need.h)}
-      <div class="res"><span>За поправку</span><b class="${pass?'good':'bad'}">${yes}</b>
-        <span>Нужно две трети</span><b>${c.need.h}</b>
+      ${voteFrame(rows,yes,0,SEATS-yes,c.need.h,SEATS)}
+      <div class="scrollx" style="margin-top:10px">${whipTable(rows)}</div>
+      <div class="res"><span>Нужно две трети</span><b>${c.need.h}</b>
         <span>Легитимность сейчас</span><b>${legit()}</b></div>
       <div style="text-align:center;margin:12px 0 2px"><span class="stamp ${pass?'y':'n'}">${
         pass?'принята в первом чтении':'отклонена Собранием'}</span></div>`,
@@ -6868,9 +6957,12 @@ function amendRef(c){
   render();
 }
 function amendPass(c,refShare){
+  const before=cnSnap();                    // чтобы поправку можно было отменить точь-в-точь
+  const presBefore=S.pres?{term:S.pres.term,until:S.pres.until}:null;
   c.apply();
   const cost=cnCost(c);
-  S.cn.log.push({id:c.id,name:c.name,art:c.art,eff:c.eff,q:S.q,by:PL,ref:refShare||0,cost});
+  S.cn.log.push({id:c.id,name:c.name,art:c.art,eff:c.eff,q:S.q,by:PL,ref:refShare||0,cost,
+    before,presBefore,bought:Math.round(trail())});
   bumpLegit(cost);
   addCap(cost<0?4:10);
   if(cost<0){ shiftMood('intel',cost*0.24); shiftMood('urban',cost*0.14); shiftMood('youth',cost*0.16);
@@ -6904,6 +6996,20 @@ function amendFail(c,where){
       снова, но зал запоминает, кто её предлагал.</p>`,
     acts:[{label:'Закрыть'}]});
   render();
+}
+
+/* отмена поправки: возвращается ровно то, что она меняла */
+function revokeAmend(entry,why){
+  if(!entry)return false;
+  const i=(S.cn.log||[]).indexOf(entry);
+  if(i<0)return false;
+  if(entry.before)CN_FIELDS.forEach(k=>{ if(entry.before[k]!==undefined)S.cn[k]=entry.before[k]; });
+  if(entry.presBefore&&S.pres){ S.pres.term=entry.presBefore.term; S.pres.until=entry.presBefore.until; }
+  S.cn.log.splice(i,1);
+  bumpLegit(Math.abs(entry.cost)*0.7);
+  logMsg('Поправка «'+entry.name.toLowerCase()+'» отменена '+(why||'')+'. Прежняя редакция восстановлена.',1);
+  chron('Отменена поправка: '+entry.name.toLowerCase()+'.','g');
+  return true;
 }
 
 /* ─── легитимность и конституционный кризис ──────────────────────
@@ -6952,15 +7058,8 @@ function constCrisis(){
       {label:'Отменить спорную поправку',hint:'если есть что отменять',
        fn(){ const last=(CN().log||[]).slice().reverse().find(x=>x.cost<0);
          if(!last){ toast('Отменять нечего'); return; }
-         const c=CONSTS.find(x=>x.id===last.id);
-         S.cn.log=S.cn.log.filter(x=>x!==last);
-         // возвращаем то, что поправка меняла
-         const d=cnDefault();
-         ['pterm','term','sencyc','limit','super','impH','impS','judge','noconf','dissolve','senall','emerg']
-           .forEach(k=>{ if(S.cn[k]!==d[k]&&c&&String(c.apply).indexOf(k)>=0)S.cn[k]=d[k]; });
-         bumpLegit(14); shiftAll(2); bumpRep('honest',6);
-         logMsg('Поправка «'+last.name.toLowerCase()+'» отменена под давлением кризиса.',1);
-         chron('Спорная поправка отменена.','g'); }},
+         revokeAmend(last,'под давлением кризиса');
+         shiftAll(2); bumpRep('honest',6); }},
       {label:'Не отступать',hint:'кризис продолжится',
        fn(){ bumpLegit(-4); REGIONS.forEach(x=>S.unrest[x.id]=clamp(S.unrest[x.id]+4,0,100)); }}]});
 }
@@ -7507,7 +7606,63 @@ function tabParl(){
         <td class="r"><button class="btn sm" onclick="askChair('${a.id}')" ${S.ap&&S.cap>=6?'':'disabled'}>${d?'Заменить':'Назначить'}</button></td></tr>`;
       }).join('')}</tbody></table>`})
   +`</div></div>`
+  +cnParlPanel()
   +panel({title:'Прошедшие голосования',flush:true,body:`<table class="tight"><tbody>${votes}</tbody></table>`});
+}
+
+/* ─── конституционные законы в палате ────────────────────────────
+   Поправку принимает не президент и не суд, а эти самые скамьи —
+   значит и лежать она должна здесь, рядом с обычными законами.
+   И разбирают её тоже здесь: комиссия смотрит не на статью, а на то,
+   как за неё голосовали. */
+function cnParlPanel(){
+  const log=(CN().log||[]).slice().reverse();
+  const inq=S.inq&&S.inq.kind==='amend'?(CN().log||[]).find(x=>x.id===S.inq.who):null;
+  const rows=log.map(a=>{
+    const under=inq&&inq.id===a.id;
+    return `<tr class="${under?'mine':''}"><td><b>${a.name}</b>${under?' <span class="tag r">под комиссией</span>':''}
+        <div class="sub2">${a.art} · ${a.eff}</div></td>
+      <td class="n">${shortDate(a.q)}</td>
+      <td class="n hide-s">${a.ref?a.ref+'%':'<span class="dim">без реф.</span>'}</td>
+      <td class="n ${a.cost<0?'bad':'good'}">${sign(a.cost)}</td>
+      <td class="r">${under?'<span class="dim">разбирают</span>'
+        :`<button class="btn sm" onclick="openInquiry('amend','${a.id}')"
+            ${S.ap&&S.cap>=INQ_CAP&&!S.inq?'':'disabled'}>Расследовать</button>`}</td></tr>`;
+  }).join('')||`<tr><td colspan="5" class="dim">Конституция в первоначальной редакции: разбирать нечего.</td></tr>`;
+  const soon=cnList().slice(0,4).map(c=>{ const f=cnForecast(c);
+    return `<tr><td><b>${c.name}</b><div class="sub2">${c.art} · ${c.eff}</div></td>
+      <td class="n ${f.h>=f.needH?'good':'bad'}">${f.h}/${f.needH}</td>
+      <td class="n ${f.s>=f.needS?'good':'bad'} hide-s">${f.s}/${f.needS}</td>
+      <td class="r"><button class="btn sm" onclick="askAmendOne('${c.id}')"
+        ${S.ap&&S.cap>=CN_CAP?'':'disabled'}>Вносить</button></td></tr>`;}).join('');
+
+  return `<div class="cols c11"><div>`
+  +panel({cls:inq?'warn':'',title:'Конституционные законы',
+    meta:plural(log.length,'поправка','поправки','поправок')+' в силе',flush:true,
+    body:`<div style="padding:var(--x4) var(--x5) 0"><p class="hint" style="margin:0">
+        Поправку принимают эти самые скамьи — две трети здесь и две трети в Сенате, без подписи
+        президента. Разбирают её тоже здесь: комиссия смотрит не на статью, а на то, как за неё голосовали.</p></div>
+      <div class="scrollx"><table class="tight"><thead><tr><th>Поправка</th><th class="n">Принята</th>
+        <th class="n hide-s">Реф.</th><th class="n">Лег.</th><th></th></tr></thead>
+        <tbody>${rows}</tbody></table></div>`,
+    foot:`<span class="hint">Комиссия работает ${quarters(INQ_LEN)} и стоит ${INQ_CAP} веса.
+      Полный состав даёт палате право отменить поправку как принятую с нарушением порядка —
+      всенародное голосование такую комиссию сильно осложняет.</span>`})
+  +`</div><div>`
+  +(inq?panel({cls:'warn',title:'Комиссия по поправке',meta:'улик '+Math.round(S.inq.ev),
+    body:`<div class="res" style="margin-top:0"><span>Разбирают</span><b class="w">${inq.name}</b>
+        <span>Созвал</span><b class="w">${P(S.inq.by)?P(S.inq.by).name:'палата'}</b>
+        <span>Улик собрано</span><b class="${S.inq.ev>=62?'bad':''}">${Math.round(S.inq.ev)} · ${inqWord(S.inq.ev)}</b>
+        <span>Осталось работать</span><b>${quarters(S.inq.left)}</b></div>
+      ${bar([[S.inq.ev,S.inq.ev>=62?'var(--bad)':'var(--ink-2)']],10)}
+      <p class="hint">Собранное на поправку зависит от того, насколько она была выгодна тому, кто её провёл,
+        и сколько следа осталось от сделок в те кварталы.</p>`,
+    foot:`<button class="btn sm" data-go="court">К надзору</button>`})
+   :panel({title:'Что можно внести',meta:'прогноз голосов',flush:true,
+    body:soon?`<table class="tight"><tbody>${soon}</tbody></table>`
+      :'<div class="empty">Вносить нечего: всё, что можно было изменить, изменено.</div>',
+    foot:`<button class="btn" data-go="const">К конституции</button>`}))
+  +`</div></div>`;
 }
 function openDep(id){
   const d=S.deputies.find(x=>x.id===id); if(!d)return;
