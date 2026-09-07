@@ -1,0 +1,11 @@
+{
+  "name": "political-process-uk",
+  "version": "1.0.0-beta",
+  "private": true,
+  "description": "The Political Process: Britain — игра про всеобщие выборы в Соединённом Королевстве",
+  "scripts": {
+    "test": "node tests/run-tests.mjs",
+    "start": "npx --yes http-server . -p 8080 -c-1"
+  },
+  "license": "MIT"
+}
