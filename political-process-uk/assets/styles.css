@@ -305,8 +305,11 @@ button.big { padding: 12px 22px; font-size: 15px; }
 .mini-stat { font-size: 11px; font-family: var(--mono); color: var(--accent); margin-top: 6px; }
 
 .field-row { display: flex; flex-wrap: wrap; gap: 10px; }
-label { font-size: 12px; color: var(--muted); display: flex; flex-direction: column; gap: 4px; }
-label.wide { width: 100%; margin-bottom: 10px; }
+/* Подписи полей: в конструкторе — колонкой, в остальных местах — строкой. */
+label { font-size: 13px; color: var(--text); }
+.builder label, .field-row label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); }
+.setup-row label, table label { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text); }
+label.wide { width: 100%; margin-bottom: 10px; display: flex; flex-direction: column; gap: 4px; }
 label input, label select { color: var(--text); }
 input[type=color] { width: 54px; height: 34px; padding: 2px; background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius); }
 
@@ -352,3 +355,64 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
 
 .rflavour { font-family: Georgia, serif; font-style: italic; font-size: 12px; color: var(--muted); margin-top: 6px; }
 p.flavour { font-family: Georgia, serif; font-style: italic; color: #c9d6e5; }
+
+/* ============================================================
+   Карта, Палата общин, обзор
+   ============================================================ */
+
+.tab-icon { margin-right: 5px; }
+
+/* --- плитки обзора --- */
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+.tile { background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; }
+.tile .tk { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); }
+.tile .tv { display: block; font-family: var(--mono); font-size: 24px; line-height: 1.25; }
+.tile .ts { display: block; font-size: 12px; color: var(--muted); }
+
+/* --- график опросов --- */
+.poll-chart { width: 100%; height: auto; }
+.chart-grid { stroke: rgba(144,162,184,.18); stroke-width: 1; }
+.chart-axis { font-family: var(--mono); font-size: 10px; fill: var(--muted); }
+
+/* --- карта --- */
+.map-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.map-modes { justify-content: center; }
+.uk-map { width: 100%; max-width: 520px; height: auto; }
+.map-region polygon {
+  stroke: #0d1117; stroke-width: 1.6; cursor: pointer;
+  transition: filter .15s, stroke .15s;
+}
+.map-region:hover polygon { filter: brightness(1.25); stroke: var(--accent); }
+.map-region.selected polygon { stroke: var(--accent); stroke-width: 2.6; }
+.map-region.inactive polygon { cursor: default; opacity: .55; }
+.map-label { font-family: var(--mono); font-size: 11px; font-weight: 700; fill: #f2f6fb; text-anchor: middle; pointer-events: none; paint-order: stroke; stroke: rgba(6,10,16,.75); stroke-width: 2.6; }
+.map-seats { font-family: var(--mono); font-size: 9px; fill: rgba(235,242,250,.72); text-anchor: middle; pointer-events: none; }
+.map-outside { fill: #202b3a; stroke: #0d1117; stroke-width: 1.4; }
+.map-leader-line { stroke: rgba(212,175,55,.6); stroke-width: 1.2; }
+.map-callout { font-size: 11px; fill: var(--accent); font-family: "Segoe UI", sans-serif; }
+
+/* --- Палата общин --- */
+.chamber { width: 100%; height: auto; display: block; }
+.ch-label { font-size: 12px; fill: var(--muted); font-family: "Segoe UI", sans-serif; letter-spacing: .5px; text-transform: uppercase; }
+.ch-note { font-size: 11px; fill: var(--muted); font-family: var(--mono); }
+.ch-legend { display: flex; flex-wrap: wrap; gap: 8px 14px; justify-content: center; margin-top: 10px; font-size: 12px; }
+.ch-leg { display: inline-flex; align-items: center; gap: 5px; font-family: var(--mono); color: var(--muted); }
+.ch-leg i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.ch-leg.mine { color: var(--text); font-weight: 700; }
+.ch-leg b { font-weight: 700; }
+.ch-leg b.up { color: var(--green); }
+.ch-leg b.down { color: var(--red); }
+tr.mine-row td { background: rgba(212,175,55,.10); }
+
+/* --- эмблема --- */
+.emblem { display: block; }
+.topbar-emblem { display: flex; align-items: center; opacity: .9; }
+.hero-emblem { display: flex; justify-content: center; margin-bottom: 4px; opacity: .92; }
+
+.map-layout { display: grid; grid-template-columns: minmax(300px, 1.2fr) minmax(250px, 300px); gap: 14px; align-items: start; }
+@media (max-width: 860px) { .map-layout { grid-template-columns: 1fr; } }
+.map-sea { fill: #101a26; stroke: #223349; stroke-width: 1.4; }
+.map-side .map-table { font-size: 12.5px; }
+.map-row { cursor: pointer; }
+.map-side td, .map-side th { padding: 4px 6px; }
+.tile .tv { white-space: nowrap; }

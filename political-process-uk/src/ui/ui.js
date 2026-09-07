@@ -41,6 +41,7 @@
     var def = PP.PARTY_BY_ID[st.playerId];
     var role = PP.ROLE_BY_ID[st.roleId] || PP.ROLE_BY_ID.leader;
     return '<div class="topbar">' +
+      '<span class="topbar-emblem">' + PP.Chamber.portcullis(26, '#d4af37') + '</span>' +
       '<div class="brand" style="color:' + def.color + '">' + PP.Menu.rosette(def.color, 26) +
       '<span class="brand-text"><span class="brand-name">' + esc(def.name) + '</span>' +
       '<span class="brand-role" title="' + esc(role.desc) + '">' + role.icon + ' ' + esc(role.name) + '</span></span></div>' +
@@ -110,7 +111,7 @@
   }
 
   function renderSidebar() {
-    return renderPollPanel() + renderProjectionPanel() + renderPressPanel() + renderAgendaPanel();
+    return renderPollPanel() + renderProjectionPanel() + renderAgendaPanel();
   }
 
   function renderPressPanel() {
@@ -136,17 +137,20 @@
   }
 
   var TABS = [
-    { id: 'actions', label: 'Кампания' },
-    { id: 'regions', label: 'Регионы' },
-    { id: 'policy', label: 'Программа' },
-    { id: 'seats', label: 'Округа' },
-    { id: 'rivals', label: 'Соперники' },
-    { id: 'news', label: 'Новости' }
+    { id: 'overview', label: 'Обзор', icon: '📊' },
+    { id: 'actions', label: 'Кампания', icon: '🎯' },
+    { id: 'map', label: 'Карта', icon: '🗺️' },
+    { id: 'commons', label: 'Палата общин', icon: '🏛️' },
+    { id: 'seats', label: 'Округа', icon: '🔍' },
+    { id: 'policy', label: 'Программа', icon: '📜' },
+    { id: 'rivals', label: 'Соперники', icon: '🎩' },
+    { id: 'news', label: 'Хроника', icon: '📰' }
   ];
 
   function renderTabs() {
     return '<div class="tabs">' + TABS.map(function (t) {
-      return '<button data-tab="' + t.id + '" class="' + (app.tab === t.id ? 'active' : '') + '">' + t.label + '</button>';
+      return '<button data-tab="' + t.id + '" class="' + (app.tab === t.id ? 'active' : '') + '">' +
+        '<span class="tab-icon">' + t.icon + '</span>' + t.label + '</button>';
     }).join('') + '</div>';
   }
 
@@ -290,13 +294,134 @@
     return '<div class="panel"><h3>Хроника кампании</h3><div class="list">' + items + '</div></div>';
   }
 
+  /* ---------- Обзор ---------- */
+
+  function renderOverview() {
+    var st = app.state, ps = st.parties[st.playerId];
+    var shares = currentShares();
+    var nat = PP.nationalShares(st, shares);
+    var proj = PP.projectSeats(st, shares, { incumbency: 0.05 });
+    var mine = proj[st.playerId] || 0;
+    var order = Object.keys(proj).sort(function (a, b) { return proj[b] - proj[a]; });
+    var leaderId = order[0];
+    var gap = leaderId === st.playerId ? mine - (proj[order[1]] || 0) : mine - proj[leaderId];
+    var def = PP.PARTY_BY_ID[st.playerId];
+    var goals = def.goals || [{ seats: def.target, label: 'цель кампании' }];
+    var nextG = null;
+    goals.forEach(function (g) { if (!nextG && mine < g.seats) nextG = g; });
+
+    var tiles =
+      tile('Проекция мандатов', mine, (mine - (st.startingSeats[st.playerId] || 0)) + ' к старту') +
+      tile('Доля голосов', (nat[st.playerId] || 0).toFixed(1) + '%', 'по стране') +
+      tile(leaderId === st.playerId ? 'Отрыв от второго' : 'Отставание от лидера', (gap >= 0 ? '+' : '') + gap, 'мандатов') +
+      tile('Следующая цель', nextG ? nextG.seats : '✔', nextG ? nextG.label : 'все ступени взяты') +
+      tile('Касса', '£' + ps.funds.toFixed(1) + ' млн', 'на кампанию') +
+      tile('Единство фракции', Math.round(ps.unity), ps.unity < 55 ? 'фракция ропщет' : 'фракция держится');
+
+    return '<div class="panel"><h3>Положение дел <span class="hint">неделя ' + st.week + ' из ' + st.totalWeeks + '</span></h3>' +
+      '<div class="tiles">' + tiles + '</div></div>' +
+      '<div class="panel"><h3>Динамика опросов <span class="hint">публикуемые цифры по неделям</span></h3>' +
+      pollChart() + '</div>' +
+      renderPressPanel();
+  }
+
+  function tile(k, v, sub) {
+    return '<div class="tile"><span class="tk">' + esc(k) + '</span><span class="tv">' + esc(String(v)) +
+      '</span><span class="ts">' + esc(sub) + '</span></div>';
+  }
+
+  /* График опросов: линия на партию по неделям. */
+  function pollChart() {
+    var st = app.state;
+    var hist = st.pollHistory;
+    if (hist.length < 2) return '<p class="hint">Первый опрос кампании ещё не устарел — линия появится со второй недели.</p>';
+    var last = hist[hist.length - 1].shares;
+    var parties = Object.keys(last).filter(function (p) { return last[p] >= 3 || p === st.playerId; })
+      .sort(function (a, b) { return last[b] - last[a]; }).slice(0, 6);
+    var maxV = 5;
+    hist.forEach(function (h) {
+      parties.forEach(function (p) { maxV = Math.max(maxV, h.shares[p] || 0); });
+    });
+    maxV = Math.ceil(maxV / 5) * 5 + 5;
+    var W = 640, H = 200, pad = 28;
+    function x(i) { return pad + (W - pad - 52) * (i / Math.max(hist.length - 1, 1)); }
+    function y(v) { return H - pad - (H - pad - 12) * (v / maxV); }
+
+    var grid = '';
+    for (var g = 0; g <= maxV; g += 10) {
+      grid += '<line x1="' + pad + '" y1="' + y(g) + '" x2="' + (W - 46) + '" y2="' + y(g) + '" class="chart-grid"/>' +
+        '<text x="' + (pad - 6) + '" y="' + (y(g) + 4) + '" class="chart-axis" text-anchor="end">' + g + '</text>';
+    }
+    var lines = parties.map(function (pid) {
+      var d = hist.map(function (h, i) { return (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(h.shares[pid] || 0).toFixed(1); }).join(' ');
+      var lastY = y(last[pid] || 0);
+      return '<path d="' + d + '" fill="none" stroke="' + color(pid) + '" stroke-width="' +
+        (pid === st.playerId ? 3.2 : 2) + '" stroke-linejoin="round"/>' +
+        '<circle cx="' + x(hist.length - 1).toFixed(1) + '" cy="' + lastY.toFixed(1) + '" r="3.4" fill="' + color(pid) + '"/>' +
+        '<text x="' + (x(hist.length - 1) + 8) + '" y="' + (lastY + 4) + '" class="chart-axis" fill="' + color(pid) + '">' +
+        abbr(pid) + '</text>';
+    }).join('');
+    var weeks = hist.map(function (h, i) {
+      return '<text x="' + x(i) + '" y="' + (H - 8) + '" class="chart-axis" text-anchor="middle">' + h.week + '</text>';
+    }).join('');
+
+    return '<svg class="poll-chart" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet">' +
+      grid + lines + weeks + '</svg>';
+  }
+
+  /* ---------- Карта ---------- */
+
+  function renderMapTab() {
+    var st = app.state;
+    var shares = currentShares();
+    return '<div class="panel"><h3>Карта регионов <span class="hint">клик по региону — округа и демография</span></h3>' +
+      PP.Map.render(st, shares, { mode: app.mapMode || 'leader', selected: app.region }) + '</div>' +
+      (app.region ? renderRegionDetail(app.region) : '<div class="panel"><p class="hint">Выберите регион на карте, чтобы увидеть его округа, демографию и самые близкие бои.</p></div>');
+  }
+
+  /* ---------- Палата общин ---------- */
+
+  function renderCommons() {
+    var st = app.state;
+    var shares = currentShares();
+    var proj = PP.projectSeats(st, shares, { incumbency: 0.05 });
+    var order = Object.keys(proj).sort(function (a, b) { return proj[b] - proj[a]; });
+    var maj = PP.majorityThreshold(proj);
+    var result = { seats: proj, majority: maj };
+    var coalitions = PP.viableCoalitions(st, result);
+    var gov = [order[0]];
+    var chamber = PP.Chamber.svg(proj, { government: gov, majority: maj.effective, playerId: st.playerId });
+
+    var coalRows = coalitions.slice(0, 6).map(function (c) {
+      var mineIn = c.leader === st.playerId || c.partners.indexOf(st.playerId) >= 0;
+      return '<tr' + (mineIn ? ' class="mine-row"' : '') + '><td><span class="pill" style="background:' + color(c.leader) + '">' +
+        abbr(c.leader) + '</span> ' + esc(pname(c.leader)) + '</td>' +
+        '<td>' + (c.partners.length ? c.partners.map(function (p) {
+          return '<span class="pill" style="background:' + color(p) + '">' + abbr(p) + '</span>';
+        }).join(' ') : '<span class="hint">в одиночку</span>') + '</td>' +
+        '<td class="num">' + c.seats + '</td></tr>';
+    }).join('');
+
+    return '<div class="panel"><h3>Палата общин по текущим настроениям ' +
+      '<span class="hint">' + PP.TOTAL_SEATS + ' мандатов · большинство ' + maj.effective + '</span></h3>' +
+      chamber + PP.Chamber.legend(proj, { playerId: st.playerId, baseline: st.startingSeats }) +
+      '</div>' +
+      '<div class="panel"><h3>Кто может собрать большинство</h3>' +
+      (coalRows ? '<table><thead><tr><th>Формирует</th><th>Партнёры</th><th class="num">Мандатов</th></tr></thead><tbody>' +
+        coalRows + '</tbody></table>' : '<p class="hint">Ни одна комбинация не набирает большинства: такой парламент придётся распускать заново.</p>') +
+      '<p class="hint">Депутаты, не занимающие своих мест, снижают фактический порог большинства.</p></div>';
+  }
+
   function renderCampaign() {
     var body;
-    if (app.tab === 'actions') body = renderActions();
-    else if (app.tab === 'regions') body = renderRegions();
+    if (app.tab === 'overview') body = renderOverview();
+    else if (app.tab === 'actions') body = renderActions();
+    else if (app.tab === 'map') body = renderMapTab();
+    else if (app.tab === 'commons') body = renderCommons();
     else if (app.tab === 'policy') body = renderPolicy();
     else if (app.tab === 'seats') body = renderSeatsTab();
     else if (app.tab === 'rivals') body = renderRivals();
+    else if (app.tab === 'regions') body = renderRegions();
     else body = renderNews();
     return renderTopbar() +
       '<div class="layout"><div>' + renderSidebar() + '</div>' +
@@ -511,7 +636,14 @@
     if (body) {
       var lead = order[0];
       var toMajority = lead ? Math.max(0, n.result.majority.effective - n.counts[lead]) : 0;
+      var leadParty = order[0];
+      var chamber = PP.Chamber.svg(n.counts, {
+        government: leadParty ? [leadParty] : [],
+        majority: n.result.majority.effective,
+        playerId: app.state.playerId
+      });
       body.innerHTML = '<div class="tickers">' + tickers + '</div>' +
+        '<div class="panel"><h3>Палата общин по объявленным округам</h3>' + chamber + '</div>' +
         '<div class="panel"><h3>Объявлено округов: ' + counted + ' из ' + PP.TOTAL_SEATS +
         (lead ? ' <span class="hint">' + abbr(lead) + ' до большинства: ' + toMajority + '</span>' : '') + '</h3>' +
         '<div class="decl-feed">' + feed + '</div></div>';
@@ -538,9 +670,12 @@
     if (seats[winner] >= maj.effective) headline = pname(winner) + ': большинство в Палате общин';
     else headline = 'Подвешенный парламент';
 
-    var bar = order.map(function (pid) {
-      return '<span style="width:' + (seats[pid] / PP.TOTAL_SEATS * 100) + '%;background:' + color(pid) + '" title="' + pname(pid) + ' ' + seats[pid] + '"></span>';
-    }).join('');
+    var govSide = gov ? [gov.leader].concat(gov.partners || []) : [winner];
+    var chamber = PP.Chamber.svg(seats, {
+      government: govSide,
+      majority: maj.effective,
+      playerId: st.playerId
+    });
 
     var table = '<table><thead><tr><th>Партия</th><th class="num">Мест</th><th class="num">Изм.</th><th class="num">Голосов</th></tr></thead><tbody>' +
       order.map(function (pid) {
@@ -556,8 +691,9 @@
     return '<div class="night">' +
       '<div class="result-hero"><div class="big">' + esc(headline) + '</div>' +
       '<p>Ваш результат: <b>' + mine + '</b> мандатов (' + (res.votes[st.playerId] || 0).toFixed(1) + '% голосов). ' +
-      'Порог большинства: ' + maj.effective + ' с учётом ' + maj.abstaining + ' неголосующих депутатов.</p>' +
-      '<div class="commons">' + bar + '</div></div>' +
+      'Порог большинства: ' + maj.effective + ' с учётом ' + maj.abstaining + ' неголосующих депутатов.</p></div>' +
+      '<div class="panel"><h3>Новая Палата общин</h3>' + chamber +
+      PP.Chamber.legend(seats, { playerId: st.playerId, baseline: st.startingSeats }) + '</div>' +
       verdict +
       '<div class="panel"><h3>Палата общин</h3>' + table + '</div>' +
       '<div class="setup-row"><button id="btn-restart">Новая кампания</button></div></div>';
@@ -699,7 +835,7 @@
       seed: seed || String(Math.floor(Math.random() * 1e9))
     });
     app.screen = 'campaign';
-    app.tab = 'actions';
+    app.tab = 'overview';
     app.region = null;
     PP.saveGame(app.state);
     render();
@@ -740,8 +876,10 @@
       }
       var tab = t.closest && t.closest('[data-tab]');
       if (tab) { app.tab = tab.dataset.tab; render(); return; }
+      var mapMode = t.closest && t.closest('[data-mapmode]');
+      if (mapMode) { app.mapMode = mapMode.dataset.mapmode; render(); return; }
       var region = t.closest && t.closest('[data-region]');
-      if (region && app.screen === 'campaign' && app.tab === 'regions') {
+      if (region && app.screen === 'campaign' && (app.tab === 'regions' || app.tab === 'map')) {
         app.region = app.region === region.dataset.region ? null : region.dataset.region;
         render(); return;
       }

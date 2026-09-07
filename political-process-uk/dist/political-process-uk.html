@@ -312,8 +312,11 @@ button.big { padding: 12px 22px; font-size: 15px; }
 .mini-stat { font-size: 11px; font-family: var(--mono); color: var(--accent); margin-top: 6px; }
 
 .field-row { display: flex; flex-wrap: wrap; gap: 10px; }
-label { font-size: 12px; color: var(--muted); display: flex; flex-direction: column; gap: 4px; }
-label.wide { width: 100%; margin-bottom: 10px; }
+/* Подписи полей: в конструкторе — колонкой, в остальных местах — строкой. */
+label { font-size: 13px; color: var(--text); }
+.builder label, .field-row label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); }
+.setup-row label, table label { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text); }
+label.wide { width: 100%; margin-bottom: 10px; display: flex; flex-direction: column; gap: 4px; }
 label input, label select { color: var(--text); }
 input[type=color] { width: 54px; height: 34px; padding: 2px; background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius); }
 
@@ -359,6 +362,67 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
 
 .rflavour { font-family: Georgia, serif; font-style: italic; font-size: 12px; color: var(--muted); margin-top: 6px; }
 p.flavour { font-family: Georgia, serif; font-style: italic; color: #c9d6e5; }
+
+/* ============================================================
+   Карта, Палата общин, обзор
+   ============================================================ */
+
+.tab-icon { margin-right: 5px; }
+
+/* --- плитки обзора --- */
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+.tile { background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; }
+.tile .tk { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); }
+.tile .tv { display: block; font-family: var(--mono); font-size: 24px; line-height: 1.25; }
+.tile .ts { display: block; font-size: 12px; color: var(--muted); }
+
+/* --- график опросов --- */
+.poll-chart { width: 100%; height: auto; }
+.chart-grid { stroke: rgba(144,162,184,.18); stroke-width: 1; }
+.chart-axis { font-family: var(--mono); font-size: 10px; fill: var(--muted); }
+
+/* --- карта --- */
+.map-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.map-modes { justify-content: center; }
+.uk-map { width: 100%; max-width: 520px; height: auto; }
+.map-region polygon {
+  stroke: #0d1117; stroke-width: 1.6; cursor: pointer;
+  transition: filter .15s, stroke .15s;
+}
+.map-region:hover polygon { filter: brightness(1.25); stroke: var(--accent); }
+.map-region.selected polygon { stroke: var(--accent); stroke-width: 2.6; }
+.map-region.inactive polygon { cursor: default; opacity: .55; }
+.map-label { font-family: var(--mono); font-size: 11px; font-weight: 700; fill: #f2f6fb; text-anchor: middle; pointer-events: none; paint-order: stroke; stroke: rgba(6,10,16,.75); stroke-width: 2.6; }
+.map-seats { font-family: var(--mono); font-size: 9px; fill: rgba(235,242,250,.72); text-anchor: middle; pointer-events: none; }
+.map-outside { fill: #202b3a; stroke: #0d1117; stroke-width: 1.4; }
+.map-leader-line { stroke: rgba(212,175,55,.6); stroke-width: 1.2; }
+.map-callout { font-size: 11px; fill: var(--accent); font-family: "Segoe UI", sans-serif; }
+
+/* --- Палата общин --- */
+.chamber { width: 100%; height: auto; display: block; }
+.ch-label { font-size: 12px; fill: var(--muted); font-family: "Segoe UI", sans-serif; letter-spacing: .5px; text-transform: uppercase; }
+.ch-note { font-size: 11px; fill: var(--muted); font-family: var(--mono); }
+.ch-legend { display: flex; flex-wrap: wrap; gap: 8px 14px; justify-content: center; margin-top: 10px; font-size: 12px; }
+.ch-leg { display: inline-flex; align-items: center; gap: 5px; font-family: var(--mono); color: var(--muted); }
+.ch-leg i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.ch-leg.mine { color: var(--text); font-weight: 700; }
+.ch-leg b { font-weight: 700; }
+.ch-leg b.up { color: var(--green); }
+.ch-leg b.down { color: var(--red); }
+tr.mine-row td { background: rgba(212,175,55,.10); }
+
+/* --- эмблема --- */
+.emblem { display: block; }
+.topbar-emblem { display: flex; align-items: center; opacity: .9; }
+.hero-emblem { display: flex; justify-content: center; margin-bottom: 4px; opacity: .92; }
+
+.map-layout { display: grid; grid-template-columns: minmax(300px, 1.2fr) minmax(250px, 300px); gap: 14px; align-items: start; }
+@media (max-width: 860px) { .map-layout { grid-template-columns: 1fr; } }
+.map-sea { fill: #101a26; stroke: #223349; stroke-width: 1.4; }
+.map-side .map-table { font-size: 12.5px; }
+.map-row { cursor: pointer; }
+.map-side td, .map-side th { padding: 4px 6px; }
+.tile .tv { white-space: nowrap; }
 
 </style>
 </head>
@@ -1029,6 +1093,85 @@ p.flavour { font-family: Georgia, serif; font-style: italic; color: #c9d6e5; }
 
   PP.PAPERS = PAPERS;
   PP.generatePress = headlines;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+</script>
+<script>
+/* src/data/mapshapes.js */
+/*
+ * Схематическая карта Соединённого Королевства. Контуры упрощены: это не
+ * географическая карта, а игровая схема регионов — узнаваемый силуэт,
+ * в котором соседи стоят на своих местах.
+ * Система координат: 0 0 440 580.
+ */
+(function (root) {
+  'use strict';
+
+  var SHAPES = {
+    scotland: {
+      points: '214,18 236,10 252,30 246,52 268,64 258,92 276,104 266,132 244,148 252,168 228,184 204,180 186,160 194,138 170,130 162,104 144,96 156,68 180,60 186,34 200,22',
+      label: [214, 100]
+    },
+    north_east: {
+      points: '228,184 252,168 268,182 274,206 264,234 238,244 224,232 220,206',
+      label: [246, 206]
+    },
+    north_west: {
+      points: '204,180 228,184 220,206 226,232 222,258 226,278 200,290 182,274 174,240 180,208 190,190',
+      label: [200, 236]
+    },
+    yorkshire: {
+      points: '226,232 238,244 264,234 288,242 296,266 282,282 250,288 226,278',
+      label: [256, 262]
+    },
+    east_midlands: {
+      points: '250,288 282,282 306,288 318,308 310,330 284,340 258,332 248,312',
+      label: [283, 312]
+    },
+    west_midlands: {
+      points: '200,290 226,278 250,288 248,312 258,332 244,348 216,344 202,326 192,306',
+      label: [224, 314]
+    },
+    east: {
+      points: '306,288 336,290 350,300 344,312 358,318 364,332 348,352 320,356 308,342 310,330 318,308',
+      label: [334, 322]
+    },
+    south_east: {
+      points: '320,356 350,350 364,364 358,390 336,406 306,404 288,384 296,366',
+      label: [341, 392]
+    },
+    south_west: {
+      points: '216,344 244,348 288,384 306,404 288,416 258,412 232,422 200,444 172,462 158,452 168,436 190,416 198,392 202,368',
+      label: [240, 394]
+    },
+    wales: {
+      points: '182,274 200,290 192,306 202,326 216,344 200,376 176,380 158,368 150,342 138,320 148,298 164,282',
+      label: [176, 326]
+    },
+    n_ireland: {
+      points: '62,190 86,178 110,186 118,204 110,224 84,232 64,222 56,206',
+      label: [86, 206]
+    },
+    london: {
+      points: '308,356 330,352 340,366 322,378 306,368',
+      label: [323, 368]
+    }
+  };
+
+  /* Ирландская Республика — фон для узнаваемости, в игре не участвует. */
+  var IRELAND = '56,206 64,222 84,232 110,224 118,240 112,268 96,298 68,312 40,302 26,274 24,240 36,216';
+
+  /* Острова: Гебриды, Оркнейские, Шетландские, Мэн, Уайт. */
+  var ISLANDS = [
+    { cx: 140, cy: 62, r: 4 }, { cx: 132, cy: 78, r: 3 }, { cx: 148, cy: 44, r: 3 },
+    { cx: 232, cy: 4, r: 3.5 }, { cx: 246, cy: 2, r: 2.5 },
+    { cx: 152, cy: 246, r: 4 }, { cx: 330, cy: 412, r: 3.5 }
+  ];
+
+  root.PP = root.PP || {};
+  root.PP.MAP_SHAPES = SHAPES;
+  root.PP.MAP_IRELAND = IRELAND;
+  root.PP.MAP_ISLANDS = ISLANDS;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
 
 </script>
@@ -2825,6 +2968,302 @@ p.flavour { font-family: Georgia, serif; font-style: italic; color: #c9d6e5; }
 
 </script>
 <script>
+/* src/ui/chamber.js */
+/*
+ * Диаграмма Палаты общин: 650 мандатов точками, правительственные скамьи
+ * напротив оппозиционных, спикер и неголосующие депутаты отдельно.
+ * Плюс собственная эмблема игры в духе решётки Вестминстера.
+ */
+(function (root) {
+  'use strict';
+
+  var PP = root.PP;
+
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c];
+    });
+  }
+  function color(pid) { var p = PP.PARTY_BY_ID[pid]; return p ? p.color : '#8d8d8d'; }
+  function pname(pid) { var p = PP.PARTY_BY_ID[pid]; return p ? p.ru : pid; }
+  function abbr(pid) { var p = PP.PARTY_BY_ID[pid]; return p ? p.abbr : pid; }
+
+  /* Раскладка блока скамей: точки строками, слева направо, снизу вверх. */
+  function bench(order, counts, opts) {
+    var total = 0;
+    order.forEach(function (pid) { total += counts[pid] || 0; });
+    if (!total) return { dots: [], width: 0, height: 0 };
+    var rows = opts.rows || 8;
+    var step = opts.step || 15;
+    var perRow = Math.ceil(total / rows);
+    var maxPerRow = Math.floor((opts.maxWidth || 900) / step);
+    if (perRow > maxPerRow) { perRow = maxPerRow; rows = Math.ceil(total / perRow); }
+
+    var dots = [];
+    var i = 0;
+    order.forEach(function (pid) {
+      var n = counts[pid] || 0;
+      for (var k = 0; k < n; k++, i++) {
+        var col = Math.floor(i / rows);
+        var row = i % rows;
+        dots.push({
+          x: opts.x + col * step,
+          y: opts.up ? (opts.y - row * step) : (opts.y + row * step),
+          party: pid
+        });
+      }
+    });
+    return { dots: dots, width: Math.ceil(total / rows) * step, height: rows * step, rows: rows };
+  }
+
+  /*
+   * seats — {pid: количество}. opts.government — какие партии сидят на
+   * правительственных скамьях; opts.playerId подсвечивается ободком.
+   */
+  function chamberSVG(seats, opts) {
+    opts = opts || {};
+    var gov = opts.government || [];
+    var abstain = {};
+    PP.NI_PARTIES.forEach(function (p) { if (p.abstains) abstain[p.id] = seats[p.id] || 0; });
+
+    var govCounts = {}, oppCounts = {};
+    Object.keys(seats).forEach(function (pid) {
+      if (abstain[pid]) return;
+      if (gov.indexOf(pid) >= 0) govCounts[pid] = seats[pid];
+      else oppCounts[pid] = seats[pid];
+    });
+    var govOrder = Object.keys(govCounts).sort(function (a, b) { return govCounts[b] - govCounts[a]; });
+    var oppOrder = Object.keys(oppCounts).sort(function (a, b) { return oppCounts[b] - oppCounts[a]; });
+
+    var step = 15, r = 5.6;
+    var topBlock = bench(oppOrder, oppCounts, { x: 46, y: 26, rows: 8, step: step, maxWidth: 860, up: false });
+    var botBlock = bench(govOrder, govCounts, { x: 46, y: 202, rows: 8, step: step, maxWidth: 860, up: false });
+
+    function dotsToSvg(block) {
+      return block.dots.map(function (d) {
+        var stroke = (opts.playerId && d.party === opts.playerId)
+          ? ' stroke="#f5e6b8" stroke-width="1.4"' : '';
+        return '<circle cx="' + d.x.toFixed(1) + '" cy="' + d.y.toFixed(1) + '" r="' + r + '" fill="' +
+          color(d.party) + '"' + stroke + '><title>' + esc(pname(d.party)) + '</title></circle>';
+      }).join('');
+    }
+
+    /* Спикер и неголосующие. */
+    var extras = '<circle cx="24" cy="166" r="' + r + '" fill="#20262e" stroke="#6d7c8e" stroke-width="1.4"><title>Спикер — голосует только при равенстве</title></circle>' +
+      '<text x="24" y="150" class="ch-note" text-anchor="middle">спикер</text>';
+    var abstainTotal = 0;
+    Object.keys(abstain).forEach(function (pid) { abstainTotal += abstain[pid]; });
+    if (abstainTotal) {
+      var ax = 944, ay = 212;
+      var i = 0;
+      Object.keys(abstain).forEach(function (pid) {
+        for (var k = 0; k < abstain[pid]; k++, i++) {
+          extras += '<circle cx="' + (ax + (i % 2) * 15) + '" cy="' + (ay + Math.floor(i / 2) * 15) + '" r="' + r +
+            '" fill="' + color(pid) + '" opacity=".75"><title>' + esc(pname(pid)) + ' — не занимают мест</title></circle>';
+        }
+      });
+      extras += '<text x="' + (ax + 8) + '" y="' + (ay - 14) + '" class="ch-note" text-anchor="middle">не заседают</text>';
+    }
+
+    var maj = opts.majority;
+    var majLine = '';
+    if (maj) {
+      majLine = '<line x1="44" y1="166" x2="900" y2="166" stroke="rgba(212,175,55,.5)" stroke-dasharray="6 6"/>' +
+        '<text x="900" y="160" class="ch-note" text-anchor="end">порог большинства — ' + maj + '</text>';
+    }
+
+    return '<svg class="chamber" viewBox="0 0 1000 330" preserveAspectRatio="xMidYMid meet">' +
+      '<text x="46" y="16" class="ch-label">Оппозиционные скамьи</text>' +
+      dotsToSvg(topBlock) + majLine +
+      '<text x="46" y="192" class="ch-label">Правительственные скамьи</text>' +
+      dotsToSvg(botBlock) + extras +
+      '</svg>';
+  }
+
+  /* Легенда под диаграммой. */
+  function chamberLegend(seats, opts) {
+    opts = opts || {};
+    var order = Object.keys(seats).sort(function (a, b) { return seats[b] - seats[a]; });
+    return '<div class="ch-legend">' + order.map(function (pid) {
+      var delta = opts.baseline ? seats[pid] - (opts.baseline[pid] || 0) : null;
+      return '<span class="ch-leg' + (pid === opts.playerId ? ' mine' : '') + '">' +
+        '<i style="background:' + color(pid) + '"></i>' + esc(abbr(pid)) + ' ' + seats[pid] +
+        (delta !== null ? '<b class="' + (delta >= 0 ? 'up' : 'down') + '">' + (delta >= 0 ? '+' : '') + delta + '</b>' : '') +
+        '</span>';
+    }).join('') + '</div>';
+  }
+
+  /* Собственная эмблема игры: решётка в духе вестминстерской, без короны. */
+  function portcullis(size, tone) {
+    var c = tone || 'currentColor';
+    var bars = '';
+    for (var i = 0; i < 5; i++) bars += '<rect x="' + (14 + i * 14) + '" y="26" width="6" height="52" fill="' + c + '"/>';
+    for (var j = 0; j < 4; j++) bars += '<rect x="10" y="' + (30 + j * 14) + '" width="80" height="5" fill="' + c + '"/>';
+    var spikes = '';
+    for (var k = 0; k < 5; k++) spikes += '<polygon points="' + (14 + k * 14) + ',78 ' + (20 + k * 14) + ',78 ' + (17 + k * 14) + ',90" fill="' + c + '"/>';
+    return '<svg class="emblem" width="' + size + '" height="' + size + '" viewBox="0 0 100 100" aria-hidden="true">' +
+      '<rect x="8" y="18" width="84" height="8" rx="2" fill="' + c + '"/>' +
+      '<circle cx="14" cy="16" r="5" fill="none" stroke="' + c + '" stroke-width="3"/>' +
+      '<circle cx="86" cy="16" r="5" fill="none" stroke="' + c + '" stroke-width="3"/>' +
+      '<path d="M14 11 q0 -9 12 -9" fill="none" stroke="' + c + '" stroke-width="3"/>' +
+      '<path d="M86 11 q0 -9 -12 -9" fill="none" stroke="' + c + '" stroke-width="3"/>' +
+      bars + spikes + '</svg>';
+  }
+
+  PP.Chamber = {
+    svg: chamberSVG,
+    legend: chamberLegend,
+    portcullis: portcullis
+  };
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+</script>
+<script>
+/* src/ui/map.js */
+/* Карта регионов: заливка по текущему раскладу, клик — детали региона. */
+(function (root) {
+  'use strict';
+
+  var PP = root.PP;
+  var clamp = PP.clamp;
+
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c];
+    });
+  }
+  function color(pid) { var p = PP.PARTY_BY_ID[pid]; return p ? p.color : '#8d8d8d'; }
+  function abbr(pid) { var p = PP.PARTY_BY_ID[pid]; return p ? p.abbr : pid; }
+  function pname(pid) { var p = PP.PARTY_BY_ID[pid]; return p ? p.ru : pid; }
+
+  var MODES = [
+    { id: 'leader', label: 'Кто ведёт' },
+    { id: 'mine', label: 'Ваша доля' },
+    { id: 'swing', label: 'Изменение к старту' }
+  ];
+
+  function hexToRgb(hex) {
+    var h = hex.replace('#', '');
+    if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+    return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+  }
+  function mix(hex, t) {
+    var c = hexToRgb(hex);
+    var bg = [22, 30, 42];
+    return 'rgb(' + c.map(function (v, i) { return Math.round(bg[i] + (v - bg[i]) * t); }).join(',') + ')';
+  }
+
+  /* Цвет и подпись региона в выбранном режиме. */
+  function regionPaint(state, region, shares, mode) {
+    var sh = shares[region.id];
+    if (!sh) return { fill: '#2a3646', text: '', title: 'Северная Ирландия: отдельная партийная система' };
+    var order = Object.keys(sh).sort(function (a, b) { return sh[b] - sh[a]; });
+    var lead = order[0], second = order[1];
+    if (mode === 'mine') {
+      var mine = sh[state.playerId];
+      if (mine === undefined) return { fill: '#2a3646', text: '—', title: region.name + ': вы здесь не выдвигаетесь' };
+      return {
+        fill: mix(color(state.playerId), clamp(mine / 45, 0.12, 1)),
+        text: mine.toFixed(0) + '%',
+        title: region.name + ': ваша доля ' + mine.toFixed(1) + '%'
+      };
+    }
+    if (mode === 'swing') {
+      var base = (state.bases && state.bases[region.id]) || region.base;
+      var mineNow = sh[state.playerId], mineWas = base[state.playerId];
+      if (mineNow === undefined) return { fill: '#2a3646', text: '—', title: region.name };
+      var d = mineNow - mineWas;
+      return {
+        fill: mix(d >= 0 ? '#3fb950' : '#f85149', clamp(Math.abs(d) / 8, 0.12, 1)),
+        text: (d >= 0 ? '+' : '') + d.toFixed(1),
+        title: region.name + ': ' + (d >= 0 ? '+' : '') + d.toFixed(1) + ' п.п. к старту'
+      };
+    }
+    return {
+      fill: mix(color(lead), clamp(0.35 + (sh[lead] - sh[second]) / 30, 0.35, 1)),
+      text: abbr(lead),
+      title: region.name + ': ' + pname(lead) + ' ' + sh[lead].toFixed(1) + '% (отрыв ' + (sh[lead] - sh[second]).toFixed(1) + ')'
+    };
+  }
+
+  function render(state, shares, opts) {
+    opts = opts || {};
+    var mode = opts.mode || 'leader';
+    var selected = opts.selected;
+
+    var shapes = Object.keys(PP.MAP_SHAPES).map(function (rid) {
+      var region = PP.REGION_BY_ID[rid];
+      var shape = PP.MAP_SHAPES[rid];
+      var paint = regionPaint(state, region, shares, mode);
+      var cls = 'map-region' + (selected === rid ? ' selected' : '') + (region.ni ? ' inactive' : '');
+      return '<g class="' + cls + '" data-region="' + rid + '">' +
+        '<polygon points="' + shape.points + '" fill="' + paint.fill + '">' +
+        '<title>' + esc(paint.title) + ' · ' + region.seats + ' мест</title></polygon>' +
+        '<text class="map-label" x="' + shape.label[0] + '" y="' + shape.label[1] + '">' + esc(paint.text) + '</text>' +
+        '<text class="map-seats" x="' + shape.label[0] + '" y="' + (shape.label[1] + 12) + '">' + region.seats + '</text>' +
+        '</g>';
+    }).join('');
+
+    var islands = PP.MAP_ISLANDS.map(function (i) {
+      return '<circle cx="' + i.cx + '" cy="' + i.cy + '" r="' + i.r + '" fill="#33415a"/>';
+    }).join('');
+
+    var modes = MODES.map(function (m) {
+      return '<button class="chip' + (mode === m.id ? ' active' : '') + '" data-mapmode="' + m.id + '">' + m.label + '</button>';
+    }).join('');
+
+    var legend = '';
+    if (mode === 'leader') {
+      var nat = PP.nationalShares(state, shares);
+      legend = Object.keys(nat).filter(function (p) { return nat[p] >= 2; })
+        .sort(function (a, b) { return nat[b] - nat[a]; })
+        .map(function (pid) {
+          return '<span class="ch-leg"><i style="background:' + color(pid) + '"></i>' + abbr(pid) + '</span>';
+        }).join('');
+    } else if (mode === 'swing') {
+      legend = '<span class="ch-leg"><i style="background:#3fb950"></i>рост</span>' +
+        '<span class="ch-leg"><i style="background:#f85149"></i>падение</span>';
+    } else {
+      legend = '<span class="ch-leg"><i style="background:' + color(state.playerId) + '"></i>чем ярче, тем выше ваша доля</span>';
+    }
+
+    var rows = PP.CAMPAIGN_REGIONS.map(function (r) {
+      var sh = shares[r.id];
+      var order = Object.keys(sh).sort(function (a, b) { return sh[b] - sh[a]; });
+      var mine = sh[state.playerId];
+      return '<tr class="map-row' + (selected === r.id ? ' mine-row' : '') + '" data-region="' + r.id + '">' +
+        '<td>' + esc(r.name) + '</td>' +
+        '<td><span class="pill" style="background:' + color(order[0]) + '">' + abbr(order[0]) + '</span></td>' +
+        '<td class="num">' + (mine === undefined ? '—' : mine.toFixed(1)) + '</td>' +
+        '<td class="num">' + r.seats + '</td></tr>';
+    }).join('');
+    var ni = PP.REGION_BY_ID.n_ireland;
+
+    return '<div class="map-layout">' +
+      '<div class="map-wrap">' +
+      '<div class="chips map-modes">' + modes + '</div>' +
+      '<svg class="uk-map" viewBox="0 0 440 500" preserveAspectRatio="xMidYMid meet">' +
+      '<rect class="map-sea" x="0" y="0" width="440" height="500" rx="10"/>' +
+      '<polygon class="map-outside" points="' + PP.MAP_IRELAND + '"><title>Ирландия — за пределами выборов</title></polygon>' +
+      islands + shapes +
+      '<line x1="340" y1="366" x2="386" y2="348" class="map-leader-line"/>' +
+      '<text class="map-callout" x="390" y="346">Лондон · ' + PP.REGION_BY_ID.london.seats + '</text>' +
+      '<line x1="78" y1="180" x2="66" y2="150" class="map-leader-line"/>' +
+      '<text class="map-callout" x="66" y="144" text-anchor="middle">Сев. Ирландия · ' + ni.seats + '</text>' +
+      '</svg>' +
+      '<div class="ch-legend">' + legend + '</div>' +
+      '</div>' +
+      '<div class="map-side"><table class="map-table"><thead><tr>' +
+      '<th>Регион</th><th>Ведёт</th><th class="num">Вы</th><th class="num">Мест</th>' +
+      '</tr></thead><tbody>' + rows + '</tbody></table></div>' +
+      '</div>';
+  }
+
+  PP.Map = { render: render, MODES: MODES };
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+</script>
+<script>
 /* src/ui/menu.js */
 /*
  * Меню запуска: заставка, выбор роли, выбор партии, конструктор своей
@@ -2929,6 +3368,7 @@ p.flavour { font-family: Georgia, serif; font-style: italic; color: #c9d6e5; }
     return '<div class="hero">' + SKYLINE + '<div class="hero-scrim"></div>' +
       '<div class="hero-inner">' +
       '<div class="flag"><span></span><span></span><span></span></div>' +
+      '<div class="hero-emblem">' + PP.Chamber.portcullis(58, '#d4af37') + '</div>' +
       '<h1 class="game-title">The Political Process</h1>' +
       '<div class="game-sub">BRITAIN · всеобщие выборы · 650 округов · бета 1.0</div>' +
       '<div class="quote">' + esc(menu.quote || QUOTES[0]) + '</div>' +
@@ -3323,6 +3763,7 @@ p.flavour { font-family: Georgia, serif; font-style: italic; color: #c9d6e5; }
     var def = PP.PARTY_BY_ID[st.playerId];
     var role = PP.ROLE_BY_ID[st.roleId] || PP.ROLE_BY_ID.leader;
     return '<div class="topbar">' +
+      '<span class="topbar-emblem">' + PP.Chamber.portcullis(26, '#d4af37') + '</span>' +
       '<div class="brand" style="color:' + def.color + '">' + PP.Menu.rosette(def.color, 26) +
       '<span class="brand-text"><span class="brand-name">' + esc(def.name) + '</span>' +
       '<span class="brand-role" title="' + esc(role.desc) + '">' + role.icon + ' ' + esc(role.name) + '</span></span></div>' +
@@ -3392,7 +3833,7 @@ p.flavour { font-family: Georgia, serif; font-style: italic; color: #c9d6e5; }
   }
 
   function renderSidebar() {
-    return renderPollPanel() + renderProjectionPanel() + renderPressPanel() + renderAgendaPanel();
+    return renderPollPanel() + renderProjectionPanel() + renderAgendaPanel();
   }
 
   function renderPressPanel() {
@@ -3418,17 +3859,20 @@ p.flavour { font-family: Georgia, serif; font-style: italic; color: #c9d6e5; }
   }
 
   var TABS = [
-    { id: 'actions', label: 'Кампания' },
-    { id: 'regions', label: 'Регионы' },
-    { id: 'policy', label: 'Программа' },
-    { id: 'seats', label: 'Округа' },
-    { id: 'rivals', label: 'Соперники' },
-    { id: 'news', label: 'Новости' }
+    { id: 'overview', label: 'Обзор', icon: '📊' },
+    { id: 'actions', label: 'Кампания', icon: '🎯' },
+    { id: 'map', label: 'Карта', icon: '🗺️' },
+    { id: 'commons', label: 'Палата общин', icon: '🏛️' },
+    { id: 'seats', label: 'Округа', icon: '🔍' },
+    { id: 'policy', label: 'Программа', icon: '📜' },
+    { id: 'rivals', label: 'Соперники', icon: '🎩' },
+    { id: 'news', label: 'Хроника', icon: '📰' }
   ];
 
   function renderTabs() {
     return '<div class="tabs">' + TABS.map(function (t) {
-      return '<button data-tab="' + t.id + '" class="' + (app.tab === t.id ? 'active' : '') + '">' + t.label + '</button>';
+      return '<button data-tab="' + t.id + '" class="' + (app.tab === t.id ? 'active' : '') + '">' +
+        '<span class="tab-icon">' + t.icon + '</span>' + t.label + '</button>';
     }).join('') + '</div>';
   }
 
@@ -3572,13 +4016,134 @@ p.flavour { font-family: Georgia, serif; font-style: italic; color: #c9d6e5; }
     return '<div class="panel"><h3>Хроника кампании</h3><div class="list">' + items + '</div></div>';
   }
 
+  /* ---------- Обзор ---------- */
+
+  function renderOverview() {
+    var st = app.state, ps = st.parties[st.playerId];
+    var shares = currentShares();
+    var nat = PP.nationalShares(st, shares);
+    var proj = PP.projectSeats(st, shares, { incumbency: 0.05 });
+    var mine = proj[st.playerId] || 0;
+    var order = Object.keys(proj).sort(function (a, b) { return proj[b] - proj[a]; });
+    var leaderId = order[0];
+    var gap = leaderId === st.playerId ? mine - (proj[order[1]] || 0) : mine - proj[leaderId];
+    var def = PP.PARTY_BY_ID[st.playerId];
+    var goals = def.goals || [{ seats: def.target, label: 'цель кампании' }];
+    var nextG = null;
+    goals.forEach(function (g) { if (!nextG && mine < g.seats) nextG = g; });
+
+    var tiles =
+      tile('Проекция мандатов', mine, (mine - (st.startingSeats[st.playerId] || 0)) + ' к старту') +
+      tile('Доля голосов', (nat[st.playerId] || 0).toFixed(1) + '%', 'по стране') +
+      tile(leaderId === st.playerId ? 'Отрыв от второго' : 'Отставание от лидера', (gap >= 0 ? '+' : '') + gap, 'мандатов') +
+      tile('Следующая цель', nextG ? nextG.seats : '✔', nextG ? nextG.label : 'все ступени взяты') +
+      tile('Касса', '£' + ps.funds.toFixed(1) + ' млн', 'на кампанию') +
+      tile('Единство фракции', Math.round(ps.unity), ps.unity < 55 ? 'фракция ропщет' : 'фракция держится');
+
+    return '<div class="panel"><h3>Положение дел <span class="hint">неделя ' + st.week + ' из ' + st.totalWeeks + '</span></h3>' +
+      '<div class="tiles">' + tiles + '</div></div>' +
+      '<div class="panel"><h3>Динамика опросов <span class="hint">публикуемые цифры по неделям</span></h3>' +
+      pollChart() + '</div>' +
+      renderPressPanel();
+  }
+
+  function tile(k, v, sub) {
+    return '<div class="tile"><span class="tk">' + esc(k) + '</span><span class="tv">' + esc(String(v)) +
+      '</span><span class="ts">' + esc(sub) + '</span></div>';
+  }
+
+  /* График опросов: линия на партию по неделям. */
+  function pollChart() {
+    var st = app.state;
+    var hist = st.pollHistory;
+    if (hist.length < 2) return '<p class="hint">Первый опрос кампании ещё не устарел — линия появится со второй недели.</p>';
+    var last = hist[hist.length - 1].shares;
+    var parties = Object.keys(last).filter(function (p) { return last[p] >= 3 || p === st.playerId; })
+      .sort(function (a, b) { return last[b] - last[a]; }).slice(0, 6);
+    var maxV = 5;
+    hist.forEach(function (h) {
+      parties.forEach(function (p) { maxV = Math.max(maxV, h.shares[p] || 0); });
+    });
+    maxV = Math.ceil(maxV / 5) * 5 + 5;
+    var W = 640, H = 200, pad = 28;
+    function x(i) { return pad + (W - pad - 52) * (i / Math.max(hist.length - 1, 1)); }
+    function y(v) { return H - pad - (H - pad - 12) * (v / maxV); }
+
+    var grid = '';
+    for (var g = 0; g <= maxV; g += 10) {
+      grid += '<line x1="' + pad + '" y1="' + y(g) + '" x2="' + (W - 46) + '" y2="' + y(g) + '" class="chart-grid"/>' +
+        '<text x="' + (pad - 6) + '" y="' + (y(g) + 4) + '" class="chart-axis" text-anchor="end">' + g + '</text>';
+    }
+    var lines = parties.map(function (pid) {
+      var d = hist.map(function (h, i) { return (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(h.shares[pid] || 0).toFixed(1); }).join(' ');
+      var lastY = y(last[pid] || 0);
+      return '<path d="' + d + '" fill="none" stroke="' + color(pid) + '" stroke-width="' +
+        (pid === st.playerId ? 3.2 : 2) + '" stroke-linejoin="round"/>' +
+        '<circle cx="' + x(hist.length - 1).toFixed(1) + '" cy="' + lastY.toFixed(1) + '" r="3.4" fill="' + color(pid) + '"/>' +
+        '<text x="' + (x(hist.length - 1) + 8) + '" y="' + (lastY + 4) + '" class="chart-axis" fill="' + color(pid) + '">' +
+        abbr(pid) + '</text>';
+    }).join('');
+    var weeks = hist.map(function (h, i) {
+      return '<text x="' + x(i) + '" y="' + (H - 8) + '" class="chart-axis" text-anchor="middle">' + h.week + '</text>';
+    }).join('');
+
+    return '<svg class="poll-chart" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet">' +
+      grid + lines + weeks + '</svg>';
+  }
+
+  /* ---------- Карта ---------- */
+
+  function renderMapTab() {
+    var st = app.state;
+    var shares = currentShares();
+    return '<div class="panel"><h3>Карта регионов <span class="hint">клик по региону — округа и демография</span></h3>' +
+      PP.Map.render(st, shares, { mode: app.mapMode || 'leader', selected: app.region }) + '</div>' +
+      (app.region ? renderRegionDetail(app.region) : '<div class="panel"><p class="hint">Выберите регион на карте, чтобы увидеть его округа, демографию и самые близкие бои.</p></div>');
+  }
+
+  /* ---------- Палата общин ---------- */
+
+  function renderCommons() {
+    var st = app.state;
+    var shares = currentShares();
+    var proj = PP.projectSeats(st, shares, { incumbency: 0.05 });
+    var order = Object.keys(proj).sort(function (a, b) { return proj[b] - proj[a]; });
+    var maj = PP.majorityThreshold(proj);
+    var result = { seats: proj, majority: maj };
+    var coalitions = PP.viableCoalitions(st, result);
+    var gov = [order[0]];
+    var chamber = PP.Chamber.svg(proj, { government: gov, majority: maj.effective, playerId: st.playerId });
+
+    var coalRows = coalitions.slice(0, 6).map(function (c) {
+      var mineIn = c.leader === st.playerId || c.partners.indexOf(st.playerId) >= 0;
+      return '<tr' + (mineIn ? ' class="mine-row"' : '') + '><td><span class="pill" style="background:' + color(c.leader) + '">' +
+        abbr(c.leader) + '</span> ' + esc(pname(c.leader)) + '</td>' +
+        '<td>' + (c.partners.length ? c.partners.map(function (p) {
+          return '<span class="pill" style="background:' + color(p) + '">' + abbr(p) + '</span>';
+        }).join(' ') : '<span class="hint">в одиночку</span>') + '</td>' +
+        '<td class="num">' + c.seats + '</td></tr>';
+    }).join('');
+
+    return '<div class="panel"><h3>Палата общин по текущим настроениям ' +
+      '<span class="hint">' + PP.TOTAL_SEATS + ' мандатов · большинство ' + maj.effective + '</span></h3>' +
+      chamber + PP.Chamber.legend(proj, { playerId: st.playerId, baseline: st.startingSeats }) +
+      '</div>' +
+      '<div class="panel"><h3>Кто может собрать большинство</h3>' +
+      (coalRows ? '<table><thead><tr><th>Формирует</th><th>Партнёры</th><th class="num">Мандатов</th></tr></thead><tbody>' +
+        coalRows + '</tbody></table>' : '<p class="hint">Ни одна комбинация не набирает большинства: такой парламент придётся распускать заново.</p>') +
+      '<p class="hint">Депутаты, не занимающие своих мест, снижают фактический порог большинства.</p></div>';
+  }
+
   function renderCampaign() {
     var body;
-    if (app.tab === 'actions') body = renderActions();
-    else if (app.tab === 'regions') body = renderRegions();
+    if (app.tab === 'overview') body = renderOverview();
+    else if (app.tab === 'actions') body = renderActions();
+    else if (app.tab === 'map') body = renderMapTab();
+    else if (app.tab === 'commons') body = renderCommons();
     else if (app.tab === 'policy') body = renderPolicy();
     else if (app.tab === 'seats') body = renderSeatsTab();
     else if (app.tab === 'rivals') body = renderRivals();
+    else if (app.tab === 'regions') body = renderRegions();
     else body = renderNews();
     return renderTopbar() +
       '<div class="layout"><div>' + renderSidebar() + '</div>' +
@@ -3793,7 +4358,14 @@ p.flavour { font-family: Georgia, serif; font-style: italic; color: #c9d6e5; }
     if (body) {
       var lead = order[0];
       var toMajority = lead ? Math.max(0, n.result.majority.effective - n.counts[lead]) : 0;
+      var leadParty = order[0];
+      var chamber = PP.Chamber.svg(n.counts, {
+        government: leadParty ? [leadParty] : [],
+        majority: n.result.majority.effective,
+        playerId: app.state.playerId
+      });
       body.innerHTML = '<div class="tickers">' + tickers + '</div>' +
+        '<div class="panel"><h3>Палата общин по объявленным округам</h3>' + chamber + '</div>' +
         '<div class="panel"><h3>Объявлено округов: ' + counted + ' из ' + PP.TOTAL_SEATS +
         (lead ? ' <span class="hint">' + abbr(lead) + ' до большинства: ' + toMajority + '</span>' : '') + '</h3>' +
         '<div class="decl-feed">' + feed + '</div></div>';
@@ -3820,9 +4392,12 @@ p.flavour { font-family: Georgia, serif; font-style: italic; color: #c9d6e5; }
     if (seats[winner] >= maj.effective) headline = pname(winner) + ': большинство в Палате общин';
     else headline = 'Подвешенный парламент';
 
-    var bar = order.map(function (pid) {
-      return '<span style="width:' + (seats[pid] / PP.TOTAL_SEATS * 100) + '%;background:' + color(pid) + '" title="' + pname(pid) + ' ' + seats[pid] + '"></span>';
-    }).join('');
+    var govSide = gov ? [gov.leader].concat(gov.partners || []) : [winner];
+    var chamber = PP.Chamber.svg(seats, {
+      government: govSide,
+      majority: maj.effective,
+      playerId: st.playerId
+    });
 
     var table = '<table><thead><tr><th>Партия</th><th class="num">Мест</th><th class="num">Изм.</th><th class="num">Голосов</th></tr></thead><tbody>' +
       order.map(function (pid) {
@@ -3838,8 +4413,9 @@ p.flavour { font-family: Georgia, serif; font-style: italic; color: #c9d6e5; }
     return '<div class="night">' +
       '<div class="result-hero"><div class="big">' + esc(headline) + '</div>' +
       '<p>Ваш результат: <b>' + mine + '</b> мандатов (' + (res.votes[st.playerId] || 0).toFixed(1) + '% голосов). ' +
-      'Порог большинства: ' + maj.effective + ' с учётом ' + maj.abstaining + ' неголосующих депутатов.</p>' +
-      '<div class="commons">' + bar + '</div></div>' +
+      'Порог большинства: ' + maj.effective + ' с учётом ' + maj.abstaining + ' неголосующих депутатов.</p></div>' +
+      '<div class="panel"><h3>Новая Палата общин</h3>' + chamber +
+      PP.Chamber.legend(seats, { playerId: st.playerId, baseline: st.startingSeats }) + '</div>' +
       verdict +
       '<div class="panel"><h3>Палата общин</h3>' + table + '</div>' +
       '<div class="setup-row"><button id="btn-restart">Новая кампания</button></div></div>';
@@ -3981,7 +4557,7 @@ p.flavour { font-family: Georgia, serif; font-style: italic; color: #c9d6e5; }
       seed: seed || String(Math.floor(Math.random() * 1e9))
     });
     app.screen = 'campaign';
-    app.tab = 'actions';
+    app.tab = 'overview';
     app.region = null;
     PP.saveGame(app.state);
     render();
@@ -4022,8 +4598,10 @@ p.flavour { font-family: Georgia, serif; font-style: italic; color: #c9d6e5; }
       }
       var tab = t.closest && t.closest('[data-tab]');
       if (tab) { app.tab = tab.dataset.tab; render(); return; }
+      var mapMode = t.closest && t.closest('[data-mapmode]');
+      if (mapMode) { app.mapMode = mapMode.dataset.mapmode; render(); return; }
       var region = t.closest && t.closest('[data-region]');
-      if (region && app.screen === 'campaign' && app.tab === 'regions') {
+      if (region && app.screen === 'campaign' && (app.tab === 'regions' || app.tab === 'map')) {
         app.region = app.region === region.dataset.region ? null : region.dataset.region;
         render(); return;
       }

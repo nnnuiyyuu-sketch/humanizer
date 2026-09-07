@@ -101,6 +101,7 @@
     return '<div class="hero">' + SKYLINE + '<div class="hero-scrim"></div>' +
       '<div class="hero-inner">' +
       '<div class="flag"><span></span><span></span><span></span></div>' +
+      '<div class="hero-emblem">' + PP.Chamber.portcullis(58, '#d4af37') + '</div>' +
       '<h1 class="game-title">The Political Process</h1>' +
       '<div class="game-sub">BRITAIN · всеобщие выборы · 650 округов · бета 1.0</div>' +
       '<div class="quote">' + esc(menu.quote || QUOTES[0]) + '</div>' +
