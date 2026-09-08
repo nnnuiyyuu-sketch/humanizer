@@ -20,14 +20,9 @@
     { id: 'swing', label: 'Изменение к старту' }
   ];
 
-  function hexToRgb(hex) {
-    var h = hex.replace('#', '');
-    if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
-    return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
-  }
   function mix(hex, t) {
-    var c = hexToRgb(hex);
-    var bg = [22, 30, 42];
+    var c = PP.Theme.toRgb(hex);
+    var bg = PP.Theme.surfaceRgb();
     return 'rgb(' + c.map(function (v, i) { return Math.round(bg[i] + (v - bg[i]) * t); }).join(',') + ')';
   }
 
@@ -124,8 +119,8 @@
       '<rect class="map-sea" x="0" y="0" width="440" height="500" rx="10"/>' +
       '<polygon class="map-outside" points="' + PP.MAP_IRELAND + '"><title>Ирландия — за пределами выборов</title></polygon>' +
       islands + shapes +
-      '<line x1="340" y1="366" x2="386" y2="348" class="map-leader-line"/>' +
-      '<text class="map-callout" x="390" y="346">Лондон · ' + PP.REGION_BY_ID.london.seats + '</text>' +
+      '<line x1="340" y1="366" x2="378" y2="350" class="map-leader-line"/>' +
+      '<text class="map-callout" x="436" y="348" text-anchor="end">Лондон · ' + PP.REGION_BY_ID.london.seats + '</text>' +
       '<line x1="78" y1="180" x2="66" y2="150" class="map-leader-line"/>' +
       '<text class="map-callout" x="66" y="144" text-anchor="middle">Сев. Ирландия · ' + ni.seats + '</text>' +
       '</svg>' +

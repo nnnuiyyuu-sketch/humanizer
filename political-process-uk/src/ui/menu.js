@@ -15,6 +15,8 @@
   }
   function money(v) { return '£' + v.toFixed(2) + ' млн'; }
 
+  function ic(name, size) { return PP.Icons.get(name, size); }
+
   function rosette(color, size) {
     return '<span class="rosette" style="--c:' + color + ';--s:' + (size || 30) + 'px"></span>';
   }
@@ -110,18 +112,19 @@
       (PP.hasSave() ? '<button class="big" data-m="continue">Продолжить</button>' : '') +
       '<button class="big" data-m="quick">Быстрый старт</button>' +
       '<button class="ghost big" data-m="rules">Правила</button>' +
+      '<button class="ghost big" data-m="theme" title="Ночная или газетная тема">Тема</button>' +
       '</div>' +
       '</div></div>' +
       '<div class="home-cards">' +
-      homeCard('🗳️', 'Мажоритарная система', 'В каждом из 650 округов побеждает первый. Ровный результат по стране почти не даёт мандатов — важна концентрация.') +
-      homeCard('🎭', 'Пять ролей', 'Лидер, руководитель кампании, казначей, парламентский организатор, пресс-секретарь. У каждого свои рычаги.') +
-      homeCard('🏴', 'Своя партия', 'Название, цвет, коалиция избирателей, программа по девяти темам и лидер под ваш стиль игры.') +
+      homeCard('vote', 'Мажоритарная система', 'В каждом из 650 округов побеждает первый. Ровный результат по стране почти не даёт мандатов — важна концентрация.') +
+      homeCard('masks', 'Пять ролей', 'Лидер, руководитель кампании, казначей, парламентский организатор, пресс-секретарь. У каждого свои рычаги.') +
+      homeCard('flag', 'Своя партия', 'Название, цвет, коалиция избирателей, программа по девяти темам и лидер под ваш стиль игры.') +
       '</div>' +
       '<div class="footer-note">Сценарий вымышленный: партии, регионы и система выборов узнаваемы, но лидеры, округа, газеты и стартовые цифры придуманы для игры.</div>';
   }
 
   function homeCard(icon, title, text) {
-    return '<div class="home-card"><div class="hc-icon">' + icon + '</div><h3>' + esc(title) + '</h3><p>' + esc(text) + '</p></div>';
+    return '<div class="home-card"><div class="hc-icon">' + ic(icon, 24) + '</div><h3>' + esc(title) + '</h3><p>' + esc(text) + '</p></div>';
   }
 
   /* ---------- роль ---------- */
@@ -129,7 +132,7 @@
   function renderRole(menu) {
     var cards = PP.ROLES.map(function (r) {
       return '<div class="pick-card' + (menu.role === r.id ? ' selected' : '') + '" data-m="role" data-id="' + r.id + '">' +
-        '<div class="pick-head"><span class="pick-icon">' + r.icon + '</span>' +
+        '<div class="pick-head"><span class="pick-icon">' + ic(PP.Icons.ROLE[r.id] || 'hat', 26) + '</span>' +
         '<div><div class="pick-name">' + esc(r.name) + '</div><div class="pick-en">' + esc(r.en) + '</div></div></div>' +
         '<p class="pick-desc">' + esc(r.desc) + '</p>' +
         '<ul class="perks">' + r.perks.map(function (p) { return '<li>' + esc(p) + '</li>'; }).join('') + '</ul>' +
@@ -148,7 +151,7 @@
       var goals = p.goals || [];
       return '<div class="pick-card party' + (menu.party === p.id ? ' selected' : '') + '" style="--pc:' + p.color + '" data-m="party" data-id="' + p.id + '">' +
         '<div class="pick-head">' + rosette(p.color, 34) +
-        '<div><div class="pick-name" style="color:' + p.color + '">' + esc(p.name) + '</div>' +
+        '<div><div class="pick-name" style="color:' + PP.Theme.ink(p.color) + '">' + esc(p.name) + '</div>' +
         '<div class="pick-en">' + esc(p.ru) + (p.scope !== 'gb' ? ' · только ' + (p.scope === 'scotland' ? 'Шотландия' : 'Уэльс') : '') + '</div></div></div>' +
         '<p class="pick-desc">' + esc(p.blurb) + '</p>' +
         '<div class="stat-line">' +
@@ -186,7 +189,7 @@
 
     var archCards = PP.ARCHETYPES.map(function (a) {
       return '<div class="mini-card' + (cfg.archetype === a.id ? ' selected' : '') + '" data-m="arch" data-id="' + a.id + '">' +
-        '<div class="mini-head">' + a.icon + ' ' + esc(a.name) + '</div>' +
+        '<div class="mini-head">' + ic(PP.Icons.ARCHETYPE[a.id] || 'flag', 17) + esc(a.name) + '</div>' +
         '<p>' + esc(a.desc) + '</p>' +
         '<div class="mini-stat">старт ≈ ' + a.share + '% · концентрация голосов ' +
         (a.concentration > 0.5 ? 'высокая' : a.concentration > 0.3 ? 'средняя' : 'низкая') + '</div></div>';
@@ -194,7 +197,7 @@
 
     var resCards = PP.CUSTOM_RESOURCES.map(function (r) {
       return '<div class="mini-card' + (cfg.resources === r.id ? ' selected' : '') + '" data-m="res" data-id="' + r.id + '">' +
-        '<div class="mini-head">' + r.icon + ' ' + esc(r.name) + '</div><p>' + esc(r.desc) + '</p></div>';
+        '<div class="mini-head">' + ic(PP.Icons.RESOURCE[r.id] || 'scales', 17) + esc(r.name) + '</div><p>' + esc(r.desc) + '</p></div>';
     }).join('');
 
     var sliders = PP.ISSUES.map(function (i) {
@@ -219,7 +222,7 @@
 
     var preview = '<div class="preview-card" style="--pc:' + def.color + '">' +
       '<div class="pick-head">' + rosette(def.color, 40) +
-      '<div><div class="pick-name" style="color:' + def.color + '">' + esc(def.name) + '</div>' +
+      '<div><div class="pick-name" style="color:' + PP.Theme.ink(def.color) + '">' + esc(def.name) + '</div>' +
       '<div class="pick-en">' + esc(def.ru) + ' · ' + esc(def.abbr) + ' · ' +
       (def.scope === 'gb' ? 'вся Великобритания' : def.scope === 'scotland' ? 'только Шотландия' : 'только Уэльс') + '</div></div></div>' +
       '<div class="stat-line"><span>Касса<b>' + money(def.funds) + '</b></span>' +
@@ -277,7 +280,7 @@
     }).join('');
 
     var summary = '<div class="summary">' +
-      '<div class="sum-item"><span class="k">Роль</span><span class="v">' + role.icon + ' ' + esc(role.name) + '</span></div>' +
+      '<div class="sum-item"><span class="k">Роль</span><span class="v">' + ic(PP.Icons.ROLE[role.id] || 'hat', 16) + esc(role.name) + '</span></div>' +
       '<div class="sum-item"><span class="k">Партия</span><span class="v">' + rosette(party.color, 22) + ' ' + esc(party.ru) + '</span></div>' +
       '<div class="sum-item"><span class="k">Лидер</span><span class="v">' + esc(party.leader.name) + '</span></div>' +
       '<div class="sum-item"><span class="k">Первая цель</span><span class="v">' +
@@ -370,6 +373,7 @@
       case 'quick': return 'quick';
       case 'continue': return 'continue';
       case 'rules': return 'rules';
+      case 'theme': return 'theme';
       case 'home': menu.step = 'home'; return 'render';
       case 'role': menu.role = id; return 'render';
       case 'to-role': menu.step = 'role'; return 'render';

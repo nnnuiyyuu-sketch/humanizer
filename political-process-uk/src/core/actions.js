@@ -300,7 +300,7 @@
     var out = a.run(state, p, rng);
     out.action = a;
     if (partyId === state.playerId) {
-      PP.addNews(state, a.icon + ' ' + out.text, out.tone || 'action', partyId);
+      PP.addNews(state, a.name + ': ' + out.text, out.tone || 'action', partyId);
     }
     return out;
   }

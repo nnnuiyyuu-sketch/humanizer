@@ -3,6 +3,7 @@
   'use strict';
 
   var PP = root.PP;
+  var clamp = PP.clamp;
   var doc = root.document;
   var app = { screen: 'title', tab: 'actions', region: null, state: null, night: null, menu: null };
 
@@ -10,10 +11,14 @@
   function el(id) { return doc.getElementById(id); }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); }
   function color(pid) { var p = PP.PARTY_BY_ID[pid]; return p ? p.color : '#777'; }
+  /* Тот же цвет, но пригодный как цвет текста в светлой теме. */
+  function inkColor(pid) { return PP.Theme.ink(color(pid)); }
   function pname(pid) { var p = PP.PARTY_BY_ID[pid]; return p ? p.ru : pid; }
   function abbr(pid) { var p = PP.PARTY_BY_ID[pid]; return p ? p.abbr : pid; }
   function money(v) { return '£' + v.toFixed(2) + ' млн'; }
   function pct(v) { return v.toFixed(1) + '%'; }
+
+  function ic(name, size) { return PP.Icons.get(name, size); }
 
   function sortedShares(shares, min) {
     return Object.keys(shares)
@@ -40,23 +45,44 @@
     var st = app.state, ps = st.parties[st.playerId];
     var def = PP.PARTY_BY_ID[st.playerId];
     var role = PP.ROLE_BY_ID[st.roleId] || PP.ROLE_BY_ID.leader;
+    var apDots = '';
+    for (var i = 0; i < st.apMax; i++) {
+      apDots += '<span class="ap-dot' + (i < st.ap ? ' filled' : '') + '"></span>';
+    }
+    var lastWeek = st.week >= st.totalWeeks;
+
     return '<div class="topbar">' +
-      '<span class="topbar-emblem">' + PP.Chamber.portcullis(26, '#d4af37') + '</span>' +
-      '<div class="brand" style="color:' + def.color + '">' + PP.Menu.rosette(def.color, 26) +
-      '<span class="brand-text"><span class="brand-name">' + esc(def.name) + '</span>' +
-      '<span class="brand-role" title="' + esc(role.desc) + '">' + role.icon + ' ' + esc(role.name) + '</span></span></div>' +
-      stat('Неделя', st.week + ' / ' + st.totalWeeks) +
-      stat('Расписание', st.ap + ' / ' + st.apMax + ' AP') +
-      stat('Касса', money(ps.funds)) +
-      stat('Активисты', Math.round(ps.activists)) +
-      stat('Единство', Math.round(ps.unity)) +
-      stat('Силы лидера', Math.round(st.stamina)) +
-      stat('Рейтинг лидера', (ps.leader.approval > 0 ? '+' : '') + ps.leader.approval.toFixed(0)) +
-      (ps.scandal > 5 ? stat('Скандал', Math.round(ps.scandal)) : '') +
+      '<div class="topbar-main">' +
+      '<span class="topbar-emblem">' + PP.Chamber.portcullis(28, 'currentColor') + '</span>' +
+      '<div class="brand">' + PP.Menu.rosette(def.color, 28) +
+      '<span class="brand-text"><span class="brand-name" style="color:' + def.color + '">' + esc(def.name) + '</span>' +
+      '<span class="brand-role" title="' + esc(role.desc) + '">' + ic(PP.Icons.ROLE[role.id] || 'hat', 13) +
+      esc(role.name) + '</span></span></div>' +
+      '<div class="week-badge"><span class="wk">' + st.week + '/' + st.totalWeeks + '</span><span class="wl">неделя</span></div>' +
       '<div class="spacer"></div>' +
-      '<button id="btn-help" title="Правила игры">?</button>' +
-      '<button id="btn-save" title="Сохранить кампанию">💾</button>' +
-      '<button class="primary" id="btn-week">' + (st.week >= st.totalWeeks ? 'День голосования →' : 'Завершить неделю →') + '</button>' +
+      '<button id="btn-theme" class="icon-btn" title="Тема оформления (T)" aria-label="Сменить тему">' +
+      ic(app.theme === 'light' ? 'moon' : 'sun', 18) + '</button>' +
+      '<button id="btn-help" class="icon-btn" title="Правила игры (H)" aria-label="Правила">' + ic('help', 18) + '</button>' +
+      '<button id="btn-save" class="icon-btn" title="Сохранить кампанию (S)" aria-label="Сохранить">' + ic('save', 18) + '</button>' +
+      '<button class="primary" id="btn-week">' + (lastWeek ? 'День голосования' : 'Завершить неделю') + ic('arrow', 16) + '</button>' +
+      '</div>' +
+      '<div class="resource-strip">' +
+      res('Расписание', ic('clock', 12),
+        '<span class="ap-dots">' + apDots + '<small style="margin-left:6px">' + st.ap + '/' + st.apMax + '</small></span>', null) +
+      res('Касса', ic('pound', 12), '£' + ps.funds.toFixed(2) + ' <small>млн</small>', null) +
+      res('Активисты', ic('users', 12), Math.round(ps.activists), { v: ps.activists, c: 'var(--blue)' }) +
+      res('Единство', ic('handshake', 12), Math.round(ps.unity), { v: ps.unity, c: ps.unity < 55 ? 'var(--red)' : 'var(--green)' }) +
+      res('Силы лидера', ic('fire', 12), Math.round(st.stamina), { v: st.stamina, c: st.stamina < 40 ? 'var(--red)' : 'var(--accent)' }) +
+      res('Рейтинг лидера', ic('hat', 12), (ps.leader.approval > 0 ? '+' : '') + ps.leader.approval.toFixed(0),
+        { v: (ps.leader.approval + 80) / 1.6, c: ps.leader.approval >= 0 ? 'var(--green)' : 'var(--red)' }) +
+      (ps.scandal > 5 ? res('Скандал', ic('fire', 12), Math.round(ps.scandal), { v: ps.scandal, c: 'var(--red)' }) : '') +
+      '</div></div>';
+  }
+
+  function res(label, icon, value, meter) {
+    return '<div class="res"><span class="rk">' + icon + esc(label) + '</span>' +
+      '<span class="rv">' + value + '</span>' +
+      (meter ? '<span class="meter"><span style="width:' + clamp(meter.v, 0, 100) + '%;background:' + meter.c + '"></span></span>' : '') +
       '</div>';
   }
 
@@ -70,7 +96,7 @@
     var rows = sortedShares(last, 1).map(function (pid) {
       var d = prev ? last[pid] - prev[pid] : 0;
       return '<div class="poll-row">' +
-        '<span class="abbr" style="color:' + color(pid) + '">' + abbr(pid) + '</span>' +
+        '<span class="abbr" style="color:' + inkColor(pid) + '">' + abbr(pid) + '</span>' +
         '<span class="bar"><span style="width:' + Math.min(last[pid] * 2.2, 100) + '%;background:' + color(pid) + '"></span></span>' +
         '<span class="num">' + last[pid].toFixed(1) +
         (prev ? '<br><span class="delta ' + (d >= 0 ? 'up' : 'down') + '">' + (d >= 0 ? '+' : '') + d.toFixed(1) + '</span>' : '') +
@@ -90,7 +116,7 @@
     var start = st.startingSeats[st.playerId] || 0;
     var rows = order.filter(function (p) { return proj[p] >= 3 || p === st.playerId; }).map(function (pid) {
       var d = (proj[pid] || 0) - (st.startingSeats[pid] || 0);
-      return '<div class="poll-row"><span class="abbr" style="color:' + color(pid) + '">' + abbr(pid) + '</span>' +
+      return '<div class="poll-row"><span class="abbr" style="color:' + inkColor(pid) + '">' + abbr(pid) + '</span>' +
         '<span class="bar"><span style="width:' + (proj[pid] / 400 * 100) + '%;background:' + color(pid) + '"></span></span>' +
         '<span class="num">' + proj[pid] + '<br><span class="delta ' + (d >= 0 ? 'up' : 'down') + '">' + (d >= 0 ? '+' : '') + d + '</span></span></div>';
     }).join('');
@@ -137,20 +163,21 @@
   }
 
   var TABS = [
-    { id: 'overview', label: 'Обзор', icon: '📊' },
-    { id: 'actions', label: 'Кампания', icon: '🎯' },
-    { id: 'map', label: 'Карта', icon: '🗺️' },
-    { id: 'commons', label: 'Палата общин', icon: '🏛️' },
-    { id: 'seats', label: 'Округа', icon: '🔍' },
-    { id: 'policy', label: 'Программа', icon: '📜' },
-    { id: 'rivals', label: 'Соперники', icon: '🎩' },
-    { id: 'news', label: 'Хроника', icon: '📰' }
+    { id: 'overview', label: 'Обзор', icon: 'chart' },
+    { id: 'actions', label: 'Кампания', icon: 'target' },
+    { id: 'map', label: 'Карта', icon: 'map' },
+    { id: 'commons', label: 'Палата общин', icon: 'chamber' },
+    { id: 'seats', label: 'Округа', icon: 'search' },
+    { id: 'policy', label: 'Программа', icon: 'scroll' },
+    { id: 'rivals', label: 'Соперники', icon: 'masks' },
+    { id: 'news', label: 'Хроника', icon: 'news' }
   ];
 
   function renderTabs() {
-    return '<div class="tabs">' + TABS.map(function (t) {
-      return '<button data-tab="' + t.id + '" class="' + (app.tab === t.id ? 'active' : '') + '">' +
-        '<span class="tab-icon">' + t.icon + '</span>' + t.label + '</button>';
+    return '<div class="tabs" role="tablist">' + TABS.map(function (t, i) {
+      return '<button data-tab="' + t.id + '" class="' + (app.tab === t.id ? 'active' : '') +
+        '" title="' + t.label + ' (' + (i + 1) + ')">' +
+        '<span class="tab-icon">' + ic(t.icon, 16) + '</span>' + t.label + '</button>';
     }).join('') + '</div>';
   }
 
@@ -158,11 +185,14 @@
     var st = app.state;
     var cards = PP.ACTIONS.map(function (a) {
       var check = PP.canRunAction(st, st.playerId, a.id);
+      var tags = '<span class="cost-tag ap">' + a.ap + ' AP</span>' +
+        '<span class="cost-tag">' + (a.cost ? '£' + a.cost.toFixed(2) + ' млн' : 'бесплатно') + '</span>' +
+        (a.stamina ? '<span class="cost-tag">силы −' + a.stamina + '</span>' : '') +
+        (a.id === 'broadcast' ? '<span class="cost-tag">эфиров: ' + st.parties[st.playerId].broadcastsLeft + '</span>' : '');
       return '<div class="action-card' + (check.ok ? '' : ' disabled') + '">' +
-        '<div class="ahead"><span class="aicon">' + a.icon + '</span>' + esc(a.name) + '</div>' +
+        '<div class="ahead"><span class="aicon">' + ic(PP.Icons.ACTION[a.id] || 'target', 20) + '</span>' + esc(a.name) + '</div>' +
         '<div class="adesc">' + esc(a.desc) + '</div>' +
-        '<div class="acost">' + a.ap + ' AP · ' + (a.cost ? money(a.cost) : 'бесплатно') + (a.stamina ? ' · силы -' + a.stamina : '') +
-        (a.id === 'broadcast' ? ' · осталось эфиров: ' + st.parties[st.playerId].broadcastsLeft : '') + '</div>' +
+        '<div class="acost">' + tags + '</div>' +
         '<button data-action="' + a.id + '"' + (check.ok ? '' : ' disabled title="' + esc(check.why) + '"') + '>' +
         (check.ok ? 'Сделать' : esc(check.why)) + '</button></div>';
     }).join('');
@@ -358,7 +388,7 @@
       return '<path d="' + d + '" fill="none" stroke="' + color(pid) + '" stroke-width="' +
         (pid === st.playerId ? 3.2 : 2) + '" stroke-linejoin="round"/>' +
         '<circle cx="' + x(hist.length - 1).toFixed(1) + '" cy="' + lastY.toFixed(1) + '" r="3.4" fill="' + color(pid) + '"/>' +
-        '<text x="' + (x(hist.length - 1) + 8) + '" y="' + (lastY + 4) + '" class="chart-axis" fill="' + color(pid) + '">' +
+        '<text x="' + (x(hist.length - 1) + 8) + '" y="' + (lastY + 4) + '" class="chart-axis" fill="' + inkColor(pid) + '">' +
         abbr(pid) + '</text>';
     }).join('');
     var weeks = hist.map(function (h, i) {
@@ -424,8 +454,8 @@
     else if (app.tab === 'regions') body = renderRegions();
     else body = renderNews();
     return renderTopbar() +
-      '<div class="layout"><div>' + renderSidebar() + '</div>' +
-      '<div>' + renderTabs() + body + '</div></div>';
+      '<div class="layout"><div class="sidebar">' + renderSidebar() + '</div>' +
+      '<div class="content">' + renderTabs() + '<div class="tab-body">' + body + '</div></div></div>';
   }
 
   /* ================= Модальные окна ================= */
@@ -508,8 +538,8 @@
       if (!b) return;
       var text = PP.resolveEventChoice(st, parseInt(b.dataset.opt, 10));
       closeModals();
-      modalInfo('Итог', text);
       render();
+      toast('Итог недели', text, 'neutral', 'news');
     });
   }
 
@@ -526,8 +556,8 @@
       if (!b) return;
       var res = PP.resolveDebateChoice(st, b.dataset.move);
       closeModals();
-      modalInfo('После эфира', res.text);
       render();
+      toast('После эфира', res.text, res.ok ? 'good' : 'bad', 'tv');
     });
   }
 
@@ -600,6 +630,10 @@
     var exit = n.result.exitPoll;
     var order = Object.keys(exit).sort(function (a, b) { return exit[b] - exit[a]; }).slice(0, 6);
     return '<div class="night">' +
+      '<div class="result-hero" style="padding:18px 16px">' +
+      '<div class="hero-emblem">' + PP.Chamber.portcullis(40, 'currentColor') + '</div>' +
+      '<div class="big">Ночь всеобщих выборов</div>' +
+      '<p class="hint">Участки закрылись. Счётные комиссии вскрывают урны — округа объявляют результаты до утра.</p></div>' +
       '<div class="panel"><h3>Экзитпол в 22:00 <span class="hint">прогноз, а не результат</span></h3>' +
       order.map(function (pid) {
         return '<div class="poll-row"><span class="abbr" style="color:' + color(pid) + '">' + abbr(pid) + '</span>' +
@@ -619,7 +653,7 @@
     var order = Object.keys(n.counts).sort(function (a, b) { return n.counts[b] - n.counts[a]; }).slice(0, 7);
     var tickers = order.map(function (pid) {
       var d = (n.net && n.net[pid]) || 0;
-      return '<div class="ticker"><div class="tl" style="color:' + color(pid) + '">' + abbr(pid) + '</div>' +
+      return '<div class="ticker"><div class="tl" style="color:' + inkColor(pid) + '">' + abbr(pid) + '</div>' +
         '<div class="tn">' + n.counts[pid] + '</div>' +
         '<div class="tc ' + (d >= 0 ? 'up' : 'down') + '" style="color:' + (d >= 0 ? 'var(--green)' : 'var(--red)') + '">' + (d >= 0 ? '+' : '') + d + '</div></div>';
     }).join('');
@@ -646,6 +680,8 @@
         '<div class="panel"><h3>Палата общин по объявленным округам</h3>' + chamber + '</div>' +
         '<div class="panel"><h3>Объявлено округов: ' + counted + ' из ' + PP.TOTAL_SEATS +
         (lead ? ' <span class="hint">' + abbr(lead) + ' до большинства: ' + toMajority + '</span>' : '') + '</h3>' +
+        '<div class="meter" style="margin-bottom:12px"><span style="width:' +
+        (counted / PP.TOTAL_SEATS * 100).toFixed(1) + '%;background:var(--accent)"></span></div>' +
         '<div class="decl-feed">' + feed + '</div></div>';
     }
   }
@@ -689,7 +725,8 @@
     var verdict = gov ? renderVerdict(gov, mine) : renderNegotiation(res, mine);
 
     return '<div class="night">' +
-      '<div class="result-hero"><div class="big">' + esc(headline) + '</div>' +
+      '<div class="result-hero"><div class="hero-emblem">' + PP.Chamber.portcullis(44, 'currentColor') + '</div>' +
+      '<div class="big">' + esc(headline) + '</div>' +
       '<p>Ваш результат: <b>' + mine + '</b> мандатов (' + (res.votes[st.playerId] || 0).toFixed(1) + '% голосов). ' +
       'Порог большинства: ' + maj.effective + ' с учётом ' + maj.abstaining + ' неголосующих депутатов.</p></div>' +
       '<div class="panel"><h3>Новая Палата общин</h3>' + chamber +
@@ -783,6 +820,92 @@
       '<p><b>' + esc(verdictLine) + '</b></p>' + ladder + '</div>';
   }
 
+  /* ================= Тема, тосты, горячие клавиши ================= */
+
+  var THEME_KEY = 'pp-uk-theme';
+
+  function applyTheme(theme) {
+    app.theme = theme;
+    doc.documentElement.setAttribute('data-theme', theme);
+    try { root.localStorage.setItem(THEME_KEY, theme); } catch (e) { /* приватный режим */ }
+  }
+
+  function initTheme() {
+    var saved = null;
+    try { saved = root.localStorage.getItem(THEME_KEY); } catch (e) { saved = null; }
+    applyTheme(saved === 'light' ? 'light' : 'dark');
+  }
+
+  function toggleTheme() {
+    applyTheme(app.theme === 'light' ? 'dark' : 'light');
+    if (app.screen === 'campaign' || app.screen === 'title') render();
+  }
+
+  function toastWrap() {
+    var w = el('toasts');
+    if (!w) {
+      w = doc.createElement('div');
+      w.id = 'toasts';
+      w.className = 'toast-wrap';
+      doc.body.appendChild(w);
+    }
+    return w;
+  }
+
+  /* Короткое уведомление вместо лишнего модального окна. */
+  function toast(title, body, tone, iconName) {
+    var wrap = toastWrap();
+    /* Больше трёх уведомлений на экране — уже шум. */
+    while (wrap.children.length >= 3) wrap.removeChild(wrap.firstChild);
+    var node = doc.createElement('div');
+    node.className = 'toast ' + (tone || '');
+    node.innerHTML = '<div class="tt">' + ic(iconName || (tone === 'bad' ? 'close' : tone === 'good' ? 'check' : 'news'), 15) +
+      esc(title) + '</div>' + (body ? '<div class="tb">' + esc(body) + '</div>' : '');
+    wrap.appendChild(node);
+    root.setTimeout(function () {
+      node.classList.add('leaving');
+      root.setTimeout(function () { node.remove(); }, 260);
+    }, body && body.length > 90 ? 6200 : 4200);
+  }
+
+  var SHORTCUTS = [
+    ['1…8', 'вкладки'],
+    ['Enter', 'завершить неделю'],
+    ['S', 'сохранить'],
+    ['T', 'сменить тему'],
+    ['H', 'правила'],
+    ['Esc', 'закрыть окно']
+  ];
+
+  function onKey(e) {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var tag = (e.target && e.target.tagName) || '';
+    if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+    var hasModal = !!doc.querySelector('.modal-back');
+    if (e.key === 'Escape') {
+      if (hasModal && !app.state.pendingEvent && !app.state.pendingDebate) closeModals();
+      return;
+    }
+    if (hasModal) return;
+    if (app.screen !== 'campaign') return;
+    if (e.key >= '1' && e.key <= '8') {
+      var t = TABS[parseInt(e.key, 10) - 1];
+      if (t) { app.tab = t.id; render(); }
+      return;
+    }
+    if (e.key === 'Enter') { endWeek(); return; }
+    var k = e.key.toLowerCase();
+    if (k === 's' || k === 'ы') { saveGame(); return; }
+    if (k === 't' || k === 'е') { toggleTheme(); return; }
+    if (k === 'h' || k === 'р') { showHelp(); return; }
+  }
+
+  function saveGame() {
+    if (!app.state) return;
+    if (PP.saveGame(app.state)) toast('Кампания сохранена', 'Продолжить можно с заставки.', 'good', 'save');
+    else toast('Не сохранилось', 'Браузер запретил локальное хранилище.', 'bad');
+  }
+
   /* ================= Роутинг и события ================= */
 
   function render() {
@@ -801,9 +924,10 @@
     var a = PP.ACTION_BY_ID[actionId];
     var go = function (params) {
       var out = PP.performAction(st, st.playerId, actionId, params, rng);
-      st.turnLog.unshift({ text: a.icon + ' ' + out.text, tone: out.tone });
+      st.turnLog.unshift({ text: out.text, tone: out.tone });
       st._cacheRegionShares = null;
       render();
+      toast(a.name, out.text, out.tone, PP.Icons.ACTION[a.id]);
     };
     if (a.needs === 'region') pickRegion(a.name + ': выберите регион', function (rid) { go({ regionId: rid }); });
     else if (a.needs === 'policy') pickPolicy(function (issueId, dir) { go({ issueId: issueId, direction: dir }); });
@@ -871,6 +995,7 @@
         if (res === 'start') { startGame(); return; }
         if (res === 'quick') { quickStart(); return; }
         if (res === 'rules') { showHelp(); return; }
+        if (res === 'theme') { toggleTheme(); return; }
         if (res === 'continue') { continueGame(); return; }
         if (res) return;
       }
@@ -890,7 +1015,8 @@
       if (t.id === 'btn-start') { startGame(); return; }
       if (t.id === 'btn-week') { endWeek(); return; }
       if (t.id === 'btn-help') { showHelp(); return; }
-      if (t.id === 'btn-save') { modalInfo('Сохранение', PP.saveGame(app.state) ? 'Кампания сохранена в этом браузере.' : 'Браузер не разрешил сохранение.'); return; }
+      if (t.id === 'btn-save') { saveGame(); return; }
+      if (t.id === 'btn-theme') { toggleTheme(); return; }
       if (t.id === 'btn-skip') { skipNight(); return; }
       if (t.id === 'btn-restart') { PP.clearSave(); app.screen = 'title'; app.state = null; app.night = null; app.offer = null; app.partners = null; render(); return; }
     });
@@ -955,8 +1081,12 @@
   ];
 
   function showHelp() {
+    var keys = '<div class="chips" style="margin-top:12px">' + SHORTCUTS.map(function (k) {
+      return '<span class="cost-tag"><kbd>' + k[0] + '</kbd> ' + k[1] + '</span>';
+    }).join('') + '</div>';
     modal('<h2>Как это работает</h2><ul>' + HELP.map(function (h) { return '<li>' + esc(h) + '</li>'; }).join('') +
-      '</ul><div class="options"><button class="primary" data-close="1">Понятно</button></div>')
+      '</ul><h3>Горячие клавиши</h3>' + keys +
+      '<div class="options"><button class="primary" data-close="1">Понятно</button></div>')
       .addEventListener('click', function (e) { if (e.target.closest('[data-close]')) closeModals(); });
   }
 
@@ -969,7 +1099,9 @@
   }
 
   function boot() {
+    initTheme();
     bind();
+    doc.addEventListener('keydown', onKey);
     render();
   }
 

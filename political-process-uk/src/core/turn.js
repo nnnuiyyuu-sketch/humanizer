@@ -111,7 +111,7 @@
     state.usedEvents.push(ev.id);
     state.pendingEvent = null;
     state._cacheRegionShares = null;
-    PP.addNews(state, '📰 ' + ev.title + ' — ' + text, 'event');
+    PP.addNews(state, 'Событие: ' + ev.title + ' — ' + text, 'event');
     return text;
   }
 
@@ -121,7 +121,7 @@
     state.debatesDone.push(state.week);
     state.pendingDebate = null;
     state._cacheRegionShares = null;
-    PP.addNews(state, '📺 Теледебаты: ' + res.text, res.ok ? 'good' : 'bad');
+    PP.addNews(state, 'Теледебаты: ' + res.text, res.ok ? 'good' : 'bad');
     return res;
   }
 
