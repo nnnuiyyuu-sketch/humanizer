@@ -421,7 +421,145 @@ tr.mine td:first-child{box-shadow:inset 3px 0 0 var(--ink)}
 .chron.b{box-shadow:inset 3px 0 0 var(--bad);padding-left:9px}
 
 /* ── модальное окно: экстренный выпуск ─────────────────────── */
-#modal{position:fixed;inset:0;z-index:60;background:rgba(20,18,12,.62);display:none;
+
+/* ════════════════════════════════════════════════════════════════
+   ТИТУЛЬНЫЙ ЭКРАН
+   Единственное место в игре, которое выглядит не как газета: это
+   обложка, а не полоса. Тёмно-синий вечер над страной, флаг на
+   древке, гранит с четырьмя словами — и шесть кнопок слева. Внутрь
+   игры за этим экраном открывается совсем другая типографика, и так
+   и задумано: сначала страна, потом работа.
+   ════════════════════════════════════════════════════════════════ */
+body.ui-motion-off *{animation:none!important;transition:none!important}
+body.ui-no-tips .hint{display:none}
+#menu{position:fixed;inset:0;z-index:100;overflow:auto;background:#070d18;
+  color:#eaf0f8;font-family:var(--f-text);opacity:1;transition:opacity 320ms var(--ease)}
+#menu.gone{opacity:0;pointer-events:none}
+.mn-scene{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover}
+/* карта-подложка: еле заметная топография по тёмному полю */
+.mn-grid{position:absolute;inset:0;pointer-events:none;opacity:.5;
+  background:
+    radial-gradient(130% 100% at 72% 38%,transparent 44%,rgba(5,10,20,.42) 74%,rgba(4,8,16,.88) 100%),
+    linear-gradient(90deg,rgba(5,10,20,.94) 0,rgba(5,10,20,.7) 18%,rgba(6,12,24,.2) 34%,transparent 48%),
+    linear-gradient(0deg,rgba(4,9,18,.96) 0,rgba(4,9,18,.5) 22%,transparent 46%),
+    repeating-linear-gradient(0deg,transparent 0 46px,rgba(126,166,214,.05) 46px 47px),
+    repeating-linear-gradient(90deg,transparent 0 46px,rgba(126,166,214,.035) 46px 47px)}
+.mn-wrap{position:relative;z-index:2;min-height:100%;display:grid;
+  grid-template-columns:378px minmax(0,1fr);grid-template-rows:auto 1fr auto auto;
+  gap:20px 42px;padding:28px 34px 16px;align-content:start}
+
+/* ── шапка: флаг, имя страны, служебная панель ── */
+.mn-head{grid-column:1/-1;display:flex;justify-content:space-between;align-items:flex-start;gap:24px}
+.mn-brand{display:flex;align-items:center;gap:20px;min-width:0}
+.mn-flag{width:96px;height:62px;object-fit:cover;border-radius:5px;flex:none;
+  border:1px solid rgba(150,185,230,.45);box-shadow:0 8px 26px rgba(0,0,0,.55)}
+.mn-rule{width:1px;align-self:stretch;background:linear-gradient(180deg,transparent,rgba(160,195,240,.5),transparent)}
+.mn-name{min-width:0}
+.mn-name i{display:block;font:400 19px/1 var(--f-display);letter-spacing:.34em;
+  text-transform:uppercase;color:#cfdcee;font-style:normal;margin-bottom:5px}
+.mn-name h1{margin:0;font:700 clamp(40px,4.4vw,62px)/.94 var(--f-display);letter-spacing:.015em;
+  color:#fff;text-shadow:0 4px 26px rgba(0,0,0,.6)}
+.mn-name u{display:block;text-decoration:none;margin-top:9px;padding-top:8px;
+  border-top:1px solid rgba(155,190,235,.32);
+  font:400 11.5px var(--f-text);letter-spacing:.3em;text-transform:uppercase;color:#a9bdd7}
+.mn-tools{display:flex;align-items:center;gap:2px;flex:none;
+  background:rgba(11,22,39,.78);border:1px solid rgba(96,132,178,.34);border-radius:9px;padding:4px;
+  backdrop-filter:blur(8px)}
+.mn-ver{font:400 12px var(--f-num);letter-spacing:0;color:#b6c8e0;padding:0 14px 0 10px}
+.mn-tools button{width:36px;height:32px;display:grid;place-items:center;border:0;border-radius:6px;
+  background:transparent;color:#cddcf0;cursor:pointer;transition:background var(--t-fast) var(--ease)}
+.mn-tools button:hover{background:rgba(58,104,166,.42)}
+.mn-tools button svg{width:18px;height:18px}
+
+/* ── шесть кнопок ── */
+.mn-list{grid-row:2/4;display:flex;flex-direction:column;gap:11px;align-self:start}
+.mn-btn{display:flex;align-items:center;gap:15px;text-align:left;width:100%;cursor:pointer;
+  background:rgba(12,24,42,.72);border:1px solid rgba(88,124,170,.3);border-radius:11px;
+  padding:13px 17px;color:#e9eff8;font-family:inherit;backdrop-filter:blur(7px);
+  transition:background var(--t) var(--ease),border-color var(--t) var(--ease),transform var(--t-fast) var(--ease)}
+.mn-btn:hover{background:rgba(23,47,82,.86);border-color:rgba(122,168,224,.5);transform:translateX(3px)}
+.mn-btn.on{background:linear-gradient(180deg,#1e5199,#153873);border-color:#4181d2;
+  box-shadow:0 8px 26px rgba(16,62,126,.5)}
+.mn-btn.off{opacity:.42;cursor:not-allowed}
+.mn-btn.off:hover{transform:none;background:rgba(12,24,42,.72);border-color:rgba(88,124,170,.3)}
+.mn-btn svg{width:27px;height:27px;flex:none;color:#e7eefa}
+.mn-btn b{display:block;font:700 14.5px/1.1 var(--f-text);letter-spacing:.11em;text-transform:uppercase}
+.mn-btn s{display:block;text-decoration:none;margin-top:4px;font-size:12px;color:#9ab0cc}
+.mn-btn.on s{color:#c3d8f4}
+
+/* ── средняя колонка: девиз, цитата, гранит ── */
+.mn-mid{grid-row:2;padding-top:8px}
+/* флаг на древке у правого края — как на площади перед памятником */
+.mn-pole{position:absolute;right:17.5%;top:12%;height:60%;z-index:1;pointer-events:none}
+.mn-pole i{position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:2px;
+  background:linear-gradient(90deg,#7d8895,#e7edf4 40%,#616c79);box-shadow:0 0 22px rgba(0,0,0,.55)}
+.mn-pole::before{content:'';position:absolute;left:-4px;top:-11px;width:12px;height:12px;border-radius:50%;
+  background:radial-gradient(circle at 34% 30%,#ffe6a8,#bc8f34)}
+.mn-pole img{position:absolute;left:4px;top:14px;width:min(13vw,196px);display:block;
+  border-radius:0 4px 4px 0;box-shadow:0 14px 40px rgba(0,0,0,.6);
+  transform:perspective(760px) rotateY(-15deg) skewY(-2.6deg);transform-origin:left center}
+.mn-slogan{font:italic 400 clamp(24px,2.5vw,34px)/1.22 var(--f-display);color:#f2f6fc;max-width:9ch;
+  text-shadow:0 3px 20px rgba(0,0,0,.6)}
+.mn-slogan hr{border:0;border-top:2px solid rgba(215,232,252,.75);width:54px;margin:20px 0 0}
+.mn-corner{display:flex;flex-direction:column;align-items:flex-end;gap:14px;flex:none}
+.mn-quote{text-align:right;max-width:250px;
+  font:italic 400 13px/1.5 var(--f-display);color:#cfdcef;text-shadow:0 2px 14px rgba(0,0,0,.8)}
+/* гранит у правого края: обрезан рамкой экрана, как на площади */
+.mn-stone{position:absolute;right:0;top:30%;width:min(17vw,244px);padding:28px 26px 32px 30px;z-index:1;
+  background:linear-gradient(104deg,rgba(186,184,176,.42),rgba(118,120,120,.3) 58%,rgba(84,88,92,.34));
+  border-left:3px solid rgba(226,230,234,.42);backdrop-filter:blur(3px);
+  box-shadow:-16px 0 40px rgba(0,0,0,.35) inset,0 20px 50px rgba(0,0,0,.4)}
+.mn-stone span{display:block;font:400 15px/2.05 var(--f-text);letter-spacing:.26em;
+  text-transform:uppercase;color:#eef2f6;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+
+/* ── четыре карточки ── */
+.mn-cards{grid-column:2;grid-row:3;display:grid;grid-template-columns:repeat(4,1fr);gap:15px}
+.mn-card{position:relative;overflow:hidden;border-radius:11px;min-height:216px;
+  border:1px solid rgba(96,132,178,.3);background:#0b1626;display:flex;flex-direction:column;
+  justify-content:flex-end;padding:16px 15px 17px;text-align:center;
+  transition:border-color var(--t) var(--ease),transform var(--t) var(--ease)}
+.mn-card:hover{border-color:rgba(130,176,232,.55);transform:translateY(-3px)}
+.mn-card svg.art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.mn-card .veil{position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(6,12,24,.1) 0,rgba(6,12,24,.62) 52%,rgba(5,10,20,.93) 100%)}
+.mn-card .in{position:relative;z-index:1}
+.mn-card .in svg{width:26px;height:26px;color:#fff;margin-bottom:9px}
+.mn-card b{display:block;font:700 14px/1.15 var(--f-text);letter-spacing:.13em;text-transform:uppercase;color:#fff}
+.mn-card p{margin:7px 0 0;font-size:11.5px;line-height:1.42;color:#b3c4da}
+
+/* ── нижняя строка ── */
+.mn-foot{grid-column:1/-1;grid-row:4;display:flex;justify-content:space-between;gap:20px;
+  padding-top:13px;border-top:1px solid rgba(120,158,206,.22);
+  font:400 10.5px var(--f-text);letter-spacing:.2em;text-transform:uppercase;color:#7f95b2}
+
+@media(max-width:1180px){
+  .mn-wrap{grid-template-columns:330px minmax(0,1fr);gap:16px 26px;padding:20px 22px 14px}
+  .mn-cards{grid-template-columns:repeat(2,1fr)}
+  .mn-card{min-height:150px}
+  .mn-stone,.mn-pole{display:none}
+  .mn-corner{align-items:flex-end}
+}
+@media(max-width:860px){
+  .mn-wrap{grid-template-columns:minmax(0,1fr);grid-template-rows:none;gap:16px;padding:18px 16px 12px}
+  .mn-head{flex-direction:column;align-items:flex-start;gap:14px}
+  .mn-list,.mn-mid,.mn-cards,.mn-foot{grid-column:1;grid-row:auto}
+  .mn-corner{align-items:flex-start;width:100%}
+  .mn-quote{text-align:left;max-width:none}
+  .mn-name h1{font-size:clamp(34px,10vw,46px)}.mn-name i{font-size:15px;letter-spacing:.26em}
+  .mn-flag{width:74px;height:48px}.mn-brand{gap:14px}
+  .mn-slogan{max-width:none;font-size:clamp(20px,5.6vw,26px)}
+  .mn-cards{grid-template-columns:1fr 1fr}
+  .mn-foot{flex-direction:column;gap:5px;font-size:9.5px;letter-spacing:.16em}
+}
+@media(max-width:520px){
+  .mn-cards{grid-template-columns:1fr}
+  .mn-card{min-height:124px}
+  .mn-tools{flex-wrap:wrap;justify-content:flex-end}
+  .mn-btn{padding:11px 13px;gap:12px}.mn-btn svg{width:23px;height:23px}
+  .mn-btn b{font-size:13.5px}.mn-btn s{font-size:11.5px}
+}
+
+#modal{position:fixed;inset:0;z-index:130;background:rgba(20,18,12,.62);display:none;
   align-items:flex-start;justify-content:center;padding:var(--x8) var(--x5);overflow-y:auto}
 #modal.show{display:flex}
 #msheet{background:var(--surface);border:var(--rule);box-shadow:var(--shadow);
@@ -508,6 +646,7 @@ tr.mine td:first-child{box-shadow:inset 3px 0 0 var(--ink)}
 <body>
 <div id="splash"><img id="splash-em" alt=""><h1>НОВАРИЯ</h1><p>правительственный терминал</p>
   <div class="load"><i></i></div></div>
+<div id="menu" hidden></div>
 <header id="top">
   <div class="brand"><img id="emb" alt="Герб Республики Новария"><div>
     <b>НОВАРИЯ</b><span id="subtitle">правительственный терминал</span></div></div>
@@ -9136,6 +9275,265 @@ function tabHist(){
     foot:`<button class="btn sm" data-go="arch">Вся летопись</button>`})
   +`</div></div>`;
 }
+
+/* ════════════════════════════════════════════════════════════════
+   ТИТУЛЬНЫЙ ЭКРАН
+   Обложка, а не полоса: вечер над страной, флаг на древке, гранит
+   с четырьмя словами и шесть кнопок. Пейзаж нарисован, а не снят, —
+   игра остаётся одним файлом без единой внешней картинки.
+   ════════════════════════════════════════════════════════════════ */
+
+/* иконки меню — сплошные, белые: это обложка, а не газетный указатель */
+const MICON={
+  play:'<path d="M8 5.2v13.6L19 12z"/>',
+  load:'<path d="M3 6.4A1.4 1.4 0 0 1 4.4 5h4.9l1.9 2.2h8.4A1.4 1.4 0 0 1 21 8.6V18a1.4 1.4 0 0 1-1.4 1.4H4.4A1.4 1.4 0 0 1 3 18z"/>',
+  book:'<path d="M3 4.6h7.1c1 0 1.9.8 1.9 1.9V20c0-.9-.8-1.6-1.9-1.6H3zM21 4.6h-7.1c-1 0-1.9.8-1.9 1.9V20c0-.9.8-1.6 1.9-1.6H21z"/>',
+  stat:'<path d="M3.6 20.4h16.8v1.6H3.6zM5 12h3v7H5zM10.5 7.5h3V19h-3zM16 3.4h3V19h-3z"/>',
+  gear:'<path d="m12 2 1.9.9.9 2 2.2.3 1.1 1.9-1 2 1 2-1.1 1.9-2.2.3-.9 2-1.9.9-1.9-.9-.9-2-2.2-.3-1.1-1.9 1-2-1-2 1.1-1.9 2.2-.3.9-2z"/><circle cx="12" cy="12" r="3.1" fill="#0d1c33"/>',
+  exit:'<path d="M4 3.4h8.2v2.2H6.2v12.8h6V20.6H4zM14.4 7.5l4.9 4.5-4.9 4.5v-3.3H9.6v-2.4h4.8z"/>',
+  gov:'<path d="M12 2.6 22 8v1.8H2V8zM4.4 11.4h2.4v6.4H4.4zM9.2 11.4h2.4v6.4H9.2zM14 11.4h2.4v6.4H14zM18.8 11.4h2.4v6.4h-2.4zM2.6 19.4h18.8v2H2.6z"/>',
+  rise:'<path d="M3 20.6h18v1.4H3zM3.4 15.4 9 9.8l3.4 3.4L20 5.6l1.4 1.4-9 9-3.4-3.4-4.2 4.2z"/><path d="M15.6 5.6H21v5.4l-1.9-1.9-1.6-1.6z"/>',
+  people:'<circle cx="7" cy="8.2" r="2.7"/><circle cx="17" cy="8.2" r="2.7"/><circle cx="12" cy="6.6" r="3"/><path d="M1.6 19.4c0-3 2.4-5 5.4-5s5.4 2 5.4 5zM11.6 19.4c0-3 2.4-5 5.4-5s5.4 2 5.4 5zM6 20.4c0-3.4 2.7-5.8 6-5.8s6 2.4 6 5.8z"/>',
+  star:'<path d="m12 1.8 2.3 7.1 7.4.1-6 4.4 2.2 7.1-5.9-4.3-5.9 4.3 2.2-7.1-6-4.4 7.4-.1z"/>',
+  grid:'<path d="M3.6 3.6h7.2v7.2H3.6zM13.2 3.6h7.2v7.2h-7.2zM3.6 13.2h7.2v7.2H3.6zM13.2 13.2h7.2v7.2h-7.2z"/>',
+  chat:'<path d="M20.3 5.4A16 16 0 0 0 16.4 4l-.3.5a14.8 14.8 0 0 1 3.4 1.4A13.8 13.8 0 0 0 12 4.6a13.8 13.8 0 0 0-7.5 1.3A14.8 14.8 0 0 1 7.9 4.5L7.6 4a16 16 0 0 0-3.9 1.4C1.3 9.3.6 13.1 1 16.8a16.2 16.2 0 0 0 4.9 2.5l.9-1.4a10.6 10.6 0 0 1-1.7-.8l.4-.3a11.5 11.5 0 0 0 9.9 0l.4.3a10.6 10.6 0 0 1-1.7.8l.9 1.4a16.2 16.2 0 0 0 4.9-2.5c.5-4.3-.6-8.1-2.6-11.4zM8.3 14.6c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2zm7.4 0c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2z"/>',
+};
+const mi=(k,cls)=>`<svg viewBox="0 0 24 24" fill="currentColor" class="${cls||''}">${MICON[k]||''}</svg>`;
+
+/* ─── пейзаж ──────────────────────────────────────────────────────
+   Вечер над долиной: заснеженный хребет, река, город на берегу,
+   мост, хвойный передний план. Всё гладкими градиентами, потому что
+   резкие края читались бы как схема, а нужно как вид из окна. */
+function menuScene(){
+  const W=1600,H=1000, HZ=592;          // линия горизонта
+  /* Хребет рисуется одной фигурой и заливается вертикальным градиентом:
+     вершины выходят белыми, подножие синим. Отдельные «шапки» на вершинах
+     смотрелись бы наклейками — снег должен быть свойством горы. */
+  /* Гребень собирается из острых зубцов, а не из плавных синусов:
+     |sin|^0.7 даёт пик с крутыми склонами, три частоты — хребет,
+     в котором вершины не повторяются. */
+  let prof=[];
+  const ridge=(base,amp,seed,fill,op,step,track)=>{
+    let d='M0 '+H+' L0 '+base, ys=[];
+    for(let x=0;x<=W;x+=(step||18)){
+      const t=x/W;
+      const p=(f,k,w)=>Math.pow(Math.abs(Math.sin(t*f+seed*k)),0.7)*w;
+      const h=amp*(p(5.1,1,0.58)+p(11.7,1.9,0.27)+p(27.3,3.1,0.15))
+             +Math.sin(t*2.1+seed)*amp*0.22;
+      const y=base-h;
+      ys.push(y);
+      d+=' L'+x+' '+y.toFixed(1);
+    }
+    if(track)prof=ys.slice().sort((a,b)=>a-b);
+    return `<path d="${d} L${W} ${H} Z" fill="${fill}" opacity="${op||1}"/>`;
+  };
+  // Хребет строим заранее: граница снега берётся не от единственной
+  // высшей точки, а от того, где реально лежит основная масса вершин.
+  const farRidge=ridge(HZ+4,268,0.55,'url(#snow)',1,12,true);
+  const at=q=>prof[Math.min(prof.length-1,Math.floor(prof.length*q))];
+  const snowTop=at(0.01), snowEnd=at(0.74);
+  // город: плотный куст башен на правом берегу, а не полоса во всю ширину
+  let city='';
+  for(let i=0;i<46;i++){
+    const x=986+i*9.4+Math.sin(i*2.3)*2.6;
+    const d=Math.abs(i-23)/23;                       // к краям кластера ниже
+    const h=(14+Math.abs(Math.sin(i*1.7))*62+Math.abs(Math.cos(i*0.83))*30)*(1-d*0.5);
+    const w=4.4+Math.abs(Math.sin(i*3.1))*3.4;
+    city+=`<rect x="${x.toFixed(1)}" y="${(726-h).toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}"
+      fill="#9db5d0" opacity="${(0.32+Math.abs(Math.sin(i))*0.46).toFixed(2)}"/>`;
+    if(h>52)city+=`<rect x="${(x+w/2-0.6).toFixed(1)}" y="${(726-h-11).toFixed(1)}" width="1.2" height="11" fill="#b7cbe0" opacity=".5"/>`;
+  }
+  let lights='';
+  for(let i=0;i<110;i++){
+    const x=990+((i*137)%424), y=684+((i*79)%40);
+    lights+=`<rect x="${x}" y="${y}" width="1.5" height="1.5" fill="#ffe7b4" opacity="${(0.2+((i*7)%10)/24).toFixed(2)}"/>`;
+  }
+  const belt=(y0,hMin,hMax,step,fill,op)=>{
+    let o='';
+    for(let x=-10;x<W+20;x+=step){
+      const base=y0+Math.sin(x*0.013)*12;
+      const h=hMin+Math.abs(Math.sin(x*0.21))*(hMax-hMin), w=step*0.92;
+      o+=`<path d="M${x.toFixed(1)} ${base.toFixed(1)} L${(x+w/2).toFixed(1)} ${(base-h).toFixed(1)}
+        L${(x+w).toFixed(1)} ${base.toFixed(1)} Z" fill="${fill}" opacity="${op}"/>`;
+    }
+    return o;
+  };
+  let clouds='';
+  for(let i=0;i<11;i++){
+    const y=64+i*40+Math.sin(i*1.7)*16, w=300+Math.abs(Math.sin(i*2.1))*520;
+    const x=((i*421)%(W+300))-200;
+    clouds+=`<ellipse cx="${(x+w/2).toFixed(0)}" cy="${y.toFixed(0)}" rx="${(w/2).toFixed(0)}"
+      ry="${(9+i*1.9).toFixed(0)}" fill="url(#cl)" opacity="${(0.07+(i%4)*0.055).toFixed(2)}"/>`;
+  }
+  return `<svg class="mn-scene" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0b1c38"/><stop offset=".18" stop-color="#1b3a63"/>
+      <stop offset=".36" stop-color="#3a679a"/><stop offset=".5" stop-color="#6d97bd"/>
+      <stop offset=".62" stop-color="#a8bfcf"/><stop offset="1" stop-color="#ead9b6"/></linearGradient>
+    <radialGradient id="sun" cx=".56" cy="1" r=".8">
+      <stop offset="0" stop-color="#ffe9bd" stop-opacity=".95"/>
+      <stop offset=".4" stop-color="#f4d3a0" stop-opacity=".4"/>
+      <stop offset="1" stop-color="#f4d3a0" stop-opacity="0"/></radialGradient>
+    <linearGradient id="cl" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#d7e3f0" stop-opacity="0"/>
+      <stop offset=".5" stop-color="#f2f7fc"/>
+      <stop offset="1" stop-color="#d7e3f0" stop-opacity="0"/></linearGradient>
+    <!-- снег наверху, камень внизу: один градиент на весь хребет -->
+    <linearGradient id="snow" gradientUnits="userSpaceOnUse" x1="0" y1="${snowTop.toFixed(0)}" x2="0" y2="${snowEnd.toFixed(0)}">
+      <stop offset="0" stop-color="#ffffff"/><stop offset=".26" stop-color="#f4f8fc"/>
+      <stop offset=".42" stop-color="#d8e5f1"/><stop offset=".56" stop-color="#a5bed8"/>
+      <stop offset=".74" stop-color="#6e8fae"/><stop offset="1" stop-color="#436384"/></linearGradient>
+    <linearGradient id="mid" gradientUnits="userSpaceOnUse" x1="0" y1="${HZ-30}" x2="0" y2="${HZ+180}">
+      <stop offset="0" stop-color="#7d9cbb"/><stop offset=".22" stop-color="#4d7396"/>
+      <stop offset=".6" stop-color="#31566f"/><stop offset="1" stop-color="#274659"/></linearGradient>
+    <linearGradient id="riv" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f6e8ca"/><stop offset=".18" stop-color="#cbd6dd"/>
+      <stop offset=".6" stop-color="#85a0b5"/><stop offset="1" stop-color="#3f5c74"/></linearGradient>
+    <linearGradient id="val" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#32544f" stop-opacity="0"/>
+      <stop offset=".35" stop-color="#2f5148"/><stop offset="1" stop-color="#16302e"/></linearGradient>
+  </defs>
+  <rect width="${W}" height="${H}" fill="url(#sky)"/>
+  <ellipse cx="${W*0.56}" cy="${HZ}" rx="780" ry="300" fill="url(#sun)"/>
+  ${clouds}
+  <!-- дальний заснеженный хребет -->
+  ${farRidge}
+  <!-- дымка у подножия -->
+  <path d="M0 ${HZ-18} L${W} ${HZ-18} L${W} ${HZ+46} L0 ${HZ+46} Z" fill="#e4d9c0" opacity=".16"/>
+  <!-- средние гряды -->
+  ${ridge(HZ+64,104,2.4,'url(#mid)',.96,22)}
+  ${ridge(HZ+124,52,4.9,'#24455c',.94,30)}
+  <!-- долина, мягко наползающая снизу -->
+  <path d="M0 ${HZ+126} C 300 ${HZ+108}, 700 ${HZ+150}, 1100 ${HZ+112} C 1340 ${HZ+90}, 1480 ${HZ+126}, ${W} ${HZ+104}
+    L${W} ${H} L0 ${H} Z" fill="url(#val)"/>
+  <!-- река от горизонта к левому нижнему углу -->
+  <path d="M912 ${HZ+46} C 888 662, 828 704, 748 748 C 626 814, 424 876, 154 954 L0 994 L0 ${H}
+    L336 ${H} C 524 944, 704 866, 816 794 C 904 736, 950 676, 966 ${HZ+46} Z" fill="url(#riv)" opacity=".95"/>
+  <path d="M912 ${HZ+46} C 888 662, 828 704, 748 748 C 626 814, 424 876, 154 954 L0 994"
+    stroke="#f2f6f9" stroke-width="2" fill="none" opacity=".4"/>
+  ${city}${lights}
+  <!-- мост -->
+  <path d="M498 862 L818 790" stroke="#5f7688" stroke-width="14" opacity=".5" fill="none"/>
+  <path d="M498 862 L818 790" stroke="#dde5ec" stroke-width="6" opacity=".9" fill="none"/>
+  <g stroke="#a8b9c8" stroke-width="3.2" opacity=".6">
+    <path d="M570 846v32M650 828v32M730 810v32"/></g>
+  <!-- лесистые берега -->
+  <path d="M0 800 C 190 748, 330 800, 470 770 C 560 750, 630 776, 700 760 L700 ${H} L0 ${H} Z"
+    fill="#1e4239" opacity=".9"/>
+  <path d="M1000 756 C 1160 722, 1320 768, 1480 736 L${W} 746 L${W} ${H} L1000 ${H} Z"
+    fill="#1e4239" opacity=".85"/>
+  ${belt(906,44,86,26,'#152e2c',.92)}
+  ${belt(976,58,116,19,'#0b1a1a',.96)}
+</svg>`;
+}
+/* маленькие виньетки для карточек: тот же вечер, четыре сюжета */
+function cardArt(kind){
+  const g=`<defs><linearGradient id="cg${kind}" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#2d5177"/><stop offset=".55" stop-color="#456e93"/>
+    <stop offset="1" stop-color="#7d93a4"/></linearGradient></defs>`;
+  const sky=`<rect width="200" height="140" fill="url(#cg${kind})"/>`;
+  const art={
+    gov:`<path d="M0 118h200v22H0z" fill="#16283a"/>
+      <path d="M100 34 60 58h80z" fill="#cfd8e2"/><circle cx="100" cy="30" r="9" fill="#dfe6ee"/>
+      <rect x="58" y="58" width="84" height="60" fill="#dbe3ec"/>
+      <g fill="#aab8c8"><rect x="66" y="66" width="7" height="52"/><rect x="80" y="66" width="7" height="52"/>
+      <rect x="94" y="66" width="7" height="52"/><rect x="108" y="66" width="7" height="52"/>
+      <rect x="122" y="66" width="7" height="52"/></g>
+      <rect x="52" y="112" width="96" height="8" fill="#c3cddb"/>
+      <path d="M0 120 C 40 106, 70 118, 100 112 C 140 104, 170 118, 200 110v30H0z" fill="#12222f"/>`,
+    rise:`<path d="M0 96 L46 52 L78 78 L118 34 L160 76 L200 48v92H0z" fill="#8ba4bd"/>
+      <path d="M118 34 L100 52h36zM46 52 L34 64h24z" fill="#eaf1f8"/>
+      <path d="M0 106 C 50 90, 90 108, 130 96 C 165 86, 185 98, 200 92v48H0z" fill="#1f4147"/>
+      <path d="M0 140 L200 140 L200 124 C 150 132, 90 118, 0 130z" fill="#0f2028"/>
+      <g stroke="#f0d79a" stroke-width="3" fill="none" opacity=".9">
+        <path d="M26 112 L62 90 L88 100 L124 70 L158 80"/></g>
+      <g fill="#f0d79a"><circle cx="26" cy="112" r="3.4"/><circle cx="62" cy="90" r="3.4"/>
+        <circle cx="88" cy="100" r="3.4"/><circle cx="124" cy="70" r="3.4"/><circle cx="158" cy="80" r="3.4"/></g>`,
+    people:`<ellipse cx="60" cy="40" rx="52" ry="22" fill="#d9e3ee" opacity=".5"/>
+      <ellipse cx="146" cy="30" rx="44" ry="18" fill="#d9e3ee" opacity=".38"/>
+      <g fill="#0d1b28">${Array.from({length:11},(_,i)=>{
+        const x=6+i*18.4,h=44+((i*7)%22);
+        return `<circle cx="${x+6}" cy="${140-h-7}" r="7.4"/><path d="M${x} 140v-${h}a6 6 0 0 1 12 0v${h}z"/>`;}).join('')}</g>
+      <rect y="132" width="200" height="8" fill="#0a141d"/>`,
+    star:`<path d="M0 104 C 36 90, 66 104, 96 94 C 132 82, 164 98, 200 88v52H0z" fill="#16303f"/>
+      <g fill="#2a4d63">${Array.from({length:7},(_,i)=>{
+        const x=14+i*27,h=26+((i*11)%30);
+        return `<rect x="${x}" y="${104-h}" width="15" height="${h+8}"/>`;}).join('')}</g>
+      <g stroke="#4d7591" stroke-width="2.4" fill="none">
+        <path d="M22 96V58M22 62h26M60 96V50M60 54h24M152 96V62M152 66h24"/></g>
+      <path d="M0 126h200v14H0z" fill="#0a141d"/>
+      <g fill="#f2dda6"><circle cx="168" cy="34" r="4"/><circle cx="182" cy="52" r="2.6"/>
+        <circle cx="150" cy="52" r="2.2"/></g>`,
+  }[kind]||'';
+  return `<svg class="art" viewBox="0 0 200 140" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    ${g}${sky}${art}</svg>`;
+}
+
+/* ─── сборка экрана ──────────────────────────────────────────── */
+const MN_CARDS=[
+  {k:'gov',   ic:'gov',    t:'Управляй',  p:'Развивай регионы, принимай решения, меняй страну.'},
+  {k:'rise',  ic:'rise',   t:'Развивай',  p:'Экономика, инфраструктура, образование, технологии.'},
+  {k:'people',ic:'people', t:'Объединяй', p:REGIONS.length+' регионов — одна сильная Новария.'},
+  {k:'star',  ic:'star',   t:'Создавай<br>будущее', p:'Твои решения формируют историю.'},
+];
+function menuItem(ic,title,sub,fn,on,off){
+  return `<button class="mn-btn ${on?'on':''} ${off?'off':''}" ${off?'disabled':''} onclick="${fn}">
+    ${mi(ic)}<span><b>${title}</b><s>${sub}</s></span></button>`;
+}
+function showMenu(){
+  const el=document.getElementById('menu'); if(!el)return;
+  const has=hasSave();
+  el.hidden=false; el.classList.remove('gone');
+  el.innerHTML=menuScene()+`<div class="mn-grid"></div>
+  <div class="mn-pole"><i></i><img src="${FLAG}" alt=""></div>
+  <div class="mn-wrap">
+    <div class="mn-head">
+      <div class="mn-brand">
+        <img class="mn-flag" src="${FLAG}" alt="Флаг Республики Новария">
+        <div class="mn-rule"></div>
+        <div class="mn-name"><i>Республика</i><h1>НОВАРИЯ</h1>
+          <u>Единая страна. Сильные регионы.</u></div>
+      </div>
+      <div class="mn-corner">
+      <div class="mn-tools">
+        <span class="mn-ver">v ${GAME_VER}</span>
+        <button title="Разделы игры" onclick="menuAbout()">${mi('grid')}</button>
+        <button title="Об игре" onclick="menuCredits()">${mi('chat')}</button>
+        <button title="Показатели" onclick="menuStats()">${mi('stat')}</button>
+        <button title="Настройки" onclick="menuSettings()">${mi('gear')}</button>
+      </div>
+      <div class="mn-quote">«Сильная страна — это не территория,<br>а люди, которые в неё верят»</div>
+      </div>
+    </div>
+
+    <div class="mn-list">
+      ${menuItem('play','Новая игра','Начните путь к развитию страны','menuNew()',true)}
+      ${menuItem('load','Продолжить',has?'Загрузить последнее сохранение':'Сохранения пока нет','menuContinue()',false,!has)}
+      ${menuItem('book','О стране','История, регионы, экономика','menuAbout()')}
+      ${menuItem('stat','Статистика','Показатели и достижения','menuStats()')}
+      ${menuItem('gear','Настройки','Графика, звук, управление','menuSettings()')}
+      ${menuItem('exit','Выход','До новых встреч','menuExit()')}
+    </div>
+
+    <div class="mn-mid">
+      <div class="mn-slogan">Большие возможности начинаются здесь.<hr></div>
+    </div>
+
+    <div class="mn-stone"><span>Люди</span><span>Развитие</span><span>Стабильность</span><span>Будущее</span></div>
+
+    <div class="mn-cards">${MN_CARDS.map(c=>`<div class="mn-card">${cardArt(c.k)}<div class="veil"></div>
+      <div class="in">${mi(c.ic)}<b>${c.t}</b><p>${c.p}</p></div></div>`).join('')}</div>
+
+    <div class="mn-foot"><span>Республика Новария &nbsp;|&nbsp; Стратегия развития</span>
+      <span>Сегодня — решения. Завтра — сильная Новария.</span></div>
+  </div>`;
+}
+function hideMenu(){
+  const el=document.getElementById('menu'); if(!el)return;
+  el.classList.add('gone');
+  setTimeout(()=>{ el.hidden=true; el.innerHTML=''; },340);
+}
 /* ════════════════════════════════════════════════════════════════
    Запуск: создание партии, загрузка сохранения.
    ════════════════════════════════════════════════════════════════ */
@@ -9245,6 +9643,118 @@ function bindMap(){
 const _render=render;
 render=function(){ _render(); bindMap(); };
 
+/* ─── действия титульного экрана ─────────────────────────────── */
+const GAME_VER='1.0.0';
+function hasSave(){ try{ return !!localStorage.getItem(SAVE); }catch(e){ return false; } }
+function menuNew(){
+  if(hasSave()){
+    sheetOpen({eye:'Новая игра',title:'Сохранение будет стёрто',
+      body:`<p class="lead">В памяти лежит партия «${savedName()}». Новая игра начнётся с чистого листа,
+          и вернуться к прежней уже не выйдет.</p>`,
+      opts:[{label:'Начать заново',hint:'прежняя партия будет стёрта',fn(){ startFresh(); }},
+            {label:'Продолжить прежнюю',hint:'вернуться к сохранению',fn(){ menuContinue(); }},
+            {label:'Отмена',hint:'остаться в меню',fn(){}}]});
+    return;
+  }
+  startFresh();
+}
+function startFresh(){
+  try{ localStorage.removeItem(SAVE); }catch(e){}
+  S=null; hideMenu(); newParty();
+}
+function savedName(){
+  try{ const d=JSON.parse(localStorage.getItem(SAVE)); const p=d&&d.parties&&d.parties.find(x=>x.id===PL);
+    return p?p.name:'без названия'; }catch(e){ return 'без названия'; }
+}
+function menuContinue(){
+  if(!hasSave()){ toast('Сохранения нет'); return; }
+  if(!load()){ toast('Сохранение повреждено'); return; }
+  hideMenu(); render();
+  logMsg('Правление продолжено.',0);
+}
+function menuAbout(){
+  sheetOpen({eye:'Республика Новария',title:'О стране',
+    body:`<img src="${FLAG}" alt="Флаг Республики Новария" style="width:150px;display:block;border:1px solid var(--line);margin:0 0 12px">
+      <p class="lead">Полупрезидентская республика: ${REGIONS.length} субъектов от Балтики до Тихоокеанска,
+        две палаты, президент со своим сроком и правительство, отвечающее перед нижней палатой.</p>
+      <div class="res"><span>Народное собрание</span><b>${SEATS} мандатов</b>
+        <span>Сенат</span><b>${SEN_SEATS} мест по субъектам</b>
+        <span>Созыв</span><b>${quarters(TERM)}</b>
+        <span>Президентский срок</span><b>${quarters(PTERM)}</b>
+        <span>Субъектов</span><b>${REGIONS.length}</b>
+        <span>Групп избирателей</span><b>${GROUPS.length}</b></div>
+      <p>Хозяйство держится на добыче и переработке, налоги собирают три сбора, бюджет расходится по
+        шести статьям. Власть в стране намеренно не сходится в одних руках: палаты живут по разным
+        часам, и большинство в одной почти никогда не означает большинства в другой.</p>
+      <p class="hint">Партии: ${[...PRESETS.map(x=>x.name).slice(0,1),...AIPARTIES.map(x=>x.name)].join(', ')}.</p>`,
+    acts:[{label:'Закрыть'}]});
+}
+function menuStats(){
+  const has=hasSave();
+  let d=null; try{ d=JSON.parse(localStorage.getItem(SAVE)); }catch(e){}
+  sheetOpen({eye:'Новария · показатели',title:'Статистика',
+    body:has&&d?`<p class="lead">Последняя партия — «${savedName()}», ${d.q} квартал истории.</p>
+        <div class="res"><span>Законов принято</span><b>${(d.laws||[]).length}</b>
+          <span>Голосований</span><b>${(d.votes||[]).length}</b>
+          <span>Записей в летописи</span><b>${(d.chron||[]).length}</b>
+          <span>Поправок к конституции</span><b>${((d.cn||{}).log||[]).length}</b>
+          <span>Президентов сменилось</span><b>${((d.rulers||{}).pres||[]).length}</b>
+          <span>Кабинетов</span><b>${((d.rulers||{}).pm||[]).length}</b></div>
+        <p class="hint">Подробные показатели — в разделах «Летопись» и «Правители» внутри игры.</p>`
+      :`<p class="lead">Показатели появятся после первой партии.</p>
+        <p class="hint">Игра ведёт летопись решений, список правителей с их достижениями и историю
+          изменений основного закона. Всё это открывается изнутри.</p>`,
+    acts:[{label:'Закрыть'}]});
+}
+function menuSettings(){
+  const on=k=>{ try{ return localStorage.getItem('nov.'+k)!=='0'; }catch(e){ return true; } };
+  const set=(k,v)=>{ try{ localStorage.setItem('nov.'+k,v?'1':'0'); }catch(e){} };
+  sheetOpen({eye:'Новария · интерфейс',title:'Настройки',
+    body:`<p class="lead">Настройки касаются подачи, а не расчётов: сохранение и ход игры они не меняют.</p>
+      <div class="res"><span>Движение на титульном экране</span><b>${on('motion')?'включено':'выключено'}</b>
+        <span>Подсказки в карточках</span><b>${on('tips')?'включены':'выключены'}</b>
+        <span>Сохранение</span><b>${hasSave()?'есть':'нет'}</b></div>`,
+    opts:[
+      {label:on('motion')?'Выключить движение':'Включить движение',hint:'плавные переходы интерфейса',
+       fn(){ set('motion',!on('motion')); applyPrefs(); menuSettings(); }},
+      {label:on('tips')?'Скрыть подсказки':'Показывать подсказки',hint:'пояснения под таблицами',
+       fn(){ set('tips',!on('tips')); applyPrefs(); menuSettings(); }},
+      ...(hasSave()?[{label:'Стереть сохранение',hint:'партия будет потеряна безвозвратно',
+       fn(){ try{localStorage.removeItem(SAVE);}catch(e){} toast('Сохранение стёрто'); showMenu(); }}]:[]),
+      {label:'Закрыть',hint:'вернуться в меню',fn(){}}]});
+}
+function menuCredits(){
+  sheetOpen({eye:'Об игре',title:'НОВАРИЯ',
+    body:`<p class="lead">Политический симулятор вымышленной республики. Один файл, никаких внешних
+        картинок: карта, флаг, зал Сената и этот пейзаж нарисованы разметкой.</p>
+      <div class="res"><span>Версия</span><b>${GAME_VER}</b>
+        <span>Разделов</span><b>${TABS.length}</b>
+        <span>Тем законов</span><b>${TOPICS.length}</b>
+        <span>Поправок к конституции</span><b>${CONSTS.length}</b>
+        <span>Групп капитала</span><b>${FIRMS.length}</b></div>
+      <p class="hint">Внутри игры типографика другая — газетная полоса. Этот экран единственный,
+        где страна показана, а не расчерчена.</p>`,
+    acts:[{label:'Закрыть'}]});
+}
+function menuExit(){
+  sheetOpen({eye:'Выход',title:'До новых встреч',
+    body:`<p class="lead">Закрыть игру можно просто закрыв вкладку — сохранение останется на месте.</p>
+      <p class="hint">Если хотите начать с чистого листа, сотрите сохранение в настройках.</p>`,
+    opts:[{label:'Свернуть титульный экран',hint:'остаться на странице',
+       fn(){ const el=document.getElementById('menu');
+         if(el)el.innerHTML='<div class="mn-wrap" style="place-content:center;text-align:center">'+
+           '<div class="mn-name" style="grid-column:1/-1"><h1>НОВАРИЯ</h1>'+
+           '<u>Сегодня — решения. Завтра — сильная Новария.</u>'+
+           '<p style="margin-top:22px"><button class="mn-btn on" style="display:inline-flex" '+
+           'onclick="showMenu()"><b>Вернуться в меню</b></button></p></div></div>'; }},
+      {label:'Остаться',hint:'вернуться в меню',fn(){}}]});
+}
+function applyPrefs(){
+  const on=k=>{ try{ return localStorage.getItem('nov.'+k)!=='0'; }catch(e){ return true; } };
+  document.body.classList.toggle('ui-motion-off',!on('motion'));
+  document.body.classList.toggle('ui-no-tips',!on('tips'));
+}
+
 function hideSplash(){
   const s=document.getElementById('splash');
   if(s){ s.classList.add('hide'); setTimeout(()=>s.remove(),400); }
@@ -9253,18 +9763,12 @@ function start(){
   document.getElementById('emb').src=EMBLEM;
   document.getElementById('splash-em').src=EMBLEM;
   const fav=document.createElement('link');fav.rel='icon';fav.href=EMBLEM;document.head.appendChild(fav);
+  applyPrefs();
   const ready=()=>setTimeout(hideSplash,320);
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(ready); else ready();
   setTimeout(hideSplash,2600);
-  if(load()){
-    render();
-    sheetOpen({eye:'Найдено сохранение',title:'Продолжить правление?',
-      body:`<p>Сохранена партия «${me().name}», ${dateLabel()}, ${S.q-S.termStart+1}-й квартал созыва.</p>
-        <div class="res"><span>Мандатов</span><b>${seatsOf(PL)}</b><span>Одобрение</span><b>${Math.round(approval())}%</b>
-          <span>В казне</span><b>${Math.round(S.treasury)} млрд</b></div>`,
-      acts:[{label:'Продолжить'},
-            {label:'Начать заново',fn(){localStorage.removeItem(SAVE);S=null;newParty();}}]});
-  } else newParty();
+  // сначала обложка, и только из неё — внутрь страны
+  showMenu();
 }
 document.addEventListener('DOMContentLoaded',start);
 </script>
