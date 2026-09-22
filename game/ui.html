@@ -330,6 +330,10 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
   background-image:repeating-linear-gradient(45deg,var(--surface) 0 1.5px,transparent 1.5px 4px)}
 tr.mine td{background:var(--surface-2)}
 tr.mine td:first-child{box-shadow:inset 3px 0 0 var(--ink)}
+/* заголовок главы внутри таблицы конституции: разделитель, а не строка данных */
+tr.hd td{background:var(--surface-2);border-top:var(--rule);padding-top:9px;padding-bottom:7px}
+tr.hd td b{font:700 11px/1.2 var(--f-cond);text-transform:uppercase;letter-spacing:.09em}
+tr.hd+tr td{border-top:0}
 .hemi.sen{max-height:none}
 /* палата субъектов: делегации стоят блоками, а не общим кольцом */
 .deleg{display:flex;flex-wrap:wrap;gap:var(--x4);margin:var(--x4) 0}
@@ -1045,6 +1049,32 @@ tr.mine td:first-child{box-shadow:inset 3px 0 0 var(--ink)}
     </table>
   </div></div>
 </div>
+<div class="panel">
+  <header><h4>Свод с разделителями глав</h4><span class="meta">когда список сам делится на части</span></header>
+  <div class="body" style="padding:0">
+    <table class="tbl tight">
+      <tbody>
+        <tr class="hd"><td colspan="3"><b>Глава 1. Основы строя</b> <span class="tag">ядро</span>
+          <div class="dim" style="font-size:11.5px">форма правления, две палаты, федерация</div></td></tr>
+        <tr><td><b>Форма правления</b><div class="dim" style="font-size:11.5px">власть поделена между президентом и палатами</div></td>
+          <td class="dim">ст. 10</td><td class="n">смешанная</td></tr>
+        <tr><td><b>Вес второй палаты</b><div class="dim" style="font-size:11.5px">закон без согласия Сената не проходит</div></td>
+          <td class="dim">ст. 105</td><td class="n">вето окончательное</td></tr>
+        <tr class="hd"><td colspan="3"><b>Глава 4. Президент</b>
+          <div class="dim" style="font-size:11.5px">срок, полномочия, отрешение</div></td></tr>
+        <tr><td><b>Срок президента</b><div class="dim" style="font-size:11.5px">избирается всей страной, отдельно от палат</div></td>
+          <td class="dim">ст. 81</td><td class="n">раз в 24 квартала</td></tr>
+        <tr><td><b>Ограничение сроков</b><div class="dim" style="font-size:11.5px">предел для человека, не для партии</div></td>
+          <td class="dim">ст. 81 ч. 3</td><td class="n warn">нет</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<p class="why">Длинный свод не разрезают на отдельные панели: он остаётся одной таблицей, а границы
+частей задаёт строка-разделитель <code>tr.hd</code> — тон подложки, верхняя линейка и узкий прописной
+заголовок. Так видно и структуру, и то, что это по-прежнему один документ. Значок справа от заголовка
+помечает части с особым режимом: в конституции это главы, которых палаты не открывают.</p>
+
 </section>
 
 <section id="c09">
