@@ -292,49 +292,117 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
 .dep .who{flex:1;min-width:0}
 .dep .who b{display:block;font-size:13.5px}
 .dep .who span{font-size:11.5px;color:var(--ink-3)}
-.hemi{width:100%;display:block}
+/* ── полукруг зала ───────────────────────────────────────────
+   Ровные концентрические ряды, фракции клиньями слева направо.
+   В Собрании кресла круглые, в Сенате квадратные: две палаты
+   узнаются с первого взгляда. */
+.arch{width:100%;height:auto;display:block;max-height:340px;margin:0 auto}
+.arch .a-floor{stroke:var(--ink);stroke-width:1}
+.arch .a-maj{stroke:var(--ink);stroke-width:1.5}
+.arch .a-ring{fill:none;stroke-width:4}
+.arch .a-lab{font:700 10.5px var(--f-cond);letter-spacing:.08em;fill:var(--ink-2)}
+.arch .a-big{font-family:var(--f-num);letter-spacing:-.05em;fill:var(--ink)}
+.arch .a-sub{font:700 9.5px var(--f-cond);letter-spacing:.14em;text-transform:uppercase;fill:var(--ink-3)}
+.arch .s-yes{fill:var(--good)}
+.arch .s-no{fill:var(--bad)}
+.arch .s-und{fill:var(--surface);stroke:var(--ink-3);stroke-width:1}
+.arch-leg{display:flex;flex-wrap:wrap;justify-content:center;gap:var(--x3) var(--x7);margin-top:var(--x5);
+  font-size:12px;color:var(--ink-2)}
+.arch-leg span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.arch-leg b{font:400 13px var(--f-num);color:var(--ink)}
+.arch-leg u{text-decoration:none;font:700 8.5px var(--f-cond);letter-spacing:.14em;text-transform:uppercase;color:var(--good)}
 /* ── табло голосования ───────────────────────────────────────
-   Счёт крупно, как на щите в зале: за, колеблются, против и порог.
-   Клетка «за» темнеет, когда голосов набралось. */
-.tblo{display:grid;grid-template-columns:repeat(4,1fr);border-top:var(--rule);
-  border-bottom:1px solid var(--line-2);margin:var(--x5) 0 0}
-.tblo div{padding:8px 10px 9px;border-right:1px solid var(--line-3);text-align:center}
-.tblo div:last-child{border-right:0}
-.tblo i{display:block;font:700 8.5px var(--f-cond);text-transform:uppercase;
-  letter-spacing:.18em;color:var(--ink-3);font-style:normal;margin-bottom:2px}
-.tblo b{display:block;font:400 34px/1 var(--f-num);letter-spacing:-.05em}
-.tblo .t b{color:var(--ink-3)}
-.tblo .win{background:var(--ink);color:var(--ink-inv)}
-.tblo .win i{color:rgba(255,253,249,.62)}
-.tblo .lose b{color:var(--bad)}
-/* ── ленты голосования ──────────────────────────────────────
-   Верхняя — палата по фракциям: у каждой видно, как она раскололась.
-   Нижняя — итог с чертой порога. Сплошное «за», штриховка «против». */
-.tab2{display:flex;height:26px;border:1px solid var(--line);position:relative;
-  background:var(--surface);margin:0}
-.tab2.sum{height:18px;margin-top:var(--x4)}
-.tab2 i{display:block;height:100%;position:relative}
-.tab2 i.u{opacity:.3}
-.tab2 i.n::after{content:'';position:absolute;inset:0;
-  background:repeating-linear-gradient(45deg,var(--surface) 0 1.5px,transparent 1.5px 4px);
-  opacity:.9}
-.tab2 i.n{opacity:.5}
-.tab2 b.sep{width:1px;background:var(--surface);flex:none}
-.tab2 .mid{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink);z-index:2}
-.tabkey{display:flex;gap:var(--x5);flex-wrap:wrap;font-size:11px;color:var(--ink-3);margin-top:5px}
-.tabkey span{display:inline-flex;align-items:center;gap:5px}
-.tabkey s{width:16px;height:9px;text-decoration:none;border:1px solid var(--line);display:inline-block}
-.tabkey s.u{opacity:.3;background:var(--ink-2)}
-.tabkey s.y{background:var(--ink-2)}
-.tabkey s.n{background:var(--ink-2);opacity:.5;
-  background-image:repeating-linear-gradient(45deg,var(--surface) 0 1.5px,transparent 1.5px 4px)}
+   Слева зал, где цвет кресла — его голос, а внешняя дуга — фракция.
+   Справа щит: счёт светлыми цифрами на чёрном, как на табло в зале,
+   под ним итог. Внизу фракции с эмблемами и своими полосами. */
+.vb{border-top:var(--rule);margin:var(--x5) 0 var(--x4)}
+.vb-h{display:flex;justify-content:space-between;align-items:baseline;gap:var(--x5);flex-wrap:wrap;
+  padding:6px 0 7px;border-bottom:var(--hair);font:700 9.5px var(--f-cond);text-transform:uppercase;
+  letter-spacing:.14em;color:var(--ink-3)}
+.vb-h b{color:var(--ink)}
+.vb-m{display:grid;grid-template-columns:minmax(0,1fr) 206px;gap:var(--x6);align-items:center;
+  padding:var(--x5) 0 var(--x5)}
+.vb-sc{background:var(--ink);color:var(--ink-inv);padding:3px 0}
+.vb-sc div{display:grid;grid-template-columns:12px 1fr auto;align-items:center;gap:10px;
+  padding:8px 14px 7px;border-bottom:1px solid rgba(251,249,243,.13)}
+.vb-sc div:last-child{border-bottom:0}
+.vb-sc div.on{background:var(--band-2)}
+.vb-sc i{width:10px;height:10px;border-radius:50%;display:block;box-shadow:0 0 0 1.5px var(--ink-inv)}
+.vb-sc i.s-yes{background:var(--good)}
+.vb-sc i.s-no{background:var(--bad)}
+.vb-sc i.s-und{background:var(--ink)}
+.vb-sc .t i{box-shadow:none}
+.vb-sc span{font:700 10px var(--f-cond);text-transform:uppercase;letter-spacing:.16em;color:var(--ink-inv-2)}
+.vb-sc b{font:400 30px/1 var(--f-num);letter-spacing:-.05em;text-align:right}
+.vb-sc .t b{color:var(--ink-inv-2);font-size:22px}
+.vb-v{margin-top:var(--x3);padding:8px 10px 7px;border:2px solid var(--ink);text-align:center;
+  font:700 11px var(--f-cond);text-transform:uppercase;letter-spacing:.16em}
+.vb-v.y{border-color:var(--good);color:var(--good);background:var(--good-bg)}
+.vb-v.n{border-color:var(--bad);color:var(--bad);background:var(--bad-bg)}
+.vb-v.f{border:1px dashed var(--ink-3);color:var(--ink-2)}
+.vb-f{width:100%;border-collapse:collapse;border-top:var(--rule-thin)}
+.vb-f th{font:700 8.5px var(--f-cond);text-transform:uppercase;letter-spacing:.14em;color:var(--ink-3);
+  text-align:left;padding:6px 6px 5px;border-bottom:var(--hair)}
+.vb-f th.n,.vb-f td.n{text-align:right;font-family:var(--f-num);width:52px}
+.vb-f td{padding:6px;border-bottom:var(--hair-2);font-size:13px;vertical-align:middle}
+.vb-f td b{font:700 13.5px var(--f-display)}
+.vb-f td.vb-e{width:22px;padding-right:0}
+.vb-f td.vb-e .emb{display:block}
+.vb-f td.vb-n{white-space:nowrap}
+.vb-bar{width:30%}
+.vb-bar span{display:flex;height:8px;background:var(--surface-3)}
+.vb-bar i{display:block;height:100%}
+.vb-bar i.y{background:var(--good)}
+.vb-bar i.u{background:var(--line-2)}
+.vb-bar i.n{background:var(--bad)}
+@media (max-width:720px){
+  .vb-m{grid-template-columns:1fr}
+  .vb-sc{display:grid;grid-template-columns:repeat(2,1fr)}
+  .vb-sc div{border-right:1px solid rgba(251,249,243,.13)}
+}
+/* ── эмблемы партий ──────────────────────────────────────────
+   Поле — цвет фракции, знак — белый, золотой или чёрный. На малом
+   размере кайма пропадает сама: остаются форма и знак. */
+.emb{display:inline-block;flex:none;vertical-align:middle}
+.chip .emb{margin-top:-1px}
+/* карточка своей партии и строка всех эмблем страны */
+.emb-card{display:flex;gap:var(--x5);align-items:center;padding-bottom:var(--x5);margin-bottom:var(--x5);border-bottom:var(--hair)}
+.emb-card b{display:block;font:700 19px/1.15 var(--f-display)}
+.emb-card span{display:block;font:700 10px var(--f-cond);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin:3px 0 8px}
+.emb-row{display:flex;flex-wrap:wrap;align-items:flex-end;gap:var(--x5) var(--x7);margin-top:var(--x5);
+  padding-top:var(--x5);border-top:var(--hair)}
+.emb-row span{display:grid;justify-items:center;gap:3px}
+.emb-row b{font:700 10px var(--f-cond);letter-spacing:.12em;color:var(--ink-2)}
+.emb-row u{text-decoration:none;font:400 11px var(--f-num);color:var(--ink-3)}
+.emb-row .on b{color:var(--ink)}
+/* конструктор: образец крупно, под ним ряды решений */
+.ek-kit{display:grid;grid-template-columns:150px minmax(0,1fr);gap:var(--x6);align-items:start}
+.ek-prev{text-align:center;padding:var(--x5) var(--x4) var(--x4);background:var(--surface-2);border-top:var(--rule)}
+.ek-prev .emb{display:block;margin:0 auto var(--x4)}
+.ek-prev b{display:block;font:700 16px/1.15 var(--f-display)}
+.ek-prev span{font:700 10px var(--f-cond);letter-spacing:.16em;color:var(--ink-3)}
+.ek-row{display:grid;grid-template-columns:70px minmax(0,1fr);gap:var(--x4);align-items:center;
+  padding:6px 0;border-bottom:var(--hair-2)}
+.ek-row:last-child{border-bottom:0}
+.ek-row>i{font:700 9px var(--f-cond);text-transform:uppercase;letter-spacing:.14em;color:var(--ink-3);font-style:normal}
+.ek-row>div{display:flex;flex-wrap:wrap;gap:4px}
+.ek{width:36px;height:36px;display:grid;place-items:center;background:var(--surface);
+  border:1px solid var(--line-2);cursor:pointer;padding:0}
+.ek:hover{border-color:var(--ink)}
+.ek.on{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.ek s{width:22px;height:22px;display:block;text-decoration:none}
+.ek-riv{grid-column:1/-1;display:flex;align-items:center;gap:var(--x6);flex-wrap:wrap;
+  padding-top:var(--x4);border-top:var(--hair)}
+.ek-riv>i{font:700 9px var(--f-cond);text-transform:uppercase;letter-spacing:.14em;color:var(--ink-3);font-style:normal}
+.ek-riv span{display:inline-flex;align-items:center;gap:6px}
+.ek-riv u{text-decoration:none;font:700 10px var(--f-cond);letter-spacing:.12em;color:var(--ink-2)}
+@media (max-width:720px){ .ek-kit{grid-template-columns:1fr} .ek-row{grid-template-columns:1fr} }
 tr.mine td{background:var(--surface-2)}
 tr.mine td:first-child{box-shadow:inset 3px 0 0 var(--ink)}
 /* заголовок главы внутри таблицы конституции: разделитель, а не строка данных */
 tr.hd td{background:var(--surface-2);border-top:var(--rule);padding-top:9px;padding-bottom:7px}
 tr.hd td b{font:700 11px/1.2 var(--f-cond);text-transform:uppercase;letter-spacing:.09em}
 tr.hd+tr td{border-top:0}
-.hemi.sen{max-height:none}
 /* палата субъектов: делегации стоят блоками, а не общим кольцом */
 .deleg{display:flex;flex-wrap:wrap;gap:var(--x4);margin:var(--x4) 0}
 .deleg .d{border:1px solid var(--line-2);background:var(--surface-2);padding:5px 6px 6px}
@@ -1121,41 +1189,18 @@ tr.hd+tr td{border-top:0}
     <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:4px">
       <span class="good">за 41</span><span class="dim">порог 60</span><span class="bad">против 59</span></div>
   </div></div>
-  <div class="panel" style="margin:0"><header><h4>Табло голосования</h4><span class="meta">435 мандатов</span></header>
+  <div class="panel" style="margin:0;grid-column:1/-1"><header><h4>Зал Собрания</h4><span class="meta">435 мандатов · ровный полукруг</span></header>
   <div class="body">
-    <div class="tblo">
-      <div class="win"><i>за</i><b>231</b></div>
-      <div><i>колеблются</i><b>27</b></div>
-      <div><i>против</i><b>177</b></div>
-      <div class="t"><i>нужно</i><b>218</b></div>
-    </div>
-    <div class="tab2">
-      <i class="y" style="width:18.2%;background:var(--p1)"></i><i class="n" style="width:7.8%;background:var(--p1)"></i><b class="sep"></b>
-      <i class="y" style="width:14.5%;background:var(--p2)"></i><i class="u" style="width:3.7%;background:var(--p2)"></i><b class="sep"></b>
-      <i class="n" style="width:13.3%;background:var(--p3)"></i><b class="sep"></b>
-      <i class="y" style="width:7.8%;background:var(--p4)"></i><b class="sep"></b>
-      <i class="y" style="width:12.6%;background:var(--p5)"></i><i class="u" style="width:2.5%;background:var(--p5)"></i><b class="sep"></b>
-      <i class="n" style="width:19.6%;background:var(--p6)"></i>
-    </div>
-    <div class="tab2 sum">
-      <i style="width:53.1%;background:var(--good)"></i>
-      <i style="width:6.2%;background:var(--line-2)"></i>
-      <i style="width:40.7%;background:var(--bad)"></i>
-      <span class="mid" style="left:50.1%"></span></div>
-    <div class="tabkey"><span><s class="y"></s>за</span><span><s class="u"></s>колеблются</span>
-      <span><s class="n"></s>против</span><span>черта — порог 218 из 435</span></div>
-    <p class="note">Россыпь из четырёхсот тридцати пяти квадратов честна, но нечитаема: точки не
-      складываются в мысль. Табло складывается — счёт крупно, лента палаты по фракциям, где у каждой
-      видно, как она раскололась, и под ней итог с чертой порога. Тем же табло показывают импичмент
-      и конституционную поправку.</p>
+    <div id="arch-house"></div>
+    <div class="arch-leg" id="arch-leg"></div>
+    <p class="note">Ряды концентрические, шаг кресла вдоль ряда равен шагу между рядами, крайние кресла
+      каждого ряда стоят на полу зала. Места раздаются рядам по длине дуги, потом весь зал сортируется
+      по углу, и каждая фракция получает клин от первого ряда до последнего. Рядов ровно столько,
+      чтобы при равном шаге поместились все места: для 435 — одиннадцать, для 100 — шесть.</p>
   </div></div>
-  <div class="panel" style="margin:0"><header><h4>Палата субъектов</h4><span class="meta">зал и пороги</span></header>
+  <div class="panel" style="margin:0"><header><h4>Зал Сената</h4><span class="meta">100 мест · кресла квадратные</span></header>
   <div class="body">
-    <p class="note">Полукруг чертится как план античного театра: клин на каждый субъект, между клиньями
-      лучевые проходы, кресла квадратные и повёрнуты к трибуне. Клин тем шире, чем больше делегация, —
-      площадь на плане и есть вес края в палате. Подпись идёт по дуге, а кегль считается от её длины,
-      чтобы длинное название не наехало на соседний клин.</p>
-    <div class="deleg" id="deleg"></div>
+    <div id="arch-sen"></div>
     <div class="meter tall">
       <i style="width:26%;background:var(--p1)"></i><i style="width:21%;background:var(--p2)"></i>
       <i style="width:12%;background:var(--p3)"></i><i style="width:3%;background:var(--p4)"></i>
@@ -1167,16 +1212,30 @@ tr.hd+tr td{border-top:0}
       <i style="left:68%;background:var(--mark);width:2px"></i>
       <span style="left:68%;top:14px;color:var(--mark)">коалиция 68</span>
     </div>
-    <p class="note">Кольцо было красивым и ничего не говорило. Палата собрана по субъектам — значит
-      и рисовать её надо делегациями. Под ними линейка с двумя числами, вокруг которых крутится вся
-      палата: 51, чтобы принять, и 60, чтобы дать проголосовать.</p>
+    <p class="note">Та же геометрия, что у Собрания, но кресла квадратные: вторую палату узнают
+      с первого взгляда. Под залом линейка с двумя числами, вокруг которых крутится палата:
+      51, чтобы принять, и 60, чтобы дать проголосовать.</p>
   </div></div>
-  <div class="panel" style="margin:0"><header><h4>Зал заседаний</h4><span class="meta">120 мандатов</span></header>
+  <div class="panel" style="margin:0"><header><h4>Делегации субъектов</h4><span class="meta">таблица под залом</span></header>
   <div class="body">
-    <svg class="hemi" viewBox="0 0 300 108">
-      <g id="seats"></g>
-    </svg>
-    <p class="note">Кресла расставлены по углу: слева направо — от левых фракций к правым.</p>
+    <div class="deleg" id="deleg"></div>
+    <p class="note">Раньше вес края рисовался клином на плане театра. Полукруг теперь ровный и
+      показывает фракции; кто откуда — видно в делегациях.</p>
+  </div></div>
+  <div class="panel" style="margin:0;grid-column:1/-1"><header><h4>Табло голосования</h4><span class="meta">итог · 435 мандатов</span></header>
+  <div class="body">
+    <div id="vb-final"></div>
+    <p class="note">Слева зал: кресла на своих местах, клин фракции подписан внешней дугой, а цвет
+      кресла — как оно проголосовало. Внутри клина сначала «за», потом колеблющиеся, потом «против»,
+      поэтому раскол фракции видно без таблицы. Справа щит — счёт светлыми цифрами на чёрном, как на
+      табло в зале, и итог: зелёная рамка — принято, красная — нет. Внизу фракции с эмблемами.
+      Тем же табло показывают прогноз, клотур, импичмент, поправки и созыв собрания.</p>
+  </div></div>
+  <div class="panel" style="margin:0;grid-column:1/-1"><header><h4>Табло: прогноз и Сенат</h4><span class="meta">до подачи голосов</span></header>
+  <div class="body">
+    <div id="vb-fc"></div>
+    <p class="note">В прогнозе у щита четвёртая строка — колеблющиеся, полые кресла, — а вместо
+      итога пунктирная рамка: сколько не хватает или какой запас.</p>
   </div></div>
 </div>
 </section>
@@ -1274,6 +1333,20 @@ tr.hd+tr td{border-top:0}
 <h2><i>13</i>Политические компоненты</h2>
 <p class="why">Собраны из общих кирпичей, но встречаются на трёх экранах и потому описаны отдельно:
 счётчик голосов, строка депутата, шкала позиции, строка комитета, полоса коалиции.</p>
+<div class="panel"><header><h4>Эмблемы партий</h4><span class="meta">поле · знак · цвет знака · кайма</span></header>
+  <div class="body">
+    <div class="emb-row" id="emb-all" style="margin-top:0;padding-top:0;border-top:0"></div>
+    <div class="row" id="emb-sizes" style="margin-top:var(--x6);align-items:flex-end;gap:var(--x6)"></div>
+    <p class="note">Эмблема собирается из четырёх решений: форма поля (шесть), знак (тринадцать), цвет
+      знака (белый, золото, чёрный) и кайма (нет, одна, двойная). Поле — цвет фракции, тот же, что
+      у клина на полукруге, поэтому эмблема и клин узнаются друг по другу. Ниже семнадцати пикселей
+      кайма пропадает сама и знак чуть крупнее: остаются форма и знак. В тексте эмблема стоит
+      в <code>.chip</code> на месте цветного квадрата — 15 пикселей.</p>
+  </div></div>
+<div class="panel"><header><h4>Конструктор эмблемы</h4><span class="meta">шаг 5 из 5 · и потом в разделе «Партия»</span></header>
+  <div class="body"><div id="ek"></div>
+    <p class="note">Слева живой образец крупно, справа ряды решений — каждая кнопка показывает, что
+      получится, а не название. Внизу соперники: чтобы не нарисовать чужую эмблему своими руками.</p></div></div>
 <div class="grid g2">
   <div class="panel" style="margin:0"><header><h4>Счётчик голосов</h4></header><div class="body">
     <div class="whip"><div><i>за</i><b class="good">58</b></div><div><i>колеблются</i><b>19</b></div><div><i>против</i><b class="bad">43</b></div></div>
@@ -1686,17 +1759,10 @@ tr.hd+tr td{border-top:0}
       <button class="nav"><i data-ic="country"></i><span>Регионы</span><u>21</u></button></nav>
     <div class="work">
       <div class="panel info">
-        <header><h4>Народное собрание</h4><span class="meta">120 мандатов · большинство 61 · коалиция 77</span></header>
+        <header><h4>Народное собрание</h4><span class="meta">435 мандатов · большинство 218 · коалиция 270</span></header>
         <div class="body">
-          <svg class="hemi" viewBox="0 0 760 210" style="max-height:210px"><g id="seats2"></g></svg>
-          <div class="row" style="margin-top:var(--x4)">
-            <span class="chip"><s style="background:var(--p1)"></s>Народное возрождение — 32 · коалиция</span>
-            <span class="chip"><s style="background:var(--p2)"></s>Союз труда — 23 · коалиция</span>
-            <span class="chip"><s style="background:var(--p5)"></s>Земля и воля — 22 · коалиция</span>
-            <span class="chip"><s style="background:var(--p3)"></s>Держава — 17</span>
-            <span class="chip"><s style="background:var(--p6)"></s>Новый рассвет — 20</span>
-            <span class="chip"><s style="background:var(--p4)"></s>Свободный курс — 6</span>
-          </div>
+          <div id="arch-screen"></div>
+          <div class="arch-leg" id="arch-screen-leg"></div>
         </div>
       </div>
       <div class="cols c21">
@@ -2315,35 +2381,271 @@ document.querySelectorAll('[data-ic]').forEach(el=>{
 });
 </script>
 <script>
-/* Полукруг зала. Кресел ровно столько, сколько мандатов: ряды получают места
-   пропорционально длине дуги, остаток раздаётся с внешнего ряда.
-   Это эталонная реализация — в игру переносится как есть. */
-function hemiSlots(n,rows,r0,dr,cx,cy){
-  const rad=[],ws=[];let sum=0;
-  for(let k=0;k<rows;k++){ const r=r0+k*dr; rad.push(r); ws.push(r); sum+=r; }
-  const cnt=ws.map(w=>Math.max(1,Math.floor(n*w/sum)));
-  let diff=n-cnt.reduce((a,b)=>a+b,0), k=rows-1;
-  while(diff>0){ cnt[k]++; diff--; k=(k-1+rows)%rows; }
-  while(diff<0){ if(cnt[k]>1){cnt[k]--;diff++;} k=(k-1+rows)%rows; }
+/* Эталонная реализация: полукруг, табло и эмблемы переносятся в игру
+   как есть. Здесь им подставлены заглушки вместо состояния игры. */
+const PL='you', COAL=['you','trud','zv'];
+const inCoal=id=>COAL.indexOf(id)>=0;
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const embFor=p=>p.emb;
+/* ═══ ПОЛУКРУГ ЗАЛА ═══════════════════════════════════════════════
+   Ровный зал, как на схемах настоящих парламентов. Ряды концентрические,
+   шаг кресла вдоль ряда равен шагу между рядами, а крайние кресла
+   каждого ряда стоят на одной прямой — на полу зала. Места раздаются
+   рядам по длине дуги, потом весь зал сортируется по углу слева
+   направо: каждая фракция получает свой клин от первого ряда
+   до последнего, и граница между фракциями идёт по радиусу. */
+const ARCH_GEO={};
+function archGeom(n,rin){
+  const key=n+'|'+rin; if(ARCH_GEO[key])return ARCH_GEO[key];
+  // рядов ровно столько, чтобы при равном шаге поместились все места
+  let R=2;
+  for(;R<48;R++){ const d=(1-rin)/(R-1); let cap=0;
+    for(let k=0;k<R;k++)cap+=Math.floor(Math.PI*(rin+k*d)/d)+1;
+    if(cap>=n)break; }
+  const dr=(1-rin)/(R-1), rad=[];
+  for(let k=0;k<R;k++)rad.push(rin+k*dr);
+  const sum=rad.reduce((a,b)=>a+b,0), raw=rad.map(r=>n*r/sum), cnt=raw.map(Math.floor);
+  let left=n-cnt.reduce((a,b)=>a+b,0);
+  raw.map((v,i)=>[v-cnt[i],i]).sort((a,b)=>b[0]-a[0]).slice(0,left).forEach(x=>cnt[x[1]]++);
   const slots=[];
-  cnt.forEach((m,i)=>{ for(let j=0;j<m;j++){
-    const a=Math.PI*(0.045+0.91*(m===1?0.5:j/(m-1)));
-    slots.push({a,r:rad[i],x:cx-Math.cos(a)*rad[i],y:cy-Math.sin(a)*rad[i]});
+  cnt.forEach((m,k)=>{ for(let j=0;j<m;j++){
+    const a=m===1?Math.PI/2:Math.PI*(1-j/(m-1));      // π — левый край пола, 0 — правый
+    slots.push({a,r:rad[k],k});
   }});
-  return slots.sort((p,q)=>p.a-q.a||p.r-q.r);
+  slots.sort((p,q)=>q.a-p.a||p.r-q.r);
+  return (ARCH_GEO[key]={slots,rows:R,dr,cnt});
 }
-function hemi(id,W,H,r,rows,seats){
-  const el=document.getElementById(id); if(!el)return;
-  const list=[];
-  [['var(--p2)',23],['var(--p5)',22],['var(--p1)',32],['var(--p6)',20],['var(--p3)',17],['var(--p4)',6]]
-    .forEach(([c,n])=>{for(let i=0;i<n;i++)list.push(c);});
-  const slots=hemiSlots(list.length,rows,r,r*0.30,W/2,H-6);
-  el.innerHTML=list.map((c,i)=>{const s=slots[i];
-    return `<circle cx="${s.x.toFixed(1)}" cy="${s.y.toFixed(1)}" r="${(r*0.072).toFixed(1)}" fill="${c}" stroke="#FBF8F1" stroke-width="0.8"/>`;}).join('');
+/* seats — кресла слева направо: {f:цвет} для раскладки по фракциям
+   или {v:'yes'|'no'|'und'} для итогов голосования.
+   o.ring — фракции для внешней дуги: [{p,n}] в том же порядке. */
+function archSvg(seats,o){
+  o=o||{};
+  const n=seats.length, rin=o.rin||0.4, g=archGeom(n,rin);
+  const R=o.R||230, dot=g.dr*R*(o.sq?0.33:0.37);
+  const padX=o.ring?74:dot+4, padT=o.ring?40:dot+10, padB=dot+8;
+  const W=2*R+2*padX, cx=W/2, cy=R+padT, H=cy+padB;
+  const P=(a,r)=>[cx+Math.cos(a)*r, cy-Math.sin(a)*r];
+  let body='';
+  seats.forEach((s,i)=>{
+    const sl=g.slots[i]; if(!sl)return;
+    const [x,y]=P(sl.a,sl.r*R);
+    const cls=s.v?' class="s-'+s.v+'"':'';
+    const fill=s.f?` fill="${s.f}"`:'';
+    const t=s.t?`<title>${s.t}</title>`:'';
+    if(o.sq){
+      // квадраты не поворачиваем: ровные ряды читаются спокойнее, чем веер ромбов
+      const h=dot*0.9;
+      body+=`<rect${cls}${fill} x="${(x-h).toFixed(1)}" y="${(y-h).toFixed(1)}" width="${(2*h).toFixed(1)}" height="${(2*h).toFixed(1)}">${t}</rect>`;
+    } else body+=`<circle${cls}${fill} cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${dot.toFixed(2)}">${t}</circle>`;
+  });
+  // пол зала: волосяная линейка под крайними креслами
+  const floor=`<line class="a-floor" x1="${(cx-R-dot-6).toFixed(1)}" x2="${(cx+R+dot+6).toFixed(1)}" y1="${(cy+dot+4).toFixed(1)}" y2="${(cy+dot+4).toFixed(1)}"/>`;
+  // внешняя дуга фракций с подписями
+  let ring='';
+  if(o.ring){
+    // граница клина — идеальный радиус по доле мест, а не зубчатый край кресел
+    let c=0; const rr=R+dot+8, gap=0.011;
+    o.ring.forEach(f=>{
+      if(!f.n)return;
+      const a0=Math.PI*(1-c/n), a1=Math.PI*(1-(c+f.n)/n); c+=f.n;
+      let s0=a0-gap, s1=a1+gap;
+      if(s1>=s0){ const m=(a0+a1)/2; s0=m+0.003; s1=m-0.003; }
+      const [x0,y0]=P(s0,rr), [x1,y1]=P(s1,rr);
+      ring+=`<path class="a-ring" stroke="${f.p.color}" d="M${x0.toFixed(1)} ${y0.toFixed(1)}A${rr} ${rr} 0 0 1 ${x1.toFixed(1)} ${y1.toFixed(1)}"/>`;
+      if(a0-a1>0.13){
+        const am=(a0+a1)/2, [lx,ly]=P(am,rr+15);
+        const anc=Math.cos(am)>0.28?'start':Math.cos(am)<-0.28?'end':'middle';
+        ring+=`<text class="a-lab" x="${lx.toFixed(1)}" y="${(ly+3).toFixed(1)}" text-anchor="${anc}">${f.p.short} ${f.n}</text>`;
+      }
+    });
+  }
+  // черта большинства: засечка над залом по вертикали
+  const maj=o.maj?(()=>{ const [x,y]=P(Math.PI/2,R+dot+(o.ring?4:3));
+    return `<line class="a-maj" x1="${x}" x2="${x}" y1="${(y-9).toFixed(1)}" y2="${(y+1).toFixed(1)}"/>`; })():'';
+  // в проёме зала — главное число
+  const inner=g.slots.length?rin*R:0;
+  // размеры подписей — в долях проёма, чтобы при любом масштабе не наезжать на кресла
+  const ctr=o.big!==undefined?`<text class="a-big" x="${cx}" y="${(cy-inner*0.3).toFixed(1)}" text-anchor="middle" style="font-size:${(inner*0.5).toFixed(0)}px">${o.big}</text>`
+    +(o.sub?`<text class="a-sub" x="${cx}" y="${(cy-inner*0.08).toFixed(1)}" text-anchor="middle" style="font-size:${(inner*0.1).toFixed(1)}px">${o.sub}</text>`:''):'';
+  return `<svg class="arch${o.sq?' sq':''}" viewBox="0 0 ${W.toFixed(0)} ${H.toFixed(0)}" role="img">${floor}${ring}${maj}${body}${ctr}</svg>`;
 }
-hemi('seats',300,108,38,4,120);
-hemi('seats2',760,210,84,6,120);
-
+/* ═══ ТАБЛО ГОЛОСОВАНИЯ ════════════════════════════════════════════
+   Слева зал: кресла стоят на своих местах, клин фракции подписан по
+   внешней дуге, а цвет кресла — как оно проголосовало. Справа табло:
+   счёт крупными цифрами на чёрном, как на табло в настоящем зале,
+   и итог. Внизу фракции, у каждой своя эмблема и своя полоса. */
+function voteBoard(o){
+  const tot=o.tot||(o.yes+o.no+(o.und||0));
+  const seats=[];
+  o.rows.forEach(r=>{                       // внутри клина: «за», колеблющиеся, «против»
+    for(let i=0;i<r.y;i++)seats.push({v:'yes'});
+    for(let i=0;i<r.u;i++)seats.push({v:'und'});
+    for(let i=0;i<r.n;i++)seats.push({v:'no'});
+  });
+  const pass=o.yes>=o.need, fc=o.final===false;
+  const lack=Math.max(0,o.need-o.yes);
+  const svg=archSvg(seats,{R:o.R||232,ring:o.rows.map(r=>({p:r.p,n:r.tot})),sq:o.sq,
+    big:o.yes,sub:'за · нужно '+o.need});
+  const pct=v=>(v/Math.max(1,tot)*100).toFixed(2);
+  const fr=o.rows.map(r=>`<tr>
+      <td class="vb-e">${emblem(r.p,20)}</td>
+      <td class="vb-n"><b>${r.p.name}</b>${r.p.id===PL?' <span class="tag">вы</span>':inCoal(r.p.id)?' <span class="tag y">коал.</span>':''}</td>
+      <td class="vb-bar hide-s"><span>${r.y?`<i class="y" style="width:${(r.y/r.tot*100).toFixed(1)}%"></i>`:''}${
+        r.u?`<i class="u" style="width:${(r.u/r.tot*100).toFixed(1)}%"></i>`:''}${
+        r.n?`<i class="n" style="width:${(r.n/r.tot*100).toFixed(1)}%"></i>`:''}</span></td>
+      <td class="n good">${r.y}</td><td class="n bad">${r.n}</td>${o.und!==undefined&&!o.noUnd?`<td class="n dim">${r.u}</td>`:''}
+    </tr>`).join('');
+  const und=o.und!==undefined&&!o.noUnd;
+  return `<div class="vb">
+    <div class="vb-h"><span><b>${o.house||'Народное собрание'}</b>${o.what?' · '+o.what:''}</span>
+      <span>${fc?'прогноз':'итог'} · порог ${o.need} из ${tot}</span></div>
+    <div class="vb-m">
+      <div class="vb-a">${svg}</div>
+      <div class="vb-r">
+        <div class="vb-sc">
+          <div class="${pass?'on':''}"><i class="s-yes"></i><span>за</span><b>${o.yes}</b></div>
+          <div class="${!pass&&!fc?'on':''}"><i class="s-no"></i><span>против</span><b>${o.no}</b></div>
+          ${und?`<div><i class="s-und"></i><span>${o.undWord||'колеблются'}</span><b>${o.und}</b></div>`:''}
+          <div class="t"><i></i><span>нужно</span><b>${o.need}</b></div>
+        </div>
+        <div class="vb-v ${fc?'f':pass?'y':'n'}">${fc
+          ?(pass?'хватает с запасом '+(o.yes-o.need):'не хватает '+lack)
+          :(o.verdict||(pass?'решение принято':'решение не принято'))}</div>
+      </div>
+    </div>
+    <table class="vb-f"><thead><tr><th colspan="2">Фракция</th><th class="hide-s"></th>
+      <th class="n">За</th><th class="n">Против</th>${und?'<th class="n">?</th>':''}</tr></thead>
+      <tbody>${fr}</tbody></table>
+  </div>`;
+}
+/* ═══ ЭМБЛЕМЫ ПАРТИЙ ═══════════════════════════════════════════════
+   Эмблема собирается из четырёх решений: форма щита, знак, цвет знака
+   и кайма. Цвет поля — цвет фракции, тот же, что на полукруге, поэтому
+   эмблема и клин в зале узнаются друг по другу. */
+const EMB_SH=[
+  {id:'circle', name:'Круг',     d:'<circle cx="12" cy="12" r="11.2"/>', cy:12, k:0.96},
+  {id:'shield', name:'Щит',      d:'<path d="M2.6 1.8h18.8v8.6c0 6-4.2 9.8-9.4 12C6.8 20.2 2.6 16.4 2.6 10.4z"/>', cy:10.9, k:0.9},
+  {id:'square', name:'Квадрат',  d:'<rect x="1.4" y="1.4" width="21.2" height="21.2"/>', cy:12, k:1.0},
+  {id:'diamond',name:'Ромб',     d:'<path d="M12 .6 23.4 12 12 23.4.6 12z"/>', cy:12, k:0.76},
+  {id:'hex',    name:'Шестигранник', d:'<path d="M12 .6l9.9 5.7v11.4L12 23.4l-9.9-5.7V6.3z"/>', cy:12, k:0.9},
+  {id:'banner', name:'Стяг',     d:'<path d="M2.4 1.2h19.2v21.6L12 17.4l-9.6 5.4z"/>', cy:9.6, k:0.86},
+];
+const EMB_C2=[
+  {id:'paper',name:'Белый',  c:'#FBF9F3'},
+  {id:'gold', name:'Золото', c:'#E2C36B'},
+  {id:'ink',  name:'Чёрный', c:'#14130F'},
+];
+const EMB_RIM=[{id:'none',name:'Без каймы'},{id:'ring',name:'Кайма'},{id:'double',name:'Двойная'}];
+const EMB_COLORS=['#9A7211','#94271F','#28496F','#17706B','#4E6B22','#5C3A6E','#2E2B26','#B0552A'];
+/* знаки нарисованы в квадрате ±7 вокруг нуля */
+const EMB_SY=(()=>{
+  const poly=(pts)=>'M'+pts.map(p=>p[0].toFixed(2)+' '+p[1].toFixed(2)).join('L')+'Z';
+  const star=(n,ro,ri,rot)=>{ const pts=[]; for(let i=0;i<n*2;i++){ const a=(rot+i*180/n)*Math.PI/180, r=i%2?ri:ro;
+    pts.push([Math.cos(a)*r,Math.sin(a)*r]); } return poly(pts); };
+  const gear=(()=>{ const pts=[]; for(let k=0;k<8;k++){ const b=k*45;
+    [[b-15,5.2],[b-8,7.1],[b+8,7.1],[b+15,5.2]].forEach(([a,r])=>{ const t=a*Math.PI/180; pts.push([Math.cos(t)*r,Math.sin(t)*r]); }); }
+    return poly(pts)+'M2.5 0A2.5 2.5 0 1 0-2.5 0A2.5 2.5 0 1 0 2.5 0Z'; })();
+  const rays=(()=>{ let d=''; for(let i=0;i<5;i++){ const a=Math.PI*(1-i/4), c=Math.cos(a), s=-Math.sin(a);
+    const w=0.55, x0=c*5.4, y0=s*5.4+2.6, x1=c*7.3, y1=s*7.3+2.6, nx=-s*w, ny=c*w;
+    d+=poly([[x0+nx,y0+ny],[x1+nx,y1+ny],[x1-nx,y1-ny],[x0-nx,y0-ny]]); } return d; })();
+  const grain=(x,y,r)=>`<ellipse cx="${x}" cy="${y}" rx="1.25" ry="2.3" transform="rotate(${r} ${x} ${y})"/>`;
+  return [
+    {id:'star',    name:'Звезда',      g:`<path d="${star(5,7.4,3,-90)}"/>`},
+    {id:'compass', name:'Роза ветров', g:`<path d="${star(4,7.4,1.9,-90)}"/><path d="${star(4,4.2,1.2,-45)}" opacity=".7"/>`},
+    {id:'dawn',    name:'Рассвет',     g:`<path d="M-4.4 2.6A4.4 4.4 0 0 1 4.4 2.6Z"/><path d="${rays}"/><path d="M-7.2 3.7h14.4v1.4h-14.4z"/>`},
+    {id:'gear',    name:'Шестерня',    g:`<path fill-rule="evenodd" d="${gear}"/>`},
+    {id:'wheat',   name:'Колос',       g:`<path d="M-.55-5h1.1v12h-1.1z"/>${grain(-1.5,-3.4,-32)}${grain(1.5,-3.4,32)}${grain(-1.5,-.3,-32)}${grain(1.5,-.3,32)}${grain(-1.5,2.8,-32)}${grain(1.5,2.8,32)}${grain(0,-6.2,0)}`},
+    {id:'oak',     name:'Дуб',         g:`<circle cx="-2.7" cy="-1.4" r="3.4"/><circle cx="2.7" cy="-1.4" r="3.4"/><circle cx="0" cy="-4" r="3.6"/><path d="M-1 0h2v7h-2z"/><path d="M-4 6.2h8v1.1h-8z"/>`},
+    {id:'torch',   name:'Факел',       g:`<path d="M0-7.4C3.4-4.2 3.4-1.6 1.7.4C1.5-.9.9-1.7 0-2.2C-.5-1.2-1.9-.5-1.7.4C-3.5-1.6-3-4.4 0-7.4Z"/><path d="M-3.2 1.2h6.4l-1.3 2.3h-3.8z"/><path d="M-.9 3.3h1.8v4h-1.8z"/>`},
+    {id:'orb',     name:'Держава',     g:`<path fill-rule="evenodd" d="M4.8 2A4.8 4.8 0 1 1-4.8 2A4.8 4.8 0 1 1 4.8 2ZM-4.8 1.3h9.6v1.2h-9.6z"/><path d="M-.7-7.4h1.4v4.8h-1.4z"/><path d="M-2.1-6.1h4.2v1.3h-4.2z"/>`},
+    {id:'tower',   name:'Башня',       g:`<path fill-rule="evenodd" d="M-4.4-3.4h8.8V7.2h-8.8zM-1.3 7.2V4.6a1.3 1.3 0 0 1 2.6 0v2.6z"/><path d="M-4.4-6.6h2v3.4h-2zM-1 -6.6h2v3.4h-2zM2.4-6.6h2v3.4h-2z"/>`},
+    {id:'book',    name:'Книга',       g:`<path d="M-.5-3.9C-2.2-5.5-4.9-5.8-7.2-4.8V5.4C-4.9 4.4-2.2 4.7-.5 6.2Z"/><path d="M.5-3.9C2.2-5.5 4.9-5.8 7.2-4.8V5.4C4.9 4.4 2.2 4.7.5 6.2Z"/>`},
+    {id:'anchor',  name:'Якорь',       g:`<g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="0" cy="-5.3" r="1.5"/><path d="M0-3.8V6.6"/><path d="M-3.2-1.8h6.4"/><path d="M-5.6 2.4A5.8 5.8 0 0 0 5.6 2.4"/></g>`},
+    {id:'peaks',   name:'Горы',        g:`<path d="M-7.6 5.6-2.4-3.8.5 1.2 2.7-2.2 7.6 5.6Z"/>`},
+    {id:'wave',    name:'Волна',       g:`<g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M-7-2q1.75-2.4 3.5 0t3.5 0 3.5 0 3.5 0"/><path d="M-7 2.6q1.75-2.4 3.5 0t3.5 0 3.5 0 3.5 0"/></g>`},
+  ];
+})();
+function emblem(p,size,e){
+  e=e||embFor(p);
+  const s=size||24, sh=EMB_SH.find(x=>x.id===e.sh)||EMB_SH[0];
+  const sy=EMB_SY.find(x=>x.id===e.sy);
+  const c2=(EMB_C2.find(x=>x.id===e.c2)||EMB_C2[0]).c;
+  const small=s<17, rim=small?'none':(e.rim||'none');
+  const k=sh.k*(rim==='none'?1:0.8)*(small?1.06:1);
+  const inset=(f,w)=>`<g transform="translate(12 12) scale(${f}) translate(-12 -12)" fill="none" stroke="${c2}" stroke-width="${(w/f).toFixed(2)}">${sh.d}</g>`;
+  const rims=rim==='ring'?inset(0.84,0.9):rim==='double'?inset(0.86,0.7)+inset(0.76,0.7):'';
+  return `<svg class="emb" viewBox="0 0 24 24" width="${s}" height="${s}" aria-hidden="true">`+
+    `<g fill="${p.color||'#807B70'}">${sh.d}</g>${rims}`+
+    (sy?`<g transform="translate(12 ${sh.cy}) scale(${k.toFixed(3)})" fill="${c2}" color="${c2}">${sy.g}</g>`:'')+
+    `</svg>`;
+}
+/* ─── конструктор эмблемы ─────────────────────────────────────────
+   Перед присягой и потом в разделе партии. Живой образец крупно,
+   под ним четыре ряда решений и соперники — чтобы не нарисовать
+   чужую эмблему своими руками. */
+function embRandom(){
+  return {sh:pick(EMB_SH).id, sy:pick(EMB_SY).id, c2:pick(EMB_C2).id, rim:pick(EMB_RIM).id};
+}
+function embKit(base,rivals){
+  const e=base.emb||(base.emb=embFor(base));
+  const P0={color:base.color,short:base.short};
+  const btn=(key,val,inner,label,on)=>`<button class="ek${on?' on':''}" data-k="${key}" data-v="${val}" title="${label}">${inner}</button>`;
+  const row=(t,items)=>`<div class="ek-row"><i>${t}</i><div>${items}</div></div>`;
+  return `<div class="ek-kit">
+    <div class="ek-prev">${emblem(P0,112,e)}
+      <b>${base.name||'Новая партия'}</b><span>${base.short||''}</span></div>
+    <div class="ek-opts">
+      ${row('Форма',EMB_SH.map(s=>btn('sh',s.id,emblem(P0,28,{...e,sh:s.id,sy:null,rim:'none'}),s.name,e.sh===s.id)).join(''))}
+      ${row('Знак',EMB_SY.map(s=>btn('sy',s.id,emblem(P0,28,{...e,sy:s.id,rim:'none'}),s.name,e.sy===s.id)).join(''))}
+      ${row('Цвет поля',EMB_COLORS.map(c=>btn('color',c,`<s style="background:${c}"></s>`,c,base.color===c)).join(''))}
+      ${row('Цвет знака',EMB_C2.map(c=>btn('c2',c.id,emblem(P0,28,{...e,c2:c.id,rim:'none'}),c.name,e.c2===c.id)).join(''))}
+      ${row('Кайма',EMB_RIM.map(r=>btn('rim',r.id,emblem(P0,28,{...e,rim:r.id,sy:null}),r.name,e.rim===r.id)).join(''))}
+      <div class="ek-row"><i></i><div><button class="btn sm" data-k="rnd" data-v="1">Случайная эмблема</button></div></div>
+    </div>
+    ${rivals&&rivals.length?`<div class="ek-riv"><i>Соперники</i>${rivals.map(p=>
+      `<span>${emblem(p,34)}<u>${p.short}</u></span>`).join('')}</div>`:''}
+  </div>`;
+}
+function embBind(base,rivals){
+  const box=document.getElementById('ek');
+  if(!box)return;
+  box.innerHTML=embKit(base,rivals);
+  box.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{
+    const k=b.dataset.k, v=b.dataset.v;
+    if(k==='rnd'){ base.emb=embRandom(); base.color=pick(EMB_COLORS); }
+    else if(k==='color')base.color=v;
+    else base.emb={...base.emb,[k]:v};
+    embBind(base,rivals);
+  });
+}
+/* ─── витрина ─── */
+const DEMO=[
+  {id:'trud', name:'Союз труда',          short:'СТ',  color:'#94271F', n:79,  s:21, emb:{sh:'circle',sy:'gear',   c2:'paper',rim:'ring'}},
+  {id:'derzh',name:'Держава',             short:'ДРЖ', color:'#28496F', n:58,  s:12, emb:{sh:'shield',sy:'orb',    c2:'gold', rim:'double'}},
+  {id:'you',  name:'Народное возрождение',short:'НВ',  color:'#9A7211', n:113, s:26, emb:{sh:'shield',sy:'oak',    c2:'paper',rim:'ring'}},
+  {id:'zv',   name:'Земля и воля',        short:'ЗВ',  color:'#4E6B22', n:78,  s:21, emb:{sh:'hex',   sy:'wheat',  c2:'gold', rim:'none'}},
+  {id:'nr',   name:'Новый рассвет',       short:'НР',  color:'#5C3A6E', n:73,  s:17, emb:{sh:'circle',sy:'dawn',   c2:'gold', rim:'none'}},
+  {id:'svk',  name:'Свободный курс',      short:'СВК', color:'#17706B', n:34,  s:3,  emb:{sh:'square',sy:'compass',c2:'paper',rim:'ring'}},
+];
+const seatsFor=k=>{ const a=[]; DEMO.forEach(p=>{ for(let i=0;i<p[k];i++)a.push({f:p.color,t:p.name}); }); return a; };
+const put=(id,html)=>{ const el=document.getElementById(id); if(el)el.innerHTML=html; };
+put('arch-house',archSvg(seatsFor('n'),{R:236,big:435,sub:'мандатов'}));
+put('arch-leg',DEMO.map(p=>`<span>${emblem(p,22)}${p.name} <b>${p.n}</b>${inCoal(p.id)?'<u>коалиция</u>':''}</span>`).join(''));
+put('arch-sen',archSvg(seatsFor('s'),{R:230,sq:true,big:100,sub:'мест'}));
+const split={trud:[0,79,0],derzh:[2,56,0],you:[104,9,0],zv:[64,14,0],nr:[71,2,0],svk:[33,1,0]};
+put('vb-final',voteBoard({rows:DEMO.map(p=>({p,y:split[p.id][0],n:split[p.id][1],u:0,tot:p.n})),
+  yes:274,no:161,need:218,tot:435,what:'поимённое голосование',verdict:'принят в Собрании'}));
+const fc={trud:[0,79,0],derzh:[0,34,24],you:[74,0,39],zv:[43,1,34],nr:[55,0,18],svk:[23,0,11]};
+put('vb-fc',voteBoard({rows:DEMO.map(p=>({p,y:fc[p.id][0],n:fc[p.id][1],u:fc[p.id][2],tot:p.n})),
+  yes:195,no:114,und:126,need:218,tot:435,final:false,what:'прогноз перед подачей голосов'}));
+put('emb-all',DEMO.map(p=>`<span class="${p.id===PL?'on':''}">${emblem(p,p.id===PL?46:34)}<b>${p.short}</b><u>${p.n}</u></span>`).join(''));
+put('emb-sizes',[96,64,40,22,15].map(s=>`<span style="display:grid;justify-items:center;gap:4px">${emblem(DEMO[1],s)}<i class="t-micro">${s}</i></span>`).join(''));
+put('arch-screen',archSvg(seatsFor('n'),{R:236,big:435,sub:'мандатов'}));
+put('arch-screen-leg',document.getElementById('arch-leg')?document.getElementById('arch-leg').innerHTML:'');
+const draft={name:'Народное возрождение',short:'НВ',color:'#9A7211',emb:{...DEMO[2].emb}};
+embBind(draft,DEMO.filter(p=>p.id!==PL));
+</script>
+<script>
 /* Макеты экранов нарисованы в натуральную ширину и ужимаются под колонку. */
 function fit(){
   document.querySelectorAll('.wrap').forEach(w=>{

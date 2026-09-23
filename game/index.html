@@ -335,43 +335,111 @@ input:focus,select:focus{outline:2px solid var(--mark);outline-offset:-1px}
 .dep .who{flex:1;min-width:0}
 .dep .who b{display:block;font:700 14px var(--f-display);letter-spacing:-.01em}
 .dep .who span{font-size:11.5px;color:var(--ink-3)}
-.hemi{width:100%;display:block;max-height:270px}
-.hemi.sen{max-height:none}
+/* ── полукруг зала ───────────────────────────────────────────
+   Ровные концентрические ряды, фракции клиньями слева направо.
+   В Собрании кресла круглые, в Сенате квадратные: две палаты
+   узнаются с первого взгляда. */
+.arch{width:100%;height:auto;display:block;max-height:340px;margin:0 auto}
+.arch .a-floor{stroke:var(--ink);stroke-width:1}
+.arch .a-maj{stroke:var(--ink);stroke-width:1.5}
+.arch .a-ring{fill:none;stroke-width:4}
+.arch .a-lab{font:700 10.5px var(--f-cond);letter-spacing:.08em;fill:var(--ink-2)}
+.arch .a-big{font-family:var(--f-num);letter-spacing:-.05em;fill:var(--ink)}
+.arch .a-sub{font:700 9.5px var(--f-cond);letter-spacing:.14em;text-transform:uppercase;fill:var(--ink-3)}
+.arch .s-yes{fill:var(--good)}
+.arch .s-no{fill:var(--bad)}
+.arch .s-und{fill:var(--surface);stroke:var(--ink-3);stroke-width:1}
+.arch-leg{display:flex;flex-wrap:wrap;justify-content:center;gap:var(--x3) var(--x7);margin-top:var(--x5);
+  font-size:12px;color:var(--ink-2)}
+.arch-leg span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.arch-leg b{font:400 13px var(--f-num);color:var(--ink)}
+.arch-leg u{text-decoration:none;font:700 8.5px var(--f-cond);letter-spacing:.14em;text-transform:uppercase;color:var(--good)}
 /* ── табло голосования ───────────────────────────────────────
-   Счёт крупно, как на щите в зале: за, колеблются, против и порог.
-   Клетка «за» темнеет, когда голосов набралось. */
-.tblo{display:grid;grid-template-columns:repeat(4,1fr);border-top:var(--rule);
-  border-bottom:1px solid var(--line-2);margin:var(--x5) 0 0}
-.tblo div{padding:8px 10px 9px;border-right:1px solid var(--line-3);text-align:center}
-.tblo div:last-child{border-right:0}
-.tblo i{display:block;font:700 8.5px var(--f-cond);text-transform:uppercase;
-  letter-spacing:.18em;color:var(--ink-3);font-style:normal;margin-bottom:2px}
-.tblo b{display:block;font:400 34px/1 var(--f-num);letter-spacing:-.05em}
-.tblo .t b{color:var(--ink-3)}
-.tblo .win{background:var(--ink);color:var(--ink-inv)}
-.tblo .win i{color:rgba(255,253,249,.62)}
-.tblo .lose b{color:var(--bad)}
-/* ── ленты голосования ──────────────────────────────────────
-   Верхняя — палата по фракциям: у каждой видно, как она раскололась.
-   Нижняя — итог с чертой порога. Сплошное «за», штриховка «против». */
-.tab2{display:flex;height:26px;border:1px solid var(--line);position:relative;
-  background:var(--surface);margin:0}
-.tab2.sum{height:18px;margin-top:var(--x4)}
-.tab2 i{display:block;height:100%;position:relative}
-.tab2 i.u{opacity:.3}
-.tab2 i.n::after{content:'';position:absolute;inset:0;
-  background:repeating-linear-gradient(45deg,var(--surface) 0 1.5px,transparent 1.5px 4px);
-  opacity:.9}
-.tab2 i.n{opacity:.5}
-.tab2 b.sep{width:1px;background:var(--surface);flex:none}
-.tab2 .mid{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink);z-index:2}
-.tabkey{display:flex;gap:var(--x5);flex-wrap:wrap;font-size:11px;color:var(--ink-3);margin-top:5px}
-.tabkey span{display:inline-flex;align-items:center;gap:5px}
-.tabkey s{width:16px;height:9px;text-decoration:none;border:1px solid var(--line);display:inline-block}
-.tabkey s.u{opacity:.3;background:var(--ink-2)}
-.tabkey s.y{background:var(--ink-2)}
-.tabkey s.n{background:var(--ink-2);opacity:.5;
-  background-image:repeating-linear-gradient(45deg,var(--surface) 0 1.5px,transparent 1.5px 4px)}
+   Слева зал, где цвет кресла — его голос, а внешняя дуга — фракция.
+   Справа щит: счёт светлыми цифрами на чёрном, как на табло в зале,
+   под ним итог. Внизу фракции с эмблемами и своими полосами. */
+.vb{border-top:var(--rule);margin:var(--x5) 0 var(--x4)}
+.vb-h{display:flex;justify-content:space-between;align-items:baseline;gap:var(--x5);flex-wrap:wrap;
+  padding:6px 0 7px;border-bottom:var(--hair);font:700 9.5px var(--f-cond);text-transform:uppercase;
+  letter-spacing:.14em;color:var(--ink-3)}
+.vb-h b{color:var(--ink)}
+.vb-m{display:grid;grid-template-columns:minmax(0,1fr) 206px;gap:var(--x6);align-items:center;
+  padding:var(--x5) 0 var(--x5)}
+.vb-sc{background:var(--ink);color:var(--ink-inv);padding:3px 0}
+.vb-sc div{display:grid;grid-template-columns:12px 1fr auto;align-items:center;gap:10px;
+  padding:8px 14px 7px;border-bottom:1px solid rgba(251,249,243,.13)}
+.vb-sc div:last-child{border-bottom:0}
+.vb-sc div.on{background:var(--band-2)}
+.vb-sc i{width:10px;height:10px;border-radius:50%;display:block;box-shadow:0 0 0 1.5px var(--ink-inv)}
+.vb-sc i.s-yes{background:var(--good)}
+.vb-sc i.s-no{background:var(--bad)}
+.vb-sc i.s-und{background:var(--ink)}
+.vb-sc .t i{box-shadow:none}
+.vb-sc span{font:700 10px var(--f-cond);text-transform:uppercase;letter-spacing:.16em;color:var(--ink-inv-2)}
+.vb-sc b{font:400 30px/1 var(--f-num);letter-spacing:-.05em;text-align:right}
+.vb-sc .t b{color:var(--ink-inv-2);font-size:22px}
+.vb-v{margin-top:var(--x3);padding:8px 10px 7px;border:2px solid var(--ink);text-align:center;
+  font:700 11px var(--f-cond);text-transform:uppercase;letter-spacing:.16em}
+.vb-v.y{border-color:var(--good);color:var(--good);background:var(--good-bg)}
+.vb-v.n{border-color:var(--bad);color:var(--bad);background:var(--bad-bg)}
+.vb-v.f{border:1px dashed var(--ink-3);color:var(--ink-2)}
+.vb-f{width:100%;border-collapse:collapse;border-top:var(--rule-thin)}
+.vb-f th{font:700 8.5px var(--f-cond);text-transform:uppercase;letter-spacing:.14em;color:var(--ink-3);
+  text-align:left;padding:6px 6px 5px;border-bottom:var(--hair)}
+.vb-f th.n,.vb-f td.n{text-align:right;font-family:var(--f-num);width:52px}
+.vb-f td{padding:6px;border-bottom:var(--hair-2);font-size:13px;vertical-align:middle}
+.vb-f td b{font:700 13.5px var(--f-display)}
+.vb-f td.vb-e{width:22px;padding-right:0}
+.vb-f td.vb-e .emb{display:block}
+.vb-f td.vb-n{white-space:nowrap}
+.vb-bar{width:30%}
+.vb-bar span{display:flex;height:8px;background:var(--surface-3)}
+.vb-bar i{display:block;height:100%}
+.vb-bar i.y{background:var(--good)}
+.vb-bar i.u{background:var(--line-2)}
+.vb-bar i.n{background:var(--bad)}
+@media (max-width:720px){
+  .vb-m{grid-template-columns:1fr}
+  .vb-sc{display:grid;grid-template-columns:repeat(2,1fr)}
+  .vb-sc div{border-right:1px solid rgba(251,249,243,.13)}
+}
+/* ── эмблемы партий ──────────────────────────────────────────
+   Поле — цвет фракции, знак — белый, золотой или чёрный. На малом
+   размере кайма пропадает сама: остаются форма и знак. */
+.emb{display:inline-block;flex:none;vertical-align:middle}
+.chip .emb{margin-top:-1px}
+/* карточка своей партии и строка всех эмблем страны */
+.emb-card{display:flex;gap:var(--x5);align-items:center;padding-bottom:var(--x5);margin-bottom:var(--x5);border-bottom:var(--hair)}
+.emb-card b{display:block;font:700 19px/1.15 var(--f-display)}
+.emb-card span{display:block;font:700 10px var(--f-cond);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin:3px 0 8px}
+.emb-row{display:flex;flex-wrap:wrap;align-items:flex-end;gap:var(--x5) var(--x7);margin-top:var(--x5);
+  padding-top:var(--x5);border-top:var(--hair)}
+.emb-row span{display:grid;justify-items:center;gap:3px}
+.emb-row b{font:700 10px var(--f-cond);letter-spacing:.12em;color:var(--ink-2)}
+.emb-row u{text-decoration:none;font:400 11px var(--f-num);color:var(--ink-3)}
+.emb-row .on b{color:var(--ink)}
+/* конструктор: образец крупно, под ним ряды решений */
+.ek-kit{display:grid;grid-template-columns:150px minmax(0,1fr);gap:var(--x6);align-items:start}
+.ek-prev{text-align:center;padding:var(--x5) var(--x4) var(--x4);background:var(--surface-2);border-top:var(--rule)}
+.ek-prev .emb{display:block;margin:0 auto var(--x4)}
+.ek-prev b{display:block;font:700 16px/1.15 var(--f-display)}
+.ek-prev span{font:700 10px var(--f-cond);letter-spacing:.16em;color:var(--ink-3)}
+.ek-row{display:grid;grid-template-columns:70px minmax(0,1fr);gap:var(--x4);align-items:center;
+  padding:6px 0;border-bottom:var(--hair-2)}
+.ek-row:last-child{border-bottom:0}
+.ek-row>i{font:700 9px var(--f-cond);text-transform:uppercase;letter-spacing:.14em;color:var(--ink-3);font-style:normal}
+.ek-row>div{display:flex;flex-wrap:wrap;gap:4px}
+.ek{width:36px;height:36px;display:grid;place-items:center;background:var(--surface);
+  border:1px solid var(--line-2);cursor:pointer;padding:0}
+.ek:hover{border-color:var(--ink)}
+.ek.on{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.ek s{width:22px;height:22px;display:block;text-decoration:none}
+.ek-riv{grid-column:1/-1;display:flex;align-items:center;gap:var(--x6);flex-wrap:wrap;
+  padding-top:var(--x4);border-top:var(--hair)}
+.ek-riv>i{font:700 9px var(--f-cond);text-transform:uppercase;letter-spacing:.14em;color:var(--ink-3);font-style:normal}
+.ek-riv span{display:inline-flex;align-items:center;gap:6px}
+.ek-riv u{text-decoration:none;font:700 10px var(--f-cond);letter-spacing:.12em;color:var(--ink-2)}
+@media (max-width:720px){ .ek-kit{grid-template-columns:1fr} .ek-row{grid-template-columns:1fr} }
 /* своя строка в архиве правителей — вынесена тоном, а не цветом */
 tr.mine td{background:var(--surface-2)}
 tr.mine td:first-child{box-shadow:inset 3px 0 0 var(--ink)}
@@ -834,31 +902,40 @@ const NEIGH = {
 };
 const NB = id => NEIGH[id]||[];
 
-/* Партии-соперники. Позиции меняются со временем: партия чует, куда идёт страна. */
+/* Партии-соперники. Позиции меняются со временем: партия чует, куда идёт страна.
+   emb — эмблема: форма поля, знак, цвет знака и кайма (см. раздел эмблем). */
 const AIPARTIES = [
   {id:'trud', name:'Союз труда',      short:'СТ',  color:'#94271F', leader:'Анна Громова',
-   st:{econ:-1.8,tax:-1.2,order:0,free:-0.2,reg:-0.5,world:-0.5}, base:['work','pens']},
+   st:{econ:-1.8,tax:-1.2,order:0,free:-0.2,reg:-0.5,world:-0.5}, base:['work','pens'],
+   emb:{sh:'circle', sy:'gear',   c2:'paper', rim:'ring'}},
   {id:'derzh',name:'Держава',         short:'ДРЖ', color:'#28496F', leader:'Игорь Костров',
-   st:{econ:-0.2,tax:0,order:1.8,free:-1.5,reg:-1.8,world:-1.5}, base:['patr']},
+   st:{econ:-0.2,tax:0,order:1.8,free:-1.5,reg:-1.8,world:-1.5}, base:['patr'],
+   emb:{sh:'shield', sy:'orb',    c2:'gold',  rim:'double'}},
   {id:'svk',  name:'Свободный курс',  short:'СВК', color:'#17706B', leader:'Мария Лещинская',
-   st:{econ:1.8,tax:1.8,order:-0.5,free:1.2,reg:0.8,world:1.8}, base:['biz','urban']},
+   st:{econ:1.8,tax:1.8,order:-0.5,free:1.2,reg:0.8,world:1.8}, base:['biz','urban'],
+   emb:{sh:'square', sy:'compass',c2:'paper', rim:'ring'}},
   {id:'zv',   name:'Земля и воля',    short:'ЗВ',  color:'#4E6B22', leader:'Пётр Бакулин',
-   st:{econ:-0.6,tax:0.3,order:0.6,free:-0.6,reg:1.8,world:-0.6}, base:['agro']},
+   st:{econ:-0.6,tax:0.3,order:0.6,free:-0.6,reg:1.8,world:-0.6}, base:['agro'],
+   emb:{sh:'hex',    sy:'wheat',  c2:'gold',  rim:'none'}},
   {id:'nr',   name:'Новый рассвет',   short:'НР',  color:'#5C3A6E', leader:'Дина Ковалёва',
-   st:{econ:0.4,tax:0,order:-1.2,free:1.8,reg:0.5,world:1.2}, base:['youth','intel']},
+   st:{econ:0.4,tax:0,order:-1.2,free:1.8,reg:0.5,world:1.2}, base:['youth','intel'],
+   emb:{sh:'circle', sy:'dawn',   c2:'gold',  rim:'none'}},
 ];
 
 /* Заготовки для игрока: три готовых курса или своя настройка. */
 const PRESETS = [
   {name:'Народное возрождение', short:'НВ', color:'#9A7211',
    st:{econ:-0.5,tax:-0.5,order:1,free:-0.5,reg:-1,world:-0.5},
-   desc:'Государство сильнее рынка, порядок выше свобод. Опора — рабочие, село, патриоты.'},
+   desc:'Государство сильнее рынка, порядок выше свобод. Опора — рабочие, село, патриоты.',
+   emb:{sh:'shield', sy:'oak',  c2:'paper', rim:'ring'}},
   {name:'Republica Nova',       short:'РН', color:'#17706B',
    st:{econ:1.2,tax:1,order:-0.5,free:1.2,reg:0.5,world:1.5},
-   desc:'Открытая экономика и широкие свободы. Опора — горожане, бизнес, молодёжь.'},
+   desc:'Открытая экономика и широкие свободы. Опора — горожане, бизнес, молодёжь.',
+   emb:{sh:'circle', sy:'star', c2:'paper', rim:'ring'}},
   {name:'Трудовой фронт',       short:'ТФ', color:'#94271F',
    st:{econ:-1.5,tax:-1.5,order:0.5,free:0.5,reg:0,world:0},
-   desc:'Перераспределение и социальные гарантии. Опора — рабочие, пенсионеры, село.'},
+   desc:'Перераспределение и социальные гарантии. Опора — рабочие, пенсионеры, село.',
+   emb:{sh:'banner', sy:'torch',c2:'paper', rim:'none'}},
 ];
 
 /* Бюджет: шесть расходных статей, три налога. Уровень 0—4. */
@@ -2096,6 +2173,7 @@ function initState(pl){
     r.share={}; GROUPS.forEach(g=>r.share[g.id]=(r.mix[g.id]||0)/s); });
 
   const player={id:PL,name:pl.name,short:pl.short,color:pl.color,st:{...pl.st},leader:pl.leader,
+                emb:pl.emb?{...pl.emb}:null,
                 base:[],funds:pl.funds!==undefined?pl.funds:60,mom:0};
   S={
     q:1, term:1, termStart:1, over:false, ended:null,
@@ -2390,8 +2468,10 @@ function senCount(bill,tl){
 /* Обструкция: считается не большинство, а те, кто готов её прекратить.
    Меньшинство, у которого больше сорока твёрдых «против», держит
    трибуну до тех пор, пока за клотур не наберётся шестьдесят. */
-function clotureCount(bill,tl){
-  const t=tl||senTally(bill); let n=0;
+function clotureCount(bill,tl){ return clotureList(bill,tl).filter(x=>x.v>0).length; }
+/* оценка каждого сенатора на процедуре: нужна и счёту, и табло */
+function clotureList(bill,tl){
+  const t=tl||senTally(bill), out=[];
   const by=bill.by||PL;
   t.list.forEach(x=>{
     const pl=(x.d.spledge&&x.d.spledgeNo===bill.id)?x.d.spledge:0;
@@ -2402,9 +2482,9 @@ function clotureCount(bill,tl){
     let v=x.v*0.65+pl+(own?24:-18)+(x.d.rel-50)*0.2;
     if(senRank(x.d)>=4)v+=6;                       // старейшины берегут обычаи палаты
     if(S.vp&&S.vp.job==='senate'&&own)v+=vpSkill()*0.05;
-    if(v>0)n++;
+    out.push({d:x.d,v});
   });
-  return n;
+  return out;
 }
 function willFilibuster(bill,tl){
   if(cloture()<=SEN_MAJ)return false;              // регламент уже опущен
@@ -3661,80 +3741,18 @@ function applyAmend(b,am){
 }
 
 /* ─── экран голосования ───────────────────────────────────────────
-   Голосование перестало быть строчкой в журнале. Доска показывает
-   каждый мандат, счёт по фракциям и порог — и до нажатия кнопки
-   с колеблющимися ещё можно работать. */
-/* ─── табло голосования ───────────────────────────────────────────
-   Россыпь квадратов честна, но нечитаема: четыреста тридцать пять
-   точек не складываются в мысль. Табло складывается: счёт крупно,
-   лента палаты по фракциям — у каждой видно, как она раскололась, —
-   и под ней итог с чертой порога. */
-function tblo(yes,und,no,need){
-  const win=yes>=need;
-  return `<div class="tblo">
-    <div class="${win?'win':''}"><i>за</i><b>${yes}</b></div>
-    <div><i>колеблются</i><b>${und}</b></div>
-    <div class="${win?'':'lose'}"><i>против</i><b>${no}</b></div>
-    <div class="t"><i>нужно</i><b>${need}</b></div>
-  </div>`;
-}
-/* лента палаты: фракции подряд, внутри каждой — как она разошлась */
-function tabBand(rows,tot,need){
-  const w=v=>(v/tot*100).toFixed(2);
-  const seg=rows.map(r=>
-    (r.y?`<i class="y" style="width:${w(r.y)}%;background:${r.p.color}"><title>${r.p.name}: за ${r.y}</title></i>`:'')+
-    (r.u?`<i class="u" style="width:${w(r.u)}%;background:${r.p.color}"><title>${r.p.name}: колеблются ${r.u}</title></i>`:'')+
-    (r.n?`<i class="n" style="width:${w(r.n)}%;background:${r.p.color}"><title>${r.p.name}: против ${r.n}</title></i>`:'')+
-    `<b class="sep"></b>`).join('');
-  return `<div class="tab2">${seg}</div>`;
-}
-/* итоговая лента: за, колеблющиеся, против и порог */
-function sumBand(yes,und,no,need,tot){
-  const w=v=>(v/tot*100).toFixed(2);
-  return `<div class="tab2 sum">
-    <i style="width:${w(yes)}%;background:var(--good)"></i>
-    <i style="width:${w(und)}%;background:var(--line-2)"></i>
-    <i style="width:${w(no)}%;background:var(--bad)"></i>
-    <span class="mid" style="left:${clamp(need/tot*100,0,100)}%"></span></div>`;
-}
-/* всё вместе: табло, две ленты и подпись к штриховке */
-function voteFrame(rows,yes,und,no,need,tot){
-  return tblo(yes,und,no,need)+tabBand(rows,tot,need)+sumBand(yes,und,no,need,tot)+
-    `<div class="tabkey"><span><s class="y"></s>за</span>
-      <span><s class="u"></s>колеблются</span><span><s class="n"></s>против</span>
-      <span>черта — порог ${need} из ${tot}</span></div>`;
-}
-function voteRows(b,fn){   // b может быть null: доска нужна и не для закона
-  const rows=[];
-  seatOrder().forEach(p=>{
-    const mine=S.deputies.filter(d=>d.party===p.id);
-    if(!mine.length)return;
-    let y=0,n=0,u=0;
-    mine.forEach(d=>{ const st=fn(d); if(st==='yes')y++; else if(st==='no')n++; else u++; });
-    rows.push({p,y,n,u,tot:mine.length});
-  });
-  return rows;
-}
-function whipTable(rows){
-  return `<table class="tight"><thead><tr><th>Фракция</th><th class="n">За</th><th class="n">Против</th>
-      <th class="n">?</th><th style="width:120px"></th></tr></thead><tbody>`+
-    rows.map(r=>`<tr><td>${chip(r.p)} ${r.p.name}${inCoal(r.p.id)?' <span class="tag y">коал.</span>':''}</td>
-      <td class="n good">${r.y}</td><td class="n bad">${r.n}</td><td class="n dim">${r.u}</td>
-      <td>${bar([[r.y/r.tot*100,'var(--good)'],[r.u/r.tot*100,'var(--line-2)'],[r.n/r.tot*100,'var(--bad)']],8)}</td></tr>`).join('')+
-    `</tbody></table>`;
-}
+   Табло и полукруг живут в разделе интерфейса (voteBoard, archSvg):
+   здесь только ступени, которые их показывают. */
 /* доска перед голосованием: прогноз, работа с залом, кнопка «ставить» */
 function voteStage(b,rep0,am){
   const t=T(b.topic);
   const draw=()=>{
     const tl=tally(b);
-    const rows=voteRows(b,d=>{const v=support(d,b);return v>10?'yes':v<-10?'no':'und';});
     const rec=rep0&&rep0.verdict==='back'?'<span class="tag g">комитет рекомендует</span>':
               rep0&&rep0.verdict==='forced'?'<span class="tag r">в обход комитета</span>':'';
     sheetOpen({eye:'Голосование в Собрании · '+dateLabel(),title:t.name,
       body:`<p class="lead">${stanceLine(b)} ${rec}</p>
-        ${voteFrame(rows,tl.yes,tl.und,tl.no,MAJ,SEATS)}
-        <div class="scrollx" style="margin-top:10px">${whipTable(rows)}</div>
+        ${houseBoard(tl.list,tl.yes,tl.no,MAJ,{final:false,what:'прогноз перед подачей голосов'})}
         <p class="hint">Прогноз, а не итог: колеблющиеся падают в свою сторону в момент подачи голосов.
           Кворум — ${QUORUM} мандатов, при явке ниже голосование переносят.</p>`,
       opts:[
@@ -3778,15 +3796,12 @@ function callVote(b,rep0,am){
   if(rep0&&rep0.verdict==='back')low.yes=Math.min(SEATS,low.yes+ri(3,9));
   low.no=SEATS-low.yes; low.pass=low.yes>=MAJ;
   S.votes.unshift({no:S.billNo,q:S.q,name:t.name,stance:b.stance,yes:low.yes,no:low.no,pass:low.pass,house:'соб'});
-  const rows=voteRows(b,d=>support(d,b)>0?'yes':'no');
   sheetOpen({eye:'Поимённое голосование · '+dateLabel(),title:t.name,
     body:`<p class="lead">${stanceLine(b)}</p>
-      ${voteFrame(rows,low.yes,0,low.no,MAJ,SEATS)}
-      <div class="scrollx" style="margin-top:10px">${whipTable(rows)}</div>
+      ${houseBoard(tally(b).list,low.yes,low.no,MAJ,{what:'поимённое голосование',
+        verdict:low.pass?'принят в Собрании':'отклонён Собранием'})}
       <div class="res"><span>Явка</span><b>${present} из ${SEATS}</b>
-        ${am?`<span>Текст с поправкой</span><b class="w">${am.a.name.toLowerCase()}</b>`:''}</div>
-      <div style="text-align:center;margin:12px 0 2px"><span class="stamp ${low.pass?'y':'n'}">${
-        low.pass?'принят в Собрании':'отклонён'}</span></div>`,
+        ${am?`<span>Текст с поправкой</span><b class="w">${am.a.name.toLowerCase()}</b>`:''}</div>`,
     acts:[{label:low.pass?'В Сенат':'Закрыть',fn(){
       if(low.pass){ senateStage(b,low); }
       else {
@@ -3881,7 +3896,8 @@ function senateDebate(b,low,skipCal){
     body:`<p class="lead">${t.name} — ${stanceLine(b).split('—')[1]||''}. Собрание проект принял.
         В Сенате меньшинство отказалось прекращать прения: пока за клотур нет ${need} голосов,
         до голосования по существу дело не дойдёт.</p>
-      ${voteBar(got,SEN_SEATS-got,need)}
+      ${senBoard(clotureList(b,tl),got,SEN_SEATS-got,need,{final:false,house:'Сенат · клотур',
+        what:'за прекращение прений'})}
       <div class="res"><span>За прекращение прений</span><b class="${got>=need?'good':'bad'}">${got}</b>
         <span>Нужно</span><b>${need}</b>
         <span>Не хватает</span><b class="bad">${lack}</b>
@@ -3906,7 +3922,9 @@ function filiVote(b,low,note){
   logMsg('Обструкция устояла: за клотур '+got+' при нужных '+need+'. «'+t.name+'» снят.',1);
   chron('Обструкция в Сенате остановила «'+t.name.toLowerCase()+'».','b');
   sheetOpen({eye:'Прохождение закона · '+dateLabel(),title:t.name,
-    body:billPath(b,low,null,null,false,cl)+
+    body:senBoard(clotureList(b,tl),got,SEN_SEATS-got,need,{house:'Сенат · клотур',
+        what:'голосование о прекращении прений',verdict:'прения не закрыты'})+
+      billPath(b,low,null,null,false,cl)+
       `<p class="hint">Меньшинству не нужно большинство — достаточно ${SEN_SEATS-need+1} голосов,
         чтобы говорить бесконечно. Это и есть главная арифметика палаты.</p>`,
     acts:[{label:'Закрыть'}]});
@@ -4010,7 +4028,8 @@ function senateFloor(b,low,cl,note){
     logMsg('Сенат отклонил «'+t.name+'» ('+up.yes+' против '+up.no+'), хотя Собрание его приняло.',1);
     chron('Сенат остановил «'+t.name.toLowerCase()+'».','b');
     sheetOpen({eye:'Прохождение закона · '+dateLabel(),title:t.name,
-      body:billPath(b,low,up,null,false,cl)+
+      body:senBoard(senTally(b).list,up.yes,up.no,SEN_MAJ,{what:'голосование по существу',
+          verdict:'отклонён Сенатом'})+billPath(b,low,up,null,false,cl)+
         '<p class="hint">Палата субъектов не пропустила проект. Сенату важнее регионы, чем фракции: смотрите, кого задевает текст.</p>',
       acts:[{label:'Закрыть'}]});
     render(); return;
@@ -4132,7 +4151,8 @@ function presStage(b,low,up,cl,note){
     logMsg('Президент наложил вето на «'+t.name+'», принятый обеими палатами.',1);
     chron('Президент отклонил «'+t.name.toLowerCase()+'».','b');
     sheetOpen({eye:'Прохождение закона · '+dateLabel(),title:t.name,
-      body:billPath(b,low,up,{veto:true},false,cl)+
+      body:senBoard(senTally(b).list,up.yes,up.no,SEN_MAJ,{what:'голосование по существу',
+          verdict:up.pass?'одобрен Сенатом':'Сенат против'})+billPath(b,low,up,{veto:true},false,cl)+
         `<p>Закон вернулся в Собрание. Преодолеть вето можно двумя третями — это ${superN()} голосов из ${SEATS}, на сорок больше обычного большинства.</p>`,
       acts:[{label:'Оставить в Собрании'}]});
     render(); return;
@@ -4150,7 +4170,8 @@ function presStage(b,low,up,cl,note){
   logMsg('Принят закон «'+t.name+'»: Собрание '+low.yes+':'+low.no+', Сенат '+up.yes+':'+up.no+'.',1);
   chron('Принят закон «'+t.name.toLowerCase()+'».','g');
   sheetOpen({eye:'Прохождение закона · '+dateLabel(),title:t.name,
-    body:billPath(b,low,up,{veto:false},true,cl)+
+    body:senBoard(senTally(b).list,up.yes,up.no,SEN_MAJ,{what:'голосование по существу',
+        verdict:up.pass?'одобрен Сенатом':'Сенат против'})+billPath(b,low,up,{veto:false},true,cl)+
       (note?'<p class="hint">'+note[0].toUpperCase()+note.slice(1)+'.</p>':'')+
       '<p class="hint">Закон вступает в силу с начала следующего квартала.</p>',
     acts:[{label:'Закрыть'}]});
@@ -6159,7 +6180,7 @@ function election(){
 }
 function showResults(nat,seats,regRes,prom){
   const order=S.parties.slice().sort((a,b)=>seats[b.id]-seats[a.id]);
-  const rows=order.map(p=>`<tr><td><span class="chip"><s style="background:${p.color}"></s>${p.name}${p.id===PL?' <span class="tag y">вы</span>':''}</span></td>
+  const rows=order.map(p=>`<tr><td><span class="chip">${emblem(p,18)}${p.name}${p.id===PL?' <span class="tag y">вы</span>':''}</span></td>
     <td class="num">${nat[p.id]}%</td><td class="num">${seats[p.id]}</td></tr>`).join('');
   const bar=`<div class="bar" style="height:16px;margin:6px 0 10px">${order.map(p=>
     `<i style="width:${seats[p.id]/SEATS*100}%;background:${p.color}"></i>`).join('')}<span class="mid"></span></div>`;
@@ -6244,7 +6265,7 @@ function openCoalitionTalks(){
   const cands=S.parties.filter(p=>p.id!==PL).sort((a,b)=>axDist(a.st,me().st)-axDist(b.st,me().st));
   const rows=cands.map(p=>{
     const d=axDist(p.st,me().st), ok=d<2.05;
-    return `<tr><td><span class="chip"><s style="background:${p.color}"></s>${p.name}</span></td>
+    return `<tr><td><span class="chip">${emblem(p,18)}${p.name}</span></td>
       <td class="num">${seatsOf(p.id)}</td><td class="num">${r1(d)}</td>
       <td class="r">${ok?`<button class="b sm" data-coal="${p.id}">Позвать · ${partyPrice(p.id)} портфеля</button>`:'<span class="dim">не пойдут</span>'}</td></tr>`;}).join('');
   sheetOpen({eye:'Переговоры о коалиции',title:'Нужно собрать большинство',
@@ -6426,6 +6447,11 @@ function load(){
       S.you.seat=S.gov.lead===PL?'pm':(S.role==='junior'?'dep':'lead');
       S.you.seatQ=S.q; S.you.primaries=0;
       logMsg('У политика появилось собственное кресло, отдельное от роли партии: '+seatName()+'.',1);
+    }
+    // сохранение до эмблем: соперники получают свои, игроку подбирается по имени
+    if(S.parties.some(p=>!p.emb)){
+      S.parties.forEach(p=>{ if(!p.emb)p.emb={...embFor(p)}; });
+      logMsg('У партий появились эмблемы. Свою можно сменить в разделе «Партия».',1);
     }
     // сохранение до того, как вице-президент стал человеком со свойствами
     if(S.vp&&S.vp.sen===undefined){
@@ -6707,15 +6733,12 @@ function impeachHouse(){
     yes,no:SEATS-yes,pass,house:'соб'});
   const impV=d=>(d.party===PL?26:inCoal(d.party)?10:-28)+(d.rel-50)*0.3
       +(i.who.party===d.party?-40:0)+bonus*0.38+noise(d.id+'imp'+i.kind+S.q,17);
-  const rows=voteRows(null,d=>impV(d)>0?'yes':'no');
   sheetOpen({eye:'Обвинение · Собрание',title:'Импичмент: '+i.who.name,
     body:`<p class="lead">${k.name}. ${k.txt}</p>
-      ${voteFrame(rows,yes,0,SEATS-yes,impH(),SEATS)}
-      <div class="scrollx" style="margin-top:10px">${whipTable(rows)}</div>
+      ${houseBoard(S.deputies.map(d=>({d,v:impV(d)})),yes,SEATS-yes,impH(),{what:'об обвинении',
+        verdict:pass?'обвинение выдвинуто':'обвинение отклонено'})}
       <div class="res"><span>Материалы комиссии</span><b class="w">${i.ready?'на руках':'нет'}</b>
-        <span>Тон печати</span><b>${pressWord(pressTone())}</b></div>
-      <div style="text-align:center;margin:12px 0 2px"><span class="stamp ${pass?'y':'n'}">${
-        pass?'обвинение выдвинуто':'обвинение отклонено'}</span></div>`,
+        <span>Тон печати</span><b>${pressWord(pressTone())}</b></div>`,
     acts:[{label:pass?'В Сенат, на суд':'Закрыть',fn(){
       if(pass)impeachSenate(); else impFail(false);
     }}]});
@@ -6723,7 +6746,7 @@ function impeachHouse(){
 }
 function impeachSenate(){
   const i=S.imp, bonus=impBonus();
-  let yes=0;
+  let yes=0; const judged=[];
   S.senate.forEach(s=>{
     let v=(s.party===PL?22:inCoal(s.party)?9:-30);
     v+=(s.rel-50)*0.26;
@@ -6731,6 +6754,7 @@ function impeachSenate(){
     if(senRank(s)>=4)v-=6;                        // старейшина не любит отрешать
     v+=bonus*0.42;
     v+=noise(s.id+'imp'+i.kind+S.q,16);
+    judged.push({d:s,v});
     if(v>0)yes++;
   });
   const pass=yes>=impS();
@@ -6739,12 +6763,9 @@ function impeachSenate(){
   sheetOpen({eye:'Суд Сената',title:'Отрешение: '+i.who.name,
     body:`<p class="lead">Сенат заседает как суд. Председательствует не вице-президент, а старейшина палаты —
         и голосуют не за политику, а за то, оставлять ли человека в кресле.</p>
-      ${voteBar(yes,SEN_SEATS-yes,impS())}
-      <div class="res"><span>За отрешение</span><b class="${pass?'good':'bad'}">${yes}</b>
-        <span>Нужно</span><b>${impS()} из ${SEN_SEATS}</b>
-        <span>У коалиции в палате</span><b>${senCoalSeats()}</b></div>
-      <div style="text-align:center;margin:12px 0 2px"><span class="stamp ${pass?'y':'n'}">${
-        pass?'отрешён от должности':'оправдан'}</span></div>`,
+      ${senBoard(judged,yes,SEN_SEATS-yes,impS(),{house:'Сенат · суд',what:'об отрешении',
+        verdict:pass?'отрешён от должности':'оправдан'})}
+      <div class="res"><span>У коалиции в палате</span><b>${senCoalSeats()}</b></div>`,
     acts:[{label:'Дальше',fn(){ pass?impDone():impFail(true); }}]});
   render();
 }
@@ -7527,15 +7548,12 @@ function amendHouse(c){
   const need=cnNeedH(c), pass=yes>=need;
   S.votes.unshift({no:++S.billNo,q:S.q,name:'Поправка: '+c.name,stance:0,
     yes,no:SEATS-yes,pass,house:'соб'});
-  const rows=voteRows(null,d=>cnSupport(d,c,'low')>0?'yes':'no');
   sheetOpen({eye:'Конституционное большинство · Собрание',title:c.name,
     body:`<p class="lead">${c.art}. ${c.eff}.</p>
-      ${voteFrame(rows,yes,0,SEATS-yes,need,SEATS)}
-      <div class="scrollx" style="margin-top:10px">${whipTable(rows)}</div>
-      <div class="res"><span>Нужно ${need>MAJ+40?'две трети':'три пятых'}</span><b>${need}</b>
-        <span>Легитимность сейчас</span><b>${legit()}</b></div>
-      <div style="text-align:center;margin:12px 0 2px"><span class="stamp ${pass?'y':'n'}">${
-        pass?'принята в первом чтении':'отклонена Собранием'}</span></div>`,
+      ${houseBoard(S.deputies.map(d=>({d,v:cnSupport(d,c,'low')})),yes,SEATS-yes,need,
+        {what:'поправка к конституции · '+(need>MAJ+40?'две трети':'три пятых'),
+         verdict:pass?'принята Собранием':'отклонена Собранием'})}
+      <div class="res"><span>Легитимность сейчас</span><b>${legit()}</b></div>`,
     acts:[{label:pass?'В Сенат':'Закрыть',fn(){ pass?amendSenate(c):amendFail(c,'Собрание'); }}]});
   render();
 }
@@ -7546,12 +7564,9 @@ function amendSenate(c){
     yes,no:SEN_SEATS-yes,pass,house:'сен'});
   sheetOpen({eye:'Конституционное большинство · Сенат',title:c.name,
     body:`<p class="lead">Палата субъектов голосует по-своему: поправка меняет и её собственный вес.</p>
-      ${voteBar(yes,SEN_SEATS-yes,need)}
-      <div class="res"><span>За поправку</span><b class="${pass?'good':'bad'}">${yes}</b>
-        <span>Нужно</span><b>${need} из ${SEN_SEATS}</b>
-        <span>Старейшин в палате</span><b>${S.senate.filter(senElder).length}</b></div>
-      <div style="text-align:center;margin:12px 0 2px"><span class="stamp ${pass?'y':'n'}">${
-        pass?'одобрена Сенатом':'отклонена Сенатом'}</span></div>`,
+      ${senBoard(S.senate.map(d=>({d,v:cnSupport(d,c,'sen')})),yes,SEN_SEATS-yes,need,
+        {what:'поправка к конституции',verdict:pass?'одобрена Сенатом':'отклонена Сенатом'})}
+      <div class="res"><span>Старейшин в палате</span><b>${S.senate.filter(senElder).length}</b></div>`,
     acts:[{label:pass?(cnNeedRef(c)?'На всенародное голосование':'Дальше'):'Закрыть',
       fn(){ if(!pass){amendFail(c,'Сенат');return;}
         cnNeedRef(c)?amendRef(c):amendPass(c,null); }}]});
@@ -7669,18 +7684,18 @@ function askConvene(){
 function convCallVote(){
   const f=convCallForecast();
   const okH=f.h>=f.needH, okS=f.s>=f.needS, pass=okH&&okS;
-  const rows=voteRows(null,d=>convCallSupport(d,'low')>0?'yes':'no');
   S.votes.unshift({no:++S.billNo,q:S.q,name:'О созыве Конституционного собрания',stance:0,
     yes:f.h,no:SEATS-f.h,pass:okH,house:'соб'});
   sheetOpen({eye:'Три пятых обеих палат',title:'О созыве Конституционного собрания',
     body:`<p class="lead">Вопрос о созыве не поправка: палаты не меняют ни одной статьи, они лишь
         решают, пускать ли к конституции кого-то кроме себя.</p>
-      ${voteFrame(rows,f.h,0,SEATS-f.h,f.needH,SEATS)}
-      <div class="res"><span>Собрание</span><b class="${okH?'good':'bad'}">${f.h} из ${f.needH}</b>
-        <span>Сенат</span><b class="${okS?'good':'bad'}">${f.s} из ${f.needS}</b>
-        <span>Легитимность</span><b>${legit()} · ${legitWord(legit())}</b></div>
-      <div style="text-align:center;margin:12px 0 2px"><span class="stamp ${pass?'y':'n'}">${
-        pass?'собрание созывается':okH?'Сенат не дал трёх пятых':'Собрание не дало трёх пятых'}</span></div>`,
+      ${houseBoard(S.deputies.map(d=>({d,v:convCallSupport(d,'low')})),f.h,SEATS-f.h,f.needH,
+        {what:'о созыве · три пятых',verdict:okH?'Собрание за созыв':'Собрание против созыва'})}
+      ${senBoard(S.senate.map(d=>({d,v:convCallSupport(d,'sen')})),f.s,SEN_SEATS-f.s,f.needS,
+        {what:'о созыве · три пятых',R:170,verdict:okS?'Сенат за созыв':'Сенат против созыва'})}
+      <div class="res"><span>Легитимность</span><b>${legit()} · ${legitWord(legit())}</b>
+        <span>Итог</span><b class="w ${pass?'good':'bad'}">${
+        pass?'собрание созывается':okH?'Сенат не дал трёх пятых':'Собрание не дало трёх пятых'}</b></div>`,
     acts:[{label:pass?'К выборам делегатов':'Закрыть',
       fn(){ if(pass)convCampaign(); else{
         addCap(-5); bumpRep('comp',-2);
@@ -8068,7 +8083,312 @@ function splitBar(yes,und,no,need,tot){
       <span class="bad">против ${no}</span></div>`;
 }
 function mini(v,color){ return `<span class="mini"><i style="width:${clamp(v,0,100)}%;background:${color||'var(--ink-2)'}"></i></span>`; }
-function chip(p){ return `<span class="chip"><s style="background:${p.color}"></s>${p.short}</span>`; }
+function chip(p){ return `<span class="chip">${emblem(p,15)}${p.short}</span>`; }
+/* ═══ ПОЛУКРУГ ЗАЛА ═══════════════════════════════════════════════
+   Ровный зал, как на схемах настоящих парламентов. Ряды концентрические,
+   шаг кресла вдоль ряда равен шагу между рядами, а крайние кресла
+   каждого ряда стоят на одной прямой — на полу зала. Места раздаются
+   рядам по длине дуги, потом весь зал сортируется по углу слева
+   направо: каждая фракция получает свой клин от первого ряда
+   до последнего, и граница между фракциями идёт по радиусу. */
+const ARCH_GEO={};
+function archGeom(n,rin){
+  const key=n+'|'+rin; if(ARCH_GEO[key])return ARCH_GEO[key];
+  // рядов ровно столько, чтобы при равном шаге поместились все места
+  let R=2;
+  for(;R<48;R++){ const d=(1-rin)/(R-1); let cap=0;
+    for(let k=0;k<R;k++)cap+=Math.floor(Math.PI*(rin+k*d)/d)+1;
+    if(cap>=n)break; }
+  const dr=(1-rin)/(R-1), rad=[];
+  for(let k=0;k<R;k++)rad.push(rin+k*dr);
+  const sum=rad.reduce((a,b)=>a+b,0), raw=rad.map(r=>n*r/sum), cnt=raw.map(Math.floor);
+  let left=n-cnt.reduce((a,b)=>a+b,0);
+  raw.map((v,i)=>[v-cnt[i],i]).sort((a,b)=>b[0]-a[0]).slice(0,left).forEach(x=>cnt[x[1]]++);
+  const slots=[];
+  cnt.forEach((m,k)=>{ for(let j=0;j<m;j++){
+    const a=m===1?Math.PI/2:Math.PI*(1-j/(m-1));      // π — левый край пола, 0 — правый
+    slots.push({a,r:rad[k],k});
+  }});
+  slots.sort((p,q)=>q.a-p.a||p.r-q.r);
+  return (ARCH_GEO[key]={slots,rows:R,dr,cnt});
+}
+/* seats — кресла слева направо: {f:цвет} для раскладки по фракциям
+   или {v:'yes'|'no'|'und'} для итогов голосования.
+   o.ring — фракции для внешней дуги: [{p,n}] в том же порядке. */
+function archSvg(seats,o){
+  o=o||{};
+  const n=seats.length, rin=o.rin||0.4, g=archGeom(n,rin);
+  const R=o.R||230, dot=g.dr*R*(o.sq?0.33:0.37);
+  const padX=o.ring?74:dot+4, padT=o.ring?40:dot+10, padB=dot+8;
+  const W=2*R+2*padX, cx=W/2, cy=R+padT, H=cy+padB;
+  const P=(a,r)=>[cx+Math.cos(a)*r, cy-Math.sin(a)*r];
+  let body='';
+  seats.forEach((s,i)=>{
+    const sl=g.slots[i]; if(!sl)return;
+    const [x,y]=P(sl.a,sl.r*R);
+    const cls=s.v?' class="s-'+s.v+'"':'';
+    const fill=s.f?` fill="${s.f}"`:'';
+    const t=s.t?`<title>${s.t}</title>`:'';
+    if(o.sq){
+      // квадраты не поворачиваем: ровные ряды читаются спокойнее, чем веер ромбов
+      const h=dot*0.9;
+      body+=`<rect${cls}${fill} x="${(x-h).toFixed(1)}" y="${(y-h).toFixed(1)}" width="${(2*h).toFixed(1)}" height="${(2*h).toFixed(1)}">${t}</rect>`;
+    } else body+=`<circle${cls}${fill} cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${dot.toFixed(2)}">${t}</circle>`;
+  });
+  // пол зала: волосяная линейка под крайними креслами
+  const floor=`<line class="a-floor" x1="${(cx-R-dot-6).toFixed(1)}" x2="${(cx+R+dot+6).toFixed(1)}" y1="${(cy+dot+4).toFixed(1)}" y2="${(cy+dot+4).toFixed(1)}"/>`;
+  // внешняя дуга фракций с подписями
+  let ring='';
+  if(o.ring){
+    // граница клина — идеальный радиус по доле мест, а не зубчатый край кресел
+    let c=0; const rr=R+dot+8, gap=0.011;
+    o.ring.forEach(f=>{
+      if(!f.n)return;
+      const a0=Math.PI*(1-c/n), a1=Math.PI*(1-(c+f.n)/n); c+=f.n;
+      let s0=a0-gap, s1=a1+gap;
+      if(s1>=s0){ const m=(a0+a1)/2; s0=m+0.003; s1=m-0.003; }
+      const [x0,y0]=P(s0,rr), [x1,y1]=P(s1,rr);
+      ring+=`<path class="a-ring" stroke="${f.p.color}" d="M${x0.toFixed(1)} ${y0.toFixed(1)}A${rr} ${rr} 0 0 1 ${x1.toFixed(1)} ${y1.toFixed(1)}"/>`;
+      if(a0-a1>0.13){
+        const am=(a0+a1)/2, [lx,ly]=P(am,rr+15);
+        const anc=Math.cos(am)>0.28?'start':Math.cos(am)<-0.28?'end':'middle';
+        ring+=`<text class="a-lab" x="${lx.toFixed(1)}" y="${(ly+3).toFixed(1)}" text-anchor="${anc}">${f.p.short} ${f.n}</text>`;
+      }
+    });
+  }
+  // черта большинства: засечка над залом по вертикали
+  const maj=o.maj?(()=>{ const [x,y]=P(Math.PI/2,R+dot+(o.ring?4:3));
+    return `<line class="a-maj" x1="${x}" x2="${x}" y1="${(y-9).toFixed(1)}" y2="${(y+1).toFixed(1)}"/>`; })():'';
+  // в проёме зала — главное число
+  const inner=g.slots.length?rin*R:0;
+  // размеры подписей — в долях проёма, чтобы при любом масштабе не наезжать на кресла
+  const ctr=o.big!==undefined?`<text class="a-big" x="${cx}" y="${(cy-inner*0.3).toFixed(1)}" text-anchor="middle" style="font-size:${(inner*0.5).toFixed(0)}px">${o.big}</text>`
+    +(o.sub?`<text class="a-sub" x="${cx}" y="${(cy-inner*0.08).toFixed(1)}" text-anchor="middle" style="font-size:${(inner*0.1).toFixed(1)}px">${o.sub}</text>`:''):'';
+  return `<svg class="arch${o.sq?' sq':''}" viewBox="0 0 ${W.toFixed(0)} ${H.toFixed(0)}" role="img">${floor}${ring}${maj}${body}${ctr}</svg>`;
+}
+/* раскладка палаты по фракциям: партии слева направо по курсу */
+function archParty(counts,o){
+  const seats=[], ring=[];
+  seatOrder().forEach(p=>{ const k=counts(p.id)||0; if(!k)return;
+    ring.push({p,n:k});
+    for(let i=0;i<k;i++)seats.push({f:p.color,t:p.name}); });
+  return archSvg(seats,Object.assign({ring:null},o||{}));
+}
+/* подпись к залу: эмблема, имя, места — в порядке клиньев */
+function archLegend(counts){
+  return '<div class="arch-leg">'+seatOrder().filter(p=>counts(p.id)).map(p=>
+    `<span>${emblem(p,22)}${p.name} <b>${counts(p.id)}</b>${inCoal(p.id)?'<u>коалиция</u>':''}</span>`).join('')+'</div>';
+}
+function hemicycle(){
+  return archParty(seatsOf,{R:236,big:SEATS,sub:'мандатов'});
+}
+
+/* ─── кто как голосует ────────────────────────────────────────────
+   Итог не выдумывается кресло за креслом: самые расположенные к проекту
+   голосуют «за», самые враждебные — «против», середина колеблется.
+   Так на табло ровно столько зелёных и красных мест, сколько в счёте. */
+function seatVotes(list,yes,no){
+  const s=list.slice().sort((a,b)=>b.v-a.v), out=new Map();
+  s.forEach((x,i)=>out.set(x.d,i<yes?'yes':i>=s.length-no?'no':'und'));
+  return out;
+}
+/* группировка по фракциям в порядке зала */
+function voteFactions(pool,vote){
+  const rows=[];
+  seatOrder().forEach(p=>{
+    const mine=pool.filter(d=>d.party===p.id); if(!mine.length)return;
+    let y=0,n=0,u=0; mine.forEach(d=>{ const v=vote.get(d); v==='yes'?y++:v==='no'?n++:u++; });
+    rows.push({p,y,n,u,tot:mine.length});
+  });
+  return rows;
+}
+/* ═══ ТАБЛО ГОЛОСОВАНИЯ ════════════════════════════════════════════
+   Слева зал: кресла стоят на своих местах, клин фракции подписан по
+   внешней дуге, а цвет кресла — как оно проголосовало. Справа табло:
+   счёт крупными цифрами на чёрном, как на табло в настоящем зале,
+   и итог. Внизу фракции, у каждой своя эмблема и своя полоса. */
+function voteBoard(o){
+  const tot=o.tot||(o.yes+o.no+(o.und||0));
+  const seats=[];
+  o.rows.forEach(r=>{                       // внутри клина: «за», колеблющиеся, «против»
+    for(let i=0;i<r.y;i++)seats.push({v:'yes'});
+    for(let i=0;i<r.u;i++)seats.push({v:'und'});
+    for(let i=0;i<r.n;i++)seats.push({v:'no'});
+  });
+  const pass=o.yes>=o.need, fc=o.final===false;
+  const lack=Math.max(0,o.need-o.yes);
+  const svg=archSvg(seats,{R:o.R||232,ring:o.rows.map(r=>({p:r.p,n:r.tot})),sq:o.sq,
+    big:o.yes,sub:'за · нужно '+o.need});
+  const pct=v=>(v/Math.max(1,tot)*100).toFixed(2);
+  const fr=o.rows.map(r=>`<tr>
+      <td class="vb-e">${emblem(r.p,20)}</td>
+      <td class="vb-n"><b>${r.p.name}</b>${r.p.id===PL?' <span class="tag">вы</span>':inCoal(r.p.id)?' <span class="tag y">коал.</span>':''}</td>
+      <td class="vb-bar hide-s"><span>${r.y?`<i class="y" style="width:${(r.y/r.tot*100).toFixed(1)}%"></i>`:''}${
+        r.u?`<i class="u" style="width:${(r.u/r.tot*100).toFixed(1)}%"></i>`:''}${
+        r.n?`<i class="n" style="width:${(r.n/r.tot*100).toFixed(1)}%"></i>`:''}</span></td>
+      <td class="n good">${r.y}</td><td class="n bad">${r.n}</td>${o.und!==undefined&&!o.noUnd?`<td class="n dim">${r.u}</td>`:''}
+    </tr>`).join('');
+  const und=o.und!==undefined&&!o.noUnd;
+  return `<div class="vb">
+    <div class="vb-h"><span><b>${o.house||'Народное собрание'}</b>${o.what?' · '+o.what:''}</span>
+      <span>${fc?'прогноз':'итог'} · порог ${o.need} из ${tot}</span></div>
+    <div class="vb-m">
+      <div class="vb-a">${svg}</div>
+      <div class="vb-r">
+        <div class="vb-sc">
+          <div class="${pass?'on':''}"><i class="s-yes"></i><span>за</span><b>${o.yes}</b></div>
+          <div class="${!pass&&!fc?'on':''}"><i class="s-no"></i><span>против</span><b>${o.no}</b></div>
+          ${und?`<div><i class="s-und"></i><span>${o.undWord||'колеблются'}</span><b>${o.und}</b></div>`:''}
+          <div class="t"><i></i><span>нужно</span><b>${o.need}</b></div>
+        </div>
+        <div class="vb-v ${fc?'f':pass?'y':'n'}">${fc
+          ?(pass?'хватает с запасом '+(o.yes-o.need):'не хватает '+lack)
+          :(o.verdict||(pass?'решение принято':'решение не принято'))}</div>
+      </div>
+    </div>
+    <table class="vb-f"><thead><tr><th colspan="2">Фракция</th><th class="hide-s"></th>
+      <th class="n">За</th><th class="n">Против</th>${und?'<th class="n">?</th>':''}</tr></thead>
+      <tbody>${fr}</tbody></table>
+  </div>`;
+}
+/* доска Собрания по списку депутатов с оценкой v */
+function houseBoard(list,yes,no,need,o){
+  const vote=seatVotes(list,yes,no);
+  const und=SEATS-yes-no;
+  return voteBoard(Object.assign({rows:voteFactions(S.deputies,vote),yes,no,und:o&&o.final===false?und:undefined,
+    need,tot:SEATS},o||{}));
+}
+function senBoard(list,yes,no,need,o){
+  const vote=seatVotes(list,yes,no);
+  const und=SEN_SEATS-yes-no;
+  return voteBoard(Object.assign({rows:voteFactions(S.senate,vote),yes,no,und:o&&o.final===false?und:undefined,
+    need,tot:SEN_SEATS,house:'Сенат',sq:true,R:200},o||{}));
+}
+
+/* ═══ ЭМБЛЕМЫ ПАРТИЙ ═══════════════════════════════════════════════
+   Эмблема собирается из четырёх решений: форма щита, знак, цвет знака
+   и кайма. Цвет поля — цвет фракции, тот же, что на полукруге, поэтому
+   эмблема и клин в зале узнаются друг по другу. */
+const EMB_SH=[
+  {id:'circle', name:'Круг',     d:'<circle cx="12" cy="12" r="11.2"/>', cy:12, k:0.96},
+  {id:'shield', name:'Щит',      d:'<path d="M2.6 1.8h18.8v8.6c0 6-4.2 9.8-9.4 12C6.8 20.2 2.6 16.4 2.6 10.4z"/>', cy:10.9, k:0.9},
+  {id:'square', name:'Квадрат',  d:'<rect x="1.4" y="1.4" width="21.2" height="21.2"/>', cy:12, k:1.0},
+  {id:'diamond',name:'Ромб',     d:'<path d="M12 .6 23.4 12 12 23.4.6 12z"/>', cy:12, k:0.76},
+  {id:'hex',    name:'Шестигранник', d:'<path d="M12 .6l9.9 5.7v11.4L12 23.4l-9.9-5.7V6.3z"/>', cy:12, k:0.9},
+  {id:'banner', name:'Стяг',     d:'<path d="M2.4 1.2h19.2v21.6L12 17.4l-9.6 5.4z"/>', cy:9.6, k:0.86},
+];
+const EMB_C2=[
+  {id:'paper',name:'Белый',  c:'#FBF9F3'},
+  {id:'gold', name:'Золото', c:'#E2C36B'},
+  {id:'ink',  name:'Чёрный', c:'#14130F'},
+];
+const EMB_RIM=[{id:'none',name:'Без каймы'},{id:'ring',name:'Кайма'},{id:'double',name:'Двойная'}];
+const EMB_COLORS=['#9A7211','#94271F','#28496F','#17706B','#4E6B22','#5C3A6E','#2E2B26','#B0552A'];
+/* знаки нарисованы в квадрате ±7 вокруг нуля */
+const EMB_SY=(()=>{
+  const poly=(pts)=>'M'+pts.map(p=>p[0].toFixed(2)+' '+p[1].toFixed(2)).join('L')+'Z';
+  const star=(n,ro,ri,rot)=>{ const pts=[]; for(let i=0;i<n*2;i++){ const a=(rot+i*180/n)*Math.PI/180, r=i%2?ri:ro;
+    pts.push([Math.cos(a)*r,Math.sin(a)*r]); } return poly(pts); };
+  const gear=(()=>{ const pts=[]; for(let k=0;k<8;k++){ const b=k*45;
+    [[b-15,5.2],[b-8,7.1],[b+8,7.1],[b+15,5.2]].forEach(([a,r])=>{ const t=a*Math.PI/180; pts.push([Math.cos(t)*r,Math.sin(t)*r]); }); }
+    return poly(pts)+'M2.5 0A2.5 2.5 0 1 0-2.5 0A2.5 2.5 0 1 0 2.5 0Z'; })();
+  const rays=(()=>{ let d=''; for(let i=0;i<5;i++){ const a=Math.PI*(1-i/4), c=Math.cos(a), s=-Math.sin(a);
+    const w=0.55, x0=c*5.4, y0=s*5.4+2.6, x1=c*7.3, y1=s*7.3+2.6, nx=-s*w, ny=c*w;
+    d+=poly([[x0+nx,y0+ny],[x1+nx,y1+ny],[x1-nx,y1-ny],[x0-nx,y0-ny]]); } return d; })();
+  const grain=(x,y,r)=>`<ellipse cx="${x}" cy="${y}" rx="1.25" ry="2.3" transform="rotate(${r} ${x} ${y})"/>`;
+  return [
+    {id:'star',    name:'Звезда',      g:`<path d="${star(5,7.4,3,-90)}"/>`},
+    {id:'compass', name:'Роза ветров', g:`<path d="${star(4,7.4,1.9,-90)}"/><path d="${star(4,4.2,1.2,-45)}" opacity=".7"/>`},
+    {id:'dawn',    name:'Рассвет',     g:`<path d="M-4.4 2.6A4.4 4.4 0 0 1 4.4 2.6Z"/><path d="${rays}"/><path d="M-7.2 3.7h14.4v1.4h-14.4z"/>`},
+    {id:'gear',    name:'Шестерня',    g:`<path fill-rule="evenodd" d="${gear}"/>`},
+    {id:'wheat',   name:'Колос',       g:`<path d="M-.55-5h1.1v12h-1.1z"/>${grain(-1.5,-3.4,-32)}${grain(1.5,-3.4,32)}${grain(-1.5,-.3,-32)}${grain(1.5,-.3,32)}${grain(-1.5,2.8,-32)}${grain(1.5,2.8,32)}${grain(0,-6.2,0)}`},
+    {id:'oak',     name:'Дуб',         g:`<circle cx="-2.7" cy="-1.4" r="3.4"/><circle cx="2.7" cy="-1.4" r="3.4"/><circle cx="0" cy="-4" r="3.6"/><path d="M-1 0h2v7h-2z"/><path d="M-4 6.2h8v1.1h-8z"/>`},
+    {id:'torch',   name:'Факел',       g:`<path d="M0-7.4C3.4-4.2 3.4-1.6 1.7.4C1.5-.9.9-1.7 0-2.2C-.5-1.2-1.9-.5-1.7.4C-3.5-1.6-3-4.4 0-7.4Z"/><path d="M-3.2 1.2h6.4l-1.3 2.3h-3.8z"/><path d="M-.9 3.3h1.8v4h-1.8z"/>`},
+    {id:'orb',     name:'Держава',     g:`<path fill-rule="evenodd" d="M4.8 2A4.8 4.8 0 1 1-4.8 2A4.8 4.8 0 1 1 4.8 2ZM-4.8 1.3h9.6v1.2h-9.6z"/><path d="M-.7-7.4h1.4v4.8h-1.4z"/><path d="M-2.1-6.1h4.2v1.3h-4.2z"/>`},
+    {id:'tower',   name:'Башня',       g:`<path fill-rule="evenodd" d="M-4.4-3.4h8.8V7.2h-8.8zM-1.3 7.2V4.6a1.3 1.3 0 0 1 2.6 0v2.6z"/><path d="M-4.4-6.6h2v3.4h-2zM-1 -6.6h2v3.4h-2zM2.4-6.6h2v3.4h-2z"/>`},
+    {id:'book',    name:'Книга',       g:`<path d="M-.5-3.9C-2.2-5.5-4.9-5.8-7.2-4.8V5.4C-4.9 4.4-2.2 4.7-.5 6.2Z"/><path d="M.5-3.9C2.2-5.5 4.9-5.8 7.2-4.8V5.4C4.9 4.4 2.2 4.7.5 6.2Z"/>`},
+    {id:'anchor',  name:'Якорь',       g:`<g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="0" cy="-5.3" r="1.5"/><path d="M0-3.8V6.6"/><path d="M-3.2-1.8h6.4"/><path d="M-5.6 2.4A5.8 5.8 0 0 0 5.6 2.4"/></g>`},
+    {id:'peaks',   name:'Горы',        g:`<path d="M-7.6 5.6-2.4-3.8.5 1.2 2.7-2.2 7.6 5.6Z"/>`},
+    {id:'wave',    name:'Волна',       g:`<g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M-7-2q1.75-2.4 3.5 0t3.5 0 3.5 0 3.5 0"/><path d="M-7 2.6q1.75-2.4 3.5 0t3.5 0 3.5 0 3.5 0"/></g>`},
+  ];
+})();
+/* эмблема по умолчанию для партии, у которой её ещё нет */
+function embFor(p){
+  if(p.emb)return p.emb;
+  const ai=AIPARTIES.find(x=>x.id===p.id); if(ai&&ai.emb)return ai.emb;
+  const h=[...String(p.name||p.id)].reduce((a,c)=>(a*31+c.charCodeAt(0))>>>0,7);
+  // сдвиг беззнаковый: знаковый на больших хешах даёт отрицательный индекс;
+  // знак берём первый свободный от соперников, чтобы не повторить чужую эмблему
+  const taken=AIPARTIES.map(x=>x.emb&&x.emb.sy);
+  let k=(h>>>3)%EMB_SY.length;
+  for(let i=0;i<EMB_SY.length&&taken.indexOf(EMB_SY[k].id)>=0;i++)k=(k+1)%EMB_SY.length;
+  return {sh:EMB_SH[h%EMB_SH.length].id, sy:EMB_SY[k].id, c2:'paper', rim:'ring'};
+}
+function emblem(p,size,e){
+  e=e||embFor(p);
+  const s=size||24, sh=EMB_SH.find(x=>x.id===e.sh)||EMB_SH[0];
+  const sy=EMB_SY.find(x=>x.id===e.sy);
+  const c2=(EMB_C2.find(x=>x.id===e.c2)||EMB_C2[0]).c;
+  const small=s<17, rim=small?'none':(e.rim||'none');
+  const k=sh.k*(rim==='none'?1:0.8)*(small?1.06:1);
+  const inset=(f,w)=>`<g transform="translate(12 12) scale(${f}) translate(-12 -12)" fill="none" stroke="${c2}" stroke-width="${(w/f).toFixed(2)}">${sh.d}</g>`;
+  const rims=rim==='ring'?inset(0.84,0.9):rim==='double'?inset(0.86,0.7)+inset(0.76,0.7):'';
+  return `<svg class="emb" viewBox="0 0 24 24" width="${s}" height="${s}" aria-hidden="true">`+
+    `<g fill="${p.color||'#807B70'}">${sh.d}</g>${rims}`+
+    (sy?`<g transform="translate(12 ${sh.cy}) scale(${k.toFixed(3)})" fill="${c2}" color="${c2}">${sy.g}</g>`:'')+
+    `</svg>`;
+}
+/* ─── конструктор эмблемы ─────────────────────────────────────────
+   Перед присягой и потом в разделе партии. Живой образец крупно,
+   под ним четыре ряда решений и соперники — чтобы не нарисовать
+   чужую эмблему своими руками. */
+function embRandom(){
+  return {sh:pick(EMB_SH).id, sy:pick(EMB_SY).id, c2:pick(EMB_C2).id, rim:pick(EMB_RIM).id};
+}
+function embKit(base,rivals){
+  const e=base.emb||(base.emb=embFor(base));
+  const P0={color:base.color,short:base.short};
+  const btn=(key,val,inner,label,on)=>`<button class="ek${on?' on':''}" data-k="${key}" data-v="${val}" title="${label}">${inner}</button>`;
+  const row=(t,items)=>`<div class="ek-row"><i>${t}</i><div>${items}</div></div>`;
+  return `<div class="ek-kit">
+    <div class="ek-prev">${emblem(P0,112,e)}
+      <b>${base.name||'Новая партия'}</b><span>${base.short||''}</span></div>
+    <div class="ek-opts">
+      ${row('Форма',EMB_SH.map(s=>btn('sh',s.id,emblem(P0,28,{...e,sh:s.id,sy:null,rim:'none'}),s.name,e.sh===s.id)).join(''))}
+      ${row('Знак',EMB_SY.map(s=>btn('sy',s.id,emblem(P0,28,{...e,sy:s.id,rim:'none'}),s.name,e.sy===s.id)).join(''))}
+      ${row('Цвет поля',EMB_COLORS.map(c=>btn('color',c,`<s style="background:${c}"></s>`,c,base.color===c)).join(''))}
+      ${row('Цвет знака',EMB_C2.map(c=>btn('c2',c.id,emblem(P0,28,{...e,c2:c.id,rim:'none'}),c.name,e.c2===c.id)).join(''))}
+      ${row('Кайма',EMB_RIM.map(r=>btn('rim',r.id,emblem(P0,28,{...e,rim:r.id,sy:null}),r.name,e.rim===r.id)).join(''))}
+      <div class="ek-row"><i></i><div><button class="btn sm" data-k="rnd" data-v="1">Случайная эмблема</button></div></div>
+    </div>
+    ${rivals&&rivals.length?`<div class="ek-riv"><i>Соперники</i>${rivals.map(p=>
+      `<span>${emblem(p,34)}<u>${p.short}</u></span>`).join('')}</div>`:''}
+  </div>`;
+}
+function embBind(base,rivals){
+  const box=document.getElementById('ek');
+  if(!box)return;
+  box.innerHTML=embKit(base,rivals);
+  box.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{
+    const k=b.dataset.k, v=b.dataset.v;
+    if(k==='rnd'){ base.emb=embRandom(); base.color=pick(EMB_COLORS); }
+    else if(k==='color')base.color=v;
+    else base.emb={...base.emb,[k]:v};
+    embBind(base,rivals);
+  });
+}
+/* правка эмблемы действующей партии: бесплатно, но видно всем */
+function askEmblem(){
+  const p=me(), draft={name:p.name,short:p.short,color:p.color,emb:{...embFor(p)}};
+  const rivals=S.parties.filter(x=>x.id!==PL);
+  sheetOpen({eye:'Партия · эмблема',title:'Эмблема «'+p.name+'»',
+    body:`<div id="ek"></div><p class="hint">Цвет поля — это и цвет фракции на полукруге и во всех таблицах.</p>`,
+    acts:[{label:'Сохранить',fn(){ p.emb=draft.emb; p.color=draft.color;
+        logMsg('«'+p.name+'» сменила эмблему.'); render(); }},
+      {label:'Оставить как было'}],
+    after(){ embBind(draft,rivals); }});
+}
+
 function est(v,exact){ return exact?v:`<span class="est" title="оценка без свежего опроса">${v}</span>`; }
 function stanceLine(b){
   const t=T(b.topic);
@@ -8345,117 +8665,16 @@ function askGroup(){
 }
 
 /* ─── 2 · Собрание ───────────────────────────────────────────── */
-/* Кресел ровно столько, сколько мандатов: ряды берут места пропорционально
-   длине дуги, остаток уходит во внешний ряд. */
-function hemiSlots(n,rows,r0,dr,cx,cy){
-  const rad=[],ws=[];let sum=0;
-  for(let k=0;k<rows;k++){ const r=r0+k*dr; rad.push(r); ws.push(r); sum+=r; }
-  const cnt=ws.map(w=>Math.max(1,Math.floor(n*w/sum)));
-  let diff=n-cnt.reduce((a,b)=>a+b,0), k=rows-1;
-  while(diff>0){ cnt[k]++; diff--; k=(k-1+rows)%rows; }
-  while(diff<0){ if(cnt[k]>1){cnt[k]--;diff++;} k=(k-1+rows)%rows; }
-  const slots=[];
-  cnt.forEach((m,i)=>{ for(let j=0;j<m;j++){
-    const a=Math.PI*(0.045+0.91*(m===1?0.5:j/(m-1)));
-    slots.push({a,r:rad[i],x:cx-Math.cos(a)*rad[i],y:cy-Math.sin(a)*rad[i]});
-  }});
-  return slots.sort((p,q)=>p.a-q.a||p.r-q.r);
-}
 /* партии рассаживаются слева направо по хозяйственно-правовой оси */
 function seatOrder(){
   return S.parties.slice().sort((a,b)=>(a.st.econ+a.st.tax+a.st.free)-(b.st.econ+b.st.tax+b.st.free));
 }
-function hemicycle(){
-  const W=760,H=292,list=[];
-  seatOrder().forEach(p=>{ for(let i=0;i<seatsOf(p.id);i++)list.push(p.color); });
-  const slots=hemiSlots(list.length,11,76,19,W/2,H-10);
-  return `<svg class="hemi" viewBox="0 0 ${W} ${H}">${list.map((c,i)=>{const s=slots[i];
-    return `<circle cx="${s.x.toFixed(1)}" cy="${s.y.toFixed(1)}" r="3.6" fill="${c}"/>`;}).join('')}</svg>`;
-}
 /* ─── зал Сената ──────────────────────────────────────────────────
-   Полукруг, как чертёж античного театра: одиннадцать клиньев по числу
-   субъектов, между ними лучевые проходы, кресла квадратные и повёрнуты
-   к трибуне. Клин тем шире, чем больше делегация, — площадь на плане
-   и есть вес края в палате. Внизу орхестра: место председателя. */
+   Тот же ровный полукруг, что у Собрания, но кресла квадратные:
+   вторую палату узнают с первого взгляда.
+   Сто мест — семь рядов; делегации субъектов — в таблице ниже. */
 function senHemi(){
-  const rows=4, r0=112, dr=56, seat=19, gapDeg=1.7, edge=7;
-  const rOut=r0+(rows-1)*dr+seat/2+18, rIn=r0-seat/2-14;
-  const W=Math.round(rOut*2+120), cx=W/2, cy=rOut+16, H=Math.round(cy+56);
-  const tot=REGIONS.reduce((a,r)=>a+r.sen,0)||1;
-  // по краю полукруга оставлен запас: иначе крайние кресла свешиваются за черту
-  const free=180-edge*2-gapDeg*(REGIONS.length-1);
-  const ord=seatOrder();
-  let ang=180-edge; const cells=[], aisles=[], labels=[], paths=[];
-  REGIONS.forEach((rg,k)=>{
-    const span=free*rg.sen/tot, a0=ang, a1=ang-span;
-    // сенаторы края: сначала по фракциям, потом по стажу
-    const here=S.senate.filter(x=>x.region===rg.id)
-      .sort((a,b)=>ord.findIndex(p=>p.id===a.party)-ord.findIndex(p=>p.id===b.party)
-        ||senRank(b)-senRank(a));
-    // ряды: дальний ряд длиннее и потому вмещает больше
-    const rad=[]; for(let i=0;i<rows;i++)rad.push(r0+i*dr);
-    const wsum=rad.reduce((a,b)=>a+b,0);
-    let left=here.length; const cnt=[];
-    rad.forEach((r,i)=>{ const n=i===rows-1?left:Math.min(left,Math.round(here.length*r/wsum));
-      cnt.push(n); left-=n; });
-    let idx=0;
-    cnt.forEach((n,i)=>{
-      if(n<=0)return;
-      const r=rad[i];
-      // шаг задан размером кресла, а не шириной клина: так ряд стоит плотно,
-      // а свободное место уходит в проход между делегациями
-      const pitch=Math.min((seat*1.28)/r*180/Math.PI, span/n);
-      const mid=(a0+a1)/2, start=mid+pitch*(n-1)/2;
-      for(let j=0;j<n;j++){
-        const a=(start-pitch*j)*Math.PI/180;
-        const x=cx+Math.cos(a)*r, y=cy-Math.sin(a)*r;
-        const st=here[idx++]; if(!st)continue;
-        const deg=90-a*180/Math.PI, el=senElder(st);
-        cells.push(`<rect x="${(x-seat/2).toFixed(1)}" y="${(y-seat/2).toFixed(1)}" width="${seat}" height="${seat}"
-          transform="rotate(${deg.toFixed(1)} ${x.toFixed(1)} ${y.toFixed(1)})"
-          fill="${P(st.party).color}" stroke="var(--ink)" stroke-width="${el?1.8:0.8}"
-          ><title>${st.name} · ${P(st.party).short} · ${rg.name}${el?' · старейшина':''}</title></rect>`);
-      }
-    });
-    // лучевой проход по границе клина
-    if(k<REGIONS.length-1){
-      const a=(a1-gapDeg/2)*Math.PI/180;
-      aisles.push(`<line x1="${(cx+Math.cos(a)*rIn).toFixed(1)}" y1="${(cy-Math.sin(a)*rIn).toFixed(1)}"
-        x2="${(cx+Math.cos(a)*(rOut-6)).toFixed(1)}" y2="${(cy-Math.sin(a)*(rOut-6)).toFixed(1)}"
-        stroke="var(--ink)" stroke-width="1"/>`);
-    }
-    // подпись идёт по дуге, а не по касательной: длинное название тогда
-    // остаётся внутри своего клина и не наезжает на соседний
-    const rl=rOut-9, pid='sa'+k;
-    const px=a=>(cx+Math.cos(a*Math.PI/180)*rl).toFixed(1),
-          py=a=>(cy-Math.sin(a*Math.PI/180)*rl).toFixed(1);
-    paths.push(`<path id="${pid}" d="M ${px(a0)} ${py(a0)} A ${rl} ${rl} 0 0 1 ${px(a1)} ${py(a1)}" fill="none"/>`);
-    // кегль подписи считается от длины дуги: узкому клину — мелкий шрифт,
-    // иначе название вылезет за проход к соседям
-    const cap=rg.cap.toUpperCase(), arcLen=span*Math.PI/180*rl;
-    const fs=clamp(arcLen/(cap.length*0.74),5.4,8.5).toFixed(1);
-    labels.push(`<text class="sl" style="font-size:${fs}px"><textPath href="#${pid}" startOffset="50%"
-      text-anchor="middle">${cap}</textPath><title>${rg.name} · ${rg.sen}</title></text>`);
-    ang=a1-gapDeg;
-  });
-  const arc=(r,w)=>`<path d="M ${(cx-r).toFixed(1)} ${cy} A ${r} ${r} 0 0 1 ${(cx+r).toFixed(1)} ${cy}"
-    fill="none" stroke="var(--ink)" stroke-width="${w}"/>`;
-  const v=S.vp, half=W/2-6;
-  return `<svg class="hemi sen" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
-    <style>.sl{font:700 8.5px var(--f-cond);letter-spacing:.1em;fill:var(--ink-3)}
-      .so{font:700 8.5px var(--f-cond);letter-spacing:.14em;fill:var(--ink-2)}</style>
-    <defs>${paths.join('')}</defs>
-    ${arc(rOut+9,5)}${arc(rOut,1)}${arc(rIn,1)}
-    ${aisles.join('')}${cells.join('')}${labels.join('')}
-    <line x1="${cx-half}" y1="${cy+12}" x2="${cx+half}" y2="${cy+12}" stroke="var(--ink)" stroke-width="2"/>
-    <rect x="${cx-62}" y="${cy-20}" width="124" height="32" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.4"/>
-    <text x="${cx}" y="${cy}" text-anchor="middle" class="so">ПРЕДСЕДАТЕЛЬ</text>
-    <rect x="${cx-half}" y="${cy+14}" width="62" height="26" fill="none" stroke="var(--ink)" stroke-width="1.4"/>
-    <text x="${cx-half+31}" y="${cy+31}" text-anchor="middle" class="so">ЛОЖА</text>
-    <rect x="${cx+half-62}" y="${cy+14}" width="62" height="26" fill="none" stroke="var(--ink)" stroke-width="1.4"/>
-    <text x="${cx+half-31}" y="${cy+31}" text-anchor="middle" class="so">ПЕЧАТЬ</text>
-    <title>${v?'Председательствует '+v.name:'Кресло председателя пусто'}</title>
-  </svg>`;
+  return archParty(senSeatsOf,{R:230,sq:true,big:SEN_SEATS,sub:'мест'});
 }
 /* линейка порогов: где стоит коалиция относительно 51 и клотура */
 function senThresholds(){
@@ -8471,7 +8690,6 @@ function senThresholds(){
       <span style="left:${pos(c)}%;top:14px;color:var(--mark)">коалиция ${c}</span>
     </div>`;
 }
-function senCircle(){ return senHemi()+senThresholds(); }
 function tabParl(){
   const b=S.bill;
   let deps=S.deputies.slice();
@@ -8498,8 +8716,7 @@ function tabParl(){
 
   return panel({cls:'info',title:'Народное собрание',
     meta:mandates(SEATS)+' · большинство '+MAJ+' · коалиция '+coalSeats(),
-    body:hemicycle()+'<div class="legend">'+S.parties.map(p=>
-      `<span class="chip"><s style="background:${p.color}"></s>${p.name} — ${seatsOf(p.id)}${inCoal(p.id)?' · коалиция':''}</span>`).join('')+'</div>'})
+    body:hemicycle()+archLegend(seatsOf)})
   +`<div class="cols c21"><div>`
   +panel({title:'Депутаты',meta:b?'по проекту «'+T(b.topic).name+'»':'сортировка: кто хуже к вам относится',flush:true,
     body:`<div style="padding:var(--x4) var(--x5);border-bottom:var(--hair-2)" class="row">
@@ -8792,8 +9009,7 @@ function tabSenate(){
         до голосования по существу дело не доходит вовсе.</p>
       ${senHemi()}
       ${senThresholds()}
-      <div class="legend" style="margin-top:10px">${S.parties.map(p=>
-        `<span class="chip"><s style="background:${p.color}"></s>${p.short} — ${senSeatsOf(p.id)}</span>`).join('')}</div>
+      ${archLegend(senSeatsOf)}
       <div class="res"><span>У коалиции</span><b class="${senCoalSeats()>=SEN_MAJ?'good':'bad'}">${senCoalSeats()} из ${SEN_MAJ}</b>
         <span>До клотура</span><b class="${senCoalSeats()>=need?'good':'warn'}">${senCoalSeats()} из ${need}</b>
         <span>Следующее переизбрание</span><b>${quarters(due)}</b>
@@ -8931,7 +9147,7 @@ function dirPanel(a){
       <td class="r"><button class="btn sm ${l?'':'pri'}" onclick="newBill('${t.id}');S.tab='bill';render()"
         ${S.bill?'disabled':''}>${l?'Переписать':'Готовить'}</button></td></tr>`;}).join('');
   const rivals=S.parties.slice().sort((x,y)=>(x.st[a.id]||0)-(y.st[a.id]||0))
-    .map(p=>`<span class="chip"><s style="background:${p.color}"></s>${p.short} ${sign(r1(p.st[a.id]||0))}</span>`).join('');
+    .map(p=>`<span class="chip">${emblem(p,15)}${p.short} ${sign(r1(p.st[a.id]||0))}</span>`).join('');
   return panel({title:a.name,meta:a.l+' ↔ '+a.r,flush:true,
     body:`<div style="padding:var(--x4) var(--x5) 0">${axisRuler(a.id)}
         <div class="legend" style="margin:6px 0 2px">${rivals}</div></div>
@@ -9492,8 +9708,14 @@ function tabParty(){
     foot:`<button class="btn pri" onclick="yieldWing()" ${S.ap&&S.cap>=8?'':'disabled'}>Уступить крылу<span class="cost">8</span></button>
       <button class="btn" data-go="parl">Работать с депутатами</button>`}):'';
 
+  // эмблемы всех партий Новарии — одной строкой, своя первой
+  const embRow=`<div class="emb-row">${[p,...S.parties.filter(x=>x.id!==PL)].map(x=>
+      `<span class="${x.id===PL?'on':''}">${emblem(x,x.id===PL?46:34)}<b>${x.short}</b><u>${seatsOf(x.id)}</u></span>`).join('')}</div>`;
   return chal+panel({cls:'lead-p',title:'«'+p.name+'» изнутри',meta:mandates(seatsOf(PL)),body:
     `<div class="cols c12"><div>
+      <div class="emb-card">${emblem(p,96)}
+        <div><b>${p.name}</b><span>${p.short} · ${mandates(seatsOf(PL))}</span>
+          <button class="btn sm" onclick="askEmblem()">Изменить эмблему</button></div></div>
       <div class="stat"><i>ось расхождения</i><div class="v" style="font-family:var(--f-display);font-size:24px;letter-spacing:0">${AXNAME[w.ax]}</div>
         <span>по ней фракция расходится сильнее всего</span></div>
      </div><div>
@@ -9504,7 +9726,7 @@ function tabParty(){
           .reduce((s,d)=>s+d.loyal,0)/Math.max(1,seatsOf(PL)))}</b>
         <span>Мест в Сенате</span><b>${senSeatsOf(PL)}</b>
         <span>Глав краёв</span><b>${REGIONS.filter(r=>govOf(r.id).party===PL).length}</b></div>
-     </div></div>`})
+     </div></div>${embRow}`})
   +`<div class="cols c11"><div>`
   +panel({title:'Крылья',flush:true,
     body:`<table class="tight"><thead><tr><th>Крыло</th><th class="n">Депутатов</th>
@@ -9589,10 +9811,10 @@ function mapSVG(){
   return `<div class="mapbox"><svg class="mapsvg" viewBox="0 0 920 ${MAP_H}">${paths}${labels}</svg></div>`;
 }
 function mapLegend(){
-  if(S.mapMode==='seats')return S.parties.map(p=>`<span class="chip"><s style="background:${p.color}"></s>${p.short}</span>`).join('');
+  if(S.mapMode==='seats')return S.parties.map(p=>`<span class="chip">${emblem(p,15)}${p.short}</span>`).join('');
   if(S.mapMode==='govs')return S.parties.map(p=>{
     const n=REGIONS.filter(r=>{const g=govOf(r.id);return g&&g.party===p.id;}).length;
-    return `<span class="chip"><s style="background:${p.color}"></s>${p.short} — ${n}</span>`;}).join('')+
+    return `<span class="chip">${emblem(p,15)}${p.short} — ${n}</span>`;}).join('')+
     `<span class="chip dim">${govElected()?'глав выбирают края':'глав назначает кабинет'}</span>`;
   if(S.mapMode==='unrest')return ['спокойно','ропот','тревожно','митинги','на грани'].map((t,i)=>
     `<span class="chip"><s style="background:${RAMP_UNR[i]}"></s>${t}</span>`).join('');
@@ -10360,16 +10582,17 @@ function newParty(){
     acts:[{label:'Выбрать курс',fn:choosePreset}]});
 }
 function choosePreset(){
-  sheetOpen({eye:'Шаг 1 из 4',title:'Курс партии',
+  sheetOpen({eye:'Шаг 1 из 5',title:'Курс партии',
     body:'<p class="lead">Готовая программа или своя настройка. Позиции можно менять и потом, но за это придётся платить.</p>',
-    opts:[...PRESETS.map((p,i)=>({label:p.name,hint:p.desc,fn:()=>askOrigin(PRESETS[i])})),
+    opts:[...PRESETS.map((p,i)=>({label:p.name,hint:p.desc,
+      fn:()=>askOrigin({...PRESETS[i],st:{...PRESETS[i].st},emb:{...PRESETS[i].emb},traits:[]})})),
       {label:'Собрать программу самому',hint:'шесть шкал, полный контроль',fn:()=>customParty()}]});
 }
 /* ─── кто вы такой ───────────────────────────────────────────────
    Происхождение раздаёт стартовые симпатии и молву, две черты
    характера — постоянные поправки к уже работающим механизмам. */
 function askOrigin(base){
-  sheetOpen({eye:'Шаг 2 из 4 · личность',title:'Откуда вы пришли',
+  sheetOpen({eye:'Шаг 2 из 5 · личность',title:'Откуда вы пришли',
     body:'<p class="lead">До партии была жизнь. Она уже сложила о вас мнение: одни группы видят своего, другие чужого.</p>',
     opts:ORIGINS.map(o=>({label:o.name,
       hint:o.desc+' · '+o.note,
@@ -10380,7 +10603,7 @@ function askTraits(base){
   const pickTrait=()=>{
     const left=2-base.traits.length;
     const avail=TRAITS.filter(t=>base.traits.indexOf(t.id)<0);
-    sheetOpen({eye:'Шаг 3 из 4 · характер · осталось выбрать '+left,
+    sheetOpen({eye:'Шаг 3 из 5 · характер · осталось выбрать '+left,
       title:base.traits.length?'Вторая черта':'Чем вы отличаетесь',
       body:'<p class="lead">Две черты на всю карьеру. Каждая меняет не описание, а конкретное число: цену действия, силу голоса, скорость износа.</p>'+
         (base.traits.length?'<p class="hint">Уже выбрано: '+base.traits.map(id=>TR(id).name).join(', ')+'.</p>':''),
@@ -10394,7 +10617,7 @@ function askTraits(base){
 function customParty(){
   const draft={name:'Новая партия',short:'НП',color:'#9A7211',st:{econ:0,tax:0,order:0,free:0,reg:0,world:0}};
   const draw=()=>{
-    sheetOpen({eye:'Шаг 1 из 4',title:'Своя программа',
+    sheetOpen({eye:'Шаг 1 из 5',title:'Своя программа',
       body:AXES.map(a=>`<div class="ax"><div class="axh"><span>${a.l}</span><span>${a.name}</span><span>${a.r}</span></div>
         <div class="axr">${[-2,-1,0,1,2].map(v=>
           `<button class="${draft.st[a.id]===v?'on':''}" data-ax="${a.id}" data-v="${v}">${STEP[v+2]}</button>`).join('')}</div></div>`).join('')+
@@ -10406,45 +10629,55 @@ function customParty(){
   draw();
 }
 function askName(base){
-  const colors=['#9A7211','#93261E','#23456B','#2C6547','#5A3868','#14675F'];
   const or0=OR(base.origin);
   base.age=base.age||ri(41,57);
-  sheetOpen({eye:'Шаг 4 из 4',title:'Название и лидер',
+  sheetOpen({eye:'Шаг 4 из 5',title:'Название и лидер',
     body:`<div class="field"><label>Название партии</label>
         <input type="text" id="pn" value="${base.name}" maxlength="28"></div>
       <div class="field"><label>Ваше имя</label>
-        <input type="text" id="ln" value="${pick(NAME_M)+' '+pick(SURN_M)}" maxlength="28"></div>
+        <input type="text" id="ln" value="${base.leader&&base.leader!=='Вы'?base.leader:pick(NAME_M)+' '+pick(SURN_M)}" maxlength="28"></div>
       <div class="field"><label>Возраст</label>
         <input type="number" id="ag" value="${base.age}" min="30" max="72"></div>
-      <div class="up" style="margin-bottom:4px">Цвет фракции</div>
-      <div class="row" id="cols">${colors.map(c=>
-        `<button class="btn sm" data-c="${c}" style="background:${c};border-color:${c};width:44px;height:24px"></button>`).join('')}</div>
       <div class="res" style="margin-top:11px">
         <span>Происхождение</span><b class="w">${or0?or0.name:'—'}</b>
         <span>Черты</span><b class="w">${(base.traits||[]).map(id=>TR(id).name).join(', ')||'нет'}</b></div>
       <p class="hint" style="margin-top:9px">Курс: ${AXES.map(a=>a.name.toLowerCase()+' '+STEP[base.st[a.id]+2]).join(', ')}.
         После шестидесяти четырёх возраст начнёт отнимать часть доверия.</p>`,
-    acts:[{label:'Принять присягу',fn(){
+    acts:[{label:'Дальше — эмблема',fn(){
       const n=document.getElementById('pn'), l=document.getElementById('ln'), a=document.getElementById('ag');
       base.name=(n&&n.value.trim())||base.name;
       base.leader=(l&&l.value.trim())||'Вы';
       base.age=clamp(a?+a.value||base.age:base.age,30,72);
       base.short=base.name.split(/\s+/).map(w=>w[0]).join('').toUpperCase().slice(0,3)||'НП';
-      initState(base); S.tab='brief'; save(); render();
-      sheetOpen({eye:'Присяга принята',title:'Кабинет ваш',
-        body:`<p>«${base.name}» формирует правительство. В коалиции ${coalSeats()} мандатов из ${SEATS}, для большинства нужно ${MAJ}.</p>
-          <div class="res"><span>Квартал</span><b class="w">${dateLabel()}</b>
-            <span>До выборов</span><b>${aTerm()} кварталов</b>
-            <span>Действий в квартал</span><b>3</b>
-            <span>Сенат</span><b>${senSeatsOf(PL)} из ${SEN_SEATS}</b>
-            <span>Президент</span><b class="w">${S.pres.name}</b>
-            <span>Свои главы краёв</span><b>${govCoalCount()} из ${REGIONS.length}</b></div>
-          <p class="hint">Начните с «Кабинета»: помощник подскажет, где сейчас тонко. Ваше личное дело — во вкладке «Мой политик».</p>`,
-        acts:[{label:'К работе',fn:startTerm}]});
-    }}],
-    after(){ document.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{ base.color=b.dataset.c;
-      document.querySelectorAll('[data-c]').forEach(x=>x.style.outline='');
-      b.style.outline='2px solid var(--ink)'; }); }});
+      askPartyEmblem(base);
+    }}]});
+}
+/* ─── шаг 5: эмблема ──────────────────────────────────────────────
+   Живой образец, ряды решений и соперники, которых надо не повторить.
+   Цвет поля — это и цвет фракции в зале. */
+function askPartyEmblem(base){
+  base.emb=base.emb?{...base.emb}:embFor(base);
+  const rivals=AIPARTIES.map(p=>({...p}));
+  sheetOpen({eye:'Шаг 5 из 5 · эмблема',title:'Под каким знаком',
+    body:`<p class="lead">Эмблему видят раньше программы: на бюллетене, над трибуной, на полукруге зала.
+        Форма поля, знак, цвет знака и кайма — остальное скажет цвет фракции.</p>
+      <div id="ek"></div>`,
+    acts:[{label:'Принять присягу',fn:()=>swear(base)},{label:'Назад к имени',fn:()=>askName(base)}],
+    after(){ embBind(base,rivals); }});
+}
+function swear(base){
+  initState(base); S.tab='brief'; save(); render();
+  sheetOpen({eye:'Присяга принята',title:'Кабинет ваш',
+    body:`<div style="display:flex;gap:14px;align-items:center;margin-bottom:10px">${emblem(me(),64)}
+        <p style="margin:0">«${base.name}» формирует правительство. В коалиции ${coalSeats()} мандатов из ${SEATS}, для большинства нужно ${MAJ}.</p></div>
+      <div class="res"><span>Квартал</span><b class="w">${dateLabel()}</b>
+        <span>До выборов</span><b>${aTerm()} кварталов</b>
+        <span>Действий в квартал</span><b>3</b>
+        <span>Сенат</span><b>${senSeatsOf(PL)} из ${SEN_SEATS}</b>
+        <span>Президент</span><b class="w">${S.pres.name}</b>
+        <span>Свои главы краёв</span><b>${govCoalCount()} из ${REGIONS.length}</b></div>
+      <p class="hint">Начните с «Кабинета»: помощник подскажет, где сейчас тонко. Ваше личное дело — во вкладке «Мой политик».</p>`,
+    acts:[{label:'К работе',fn:startTerm}]});
 }
 
 function bindMap(){
