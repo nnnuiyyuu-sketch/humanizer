@@ -380,6 +380,29 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
 .court s.n{background:var(--surface)}
 @media (max-width:900px){ .levers{grid-template-columns:repeat(2,minmax(0,1fr))} .gov-line{grid-template-columns:1fr} }
 @media (max-width:520px){ .levers{grid-template-columns:1fr} .ipath{grid-auto-flow:row} .ipath div{border-right:0;border-bottom:1px solid var(--line-2)} }
+/* ── кресло: выбор на старте и стол в «Кабинете» ─────────────
+   На старте кресла лежат карточками: символ, имя, чем живёт и
+   сколько власти даёт. Стол — символ кресла, четыре цифры,
+   рычаги и дорога дальше; неопределённый шаг дороги — серый. */
+.roles{display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));gap:var(--x4);margin-top:var(--x5)}
+.role{display:grid;grid-template-columns:28px minmax(0,1fr);gap:2px var(--x5);align-content:start;text-align:left;
+  padding:9px 11px 10px;border:1px solid var(--line-2);border-top:3px solid var(--ink);background:var(--surface);
+  color:var(--ink);font:inherit;cursor:pointer;min-width:0}
+.role:hover{background:var(--surface-2)}
+.role:focus-visible{outline:2px solid var(--mark);outline-offset:1px}
+.role .ic{grid-row:1/4;margin-top:1px}
+.role b{font:700 15px/1.2 var(--f-display)}
+.role span{font-size:12px;line-height:1.35;color:var(--ink-2)}
+.role i{font:700 8.5px var(--f-cond);text-transform:uppercase;letter-spacing:.14em;color:var(--ink-3);font-style:normal;margin-top:3px}
+.role i u{text-decoration:none;letter-spacing:.05em;color:var(--ink)}
+.desk-h{display:grid;grid-template-columns:32px minmax(0,1fr);gap:var(--x5);align-items:start;margin-bottom:var(--x5)}
+.desk-h .ic{margin-top:2px}
+.desk-h .lead{margin:0}
+.panel.desk{border-top:3px solid var(--ink)}
+.desk .levers{grid-template-columns:repeat(auto-fit,minmax(118px,1fr));margin-bottom:var(--x4)}
+.desk .rules div:not(.ok):not(.no) s{border-color:var(--line-2)}
+.desk .rules .no b{color:var(--ink)}
+@media (max-width:520px){ .roles{grid-template-columns:1fr} }
 /* ── полукруг зала ───────────────────────────────────────────
    Ровные концентрические ряды, фракции клиньями слева направо.
    В Собрании кресла круглые, в Сенате квадратные: две палаты
@@ -1034,6 +1057,8 @@ tr.hd+tr td{border-top:0}
   <figure><i data-ic="help" data-s="26"></i><figcaption>Справка<i>help</i></figcaption></figure>
   <figure><i data-ic="more" data-s="26"></i><figcaption>Ещё<i>more</i></figcaption></figure>
   <figure><i data-ic="clock" data-s="26"></i><figcaption>Срок<i>clock</i></figcaption></figure>
+  <figure><i data-ic="city" data-s="26"></i><figcaption>Мэр<i>city</i></figcaption></figure>
+  <figure><i data-ic="vp" data-s="26"></i><figcaption>Вице-президент<i>vp</i></figcaption></figure>
 </div>
 <div class="grid g2" style="margin-top:var(--x5)">
   <div>
@@ -1602,6 +1627,75 @@ tr.hd+tr td{border-top:0}
   <div class="scale-l" style="margin-top:4px"><span>госплан</span><span>Экономика</span><span>рынок</span></div>
   <p class="note">Засечка стоит там, где закон, а не там, где партия его вносила: за четыре года позиция
     могла уехать, и линейка это показывает без единой цифры.</p>
+</div>
+
+<h3 class="sub" style="margin-top:var(--x8)">Стартовое кресло</h3>
+<p class="why" style="margin-top:0">Шестой шаг создания партии. Кресло задаёт расклад на старте: кто ведёт
+кабинет, кто ведёт партию и чем игрок распоряжается сам. Девять карточек одной сетки: символ кресла, имя,
+чем оно живёт, и строка-паспорт — сколько власти даёт старт (три точки) и чья партия. Карточка — кнопка
+целиком: у каждой одна чёрная планка сверху, как у рычага пульта, а не цветная плашка. Нижняя строка
+паспорта набрана капителью, потому что это справка, а не описание.</p>
+<div class="spec">
+  <div class="roles">
+    <button class="role"><i data-ic="pm" data-s="26"></i>
+      <b>Премьер-министр</b><span>кабинет, бюджет, коалиция</span><i>власть <u>●●●</u> · партию ведёте вы</i></button>
+    <button class="role"><i data-ic="pres" data-s="26"></i>
+      <b>Президент</b><span>подпись, вето, указы, поручения</span><i>власть <u>●●●</u> · партию ведёте вы</i></button>
+    <button class="role"><i data-ic="vp" data-s="26"></i>
+      <b>Вице-президент</b><span>Сенат, поручения, очередь на кресло</span><i>власть <u>●●○</u> · партию ведёт другой</i></button>
+    <button class="role"><i data-ic="gov" data-s="26"></i>
+      <b>Министр</b><span>одно ведомство и его показатель</span><i>власть <u>●●○</u> · партию ведёте вы</i></button>
+    <button class="role"><i data-ic="country" data-s="26"></i>
+      <b>Губернатор</b><span>край, его казна и стройки</span><i>власть <u>●●○</u> · партию ведёт другой</i></button>
+    <button class="role"><i data-ic="city" data-s="26"></i>
+      <b>Мэр</b><span>дороги, трубы, дворы, горожане</span><i>власть <u>●○○</u> · партию ведёт другой</i></button>
+    <button class="role"><i data-ic="senate" data-s="26"></i>
+      <b>Сенатор</b><span>верхняя палата, прения, слушания</span><i>власть <u>●○○</u> · партию ведёт другой</i></button>
+    <button class="role"><i data-ic="parl" data-s="26"></i>
+      <b>Рядовой депутат</b><span>мандат, округ, фракция</span><i>власть <u>●○○</u> · партию ведёт другой</i></button>
+    <button class="role"><i data-ic="party" data-s="26"></i>
+      <b>Без должности</b><span>отказ от кресла: путь с нуля</span><i>власть <u>○○○</u> · партию ведёт другой</i></button>
+  </div>
+  <p class="note">Три кресла отдают партию в руки игрока, шесть — нет: там её ведёт другой человек, а игрок
+    набирает влияние и меняет лидера на съезде. Точки власти — не сложность, а стартовый рычаг.</p>
+</div>
+
+<h3 class="sub" style="margin-top:var(--x8)">Стол кресла</h3>
+<p class="why" style="margin-top:0">Панель «Ваше кресло» в «Кабинете» у всех, кроме премьера и лидера фракции:
+у них стол — весь «Кабинет». Сверху символ и две строки о том, чем кресло распоряжается. Ниже цифры кресла
+теми же рычагами пульта: чёрная планка слева — цель достигнута, красная кайма — под угрозой. Затем рычаги
+кресла строками действий и дорога дальше — условиями, как у роспуска: закрашен — выполнено, красная рамка —
+пока нет, серая — просто веха. Текст условия при этом не краснеет: невыполненное — ещё не провал.</p>
+<div class="spec" style="max-width:680px">
+  <div class="panel desk"><header><h4>Ваше кресло · Губернатор · Волжская область</h4><span class="meta">оценка работы 58 из 100</span></header>
+  <div class="body">
+    <div class="desk-h"><i data-ic="country" data-s="30"></i><p class="lead">Волжская область, столица — Волжск. У края своя казна:
+      трансферты центра, стройки, законы заксобрания. Главу назначает кабинет — ссора с центром стоит кресла.</p></div>
+    <div class="levers">
+      <div class="lever"><i>Влияние в партии</i><b>36</b><span>съезд с 45</span></div>
+      <div class="lever"><i>Казна края</i><b>14 млрд</b><span>доход +3,4 в квартал</span></div>
+      <div class="lever on"><i>Напряжённость</i><b>13</b><span>ропот</span></div>
+      <div class="lever on"><i>Поддержка</i><b>57%</b><span>стройки: 2</span></div>
+      <div class="lever bad"><i>Центр</i><b>22</b><span>закон: порядок на улицах</span></div>
+    </div>
+    <h3 class="sub">Рычаги кресла</h3>
+    <table><tbody>
+      <tr><td><b>Стройка</b><div class="sub2">развитие края +1: поддержка и спокойствие надолго</div></td>
+        <td class="r" style="width:150px"><button class="btn sm">Сделать<span class="cost">ход · 6 млрд края</span></button></td></tr>
+      <tr><td><b>Доклад в правительстве</b><div class="sub2">отношения с центром +8…12</div></td>
+        <td class="r" style="width:150px"><button class="btn sm">Сделать<span class="cost">ход · 4 веса</span></button></td></tr>
+      <tr><td><b>Созвать съезд</b><div class="sub2">бросить вызов лидеру · <span class="warn-t">нужно влияние 45, у вас 36</span></div></td>
+        <td class="r" style="width:150px"><button class="btn sm" disabled>Сделать<span class="cost">10 веса · 15 млн</span></button></td></tr>
+    </tbody></table>
+    <h3 class="sub">Дорога дальше</h3>
+    <div class="rules">
+      <div class="no"><s></s><b>Съезд: влияние от 45 — можно бросить вызов лидеру</b><i>36 из 45</i></div>
+      <div class="ok"><s></s><b>Напряжённость в крае ниже 25</b><i>13</i></div>
+      <div class="no"><s></s><b>Вертикаль: в конце срока кабинет продлит полномочия, если отношения от 55</b><i>22 из 55</i></div>
+      <div><s></s><b>Срок в крае</b><i>до 2032/I</i></div>
+    </div>
+  </div>
+  <footer><span class="hint">Партию ведёт Алла Токарева · отношение к вам 63 · номер в списке 84</span></footer></div>
 </div>
 </section>
 
@@ -2507,6 +2601,9 @@ const ICON={
        '<path d="M9 21v-6h6v6"/><path d="M8 12h8"/>',
   firms:'<path d="M3 21h18"/><path d="M4.5 21V7l7-3.5V21"/><path d="M11.5 10.5H20V21"/>'+
         '<path d="M7 10h1.5M7 13.5h1.5M7 17h1.5M14.5 14h1.5M14.5 17.5h1.5"/>',
+  city:'<path d="M3 21h18"/><path d="M5 21V11h4.5v10"/><path d="M9.5 21V4.5h6V21"/><path d="M15.5 21v-8H19v8"/>'+
+       '<path d="M12 8h1.5M12 11.5h1.5M12 15h1.5M6.8 14.5h1"/>',
+  vp:'<path d="M12.2 4.2l7.6 7.6-3 3-7.6-7.6z"/><path d="M13 11l-7.5 7.5"/><path d="M3.5 21h9"/>',
 };
 function icon(id,size){
   return `<svg class="ic" viewBox="0 0 24 24" width="${size||19}" height="${size||19}" fill="none"
