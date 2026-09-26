@@ -292,6 +292,94 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
 .dep .who{flex:1;min-width:0}
 .dep .who b{display:block;font-size:13.5px}
 .dep .who span{font-size:11.5px;color:var(--ink-3)}
+/* ── ход квартала ────────────────────────────────────────────
+   Три действия видны всегда: квадраты в шапке (чёрный — ход есть),
+   три ячейки в «Кабинете» с подписью, на что ушёл ход, и советы
+   с кнопкой прямо туда. */
+.sv.apcell{cursor:pointer;border:0;border-left:1px solid var(--line-3);text-align:left;font:inherit}
+.sv.apcell:hover{background:var(--band-2)}
+.pips{display:inline-flex;gap:3px;vertical-align:1px;margin-right:4px}
+.pips s{width:9px;height:9px;display:block;text-decoration:none;border:1.5px solid currentColor;opacity:.55}
+.pips s.on{background:currentColor;opacity:1}
+.apslots{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--x3)}
+.apslots div{border:1px dashed var(--line-2);padding:7px 10px 8px;min-height:62px;display:grid;
+  grid-template-rows:auto 1fr auto;gap:2px}
+.apslots div.done{border:1px solid var(--ink);background:var(--surface-2)}
+.apslots u{text-decoration:none;font:400 18px/1 var(--f-num);color:var(--ink-3)}
+.apslots .done u{color:var(--ink)}
+.apslots b{font:700 12.5px/1.25 var(--f-display);color:var(--ink-3)}
+.apslots .done b{color:var(--ink)}
+.apslots i{font:700 8.5px var(--f-cond);text-transform:uppercase;letter-spacing:.14em;color:var(--ink-3);font-style:normal}
+.apslots .done i{color:var(--good)}
+.todo{border-top:var(--hair)}
+.todo-i{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:var(--x4);align-items:center;
+  padding:7px 0;border-bottom:var(--hair-2)}
+.todo-i u{text-decoration:none;font:400 15px var(--f-num);color:var(--ink-3)}
+.todo-i b{display:block;font:700 13.5px/1.25 var(--f-display)}
+.todo-i span{display:block;font-size:12px;color:var(--ink-2);line-height:1.35}
+/* обучение первых кварталов */
+.tut{border:2px solid var(--ink);background:var(--surface);padding:var(--x4) var(--x5) var(--x3);margin-bottom:var(--x5)}
+.tut-h{display:flex;justify-content:space-between;align-items:center;gap:var(--x5)}
+.tut-h b{font:700 9.5px var(--f-cond);text-transform:uppercase;letter-spacing:.2em}
+.tut ol{list-style:none;margin:6px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:var(--x5)}
+.tut li{display:grid;grid-template-columns:16px 1fr;gap:8px;align-items:start}
+.tut li s{width:14px;height:14px;border:1.5px solid var(--ink);display:block;margin-top:2px;text-decoration:none}
+.tut li.ok s{background:var(--good);border-color:var(--good)}
+.tut li b{display:block;font:700 13px/1.25 var(--f-display)}
+.tut li.ok b{text-decoration:line-through;color:var(--ink-3)}
+.tut li span{display:block;font-size:11.5px;color:var(--ink-2);line-height:1.35}
+@media (max-width:720px){ .tut ol{grid-template-columns:1fr} .apslots{grid-template-columns:1fr} }
+/* ── пульт палаты ────────────────────────────────────────────
+   Над полукругом: кто правит и на скольких голосах, и четыре рычага.
+   Рычаг в работе — чёрная планка слева, против вас — красная. */
+.gov-line{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:var(--x5);padding-bottom:var(--x5);
+  border-bottom:var(--hair);margin-bottom:var(--x5)}
+.gov-line i{display:block;font:700 8.5px var(--f-cond);text-transform:uppercase;letter-spacing:.16em;
+  color:var(--ink-3);font-style:normal}
+.gov-line b{display:block;font:700 16px/1.2 var(--f-display);margin:2px 0 4px}
+.gov-line span{font-size:12px;color:var(--ink-2)}
+.gov-line .chip{margin-right:8px}
+.levers{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--x4)}
+.lever{border:1px solid var(--line-2);border-top:3px solid var(--ink);padding:8px 10px 10px;background:var(--surface);
+  display:grid;grid-template-rows:auto auto 1fr auto;gap:3px;min-width:0}
+.lever i{font:700 8.5px var(--f-cond);text-transform:uppercase;letter-spacing:.16em;color:var(--ink-3);font-style:normal}
+.lever b{font:400 17px/1.15 var(--f-num);letter-spacing:-.03em}
+.lever span{font-size:11.5px;line-height:1.35;color:var(--ink-2)}
+.lever .btn{justify-self:start;margin-top:6px}
+.lever.on{box-shadow:inset 3px 0 0 var(--ink)}
+.lever.warn{border-top-color:var(--mark)}
+.lever.bad{border-top-color:var(--bad);box-shadow:inset 3px 0 0 var(--bad)}
+.warn-t{font:inherit;color:var(--mark)}
+.crisis{border:2px solid var(--bad);background:var(--bad-bg);padding:9px 12px;margin-bottom:var(--x5);
+  display:grid;grid-template-columns:1fr auto;gap:4px var(--x5);align-items:center}
+.crisis b{font:700 10px var(--f-cond);text-transform:uppercase;letter-spacing:.16em;color:var(--bad);grid-column:1}
+.crisis span{font-size:12.5px;color:var(--ink);grid-column:1}
+.crisis .btn{grid-column:2;grid-row:1/3}
+/* условия роспуска: каждое видно — выполнено или нет */
+.rules{border-top:var(--hair);margin:var(--x4) 0}
+.rules div{display:grid;grid-template-columns:16px 1fr auto;gap:8px;align-items:center;padding:5px 0;border-bottom:var(--hair-2)}
+.rules s{width:12px;height:12px;display:block;text-decoration:none;border:1.5px solid var(--good)}
+.rules .ok s{background:var(--good)}
+.rules .no s{border-color:var(--bad)}
+.rules b{font-size:13px;font-weight:400}
+.rules .no b{color:var(--bad)}
+.rules i{font:400 11px var(--f-num);color:var(--ink-3);font-style:normal}
+/* путь импичмента: пять ступеней, пройденные закрашены */
+.ipath{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;border:1px solid var(--line-2);margin:0 0 var(--x5)}
+.ipath div{padding:6px 8px;border-right:1px solid var(--line-2);display:flex;gap:6px;align-items:baseline;min-width:0}
+.ipath div:last-child{border-right:0}
+.ipath u{text-decoration:none;font:400 13px var(--f-num);color:var(--ink-3)}
+.ipath b{font:700 10px var(--f-cond);text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ipath .ok{background:var(--surface-2)} .ipath .ok b,.ipath .ok u{color:var(--ink-2)}
+.ipath .on{background:var(--ink)} .ipath .on b,.ipath .on u{color:var(--ink-inv)}
+/* Конституционный суд голосует девятью квадратами */
+.court{display:flex;gap:5px;margin:var(--x4) 0}
+.court s{width:26px;height:26px;display:block;text-decoration:none;border:1.5px solid var(--ink)}
+.court s.y{background:var(--good);border-color:var(--good)}
+.court s.n{background:var(--surface)}
+@media (max-width:900px){ .levers{grid-template-columns:repeat(2,minmax(0,1fr))} .gov-line{grid-template-columns:1fr} }
+@media (max-width:520px){ .levers{grid-template-columns:1fr} .ipath{grid-auto-flow:row} .ipath div{border-right:0;border-bottom:1px solid var(--line-2)} }
 /* ── полукруг зала ───────────────────────────────────────────
    Ровные концентрические ряды, фракции клиньями слева направо.
    В Собрании кресла круглые, в Сенате квадратные: две палаты
@@ -1333,6 +1421,57 @@ tr.hd+tr td{border-top:0}
 <h2><i>13</i>Политические компоненты</h2>
 <p class="why">Собраны из общих кирпичей, но встречаются на трёх экранах и потому описаны отдельно:
 счётчик голосов, строка депутата, шкала позиции, строка комитета, полоса коалиции.</p>
+<div class="panel"><header><h4>Ход квартала</h4><span class="meta">три действия · шапка и «Кабинет»</span></header>
+  <div class="body">
+    <div class="row" style="gap:var(--x6);align-items:center;margin-bottom:var(--x5)">
+      <div class="sv act apcell" style="display:inline-flex;flex-direction:column;background:var(--ink);padding:6px 14px">
+        <i>действия</i><b style="color:var(--ink-inv)"><span class="pips"><s class="on"></s><s class="on"></s><s></s></span> 2 из 3</b></div>
+      <p class="note" style="margin:0">В шапке ходы — квадратами: чёрный — ход есть. Ячейка кликается и открывает ход квартала.</p></div>
+    <div class="apslots">
+      <div class="done"><u>1</u><b>Внесён законопроект «Трудовой кодекс»</b><i>сделано</i></div>
+      <div><u>2</u><b>свободно</b><i>следующий ход</i></div>
+      <div><u>3</u><b>свободно</b><i>в запасе</i></div></div>
+    <h3 class="sub">Что сделать сейчас</h3>
+    <div class="todo">
+      <div class="todo-i"><u>1</u><div><b>Обработайте колеблющихся</b><span>По проекту колеблются 26, а до 218 не хватает 12.</span></div><button class="btn sm">Работать</button></div>
+      <div class="todo-i"><u>2</u><div><b>Удержите партнёра</b><span>«Земля и воля» на грани выхода из коалиции.</span></div><button class="btn sm">Коалиция</button></div>
+      <div class="todo-i"><u>3</u><div><b>Съездите в Каменьск</b><span>Уральский регион: напряжённость 41.</span></div><button class="btn sm">Поездка</button></div></div>
+    <p class="note">Три ответа на вопрос новичка «что делать»: сколько ходов осталось и на что ушли прошлые,
+      что стоит сделать сейчас — с кнопкой прямо туда, и когда закрывать квартал. Совет, нажатый из листа,
+      сначала закрывает лист, потом открывает свой.</p>
+  </div></div>
+<div class="panel"><header><h4>Обучение первых кварталов</h4><span class="meta">отмечается само, скрывается навсегда</span></header>
+  <div class="body"><div class="tut" style="margin:0"><div class="tut-h"><b>Как играть</b><button class="btn sm ghost">Понятно, скрыть</button></div>
+    <ol><li class="ok"><s></s><div><b>Подготовьте закон</b><span>Раздел «Законы»: направление → тема → позиция.</span></div></li>
+      <li><s></s><div><b>Потратьте три действия</b><span>Шапка показывает их квадратами.</span></div></li>
+      <li><s></s><div><b>Закройте квартал</b><span>Кнопка или клавиша Q.</span></div></li></ol></div></div></div>
+<div class="panel"><header><h4>Пульт палаты</h4><span class="meta">над полукругом в «Собрании»</span></header>
+  <div class="body">
+    <div class="crisis"><b>Правительственный кризис · раунд 1 из 2</b>
+      <span>Вотум недоверия. Поручение у вас. Кабинет исполняет обязанности. Два провала подряд — обязательный роспуск.</span>
+      <button class="btn sm pri">Переговоры · 191 из 218</button></div>
+    <div class="gov-line"><div><i>Правительство</i><b>Анна Громова · «Союз труда» <span class="tag r">и. о.</span></b><span>СТ 79 · ЗВ 78</span></div>
+      <div><i>Ваша роль</i><b>оппозиция</b><span>113 мандатов · депутат</span></div>
+      <div><i>Кабинет работает</i><b>6 кварталов</b><span>роспуск возможен</span></div></div>
+    <div class="levers">
+      <div class="lever warn"><i>Коалиция</i><b>157 из 218</b><span>меньшинство: любой вотум опасен</span><button class="btn sm">Трещины кабинета</button></div>
+      <div class="lever on"><i>Вотум недоверия</i><b>внесён · 231 из 218</b><span>голосование в конце квартала</span><button class="btn sm pri">К вотуму</button></div>
+      <div class="lever"><i>Роспуск</i><b>у президента</b><span>все условия соблюдены</span><button class="btn sm">Правила и прогноз</button></div>
+      <div class="lever bad"><i>Импичмент</i><b>против вас · спецкомиссия</b><span>сила дела 55 из 100</span><button class="btn sm pri">К делу</button></div></div>
+    <p class="note">Четыре рычага судьбы кабинета. Верхняя линейка рычага: чёрная — спокойно, красная — внимание.
+      Рычаг в работе отмечен планкой слева: чёрной — ваша процедура, красной — процедура против вас.</p>
+  </div></div>
+<div class="panel"><header><h4>Условия и ступени</h4><span class="meta">роспуск · импичмент · суд</span></header>
+  <div class="body">
+    <div class="rules">
+      <div class="ok"><s></s><b>Кабинет работает больше года</b><i>ст. 109 ч. 2</i></div>
+      <div class="no"><s></s><b>Не внесён вотум недоверия</b><i>ст. 109 ч. 3</i></div></div>
+    <div class="ipath"><div class="ok"><u>1</u><b>Подписи</b></div><div class="on"><u>2</u><b>Комиссия</b></div>
+      <div><u>3</u><b>Суд</b></div><div><u>4</u><b>Собрание</b></div><div><u>5</u><b>Сенат</b></div></div>
+    <div class="court"><s class="y"></s><s class="y"></s><s class="y"></s><s class="y"></s><s class="y"></s><s class="n"></s><s class="n"></s><s class="n"></s><s class="n"></s></div>
+    <p class="note">Условие — квадрат: закрашен — соблюдено, пустой красный — нет, со статьёй справа. Путь процедуры —
+      строка ступеней: пройденные на тоне, текущая чёрная. Конституционный суд голосует девятью квадратами.</p>
+  </div></div>
 <div class="panel"><header><h4>Эмблемы партий</h4><span class="meta">поле · знак · цвет знака · кайма</span></header>
   <div class="body">
     <div class="emb-row" id="emb-all" style="margin-top:0;padding-top:0;border-top:0"></div>
