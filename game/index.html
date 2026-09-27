@@ -633,7 +633,7 @@ tr.hd+tr td{border-top:0}
 /* маштхед */
 .mn-head{display:flex;align-items:center;gap:clamp(14px,2.4vw,28px);
   border-top:var(--rule);border-bottom:6px double var(--ink);padding:11px 0 9px}
-.mn-flag{width:clamp(74px,7vw,104px);height:auto;flex:none;border:1px solid var(--line)}
+.mn-flag{width:clamp(78px,7.4vw,112px);height:auto;flex:none;filter:drop-shadow(0 2px 3px rgba(20,19,15,.22))}
 .mn-name{min-width:0;flex:1}
 .mn-name i{display:block;font:700 10.5px var(--f-cond);letter-spacing:.42em;
   text-transform:uppercase;color:var(--ink-3);font-style:normal;margin-bottom:4px}
@@ -833,7 +833,8 @@ tr.hd+tr td{border-top:0}
 <div id="toasts"></div>
 <script>
 'use strict';
-const FLAG='data:image/webp;base64,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';
+/* флаг — вектором, на прозрачном поле: белый косой крест, венок и роза ветров */
+const FLAG='data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20300%20200%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22w%22%20x1%3D%220%22%20x2%3D%221%22%20y1%3D%220%22%20y2%3D%220.18%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%22.10%22%2F%3E%3Cstop%20offset%3D%22.22%22%20stop-color%3D%22%23000%22%20stop-opacity%3D%22.10%22%2F%3E%3Cstop%20offset%3D%22.45%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%22.09%22%2F%3E%3Cstop%20offset%3D%22.7%22%20stop-color%3D%22%23000%22%20stop-opacity%3D%22.12%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%22.06%22%2F%3E%3C%2FlinearGradient%3E%3CclipPath%20id%3D%22c%22%3E%3Crect%20width%3D%22300%22%20height%3D%22200%22%20rx%3D%222%22%2F%3E%3C%2FclipPath%3E%3C%2Fdefs%3E%3Cg%20clip-path%3D%22url%28%23c%29%22%3E%3Crect%20width%3D%22300%22%20height%3D%22200%22%20fill%3D%22%231E3A8C%22%2F%3E%3Cpath%20d%3D%22M0%200L300%20200M300%200L0%20200%22%20stroke%3D%22%23F7F8FC%22%20stroke-width%3D%2222%22%2F%3E%3Ccircle%20cx%3D%22150%22%20cy%3D%22100%22%20r%3D%2244%22%20fill%3D%22%231E3A8C%22%2F%3E%3Cellipse%20cx%3D%22162.4%22%20cy%3D%22130.6%22%20rx%3D%225.2%22%20ry%3D%222.3%22%20transform%3D%22rotate%28123%20162.4%20130.6%29%22%20fill%3D%22%23C9D6F2%22%2F%3E%3Cellipse%20cx%3D%22137.6%22%20cy%3D%22130.6%22%20rx%3D%225.2%22%20ry%3D%222.3%22%20transform%3D%22rotate%2857%20137.6%20130.6%29%22%20fill%3D%22%23C9D6F2%22%2F%3E%3Cellipse%20cx%3D%22168.0%22%20cy%3D%22127.7%22%20rx%3D%225.2%22%20ry%3D%222.3%22%20transform%3D%22rotate%28112%20168.0%20127.7%29%22%20fill%3D%22%23C9D6F2%22%2F%3E%3Cellipse%20cx%3D%22132.0%22%20cy%3D%22127.7%22%20rx%3D%225.2%22%20ry%3D%222.3%22%20transform%3D%22rotate%2868%20132.0%20127.7%29%22%20fill%3D%22%23C9D6F2%22%2F%3E%3Cellipse%20cx%3D%22172.9%22%20cy%3D%22123.7%22%20rx%3D%225.2%22%20ry%3D%222.3%22%20transform%3D%22rotate%28101%20172.9%20123.7%29%22%20fill%3D%22%23C9D6F2%22%2F%3E%3Cellipse%20cx%3D%22127.1%22%20cy%3D%22123.7%22%20rx%3D%225.2%22%20ry%3D%222.3%22%20transform%3D%22rotate%2879%20127.1%20123.7%29%22%20fill%3D%22%23C9D6F2%22%2F%3E%3Cellipse%20cx%3D%22177.0%22%20cy%3D%22118.9%22%20rx%3D%225.2%22%20ry%3D%222.3%22%20transform%3D%22rotate%2890%20177.0%20118.9%29%22%20fill%3D%22%23C9D6F2%22%2F%3E%3Cellipse%20cx%3D%22123.0%22%20cy%3D%22118.9%22%20rx%3D%225.2%22%20ry%3D%222.3%22%20transform%3D%22rotate%2890%20123.0%20118.9%29%22%20fill%3D%22%23C9D6F2%22%2F%3E%3Cellipse%20cx%3D%22180.1%22%20cy%3D%22113.4%22%20rx%3D%225.2%22%20ry%3D%222.3%22%20transform%3D%22rotate%2879%20180.1%20113.4%29%22%20fill%3D%22%23C9D6F2%22%2F%3E%3Cellipse%20cx%3D%22119.9%22%20cy%3D%22113.4%22%20rx%3D%225.2%22%20ry%3D%222.3%22%20transform%3D%22rotate%28101%20119.9%20113.4%29%22%20fill%3D%22%23C9D6F2%22%2F%3E%3Cellipse%20cx%3D%22182.2%22%20cy%3D%22107.4%22%20rx%3D%225.2%22%20ry%3D%222.3%22%20transform%3D%22rotate%2868%20182.2%20107.4%29%22%20fill%3D%22%23C9D6F2%22%2F%3E%3Cellipse%20cx%3D%22117.8%22%20cy%3D%22107.4%22%20rx%3D%225.2%22%20ry%3D%222.3%22%20transform%3D%22rotate%28112%20117.8%20107.4%29%22%20fill%3D%22%23C9D6F2%22%2F%3E%3Cellipse%20cx%3D%22183.0%22%20cy%3D%22101.2%22%20rx%3D%225.2%22%20ry%3D%222.3%22%20transform%3D%22rotate%2857%20183.0%20101.2%29%22%20fill%3D%22%23C9D6F2%22%2F%3E%3Cellipse%20cx%3D%22117.0%22%20cy%3D%22101.2%22%20rx%3D%225.2%22%20ry%3D%222.3%22%20transform%3D%22rotate%28123%20117.0%20101.2%29%22%20fill%3D%22%23C9D6F2%22%2F%3E%3Cellipse%20cx%3D%22182.6%22%20cy%3D%2294.8%22%20rx%3D%225.2%22%20ry%3D%222.3%22%20transform%3D%22rotate%2846%20182.6%2094.8%29%22%20fill%3D%22%23C9D6F2%22%2F%3E%3Cellipse%20cx%3D%22117.4%22%20cy%3D%2294.8%22%20rx%3D%225.2%22%20ry%3D%222.3%22%20transform%3D%22rotate%28134%20117.4%2094.8%29%22%20fill%3D%22%23C9D6F2%22%2F%3E%3Cellipse%20cx%3D%22181.0%22%20cy%3D%2288.7%22%20rx%3D%225.2%22%20ry%3D%222.3%22%20transform%3D%22rotate%2835%20181.0%2088.7%29%22%20fill%3D%22%23C9D6F2%22%2F%3E%3Cellipse%20cx%3D%22119.0%22%20cy%3D%2288.7%22%20rx%3D%225.2%22%20ry%3D%222.3%22%20transform%3D%22rotate%28145%20119.0%2088.7%29%22%20fill%3D%22%23C9D6F2%22%2F%3E%3Cellipse%20cx%3D%22178.3%22%20cy%3D%2283.0%22%20rx%3D%225.2%22%20ry%3D%222.3%22%20transform%3D%22rotate%2824%20178.3%2083.0%29%22%20fill%3D%22%23C9D6F2%22%2F%3E%3Cellipse%20cx%3D%22121.7%22%20cy%3D%2283.0%22%20rx%3D%225.2%22%20ry%3D%222.3%22%20transform%3D%22rotate%28156%20121.7%2083.0%29%22%20fill%3D%22%23C9D6F2%22%2F%3E%3Cellipse%20cx%3D%22174.5%22%20cy%3D%2277.9%22%20rx%3D%225.2%22%20ry%3D%222.3%22%20transform%3D%22rotate%2813%20174.5%2077.9%29%22%20fill%3D%22%23C9D6F2%22%2F%3E%3Cellipse%20cx%3D%22125.5%22%20cy%3D%2277.9%22%20rx%3D%225.2%22%20ry%3D%222.3%22%20transform%3D%22rotate%28167%20125.5%2077.9%29%22%20fill%3D%22%23C9D6F2%22%2F%3E%3Cg%20stroke%3D%22%237A5716%22%20stroke-width%3D%22.7%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M150%20100L155.3%2094.7L171.9%20121.9Z%22%20fill%3D%22%23F4DC92%22%2F%3E%3Cpath%20d%3D%22M150%20100L171.9%20121.9L144.7%20105.3Z%22%20fill%3D%22%23B98A2C%22%2F%3E%3Cpath%20d%3D%22M150%20100L155.3%20105.3L128.1%20121.9Z%22%20fill%3D%22%23F4DC92%22%2F%3E%3Cpath%20d%3D%22M150%20100L128.1%20121.9L144.7%2094.7Z%22%20fill%3D%22%23B98A2C%22%2F%3E%3Cpath%20d%3D%22M150%20100L144.7%20105.3L128.1%2078.1Z%22%20fill%3D%22%23F4DC92%22%2F%3E%3Cpath%20d%3D%22M150%20100L128.1%2078.1L155.3%2094.7Z%22%20fill%3D%22%23B98A2C%22%2F%3E%3Cpath%20d%3D%22M150%20100L144.7%2094.7L171.9%2078.1Z%22%20fill%3D%22%23F4DC92%22%2F%3E%3Cpath%20d%3D%22M150%20100L171.9%2078.1L155.3%20105.3Z%22%20fill%3D%22%23B98A2C%22%2F%3E%3Cpath%20d%3D%22M150%20100L150.0%2090.5L206.0%20100.0Z%22%20fill%3D%22%23F4DC92%22%2F%3E%3Cpath%20d%3D%22M150%20100L206.0%20100.0L150.0%20109.5Z%22%20fill%3D%22%23B98A2C%22%2F%3E%3Cpath%20d%3D%22M150%20100L150.0%20109.5L94.0%20100.0Z%22%20fill%3D%22%23F4DC92%22%2F%3E%3Cpath%20d%3D%22M150%20100L94.0%20100.0L150.0%2090.5Z%22%20fill%3D%22%23B98A2C%22%2F%3E%3Cpath%20d%3D%22M150%20100L159.5%20100.0L150.0%20168.0Z%22%20fill%3D%22%23F4DC92%22%2F%3E%3Cpath%20d%3D%22M150%20100L150.0%20168.0L140.5%20100.0Z%22%20fill%3D%22%23B98A2C%22%2F%3E%3Cpath%20d%3D%22M150%20100L140.5%20100.0L150.0%2032.0Z%22%20fill%3D%22%23F4DC92%22%2F%3E%3Cpath%20d%3D%22M150%20100L150.0%2032.0L159.5%20100.0Z%22%20fill%3D%22%23B98A2C%22%2F%3E%3C%2Fg%3E%3Ccircle%20cx%3D%22150%22%20cy%3D%22100%22%20r%3D%224.2%22%20fill%3D%22%231E3A8C%22%20stroke%3D%22%23F4DC92%22%20stroke-width%3D%221.6%22%2F%3E%3Crect%20width%3D%22300%22%20height%3D%22200%22%20fill%3D%22url%28%23w%29%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E';
 
 const EMBLEM='data:image/webp;base64,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';
 
@@ -1778,6 +1779,45 @@ const DIST_FUNDS = 20;     // млн за выдвижение по округу
 const MAYOR_TERM = 16;     // кварталов в сроке мэра
 const DESK_LOW = 25;       // оценка работы, ниже которой снимают
 
+/* ─── лидеры фракций ──────────────────────────────────────────────
+   У каждой фракции два лица: лидер в Собрании и лидер сенаторов.
+   Договариваются с ними, а не с партией вообще. Характер лидера —
+   это цена сделки, её идейный потолок и то, держит ли он слово.
+   price — множитель цены, ideo — насколько дорожает сделка против
+   его линии, keep — вероятность, что фракция проголосует как обещано,
+   whip — насколько крепко он держит своих, likes — любимая плата. */
+const FL_TRAITS = [
+  {id:'prag',  name:'Прагматик',     price:0.85,ideo:0.75,keep:0.92,whip:1.0,  likes:'bill',
+   txt:'Считает, а не верит. Берёт недорого и держит слово.'},
+  {id:'ideo',  name:'Идейный',       price:1.1, ideo:1.6, keep:0.97,whip:1.1,  likes:'course',
+   txt:'Далеко от своей линии не пойдёт ни за какие портфели. Зато купленное — куплено.'},
+  {id:'boss',  name:'Хозяйственник', price:1.0, ideo:0.9, keep:0.88,whip:1.0,  likes:'money',
+   txt:'Думает о своих краях: деньги туда стоят для него дороже любого закона.'},
+  {id:'climb', name:'Карьерист',     price:1.0, ideo:0.85,keep:0.8, whip:0.9,  likes:'post',
+   txt:'Портфель или комитет — и он ваш. Пока не предложат больше.'},
+  {id:'fox',   name:'Лис',           price:0.9, ideo:0.8, keep:0.62,whip:0.95, likes:'cash',
+   txt:'Возьмёт всё, что дают, и не всегда отдаст обещанное.'},
+  {id:'drill', name:'Служака',       price:1.05,ideo:1.0, keep:0.98,whip:1.3,  likes:'favor',
+   txt:'Решает медленно, но фракция голосует как один человек.'},
+];
+const FT = id => FL_TRAITS.find(t=>t.id===id)||FL_TRAITS[0];
+/* чем платят за поддержку: v — сколько это стоит в глазах лидера */
+const DEAL_PAY = [
+  {id:'post',  name:'Портфель в кабинете',    v:30, txt:'министерство — их; если фракция вне кабинета, она в него входит'},
+  {id:'chair', name:'Комитет',                v:18, txt:'председательство в профильном комитете'},
+  {id:'money', name:'Деньги их краю',         v:16, gold:12, txt:'12 млрд из казны на стройку в крае, где фракция сильнее всего'},
+  {id:'bill',  name:'Ответный закон',         v:20, txt:'обещание провести их закон за шесть кварталов; не проведёте — обида надолго'},
+  {id:'course',name:'Уступка по курсу',       v:22, txt:'программа партии сдвигается к ним на полшага'},
+  {id:'cash',  name:'Конверт',                v:21, funds:25, txt:'25 млн из кассы мимо отчётности: след и риск утечки'},
+  {id:'favor', name:'Под честное слово',      v:0,  txt:'ничего сейчас; сработает, только если лидер к вам расположен'},
+];
+const DEAL_LEN  = 3;    // кварталов живёт обещание поддержки
+const DEAL_CAP  = 2;    // веса за каждое предложение
+const IOU_LEN   = 6;    // кварталов на ответный закон
+const COMM_SIZE = 13;   // членов в комитете Собрания
+/* какой министр отвечает перед каким комитетом */
+const COMM_MIN = {econ:'eco',tax:'fin',order:'def',free:'mvd',reg:'soc',world:'mid'};
+
 /* ─── ведомства: рычаги министра ──────────────────────────────────
    У каждого портфеля своя цифра, по которой премьер судит министра,
    и три рычага. pick — что выбрать перед действием: край или сосед. */
@@ -2499,6 +2539,7 @@ function initState(pl){
   S.cn=cnDefault(); if(!S.rulers)S.rulers={pres:[],pm:[]};
   formCoalition(true);
   startRole(role,pl.start||{});
+  seatCommittees(); flSync();
   seedCabinet();
   startDesk(role,pl.start||{});
   snapshot();
@@ -2687,12 +2728,14 @@ function senSupport(sen,bill){
   let v=(0.95-Math.abs(sen.st[ax]-bill.stance))*24;
   // фракция весит меньше, чем в Собрании, но не настолько, чтобы палата
   // стала непроходимой: разницу добирают коалиционная дисциплина и округ
-  v+=leaderLine(sen.party,bill)*sen.loyal*0.27;
+  v+=leaderLine(sen.party,bill,'s')*sen.loyal*0.27;
+  const sd=dealBillLine(sen.party,'s',bill); if(sd)v+=10*dealGrip(sd);        // лидер сенаторов держит своих
+  if(S.senBoost>=S.q&&(bill.by||PL)===PL)v+=3;                               // лидер большинства поставил проект первым
   v+=(sen.rel-50)*0.34;
   // избранный прямым голосованием сенатор слушает список, а не заксобрание края:
   // фракция прибавляет в весе, интерес субъекта — теряет
   const rk=senDirect()?0.35:1;
-  if(senDirect())v+=leaderLine(sen.party,bill)*sen.loyal*0.3;
+  if(senDirect())v+=leaderLine(sen.party,bill,'s')*sen.loyal*0.3;
   if(bill.riders&&bill.riders.indexOf('money')>=0) v+=(sen.region===bill.regTarget?22:-3.5)*rk;
   if(inCoal(sen.party))v+=11;
   // палата субъектов: всё, что бьёт по регионам, здесь встречают жёстче
@@ -2747,7 +2790,7 @@ function clotureList(bill,tl){
     // На процедуре фракция весит вдвое больше, чем на существе: вопрос
     // «дать ли им победу» проще вопроса «хорош ли закон», и партийная
     // линия держится здесь крепче всего.
-    const own=x.d.party===by||inCoal(x.d.party);
+    const own=x.d.party===by||inCoal(x.d.party)||(typeof dealBillLine==='function'&&!!dealBillLine(x.d.party,'s',bill));
     let v=x.v*0.65+pl+(own?24:-18)+(x.d.rel-50)*0.2;
     if(senRank(x.d)>=4)v+=6;                       // старейшины берегут обычаи палаты
     if(S.vp&&S.vp.job==='senate'&&own)v+=vpSkill()*0.05;
@@ -3047,6 +3090,8 @@ function budgetSupport(d){
     const ch=id?S.deputies.find(x=>x.id===id):null;
     if(ch&&ch.party===d.party)v+=5; });
   if(S.unrest[d.region]>30&&S.spend.soc>=3)v+=4;      // округ на взводе ценит соцстатью
+  const dd=typeof dealFor==='function'?dealFor(d.party,'h','budget'):null;
+  if(dd)v+=26*d.loyal/100*dealGrip(dd);                // лидер фракции обещал бюджет
   v+=noise(d.id+'budget'+S.q+taxLoad()+avgSpend(),7);
   return v;
 }
@@ -3114,7 +3159,9 @@ function bigOpp(){
   return S.parties.filter(p=>p.id!==PL&&!inCoal(p.id)).sort((a,b)=>seatsOf(b.id)-seatsOf(a.id))[0]
     ||S.parties.filter(p=>p.id!==PL).sort((a,b)=>seatsOf(b.id)-seatsOf(a.id))[0];
 }
-function leaderLine(pid,bill){
+function leaderLine(pid,bill,house){
+  const dl=typeof dealBillLine==='function'?dealBillLine(pid,house||'h',bill):null;
+  if(dl&&!dl.renege)return 1;                     // о законе договорились с лидером
   const p=P(pid), d=Math.abs((p.st[T(bill.topic).ax]||0)-bill.stance);
   if(pid===PL) return d>2.3?-1:1;
   let line = d<1.15?1:d>2.25?-1:0;
@@ -3142,7 +3189,8 @@ function riderPull(dep,bill){
 function support(dep,bill){
   const ax=T(bill.topic).ax;
   let v=(0.95-Math.abs(dep.st[ax]-bill.stance))*22;
-  v+=leaderLine(dep.party,bill)*dep.loyal*0.32;
+  v+=leaderLine(dep.party,bill,'h')*dep.loyal*0.32;
+  const hd=dealBillLine(dep.party,'h',bill); if(hd)v+=10*dealGrip(hd);        // лидер фракции держит своих
   v+=(dep.rel-50)*0.30;
   v+=riderPull(dep,bill);
   if(inCoal(dep.party))v+=5;
@@ -3920,15 +3968,18 @@ function commStage(b){
   const t=T(b.topic), ch=commChair(t.ax);
   if(!ch){ floorStage(b,{verdict:'none'}); return; }
   const friendly=ch.party===PL||inCoal(ch.party);
-  const like=(0.95-Math.abs(ch.st[t.ax]-b.stance))*24+(ch.rel-50)*0.4+(friendly?18:-6);
-  if(like>14){ floorStage(b,{verdict:'back',ch}); return; }        // рекомендует
+  const cv=commVote(b);                                              // члены комитета голосуют первыми
+  const dealt=!!dealBillLine(ch.party,'h',b);
+  const like=(0.95-Math.abs(ch.st[t.ax]-b.stance))*24+(ch.rel-50)*0.4+(friendly?18:-6)+(dealt?30:0);
+  if(like>14||cv.yes>=cv.no*1.6){ floorStage(b,{verdict:'back',ch,cv}); return; }        // рекомендует
   // Держать проект председатель может, но не обязан: у комитета есть
   // и своя работа, и своя репутация, которую портит откровенный саботаж.
-  // Свой председатель не хоронит вообще — он просто не рекомендует.
-  const hold=friendly?0:clamp((-like-8)/54,0,0.62);
-  if(like>-8||Math.random()>=hold){ floorStage(b,{verdict:'flat',ch}); return; }
+  // Свой председатель не хоронит вообще — он просто не рекомендует;
+  // чужой хоронит смелее, если его поддержало большинство комитета.
+  const hold=friendly?0:clamp((-like-8)/54,0,0.62)*(cv.no>cv.yes?1:0.35);
+  if(like>-8||Math.random()>=hold){ floorStage(b,{verdict:cv.no>cv.yes?'against':'flat',ch,cv}); return; }
   // председатель кладёт проект под сукно
-  S.commHold={bill:{...b,riders:[...(b.riders||[])]}, ax:t.ax, ch:ch.id, left:ri(2,COMM_HOLD), q:S.q};
+  S.commHold={bill:{...b,riders:[...(b.riders||[])]}, ax:t.ax, ch:ch.id, left:ri(2,COMM_HOLD), q:S.q, cv};
   addCap(-2);
   logMsg('Комитет по теме «'+AXNAME[t.ax]+'» не выпустил «'+t.name+'» в зал.',1);
   chron('Комитет задержал «'+t.name.toLowerCase()+'».','b');
@@ -3939,17 +3990,22 @@ function commStage(b){
       <div class="res"><span>Председатель</span><b class="w">${ch.name}</b>
         <span>Фракция</span><b class="w">${P(ch.party).name}</b>
         <span>Отношение к вам</span><b class="${ch.rel<40?'bad':''}">${Math.round(ch.rel)}</b>
+        <span>Голосование комитета</span><b class="bad">${cv.yes} за · ${cv.no} против</b>
         <span>Пролежит</span><b>${quarters(S.commHold.left)}</b></div>
       <p class="hint">Вытащить проект можно голосами зала: это стоит ${COMM_CAP} веса и требует
         поддержки большинства — комитет не любит, когда через него переступают.</p>`,
     opts:[
       {label:'Вытащить проект в зал',hint:'вес '+COMM_CAP+' · нужно большинство подписей',fn:()=>discharge()},
+      {label:'Договориться с лидером фракции «'+P(ch.party).short+'»',hint:'сделка — и председатель отдаст проект',
+       fn(){ askDeals({k:'b',topic:b.topic,stance:b.stance,bill:S.commHold.bill}); }},
       {label:'Договориться с председателем',hint:'работа с депутатом',fn(){ openDep(ch.id); }},
       {label:'Ждать',hint:'выйдет сам через '+quarters(S.commHold.left),fn(){}}]});
 }
 /* проект, пролежавший срок, выходит в зал сам */
 function commHoldTick(){
   const h=S.commHold; if(!h)return;
+  const ch=S.deputies.find(d=>d.id===h.ch);
+  if(ch&&dealBillLine(ch.party,'h',h.bill))h.left=0;             // о проекте договорились с его фракцией
   h.left--;
   if(h.left>0)return;
   S.commHold=null;
@@ -4075,8 +4131,11 @@ function voteStage(b,rep0,am){
   const t=T(b.topic);
   const draw=()=>{
     const tl=tally(b);
-    const rec=rep0&&rep0.verdict==='back'?'<span class="tag g">комитет рекомендует</span>':
-              rep0&&rep0.verdict==='forced'?'<span class="tag r">в обход комитета</span>':'';
+    const cvs=rep0&&rep0.cv?' '+rep0.cv.yes+':'+rep0.cv.no:'';
+    const rec=rep0&&rep0.verdict==='back'?'<span class="tag g">комитет рекомендует'+cvs+'</span>':
+              rep0&&rep0.verdict==='against'?'<span class="tag r">комитет против'+cvs+'</span>':
+              rep0&&rep0.verdict==='forced'?'<span class="tag r">в обход комитета</span>':
+              rep0&&rep0.cv?'<span class="tag">комитет'+cvs+'</span>':'';
     sheetOpen({eye:'Голосование в Собрании · '+dateLabel(),title:t.name,
       body:`<p class="lead">${stanceLine(b)} ${rec}</p>
         ${houseBoard(tl.list,tl.yes,tl.no,MAJ,{final:false,what:'прогноз перед подачей голосов'})}
@@ -4085,6 +4144,8 @@ function voteStage(b,rep0,am){
       opts:[
         {label:'Ставить на голосование',hint:'прогноз '+tl.yes+' при нужных '+MAJ,
          fn(){ callVote(b,rep0,am); }},
+        {label:'Договориться с лидерами фракций',hint:'сделка: фракция голосует за вас · '+(dealRoundPaid(subjKey({k:'b',topic:b.topic,stance:b.stance}))?'раунд оплачен':'ход на квартал'),
+         fn(){ S.pendVote={b,rep0,am}; askDeals({k:'b',topic:b.topic,stance:b.stance,bill:b,back:1}); }},
         ...(tl.und?[{label:'Работать с колеблющимися',hint:'вес '+capCost(11,'lobby')+' · '+tl.und+' человек',
          fn(){ if(!payCap(capCost(11,'lobby'))){draw();return;}
            let k=0; tally(b).list.forEach(x=>{ if(x.st!=='und')return;
@@ -4121,6 +4182,8 @@ function callVote(b,rep0,am){
   }
   const low=resolveVote(b);
   if(rep0&&rep0.verdict==='back')low.yes=Math.min(SEATS,low.yes+ri(3,9));
+  if(rep0&&rep0.verdict==='against')low.yes=Math.max(0,low.yes-ri(2,6));
+  S.pendVote=null;
   low.no=SEATS-low.yes; low.pass=low.yes>=MAJ;
   S.votes.unshift({no:S.billNo,q:S.q,name:t.name,stance:b.stance,yes:low.yes,no:low.no,pass:low.pass,house:'соб'});
   sheetOpen({eye:'Поимённое голосование · '+dateLabel(),title:t.name,
@@ -4216,6 +4279,8 @@ function senateDebate(b,low,skipCal){
     fn(){ filiSoften(b,low,soft); }});
   if(canNuke())opts.push({label:'Ядерный вариант: клотур в '+SEN_MAJ,hint:'вес '+NUKE_COST+' · навсегда и для всех',
     fn(){ askNuke(b,low); }});
+  opts.push({label:'Договориться с лидерами сенаторов',hint:'сделка: сенаторы фракции голосуют и за клотур',
+    fn(){ S.pendVote={sen:true,b,low}; askDeals({k:'b',topic:b.topic,stance:b.stance,bill:b,back:1}); }});
   opts.push({label:'Отозвать проект',hint:'потерять вес '+3+', но не позориться голосованием',
     fn(){ addCap(-3); logMsg('«'+t.name+'» отозван из Сената: обструкцию сломать было нечем.',1); render(); }});
 
@@ -6293,6 +6358,9 @@ function endQuarter(){
   constTick();
   recallTick();
   roleTick();
+  dealTick();
+  commTick();
+  senAgendaTick();
   offerTick();
   pressTick();
   judgeTick();
@@ -6453,6 +6521,7 @@ function election(){
     });
   });
   S.seats=seatsNew;
+  seatCommittees();                              // новый созыв делит комитеты заново
   S.camp=null; S.term++; S.termStart=S.q; S.govAge=0;
   S.parties.forEach(p=>p.mom=0);
 
@@ -6624,7 +6693,7 @@ function reformConstitution(){
   const up=reseatChamber(r=>r.sen,(pid,rid,k,i)=>makeSen(pid,rid,k%3,i),null);
   S.senate=up.out; S.senSeats=up.tot; S.senCls=0;
   if(!S.pres)seedPresident();
-  S.comm={};                       // прежние председатели сидели в прежнем созыве
+  S.comm={}; S.commM={};           // прежние председатели сидели в прежнем созыве
   logMsg('Конституционная реформа: в Собрании '+SEATS+' мест, учреждён Сенат, введено президентство.',1);
   chron('Новария перешла к двухпалатному парламенту.','');
 }
@@ -6740,6 +6809,12 @@ function load(){
       S.vp.sen=ri(k.sen[0],k.sen[1]); S.vp.pop=ri(k.pop[0],k.pop[1]); S.vp.amb=ri(k.amb[0],k.amb[1]);
       S.vp.job='none'; S.vp.jobQ=S.q; S.vp.dropped=0; S.vp.restless=0;
       logMsg('У вице-президента появились свои свойства: умение вести палату, имя и честолюбие.',1);
+    }
+    // сохранение до лидеров фракций: у фракций появляются лица, у комитетов — состав
+    if(!S.fl){
+      if(!S.comm||!Object.keys(S.comm).length||!S.commM)seatCommittees();
+      flSync(); S.deals=S.deals||[];
+      logMsg('У фракций появились лидеры в обеих палатах: с ними можно договариваться. Комитеты получили состав.',1);
     }
     // сохранение до стартовых кресел: партию ведёте вы, стол заводится по креслу
     if(S.you&&S.you.chief===undefined){
@@ -7635,6 +7710,8 @@ function genEvent(){
 function cnSupport(d,c,house){
   const own=d.party===PL, coal=inCoal(d.party);
   let v=own?34:coal?15:-30;
+  const dl=dealFor(d.party,house==='sen'?'s':'h','c:'+c.id);
+  if(dl)v+=52*Math.max(d.loyal,55)/100*dealGrip(dl);   // лидер фракции обещал голоса
   v+=(d.rel-50)*0.3;
   // поправка, выгодная тому, кто её вносит, встречает больше сопротивления
   v+=cnCost(c)*(own||coal?0.25:0.75);
@@ -7704,6 +7781,8 @@ function askAmendOne(id){
          if(!payCap(cap)){apBack();return;}
          if(gold&&!payGold(gold)){apBack();addCap(cap);return;}
          amendHouse(c); }},
+      {label:'Договориться с лидерами фракций',hint:'сделки добирают голоса до двух третей · '+(dealRoundPaid('c:'+c.id)?'раунд оплачен':'ход на квартал'),
+       fn:()=>askDeals({k:'c',id:c.id})},
       {label:'Передумать',hint:'закрыть',fn(){}}]});
 }
 function amendHouse(c){
@@ -8602,6 +8681,8 @@ function motionSupport(d){
   v+=(d.rel-50)*0.42*side;
   if(lead===PL){ if(hasTrait('iron'))v-=5; v-=(rep('firm')-50)*0.1; }
   if(m&&m.lob&&m.lob[d.party])v+=m.lob[d.party];
+  const dm=dealFor(d.party,'h','m');
+  if(dm&&m)v+=(m.against===PL?-1:1)*34*d.loyal/100*dealGrip(dm);   // лидер обещал голоса по вотуму
   if(d.party===PL){ const st=(m&&m.pl)||(lead===PL?'no':inCoal(PL)?'no':'yes');
     v=st==='yes'?40:st==='no'?-40:0; }
   return v;
@@ -8650,6 +8731,8 @@ function askMotion(){
     opts.push({label:mine?'Работать с фракцией: за отставку':'Работать с фракцией: удержать кабинет',
       hint:'1 действие и '+MOT_LOBBY+' веса',fn:()=>askMotionLobby(mine?1:-1)});
   }
+  if(mine||against)opts.push({label:'Договориться с лидерами фракций',hint:mine?'сделка: фракция голосует за отставку':'сделка: фракция не голосует за отставку',
+    fn:()=>askDeals({k:'m'})});
   if(mine){
     opts.push({label:'Ставить на голосование сейчас',hint:'прогноз '+f.yes+' из '+MAJ,fn:()=>motionVote()});
     opts.push({label:'Отозвать вотум',hint:'вес −4',fn(){ S.motion=null; addCap(-4);
@@ -10134,6 +10217,423 @@ function askDesk(){
     body:'<p class="lead">'+deskLead()+'</p>',
     opts:acts.map(a=>({label:a.name,hint:a.txt,fn:()=>deskAct(a.id)})).concat([{label:'Закрыть',hint:'',fn(){}}])});
 }
+
+/* ════════════════════════════════════════════════════════════════
+   ФРАКЦИИ, СДЕЛКИ, КОМИТЕТЫ, ПОВЕСТКА СЕНАТА
+   Палата голосует не партиями, а людьми, но людей ведут лидеры.
+   Здесь у каждой фракции два лица — в Собрании и в Сенате, — и с
+   каждым можно договориться: о законе, о поправке, о бюджете, о
+   вотуме. Цена зависит от характера, расстояния по курсу и того,
+   держали ли вы слово раньше.
+   ════════════════════════════════════════════════════════════════ */
+
+/* ─── лидеры ────────────────────────────────────────────────────── */
+function flBase(pid){
+  const p=P(pid);
+  return clamp(62-axDist(p.st,me().st)*12+(inCoal(pid)&&inCoal(PL)?10:0),8,92);
+}
+function flNew(name,pid,extra){
+  return {name, trait:pick(FL_TRAITS).id, rel:Math.round(flBase(pid)+rnd(-8,8)), trust:60, since:S.q, owe:0, ...(extra||{})};
+}
+/* лидер сенаторов — живой сенатор фракции, старший по стажу */
+function flSenPick(pid){
+  return S.senate.filter(s=>s.party===pid&&!s.you)
+    .sort((a,b)=>senRank(b)-senRank(a)||b.loyal-a.loyal||a.id.localeCompare(b.id))[0]||null;
+}
+function flSync(){
+  if(!S.fl)S.fl={};
+  S.parties.forEach(p=>{
+    const f=S.fl[p.id]||(S.fl[p.id]={h:null,s:null});
+    const hn=p.id===PL?(chief()?S.you.name:me().leader):p.leader;
+    if(!f.h||f.h.name!==hn)f.h=flNew(hn,p.id);
+    const rec=f.s&&S.senate.find(x=>x.id===f.s.id);
+    if(!rec||rec.party!==p.id){
+      const sp=flSenPick(p.id);
+      f.s=sp?flNew(sp.name,p.id,{id:sp.id}):null;
+    } else f.s.name=rec.name;
+  });
+}
+function flLeader(pid,house){ flSync(); const f=S.fl[pid]; return f?(house==='s'?f.s:f.h):null; }
+function flSeats(pid,house){ return house==='s'?senSeatsOf(pid):seatsOf(pid); }
+function flWord(v){ return v>=66?'союзник':v>=52?'открыт':v>=38?'холоден':v>=24?'враждебен':'не разговаривает'; }
+
+/* ─── сделки ────────────────────────────────────────────────────────
+   Предмет сделки — ключ: закон по теме и направлению, поправка,
+   бюджет или вотум. Пока сделка жива, линия фракции по этому
+   предмету — ваша, и лидер держит своих с силой своего характера. */
+function subjKey(sb){
+  if(sb.k==='b')return 'b:'+sb.topic+':'+Math.sign(sb.stance||1);
+  if(sb.k==='c')return 'c:'+sb.id;
+  return sb.k;
+}
+function subjName(sb){
+  if(sb.k==='b')return '«'+T(sb.topic).name+'» — '+(sb.stance<0?T(sb.topic).l:T(sb.topic).r);
+  if(sb.k==='c')return 'поправка «'+cnAny(sb.id).name+'»';
+  if(sb.k==='budget')return 'бюджет на '+budgetYear()+' год';
+  if(sb.k==='m')return S.motion&&S.motion.against===PL?'вотум против вашего кабинета':'вотум недоверия кабинету';
+  return 'предмет';
+}
+function dealsLive(){ return (S.deals||[]).filter(d=>!d.gone&&S.q<=d.due); }
+function dealFor(pid,house,key){ return dealsLive().find(d=>d.pid===pid&&d.house===house&&d.key===key)||null; }
+/* насколько сделка держит фракцию: слово лидера и его хватка */
+function dealGrip(d){ const t=FT(d.trait); return (d.renege?0.3:1)*t.whip; }
+/* линия фракции по закону, если о нём договорились */
+function dealBillLine(pid,house,bill){
+  const d=dealFor(pid,house,'b:'+bill.topic+':'+Math.sign(bill.stance||1));
+  return d&&(bill.by||PL)===PL?d:null;
+}
+/* что просит лидер за поддержку: null — не пойдёт ни за что */
+function dealDemand(pid,house,sb){
+  const L=flLeader(pid,house); if(!L)return null;
+  const t=FT(L.trait), p=P(pid);
+  let base=12, far=0;
+  if(sb.k==='b'){ const tp=T(sb.topic); far=Math.abs((p.st[tp.ax]||0)-sb.stance); base=11+far*9*t.ideo;
+    if(far>2.2&&t.id==='ideo')return null; if(far>2.7)return null; }   // своих так далеко не уведёт никто
+  if(sb.k==='c'){ const c=cnAny(sb.id); base=17+Math.max(0,-cnCost(c))*0.9-(c.self>0?7:0); if(t.id==='ideo')base+=6; }
+  if(sb.k==='budget'){ const bs=budgetStance(); far=(Math.abs(p.st.tax-bs.tax)+Math.abs(p.st.econ-bs.econ))/2;
+    base=12+far*8*t.ideo; }
+  if(sb.k==='m'){ base=S.motion&&S.motion.against===PL?16+(inCoal(pid)?-6:axDist(p.st,me().st)*6):14; }
+  base*=t.price;
+  base*=0.7+flSeats(pid,house)/(house==='s'?SEN_SEATS:SEATS)*2.2;      // крупная фракция стоит дороже
+  if(house==='s')base*=0.75;
+  base+=inCoal(pid)&&inCoal(PL)?-5:4;
+  base-=(L.rel-50)*0.25+(L.trust-50)*0.15;
+  if(L.owe)base-=10;                                                      // за ними должок
+  return Math.max(3,Math.round(base));
+}
+/* чем игрок может заплатить сейчас: не всякая плата доступна всякому креслу */
+function dealPays(pid,house){
+  const L=flLeader(pid,house), t=FT(L.trait), out=[];
+  DEAL_PAY.forEach(x=>{
+    let ok=true, why='';
+    if(x.id==='post'&&!isPM()){ ok=false; why='портфели раздаёт премьер'; }
+    if(x.id==='post'&&isPM()&&!POSTS.some(p=>S.gov.posts[p.id]===PL)){ ok=false; why='своих портфелей не осталось'; }
+    if(x.id==='chair'&&!isPM()&&!(inCoal(PL)&&chief())){ ok=false; why='комитеты делит большинство'; }
+    if(x.id==='money'&&!(isPM()||isPres())){ ok=false; why='казной распоряжается кабинет'; }
+    if(x.id==='money'&&S.treasury<x.gold){ ok=false; why='в казне нет '+x.gold+' млрд'; }
+    if(x.id==='course'&&!chief()){ ok=false; why='курс меняет лидер партии'; }
+    if(x.id==='cash'&&S.funds<x.funds){ ok=false; why='в кассе нет '+x.funds+' млн'; }
+    if(x.id==='cash'&&hasTrait('clean')){ ok=false; why='незапятнанный конвертов не носит'; }
+    let v=x.v;
+    if(t.likes===x.id)v=Math.round(v*1.4);
+    if(x.id==='favor')v=Math.round(Math.max(0,(L.rel-42)*0.8+(L.trust-50)*0.3));
+    if(x.id==='cash'&&t.id==='ideo')v=Math.round(v*0.4);
+    out.push({...x,v,ok,why});
+  });
+  return out;
+}
+function dealChance(dem,v){ return dem===null?0:clamp(0.5+(v-dem)*0.035,0.03,0.95); }
+/* переговорный раунд по предмету: ход один раз в квартал, дальше — вес */
+function dealRoundPaid(key){ return S.dealRound&&S.dealRound[key]===S.q; }
+function askDeals(sb){
+  flSync();
+  const key=subjKey(sb), fc=subjForecast(sb);
+  const rows=[];
+  S.parties.filter(p=>p.id!==PL).forEach(p=>['h','s'].forEach(h=>{
+    const L=flLeader(p.id,h); if(!L||!flSeats(p.id,h))return;
+    const d=dealFor(p.id,h,key), dem=dealDemand(p.id,h,sb);
+    rows.push({p,h,L,d,dem});
+  }));
+  const tr=rows.map(r=>`<tr class="${r.d?'mine':''}"><td>${emblem(r.p,18)}</td>
+      <td><b>${r.L.name}</b><div class="sub2">${r.h==='s'?'сенаторы':'Собрание'} «${r.p.short}» · ${FT(r.L.trait).name.toLowerCase()} · ${flWord(r.L.rel)}</div></td>
+      <td class="n">${flSeats(r.p.id,r.h)}</td>
+      <td class="n ${r.d?'good':r.dem===null?'bad':''}">${r.d?'✓':r.dem===null?'нет':r.dem}</td></tr>`).join('');
+  const paid=dealRoundPaid(key);
+  sheetOpen({eye:'Переговоры · '+dateLabel(),title:subjName(sb),
+    body:`<div class="res" style="margin-top:0">${fc}</div>
+      <table class="tight"><thead><tr><th></th><th>Лидер</th><th class="n">Голосов</th><th class="n">Цена</th></tr></thead><tbody>${tr}</tbody></table>
+      <p class="hint">Цена — во что лидер оценивает поддержку: плата должна её перекрыть. Договорившись, лидер ведёт
+        фракцию за вами ${quarters(DEAL_LEN)}. Раунд переговоров — ${paid?'уже оплачен в этом квартале':'одно действие на весь квартал'},
+        каждое предложение — ${DEAL_CAP} веса.</p>`,
+    opts:rows.filter(r=>!r.d&&r.dem!==null).slice(0,10).map(r=>({label:r.L.name+' · '+(r.h==='s'?'сенаторы':'Собрание')+' «'+r.p.short+'»',
+      hint:'просит '+r.dem+' · любит: '+DEAL_PAY.find(x=>x.id===FT(r.L.trait).likes).name.toLowerCase()+' · голосов '+flSeats(r.p.id,r.h),
+      fn:()=>askDealWith(r.p.id,r.h,sb)})).concat([dealBackOpt(sb)])});
+}
+function subjForecast(sb){
+  if(sb.k==='b'&&sb.bill){ const t=tally(sb.bill), s=senTally(sb.bill);
+    return `<span>Собрание</span><b class="${t.yes>=MAJ?'good':'bad'}">${t.yes} из ${MAJ}</b>
+      <span>Сенат</span><b class="${s.yes>=SEN_MAJ?'good':'bad'}">${s.yes} из ${SEN_MAJ} · клотур ${clotureCount(sb.bill,s)} из ${cloture()}</b>`; }
+  if(sb.k==='c'){ const f=cnForecast(cnAny(sb.id));
+    return `<span>Собрание</span><b class="${f.h>=f.needH?'good':'bad'}">${f.h} из ${f.needH}</b>
+      <span>Сенат</span><b class="${f.s>=f.needS?'good':'bad'}">${f.s} из ${f.needS}</b>`; }
+  if(sb.k==='budget'){ const t=budgetTally(); return `<span>Собрание</span><b class="${t.yes>=MAJ?'good':'bad'}">${t.yes} из ${MAJ}</b>`; }
+  if(sb.k==='m'&&S.motion){ const f=motionForecast(); return `<span>За отставку</span><b>${f.yes} из ${MAJ}</b>`; }
+  return '';
+}
+function askDealWith(pid,house,sb){
+  const L=flLeader(pid,house), t=FT(L.trait), dem=dealDemand(pid,house,sb), p=P(pid);
+  const pays=dealPays(pid,house);
+  sheetOpen({eye:(house==='s'?'Сенаторы':'Фракция')+' «'+p.name+'»',title:L.name,
+    body:`<p class="lead">${t.name}. ${t.txt}</p>
+      <div class="res"><span>Предмет</span><b class="w">${subjName(sb)}</b>
+        <span>Отношение к вам</span><b>${Math.round(L.rel)} · ${flWord(L.rel)}</b>
+        <span>Верит вашему слову</span><b class="${L.trust<40?'bad':''}">${Math.round(L.trust)}</b>
+        <span>Цена поддержки</span><b>${dem}</b>
+        ${L.owe?'<span>За ними</span><b class="good">должок — дешевле на 10</b>':''}</div>`,
+    opts:pays.map(x=>({label:x.name+(x.ok?' · шанс '+Math.round(dealChance(dem,x.v)*100)+'%':''),
+      hint:x.ok?x.txt+' · ценность '+x.v:x.why,
+      fn(){ if(!x.ok){ toast(x.why); askDealWith(pid,house,sb); return; } offerDeal(pid,house,sb,x); }}))
+      .concat([{label:'Назад к переговорам',hint:'',fn:()=>askDeals(sb)}])});
+}
+function offerDeal(pid,house,sb,x){
+  const key=subjKey(sb);
+  if(!dealRoundPaid(key)){
+    if(!pay({ap:1,cap:DEAL_CAP},'Переговоры: '+subjName(sb)))return;
+    S.dealRound=S.dealRound||{}; S.dealRound[key]=S.q;
+  } else if(!pay({cap:DEAL_CAP},'Переговоры'))return;
+  const L=flLeader(pid,house), dem=dealDemand(pid,house,sb), ch=dealChance(dem,x.v), p=P(pid);
+  if(Math.random()>=ch){
+    L.rel=clamp(L.rel-3,0,100);
+    logMsg(L.name+' («'+p.short+'») отказался: '+x.name.toLowerCase()+' за '+subjName(sb)+' — мало.',0);
+    sheetOpen({eye:'Переговоры',title:L.name+' отказал',
+      body:`<p class="lead">«${x.name}» — этого мало за ${subjName(sb)}. Можно предложить другое: раунд уже оплачен.</p>`,
+      opts:[{label:'Предложить другое',hint:'',fn:()=>askDealWith(pid,house,sb)},{label:'К переговорам',hint:'',fn:()=>askDeals(sb)}]});
+    render(); return;
+  }
+  if(!dealPayNow(pid,house,x)){ askDealWith(pid,house,sb); return; }
+  const t=FT(L.trait);
+  const d={id:(S.dealNo=(S.dealNo||0)+1), pid, house, key, label:subjName(sb), pay:x.id, trait:L.trait, leader:L.name,
+    q:S.q, due:S.q+DEAL_LEN, renege:Math.random()>t.keep, told:false};
+  if(x.id==='bill'){ const pc=pactFor(pid,PL); d.iou={ax:pc.ax,sign:pc.sign,topic:pc.topic,due:S.q+IOU_LEN,done:false}; }
+  S.deals=(S.deals||[]).filter(z=>!(z.pid===pid&&z.house===house&&z.key===key)).concat([d]);
+  if(S.deals.length>60)S.deals=S.deals.slice(-60);
+  L.owe=0; L.rel=clamp(L.rel+(x.id==='favor'?-12:4),0,100);
+  logMsg('Сделка: '+L.name+' («'+p.short+'», '+(house==='s'?'Сенат':'Собрание')+') поддержит '+subjName(sb)+' — '+x.name.toLowerCase()+'.',1);
+  sheetOpen({eye:'Переговоры',title:'По рукам',
+    body:`<p class="lead">${L.name} поведёт ${house==='s'?'сенаторов':'фракцию'} «${p.name}» за вами: ${subjName(sb)}.</p>
+      <div class="res"><span>Плата</span><b class="w">${x.name}</b>
+        <span>Действует</span><b>до ${shortDate(d.due)}</b>
+        ${d.iou?`<span>Вы должны</span><b class="w">${pactText(d.iou)} до ${shortDate(d.iou.due)}</b>`:''}</div>
+      <p class="hint">Держит ли он слово — выяснится на голосовании.</p>`,
+    opts:[{label:'Дальше переговоры',hint:'',fn:()=>askDeals(sb)},dealBackOpt(sb)]});
+  render();
+}
+/* закончить переговоры: если они шли посреди голосования — вернуться к нему */
+function dealBackOpt(sb){
+  if(sb.back&&S.pendVote)return {label:'Вернуться к голосованию',hint:'с новым раскладом',fn(){
+    const pv=S.pendVote; S.pendVote=null;
+    if(pv.sen)senateDebate(pv.b,pv.low,true); else voteStage(pv.b,pv.rep0,pv.am); }};
+  if(sb.k==='c')return {label:'Вернуться к поправке',hint:'',fn:()=>askAmendOne(sb.id)};
+  return {label:'Закрыть переговоры',hint:'',fn(){}};
+}
+/* плата уходит сразу — кроме ответного закона, который вы ещё должны */
+function dealPayNow(pid,house,x){
+  const p=P(pid);
+  if(x.id==='post'){
+    const k=POSTS.map(z=>z.id).filter(z=>S.gov.posts[z]===PL).reverse()[0]; if(!k)return false;
+    S.gov.posts[k]=pid;
+    if(!inCoal(pid)){ S.gov.coal.push(pid); S.partners[pid]={patience:3,anger:0};
+      logMsg('Фракция «'+p.name+'» вошла в коалицию.',1); chron('«'+p.name+'» вошла в правительство.','g'); }
+    syncCabinet();
+  }
+  if(x.id==='chair'){
+    const ax=AX.slice().sort((a,b)=>Math.abs(p.st[b]-me().st[b])-Math.abs(p.st[a]-me().st[a]))[0];
+    const d=S.deputies.filter(z=>z.party===pid).sort((a,b)=>b.loyal-a.loyal)[0];
+    if(!d)return false;
+    S.comm[ax]=d.id; d.note='получил комитет по сделке'; commMembersFix(ax);
+    logMsg('Комитет по теме «'+AXNAME[ax]+'» возглавил '+d.name+' («'+p.short+'»).');
+  }
+  if(x.id==='money'){
+    if(!payGold(x.gold))return false;
+    const rid=REGIONS.slice().sort((a,b)=>S.deputies.filter(d=>d.party===pid&&d.region===b.id).length-
+      S.deputies.filter(d=>d.party===pid&&d.region===a.id).length)[0].id;
+    S.rmod[rid]=clamp(S.rmod[rid]+2,-22,22); S.unrest[rid]=clamp(S.unrest[rid]-3,0,100);
+    S.deputies.filter(d=>d.party===pid&&d.region===rid).forEach(d=>d.rel=clamp(d.rel+6,0,100));
+  }
+  if(x.id==='course'){ const pc=pactFor(pid,PL); me().st[pc.ax]=clamp(r1(me().st[pc.ax]+0.5*pc.sign),-2,2);
+    coreGroups(me().st).forEach(g=>shiftMood(g,-0.7)); }
+  if(x.id==='cash'){ if(!payFunds(x.funds))return false; addTrail(10,'конверт лидеру фракции «'+p.short+'»');
+    bumpRep('honest',-2); S.leakPool=(S.leakPool||0)+1; }
+  return true;
+}
+/* квартал сделок: долги, нарушенное слово, предложения лидеров */
+function dealTick(){
+  flSync();
+  (S.fl&&Object.keys(S.fl)||[]).forEach(pid=>['h','s'].forEach(h=>{ const L=S.fl[pid][h]; if(!L||pid===PL)return;
+    L.rel=clamp(r1(L.rel+(flBase(pid)-L.rel)*0.06),0,100); L.trust=clamp(r1(L.trust+(60-L.trust)*0.03),0,100); }));
+  (S.deals||[]).forEach(d=>{
+    const L=flLeader(d.pid,d.house);
+    // долг по ответному закону
+    if(d.iou&&!d.iou.done&&!d.iou.broken){
+      const law=S.laws.find(l=>l.by===PL&&l.q>=d.q&&T(l.topic).ax===d.iou.ax&&Math.sign(l.stance)===d.iou.sign);
+      if(law){ d.iou.done=true; if(L){ L.trust=clamp(L.trust+10,0,100); L.rel=clamp(L.rel+6,0,100); }
+        logMsg('Долг перед «'+P(d.pid).short+'» закрыт: принят «'+law.name+'».',1); }
+      else if(S.q>d.iou.due){ d.iou.broken=true;
+        if(L){ L.trust=clamp(L.trust-25,0,100); L.rel=clamp(L.rel-18,0,100); }
+        Object.values(S.fl).forEach(f=>['h','s'].forEach(k=>{ if(f[k])f[k].trust=clamp(f[k].trust-5,0,100); }));
+        bumpRep('honest',-3);
+        logMsg('Вы не вернули долг «'+P(d.pid).name+'»: '+pactText(d.iou)+' так и не принят. Лидеры фракций это запомнили.',1);
+        chron('Нарушено слово, данное «'+P(d.pid).name+'».','b'); }
+    }
+    // слово лидера проверяется, когда срок сделки вышел
+    if(!d.told&&S.q>d.due){ d.told=true; d.gone=true;
+      if(d.renege&&L){ L.owe=1; logMsg(d.leader+' («'+P(d.pid).short+'») получил своё, но фракция голосовала вразнобой. За ними должок.',1); } }
+  });
+  // лидеры приходят сами — когда у вас есть что им продать
+  if(Math.random()<0.22)dealApproach();
+}
+function dealApproach(){
+  let sb=null;
+  if(isPM()&&budgetDue()&&!S.budget.submitted)sb={k:'budget'};
+  else if(S.motion&&S.motion.against===PL)sb={k:'m'};
+  else if(S.bill)sb={k:'b',topic:S.bill.topic,stance:S.bill.stance,bill:S.bill};
+  if(!sb)return;
+  const key=subjKey(sb);
+  const cand=S.parties.filter(p=>p.id!==PL&&!dealFor(p.id,'h',key)&&flLeader(p.id,'h')&&flLeader(p.id,'h').rel>=44)
+    .map(p=>({p,dem:dealDemand(p.id,'h',sb)})).filter(x=>x.dem!==null).sort((a,b)=>a.dem-b.dem)[0];
+  if(!cand)return;
+  const L=flLeader(cand.p.id,'h'), t=FT(L.trait), want=DEAL_PAY.find(x=>x.id===t.likes);
+  const x=dealPays(cand.p.id,'h').find(z=>z.id===t.likes&&z.ok)||dealPays(cand.p.id,'h').find(z=>z.ok&&z.id!=='favor');
+  if(!x)return;
+  sheetOpen({eye:'Лидер фракции просит встречи · '+dateLabel(),title:L.name+' предлагает сделку',
+    body:`<p class="lead">«${cand.p.name}» (${mandates(seatsOf(cand.p.id))}) готова поддержать ${subjName(sb)}.
+        ${L.name} — ${t.name.toLowerCase()} — хочет взамен: ${x.name.toLowerCase()}.</p>
+      <div class="res">${subjForecast(sb)}<span>Отношение</span><b>${Math.round(L.rel)}</b></div>`,
+    opts:[{label:'Согласиться',hint:x.txt+' · без хода',fn(){
+        if(!dealPayNow(cand.p.id,'h',x)){ toast('Заплатить нечем'); return; }
+        S.deals=(S.deals||[]).concat([{id:(S.dealNo=(S.dealNo||0)+1),pid:cand.p.id,house:'h',key,label:subjName(sb),pay:x.id,
+          trait:L.trait,leader:L.name,q:S.q,due:S.q+DEAL_LEN,renege:Math.random()>t.keep,told:false,
+          iou:x.id==='bill'?(()=>{const pc=pactFor(cand.p.id,PL);return {ax:pc.ax,sign:pc.sign,topic:pc.topic,due:S.q+IOU_LEN,done:false};})():null}]);
+        L.rel=clamp(L.rel+5,0,100);
+        logMsg('Сделка по предложению '+L.name+': «'+cand.p.short+'» поддержит '+subjName(sb)+'.',1); render(); }},
+      {label:'Отказать',hint:'отношение немного упадёт',fn(){ L.rel=clamp(L.rel-3,0,100); }}]});
+}
+
+/* ─── комитеты ──────────────────────────────────────────────────────
+   Шесть профильных комитетов. В начале созыва председатели и места
+   делятся между фракциями пропорционально, по методу Д'Ондта: у
+   большинства больше, но и у оппозиции есть свои кресла — и свои
+   слушания против вашего кабинета. */
+function seatCommittees(){
+  S.comm={}; S.commM={};
+  const pool=S.parties.filter(p=>seatsOf(p.id)>0);
+  const quot=[]; pool.forEach(p=>{ for(let i=1;i<=6;i++)quot.push({pid:p.id,v:seatsOf(p.id)/i}); });
+  quot.sort((a,b)=>b.v-a.v);
+  const chairs=quot.slice(0,AX.length).map(x=>x.pid);
+  const free=AX.slice();
+  // сначала выбирает крупнейшая: ось, где она дальше всего от центра
+  chairs.forEach(pid=>{
+    const p=P(pid);
+    free.sort((a,b)=>Math.abs(p.st[b]||0)-Math.abs(p.st[a]||0));
+    const ax=free.shift();
+    const taken=Object.values(S.comm);
+    const d=S.deputies.filter(z=>z.party===pid&&taken.indexOf(z.id)<0).sort((a,b)=>(b.loyal+senRankLike(b))-(a.loyal+senRankLike(a)))[0];
+    if(d){ S.comm[ax]=d.id; d.note='председатель комитета'; }
+  });
+  AX.forEach(ax=>commMembersFix(ax));
+}
+function senRankLike(d){ return (d.deals||0)*2+(d.integ||50)*0.1; }
+/* состав комитета: места по фракциям пропорционально, председатель — внутри */
+function commMembersFix(ax){
+  S.commM=S.commM||{};
+  const seatsBy=dhondt(Object.fromEntries(S.parties.map(p=>[p.id,seatsOf(p.id)])),COMM_SIZE);
+  const ch=commChair(ax), out=ch?[ch.id]:[];
+  Object.entries(seatsBy).forEach(([pid,n])=>{
+    const pool=S.deputies.filter(d=>d.party===pid&&out.indexOf(d.id)<0)
+      .sort((a,b)=>Math.abs(b.st[ax]-P(pid).st[ax])-Math.abs(a.st[ax]-P(pid).st[ax]));  // в комитет идут самые идейные по теме
+    let need=n-(ch&&ch.party===pid?1:0);
+    pool.slice(0,Math.max(0,need)).forEach(d=>out.push(d.id));
+  });
+  S.commM[ax]=out.slice(0,COMM_SIZE);
+}
+function commMembers(ax){
+  if(!S.commM||!S.commM[ax])commMembersFix(ax);
+  const ids=S.commM[ax], list=ids.map(id=>S.deputies.find(d=>d.id===id)).filter(Boolean);
+  if(list.length<COMM_SIZE-2){ commMembersFix(ax); return S.commM[ax].map(id=>S.deputies.find(d=>d.id===id)).filter(Boolean); }
+  return list;
+}
+/* комитет голосует: рекомендация прибавляет залу голоса или отнимает */
+function commVote(b){
+  const ax=T(b.topic).ax, m=commMembers(ax);
+  let yes=0,no=0; m.forEach(d=>{ const v=support(d,b); if(v>0)yes++; else no++; });
+  return {yes,no,n:m.length};
+}
+function commWord(ax){ const ch=commChair(ax); if(!ch)return 'вакансия';
+  return inCoal(ch.party)&&inCoal(PL)||ch.party===PL?'свой':'чужой'; }
+/* слушания: министр под лупой. Оппозиционный комитет делает это сам */
+function hearingRun(ax,byYou){
+  const post=COMM_MIN[ax], m=minOf(post); if(!m)return '';
+  const ch=commChair(ax), hostile=!(m.party===PL||inCoal(m.party));
+  const hit=byYou?ri(3,6):ri(1,3);
+  m.comp=clamp(m.comp-hit,10,95);
+  const mine=m.party===PL||(inCoal(m.party)&&inCoal(PL));
+  if(mine){ shiftAll(-0.4); pressAll(-1); } else if(byYou){ bumpRep('comp',1.5); pressAll(1); }
+  S.hearLog=(S.hearLog||[]); S.hearLog.unshift({q:S.q,ax,post,name:m.name,ch:ch?ch.name:'—',by:ch?ch.party:null,you:!!byYou});
+  if(S.hearLog.length>20)S.hearLog.pop();
+  return 'Слушания в комитете «'+AXNAME[ax]+'»: министр '+m.name+' ('+POSTS.find(p=>p.id===post).name.toLowerCase()+') под огнём, компетентность −'+hit+'.';
+}
+function askHearing(ax){
+  const ch=commChair(ax), m=minOf(COMM_MIN[ax]);
+  if(!m){ toast('У комитета нет министра'); return; }
+  const ours=ch&&(ch.party===PL||inCoal(ch.party)&&inCoal(PL));
+  const cap=ours?4:9;
+  sheetOpen({eye:'Комитет «'+AXNAME[ax]+'» · 1 действие',title:'Слушания: '+m.name,
+    body:`<p class="lead">${ours?'Председатель ваш — слушания назначат по первой просьбе.':'Председатель чужой: слушания придётся выбивать через членов комитета.'}
+        Министр ${m.name} («${P(m.party).short}», ${minWord(m)}) будет отвечать под камеры.</p>
+      <div class="res"><span>Цена</span><b>ход · ${cap} веса</b>
+        <span>Министр</span><b class="w">${m.party===PL||inCoal(m.party)?'свой — ударит и по вам':'чужой — очки вам'}</b></div>`,
+    opts:[{label:'Назначить слушания',hint:'компетентность министра падает, печать пишет',fn(){
+        if(!pay({ap:1,cap},'Слушания в комитете'))return;
+        const t=hearingRun(ax,true); logMsg(t,1); toast('Слушания проведены'); render(); }},
+      {label:'Не сейчас',hint:'',fn(){}}]});
+}
+/* квартал комитетов: чужие председатели вызывают ваших министров */
+function commTick(){
+  if(!S.comm)return;
+  AX.forEach(ax=>{
+    const ch=commChair(ax); if(!ch)return;
+    const m=minOf(COMM_MIN[ax]); if(!m)return;
+    const hostile=!inCoal(ch.party)&&inCoal(m.party);
+    if(hostile&&Math.random()<0.1){
+      const t=hearingRun(ax,false);
+      logMsg(t+' Председатель — '+ch.name+' («'+P(ch.party).short+'»).',isPM()?1:0);
+    }
+  });
+}
+
+/* ─── повестка Сената ───────────────────────────────────────────────
+   Верхняя палата живёт своей жизнью: лидер большинства решает, чем
+   она займётся в квартале, — и не всегда это ваши проекты. */
+function senAgendaTick(){
+  const L=S.senLead; if(!L)return;
+  const pid=L.party, friendly=pid===PL||inCoal(pid)&&inCoal(PL)||(isPM()&&inCoal(pid));
+  const againstGov=!inCoal(pid);
+  const r=Math.random();
+  let t='';
+  if(againstGov&&r<0.2){
+    // резолюция о министре
+    const post=pick(POSTS).id, m=minOf(post);
+    if(m){ m.comp=clamp(m.comp-3,10,95); if(inCoal(m.party)&&isPM()){ shiftAll(-0.3); }
+      t='Сенат по настоянию '+L.name+' принял резолюцию о работе министра '+m.name+' ('+POSTS.find(p=>p.id===post).name.toLowerCase()+').'; }
+  } else if(againstGov&&r<0.34){
+    // свой проект Сената: идёт в Собрание
+    const p=P(pid), tp=pick(TOPICS.filter(x=>!x.special));
+    const bill={topic:tp.id,stance:clamp(Math.round(p.st[tp.ax]),-2,2),riders:[],by:pid};
+    const up=resolveSenVote(bill);
+    if(up.pass){ const low=resolveVote(bill);
+      if(low.pass&&Math.random()>=vetoChance(bill)){ enact(bill); t='Сенат провёл свой проект «'+tp.name+'» через обе палаты ('+up.yes+':'+up.no+', '+low.yes+':'+low.no+').'; }
+      else t='Проект Сената «'+tp.name+'» не прошёл Собрание'+(low.pass?' — вето':'')+'.';
+    }
+  } else if(friendly&&r<0.25){
+    S.senBoost=S.q+1;
+    t='Лидер большинства '+L.name+' поставил ваши проекты в повестку первыми: ближайший пройдёт Сенат легче.';
+  } else if(r<0.32){
+    const reg=pick(REGIONS);
+    S.unrest[reg.id]=clamp(S.unrest[reg.id]-2,0,100);
+    t='Сенат провёл выездное заседание в крае '+reg.name+'.';
+  }
+  if(t){ S.senLog=(S.senLog||[]); S.senLog.unshift({q:S.q,t}); if(S.senLog.length>24)S.senLog.pop(); logMsg(t); }
+}
+
+/* встреча без предмета: отношения на будущее */
+function flMeet(pid,house){
+  if(!pay({ap:1,cap:4},'Встреча с лидером «'+P(pid).short+'»'))return;
+  const L=flLeader(pid,house), v=ri(8,14);
+  L.rel=clamp(L.rel+v,0,100);
+  (house==='s'?S.senate:S.deputies).filter(d=>d.party===pid).forEach(d=>d.rel=clamp(d.rel+2,0,100));
+  logMsg('Встреча с '+L.name+' («'+P(pid).short+'», '+(house==='s'?'Сенат':'Собрание')+'): отношение +'+v+'.');
+  toast('Отношение +'+v); render();
+}
 /* ════════════════════════════════════════════════════════════════
    Интерфейс. Вся разметка собрана из компонентов дизайн-системы
    (game/ui.html): panel, btn, table, stat, meter, chip, tag, stamp.
@@ -10920,6 +11420,7 @@ function tabBrief(){
          <div><i>подпись</i><b class="${vc<0.35?'good':'bad'}">${Math.round((1-vc)*100)}%</b></div></div>
        <p class="hint" style="margin-top:6px">${stuck?'Слабое место — в '+stuck+'.':'Проходит все три ступени.'}</p>`,
       foot:`<button class="btn sm pri" data-go="bill">К проекту</button>
+            <button class="btn sm" onclick="askDeals({k:'b',topic:S.bill.topic,stance:S.bill.stance,bill:S.bill})">Сделки с фракциями</button>
             <button class="btn sm" data-go="parl">Депутаты</button>`});})()
     : panel({title:'На столе',body:'<div class="empty">Законопроект не подготовлен.<br>'+
         '<button class="btn sm" data-go="bill" style="margin-top:8px">Выбрать направление</button></div>'});
@@ -11013,6 +11514,77 @@ function senThresholds(){
       <span style="left:${pos(c)}%;top:14px;color:var(--mark)">коалиция ${c}</span>
     </div>`;
 }
+/* ─── фракции и их лидеры ─────────────────────────────────────────
+   У каждой фракции два лица: лидер в Собрании и лидер сенаторов.
+   Таблица показывает, с кем и за сколько можно договориться. */
+function factionPanel(house){
+  flSync();
+  const rows=S.parties.slice().sort((a,b)=>flSeats(b.id,house)-flSeats(a.id,house)).map(p=>{
+    const L=flLeader(p.id,house); if(!L||!flSeats(p.id,house))return '';
+    const n=dealsLive().filter(d=>d.pid===p.id&&d.house===house).length;
+    const me_=p.id===PL;
+    return `<tr class="${me_?'mine':''}"><td>${emblem(p,20)}</td>
+      <td><b>${L.name}</b><div class="sub2">«${p.short}» · ${me_?(chief()&&house==='h'?'это вы':'ваша фракция'):FT(L.trait).name.toLowerCase()}${inCoal(p.id)?' · в коалиции':''}</div></td>
+      <td class="n">${flSeats(p.id,house)}</td>
+      <td class="n ${me_?'':L.rel>=60?'good':L.rel<35?'bad':''}">${me_?'—':Math.round(L.rel)}</td>
+      <td class="n hide-s ${L.trust<40?'bad':''}">${me_?'—':Math.round(L.trust)}</td>
+      <td class="n hide-s">${n?'<span class="tag g">'+n+'</span>':''}${L.owe?' <span class="tag y">должок</span>':''}</td>
+      <td class="r">${me_?'':`<button class="btn sm" onclick="askFaction('${p.id}','${house}')">Переговоры</button>`}</td></tr>`;}).join('');
+  return panel({title:house==='s'?'Лидеры сенаторов':'Лидеры фракций',meta:'договариваются с ними, а не с партией',flush:true,
+    body:`<table class="tight"><thead><tr><th></th><th>Лидер</th><th class="n">Мест</th><th class="n">Отнош.</th>
+      <th class="n hide-s">Доверие</th><th class="n hide-s">Сделки</th><th></th></tr></thead><tbody>${rows}</tbody>
+      <caption>Доверие — верят ли вашему слову: падает, когда вы не возвращаете долги, и тогда дорожает каждая сделка.
+        Сделка ведёт фракцию за вами по одному предмету: закону, поправке, бюджету или вотуму.</caption></table>`});
+}
+function askFaction(pid,house){
+  const L=flLeader(pid,house), p=P(pid), t=FT(L.trait);
+  const subs=[];
+  if(S.bill)subs.push({k:'b',topic:S.bill.topic,stance:S.bill.stance,bill:S.bill});
+  if(S.motion)subs.push({k:'m'});
+  if(isPM()&&budgetDue()&&!S.budget.submitted)subs.push({k:'budget'});
+  cnList().slice(0,3).forEach(c=>subs.push({k:'c',id:c.id}));
+  const live=dealsLive().filter(d=>d.pid===pid&&d.house===house);
+  sheetOpen({eye:(house==='s'?'Сенаторы':'Фракция')+' «'+p.name+'» · '+flSeats(pid,house)+' мест',title:L.name,
+    body:`<p class="lead">${t.name}. ${t.txt}</p>
+      <div class="res"><span>Отношение к вам</span><b>${Math.round(L.rel)} · ${flWord(L.rel)}</b>
+        <span>Верит вашему слову</span><b class="${L.trust<40?'bad':''}">${Math.round(L.trust)}</b>
+        <span>Любимая плата</span><b class="w">${DEAL_PAY.find(x=>x.id===t.likes).name.toLowerCase()}</b>
+        <span>Держит фракцию</span><b>${t.whip>=1.2?'железно':t.whip>=1?'крепко':'как получится'}</b>
+        ${live.length?`<span>Действующие сделки</span><b class="w">${live.map(d=>d.label).join('; ')}</b>`:''}</div>`,
+    opts:subs.map(sb=>{ const dem=dealDemand(pid,house,sb), has=dealFor(pid,house,subjKey(sb));
+      return {label:(has?'✓ ':'')+subjName(sb),hint:has?'уже договорились':dem===null?'не пойдёт ни за что':'цена '+dem,
+        fn(){ if(has||dem===null){ askFaction(pid,house); return; } askDealWith(pid,house,sb); }}; })
+      .concat([{label:'Встреча с лидером',hint:'ход и 4 веса · отношение +8…14, без предмета',fn:()=>flMeet(pid,house)},
+        {label:'Закрыть',hint:'',fn(){}}])});
+}
+/* комитеты палаты: председатель, состав, слушания */
+function commPanel(){
+  const rows=AXES.map(a=>{
+    const d=commChair(a.id), m=commMembers(a.id), post=COMM_MIN[a.id], mn=minOf(post);
+    const by={}; m.forEach(x=>by[x.party]=(by[x.party]||0)+1);
+    const comp=S.parties.filter(p=>by[p.id]).map(p=>`<i style="width:${by[p.id]/m.length*100}%;background:${p.color}"></i>`).join('');
+    const ours=d&&(d.party===PL||inCoal(d.party)&&inCoal(PL));
+    return `<tr><td><b>${a.name}</b><div class="sub2">${mn?'министр '+mn.name:''}</div>
+        <div class="meter" style="height:6px;margin-top:4px">${comp}</div></td>
+      <td>${d?`<b>${d.name}</b><div class="sub2">${P(d.party).short} · ${ours?'свой':'чужой'} · отнош. ${Math.round(d.rel)}</div>`:'<span class="dim">вакансия</span>'}</td>
+      <td class="r"><button class="btn sm" onclick="askHearing('${a.id}')" ${S.ap?'':'disabled'}>Слушания</button>
+        ${isPM()?`<button class="btn sm ghost" onclick="askChair('${a.id}')" ${S.ap&&S.cap>=6?'':'disabled'}>${d?'Сменить':'Назначить'}</button>`:''}</td></tr>`;
+  }).join('');
+  const hl=(S.hearLog||[]).slice(0,3).map(h=>`<div><s>${shortDate(h.q)}</s>${h.you?'Ваши слушания':'Комитет «'+AXNAME[h.ax]+'»'}: ${h.name}</div>`).join('');
+  return panel({title:'Комитеты',meta:COMM_SIZE+' членов · места по фракциям',flush:true,
+    body:`<table class="tight"><tbody>${rows}</tbody>
+      <caption>Комитет голосует первым: за — проект идёт в зал с рекомендацией и лишними голосами, против — с минусом,
+        а чужой председатель при поддержке комитета может положить его под сукно. Чужие комитеты сами вызывают ваших министров.</caption></table>
+      ${hl?'<div class="log" style="padding:var(--x4) var(--x5)">'+hl+'</div>':''}`});
+}
+/* повестка Сената: что палата делала сама */
+function senAgendaPanel(){
+  const L=S.senLead, log=(S.senLog||[]).slice(0,5);
+  return panel({title:'Повестка Сената',meta:L?'ведёт '+L.name+' · «'+P(L.party).short+'»':'лидера большинства нет',
+    body:log.length?'<div class="log">'+log.map(x=>`<div><s>${shortDate(x.q)}</s>${x.t}</div>`).join('')+'</div>'
+      :'<div class="empty">Палата пока занята вашими проектами. Чужое большинство найдёт себе дело само: резолюции о министрах, свои законы, выездные заседания.</div>'});
+}
+
 function tabParl(){
   const b=S.bill;
   let deps=S.deputies.slice();
@@ -11037,7 +11609,7 @@ function tabParl(){
     ||'<tr><td colspan="6" class="dim">Голосований ещё не было.</td></tr>';
   const tl=b?tally(b):null;
 
-  return parlPult()
+  return parlPult()+factionPanel('h')
   +panel({cls:'info',title:'Народное собрание',
     meta:mandates(SEATS)+' · большинство '+MAJ+' · коалиция '+coalSeats(),
     body:hemicycle()+archLegend(seatsOf)})
@@ -11062,13 +11634,7 @@ function tabParl(){
             <button class="btn sm" data-go="bill">К проекту</button>`})
     :panel({title:'Расклад по проекту',body:'<div class="empty">Проект не внесён — позиции депутатов покажутся, когда он появится.</div>'}))
   +regPanel()
-  +panel({title:'Комитеты',meta:'председатель ведёт фракцию',flush:true,
-    body:`<table class="tight"><tbody>${AXES.map(a=>{
-      const id=S.comm[a.id], d=id?S.deputies.find(x=>x.id===id):null;
-      return `<tr><td><b>${a.name}</b></td><td>${d?d.name:'<span class="dim">вакансия</span>'}</td>
-        <td>${d?chip(P(d.party)):''}</td>
-        <td class="r"><button class="btn sm" onclick="askChair('${a.id}')" ${S.ap&&S.cap>=6?'':'disabled'}>${d?'Заменить':'Назначить'}</button></td></tr>`;
-      }).join('')}</tbody></table>`})
+  +commPanel()
   +`</div></div>`
   +cnParlPanel()
   +panel({title:'Прошедшие голосования',flush:true,body:`<table class="tight"><tbody>${votes}</tbody></table>`});
@@ -11484,7 +12050,7 @@ function tabSenate(){
       foot:`<button class="btn sm" data-go="bill">К проекту</button>`})
     :panel({title:'Расклад в Сенате',body:'<div class="empty">Проект не внесён — позиции сенаторов и счёт по клотуру покажутся, когда он появится.</div>'});
 
-  return head
+  return head+factionPanel('s')+senAgendaPanel()
   +`<div class="cols c21"><div>`
   +panel({title:'Сенаторы',meta:b?'по проекту «'+T(b.topic).name+'»':'сортировка: кто хуже к вам относится',flush:true,
     body:`<div style="padding:var(--x4) var(--x5);border-bottom:var(--hair-2)" class="row">${filters}
@@ -11662,6 +12228,7 @@ function tabBudget(){
          <p class="hint" style="margin-top:6px">Нужно ${MAJ} голосов. Провал откатывает бюджет к прошлогоднему и открывает дорогу вотуму недоверия${
            S.budget.fails?'; это уже второй год подряд':''}.</p>`,
         foot:`<button class="btn pri" onclick="submitBudget()" ${S.ap&&S.cap>=6?'':'disabled'}>Внести бюджет<span class="cost">6 веса</span></button>
+              <button class="btn" onclick="askDeals({k:'budget'})">Договориться с фракциями</button>
               <span class="hint">1 действие</span>`})
     : panel({cls:'info',title:'Бюджетный год',meta:S.budget.submitted?'проект рассмотрен':'до защиты '+quarters(3-((S.q-S.termStart)%4)),
         body:`<p class="hint">Ставки и статьи можно менять когда угодно, но раз в год правительство защищает их в Собрании.
@@ -12977,7 +13544,7 @@ function hideMenu(){
 
 function newParty(){
   sheetOpen({eye:'Республика Новария · 2029 год',title:'Ваша партия идёт во власть',
-    body:`<img src="${FLAG}" alt="Флаг Республики Новария" style="width:132px;display:block;border:1px solid var(--rule);margin:0 0 11px">
+    body:`<img src="${FLAG}" alt="Флаг Республики Новария" style="width:140px;display:block;margin:0 0 12px;filter:drop-shadow(0 2px 3px rgba(20,19,15,.22))">
       <p>Одиннадцать субъектов от Балтики до Тихоокеанска, Народное собрание на ${SEATS} мандатов
         и пять фракций, каждая со своим избирателем. Созыв длится ${aTerm()} кварталов, потом выборы.</p>
       <p>Вы основали партию и решаете, где в ней стоите сами: во главе кабинета, в президентском кресле,
@@ -13176,7 +13743,7 @@ function menuContinue(){
 }
 function menuAbout(){
   sheetOpen({eye:'Республика Новария',title:'О стране',
-    body:`<img src="${FLAG}" alt="Флаг Республики Новария" style="width:150px;display:block;border:1px solid var(--line);margin:0 0 12px">
+    body:`<img src="${FLAG}" alt="Флаг Республики Новария" style="width:156px;display:block;margin:0 0 12px;filter:drop-shadow(0 2px 3px rgba(20,19,15,.22))">
       <p class="lead">Полупрезидентская республика: ${REGIONS.length} субъектов от Балтики до Тихоокеанска,
         две палаты, президент со своим сроком и правительство, отвечающее перед нижней палатой.</p>
       <div class="res"><span>Народное собрание</span><b>${SEATS} мандатов</b>
