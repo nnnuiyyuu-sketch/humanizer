@@ -450,6 +450,14 @@ input:focus,select:focus{outline:2px solid var(--mark);outline-offset:-1px}
 .poll .pg{stroke:var(--line-3);stroke-width:1}
 .poll .pl{font:700 8px var(--f-cond);letter-spacing:.06em;fill:var(--ink-3)}
 .poll .pl.me{font-size:9px}
+/* ── разбор фракции: шапка с эмблемой и оси рядом с вашими ── */
+.fac-h{display:grid;grid-template-columns:40px minmax(0,1fr);gap:var(--x5);align-items:center;margin-bottom:var(--x4)}
+.fac-axes{display:grid;gap:4px;margin-top:var(--x4)}
+.fac-ax{display:grid;grid-template-columns:96px minmax(0,1fr) 30px;gap:var(--x4);align-items:center}
+.fac-ax span{font-size:12px;color:var(--ink-2)}
+.fac-ax b{font:400 12px var(--f-num);text-align:right}
+.fac-ax .ruler{height:14px}
+.fac-ax .ruler i{top:2.5px}
 @media (max-width:520px){ .roles{grid-template-columns:1fr} }
 /* ── полукруг зала ───────────────────────────────────────────
    Ровные концентрические ряды, фракции клиньями слева направо.
@@ -909,6 +917,7 @@ const ICON={
   city:'<path d="M3 21h18"/><path d="M5 21V11h4.5v10"/><path d="M9.5 21V4.5h6V21"/><path d="M15.5 21v-8H19v8"/>'+
        '<path d="M12 8h1.5M12 11.5h1.5M12 15h1.5M6.8 14.5h1"/>',
   vp:'<path d="M12.2 4.2l7.6 7.6-3 3-7.6-7.6z"/><path d="M13 11l-7.5 7.5"/><path d="M3.5 21h9"/>',
+  fac:'<path d="M3 19a9 9 0 0 1 18 0z"/><path d="M12 10v9M6.6 12.4 12 19M17.4 12.4 12 19"/>',
 };
 function icon(id,size){
   return `<svg class="ic" viewBox="0 0 24 24" width="${size||19}" height="${size||19}" fill="none"
@@ -2544,7 +2553,7 @@ function initState(pl){
   S.cn=cnDefault(); if(!S.rulers)S.rulers={pres:[],pm:[]};
   formCoalition(true);
   startRole(role,pl.start||{});
-  seatCommittees(); flSync();
+  seatCommittees(); flSync(); S.deals=[]; S.scandals=[]; S.bizLog=[];
   seedCabinet();
   startDesk(role,pl.start||{});
   snapshot();
@@ -3213,6 +3222,8 @@ function support(dep,bill){
   v+=firmPull(dep,bill);                          // за чей счёт живёт округ
   v+=amendPull(dep,bill);                         // поправка вносится ради голосов
   if(mine&&hasTrait('jurist'))v+=4;               // текст написан так, что не придерёшься
+  // партию ведёт другой: своя фракция идёт за вашим законом по вашему влиянию и слову лидера
+  if(mine&&dep.party===PL&&!chief())v+=(S.you.inf-45)*0.25+(S.you.lrel-50)*0.12;
   if(mine)v+=(rep('comp')-50)*0.05;
   v+=noise(dep.id+'|'+bill.topic+bill.stance+(bill.riders||[]).join('')+S.billNo,7);
   if(T(bill.topic).local&&bill.stance>0&&R(dep.region).capital)v-=6;
@@ -10425,6 +10436,7 @@ function offerDeal(pid,house,sb,x){
   S.deals=(S.deals||[]).filter(z=>!(z.pid===pid&&z.house===house&&z.key===key)).concat([d]);
   if(S.deals.length>60)S.deals=S.deals.slice(-60);
   L.owe=0; L.rel=clamp(L.rel+(x.id==='favor'?-12:4),0,100);
+  if(!chief())S.you.inf=clamp(S.you.inf+2,0,100);          // кто договаривается за партию, того в партии слушают
   logMsg('Сделка: '+L.name+' («'+p.short+'», '+(house==='s'?'Сенат':'Собрание')+') поддержит '+subjName(sb)+' — '+x.name.toLowerCase()+'.',1);
   sheetOpen({eye:'Переговоры',title:'По рукам',
     body:`<p class="lead">${L.name} поведёт ${house==='s'?'сенаторов':'фракцию'} «${p.name}» за вами: ${subjName(sb)}.</p>
@@ -11700,6 +11712,7 @@ const TABS=[
   {id:'party',  name:'Партия',       n:()=>seatsOf(PL), dot:()=>!!S.challenge},
   {id:'parl',   name:'Собрание',     grp:'Палаты', n:()=>seatsOf(PL)+'/'+SEATS},
   {id:'senate', name:'Сенат',        n:()=>senSeatsOf(PL)+'/'+SEN_SEATS},
+  {id:'fac',    name:'Фракции',      n:()=>dealsLive().length||'', dot:()=>(S.deals||[]).some(d=>d.iou&&!d.iou.done&&!d.iou.broken&&d.iou.due-S.q<=1)},
   {id:'bill',   name:'Законы',       n:()=>S.laws.length, dot:()=>!!S.bill||!!S.vetoed},
   {id:'budget', name:'Бюджет',       n:()=>sign(Math.round(balance()))},
   {id:'pm',     name:'Премьер-министр',short:'Премьер', grp:'Власть', n:()=>Math.round(cabinetPower()*100),
@@ -11729,6 +11742,7 @@ function renderStrip(){
     ['казна',Math.round(S.treasury)+' млрд',S.treasury<25?'bad':''],
     ['баланс',sign(Math.round(bal)),bal<0?'bad':'good'],
     ['вес',Math.round(S.cap),S.cap<15?'warn':''],
+    ...(chief()?[]:[['влияние',Math.round(S.you.inf)+' / '+CONGRESS_INF,S.you.inf>=CONGRESS_INF?'good':'']]),
     ['касса',Math.round(S.funds)+' млн',''],
   ];
   document.getElementById('strip').innerHTML=cells.map(c=>c[0]==='действия'
@@ -11785,7 +11799,7 @@ function render(){
   const f=({brief:tabBrief,self:tabSelf,party:tabParty,parl:tabParl,senate:tabSenate,bill:tabBill,
             budget:tabBudget,pm:tabPM,gov:tabGov,pres:tabPres,court:tabCourt,country:tabCountry,
             society:tabSociety,press:tabPress,world:tabWorld,camp:tabCamp,firms:tabFirms,
-            const:tabConst,hist:tabHist,
+            const:tabConst,hist:tabHist,fac:tabFac,
             arch:tabArch,help:tabHelp})[S.tab]||tabBrief;
   document.getElementById('view').innerHTML=f();
   bindActions();
@@ -12169,6 +12183,57 @@ function senThresholds(){
       <span style="left:${pos(c)}%;top:14px;color:var(--mark)">коалиция ${c}</span>
     </div>`;
 }
+/* ─── разбор фракций ──────────────────────────────────────────────
+   Каждая фракция целиком: два лидера, дисциплина, чего хочет, где
+   стоит по каждой оси рядом с вами, какие сделки и долги открыты,
+   какие скандалы горят. Отсюда же — переговоры. */
+function tabFac(){
+  flSync();
+  const sh=raceShares(0);
+  const sum=S.parties.slice().sort(bySeats).map(p=>{
+    const dis=Math.round(S.deputies.filter(d=>d.party===p.id).reduce((a,d)=>a+d.loyal,0)/Math.max(1,seatsOf(p.id)));
+    const h=flLeader(p.id,'h'), s=flLeader(p.id,'s');
+    return `<tr class="${p.id===PL?'mine':''}"><td>${emblem(p,18)}</td><td><b>${p.name}</b><div class="sub2">${p.id===PL?'ваша':inCoal(p.id)?'в коалиции':'оппозиция'}</div></td>
+      <td class="n">${seatsOf(p.id)}</td><td class="n">${senSeatsOf(p.id)}</td><td class="n hide-s">${dis}</td>
+      <td class="n">${sh[p.id]}%</td>
+      <td class="n ${p.id===PL?'':h.rel>=60?'good':h.rel<35?'bad':''}">${p.id===PL?'—':Math.round(h.rel)}</td>
+      <td class="n hide-s ${p.id===PL||!s?'':s.rel>=60?'good':s.rel<35?'bad':''}">${p.id===PL||!s?'—':Math.round(s.rel)}</td></tr>`; }).join('');
+  const cards=S.parties.filter(p=>p.id!==PL).sort(bySeats).map(p=>facCard(p)).join('');
+  return panel({cls:'lead-p',title:'Фракции',meta:'Собрание · Сенат · отношение лидеров',flush:true,
+    body:`<table class="tight"><thead><tr><th></th><th>Фракция</th><th class="n">Собр.</th><th class="n">Сенат</th>
+      <th class="n hide-s">Дисц.</th><th class="n">Опрос</th><th class="n">Лидер</th><th class="n hide-s">Сенаторы</th></tr></thead><tbody>${sum}</tbody>
+      <caption>Дисциплина — насколько депутаты идут за линией фракции: у дисциплинированной сделка с лидером приносит почти все голоса,
+        у рыхлой — половину. Отношение — к вам лично, от него зависит цена сделки.</caption></table>`})
+    +`<div class="cols c11">${cards}</div>`;
+}
+function facCard(p){
+  const h=flLeader(p.id,'h'), s=flLeader(p.id,'s');
+  const deps=S.deputies.filter(d=>d.party===p.id);
+  const dis=Math.round(deps.reduce((a,d)=>a+d.loyal,0)/Math.max(1,deps.length));
+  const friends=deps.filter(d=>d.rel>=62).length, foes=deps.filter(d=>d.rel<35).length;
+  const pc=pactFor(p.id,PL);
+  const deals=dealsLive().filter(d=>d.pid===p.id);
+  const ious=(S.deals||[]).filter(d=>d.pid===p.id&&d.iou&&!d.iou.done&&!d.iou.broken);
+  const scs=scLive().filter(x=>x.who===p.id);
+  const lead=(L,house)=>L?`<div class="dep"><div class="who"><b>${L.name}</b><span>${house} · ${FT(L.trait).name.toLowerCase()} · ${flWord(L.rel)}${L.owe?' · должок':''}</span></div>
+      ${mini(L.rel,L.rel>=60?'var(--good)':L.rel<35?'var(--bad)':'var(--ink-2)')}<b class="num-s">${Math.round(L.rel)}</b></div>`:'';
+  const axes=AXES.map(a=>{ const them=p.st[a.id]||0, mine=me().st[a.id]||0, d=Math.abs(them-mine);
+    return `<div class="fac-ax"><span>${a.name}</span><div class="ruler"><i style="left:${(them+2)/4*100}%;background:${p.color}"></i>
+      <i style="left:${(mine+2)/4*100}%;background:var(--ink);border-radius:50%"></i></div><b class="${d>=2?'bad':d<1?'good':''}">${d.toFixed(1)}</b></div>`; }).join('');
+  return panel({title:p.name,meta:(inCoal(p.id)?'в коалиции':'оппозиция')+' · '+mandates(seatsOf(p.id))+' · '+senSeatsOf(p.id)+' в Сенате',
+    body:`<div class="fac-h">${emblem(p,40)}<p class="lead" style="margin:0">Хотят: ${pactText(pc)}.
+        ${scs.length?'<span class="warn-t">Горит: '+scs.map(x=>x.title).join('; ')+'.</span>':''}</p></div>
+      ${lead(h,'Собрание')}${lead(s,'Сенат')}
+      <div class="res"><span>Дисциплина</span><b>${dis}</b>
+        <span>Ваших людей / врагов</span><b>${friends} / ${foes}</b>
+        <span>Импульс</span><b class="${(p.mom||0)<0?'bad':''}">${sign(r1(p.mom||0))}</b>
+        ${deals.length?`<span>Сделки</span><b class="w">${deals.map(d=>(d.house==='s'?'Сенат: ':'')+d.label+' до '+shortDate(d.due)).join('; ')}</b>`:''}
+        ${ious.length?`<span>Вы должны</span><b class="w warn-t">${ious.map(d=>pactText(d.iou)+' до '+shortDate(d.iou.due)).join('; ')}</b>`:''}</div>
+      <div class="fac-axes"><div class="sub2">квадрат — фракция, круг — вы, справа — расстояние по оси</div>${axes}</div>`,
+    foot:`<button class="btn sm" onclick="askFaction('${p.id}','h')">Переговоры · Собрание</button>
+      ${s?`<button class="btn sm" onclick="askFaction('${p.id}','s')">Переговоры · Сенат</button>`:''}`});
+}
+
 /* ─── фракции и их лидеры ─────────────────────────────────────────
    У каждой фракции два лица: лидер в Собрании и лидер сенаторов.
    Таблица показывает, с кем и за сколько можно договориться. */

@@ -402,6 +402,19 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
 .desk .levers{grid-template-columns:repeat(auto-fit,minmax(118px,1fr));margin-bottom:var(--x4)}
 .desk .rules div:not(.ok):not(.no) s{border-color:var(--line-2)}
 .desk .rules .no b{color:var(--ink)}
+/* ── опросы гонки: линия на партию, подпись у конца линии ── */
+.poll{width:100%;height:auto;display:block}
+.poll .pg{stroke:var(--line-3);stroke-width:1}
+.poll .pl{font:700 8px var(--f-cond);letter-spacing:.06em;fill:var(--ink-3)}
+.poll .pl.me{font-size:9px}
+/* ── разбор фракции: шапка с эмблемой и оси рядом с вашими ── */
+.fac-h{display:grid;grid-template-columns:40px minmax(0,1fr);gap:var(--x5);align-items:center;margin-bottom:var(--x4)}
+.fac-axes{display:grid;gap:4px;margin-top:var(--x4)}
+.fac-ax{display:grid;grid-template-columns:96px minmax(0,1fr) 30px;gap:var(--x4);align-items:center}
+.fac-ax span{font-size:12px;color:var(--ink-2)}
+.fac-ax b{font:400 12px var(--f-num);text-align:right}
+.fac-ax .ruler{height:14px}
+.fac-ax .ruler i{top:2.5px}
 @media (max-width:520px){ .roles{grid-template-columns:1fr} }
 /* ── полукруг зала ───────────────────────────────────────────
    Ровные концентрические ряды, фракции клиньями слева направо.
@@ -1059,6 +1072,7 @@ tr.hd+tr td{border-top:0}
   <figure><i data-ic="clock" data-s="26"></i><figcaption>Срок<i>clock</i></figcaption></figure>
   <figure><i data-ic="city" data-s="26"></i><figcaption>Мэр<i>city</i></figcaption></figure>
   <figure><i data-ic="vp" data-s="26"></i><figcaption>Вице-президент<i>vp</i></figcaption></figure>
+  <figure><i data-ic="fac" data-s="26"></i><figcaption>Фракции<i>fac</i></figcaption></figure>
 </div>
 <div class="grid g2" style="margin-top:var(--x5)">
   <div>
@@ -1696,6 +1710,44 @@ tr.hd+tr td{border-top:0}
     </div>
   </div>
   <footer><span class="hint">Партию ведёт Алла Токарева · отношение к вам 63 · номер в списке 84</span></footer></div>
+</div>
+
+<h3 class="sub" style="margin-top:var(--x8)">Разбор фракции</h3>
+<p class="why" style="margin-top:0">Вкладка «Фракции»: у каждой фракции два лица — лидер в Собрании и лидер сенаторов, — и с каждым
+договариваются отдельно. Карточка отвечает на три вопроса: с кем говорить (лидеры, их характер и отношение к вам), о чём
+(чего фракция хочет — закон по оси, где она дальше всего от вас) и насколько далеко вы друг от друга. Оси — те же линейки
+направления: квадрат в цвете фракции, круг — вы, справа расстояние. Долги подсвечены красным: невозвращённый дорожает для всех.</p>
+<div class="spec" style="max-width:520px">
+  <div class="panel"><header><h4>Союз труда</h4><span class="meta">в коалиции · 79 мандатов · 21 в Сенате</span></header>
+  <div class="body">
+    <div class="fac-h"><span class="emb-dot" style="display:block;width:40px;height:40px;border-radius:50%;background:var(--p2)"></span>
+      <p class="lead" style="margin:0">Хотят: «Трудовой кодекс» в сторону «гарантии работникам».
+        <span class="warn-t">Горит: Касса «СТ»: откуда деньги.</span></p></div>
+    <div class="dep"><div class="who"><b>Анна Громова</b><span>Собрание · идейный · открыт</span></div><b class="num-s">65</b></div>
+    <div class="dep"><div class="who"><b>Марк Муравьёв</b><span>Сенат · служака · союзник</span></div><b class="num-s">67</b></div>
+    <div class="res"><span>Дисциплина</span><b>70</b><span>Сделки</span><b class="w">бюджет на 2030 год до 2029/IV</b>
+      <span>Вы должны</span><b class="w warn-t">«Трудовой кодекс» в сторону «свобода найма» до 2030/II</b></div>
+    <div class="fac-axes"><div class="sub2">квадрат — фракция, круг — вы, справа — расстояние по оси</div><div class="fac-ax"><span>Экономика</span><div class="ruler"><i style="left:25%;background:var(--p2)"></i><i style="left:45%;background:var(--ink);border-radius:50%"></i></div><b class="good">0.8</b></div><div class="fac-ax"><span>Налоги</span><div class="ruler"><i style="left:28%;background:var(--p2)"></i><i style="left:45%;background:var(--ink);border-radius:50%"></i></div><b class="good">0.7</b></div><div class="fac-ax"><span>Порядок</span><div class="ruler"><i style="left:52%;background:var(--p2)"></i><i style="left:78%;background:var(--ink);border-radius:50%"></i></div><b class="">1.0</b></div><div class="fac-ax"><span>Права</span><div class="ruler"><i style="left:40%;background:var(--p2)"></i><i style="left:57%;background:var(--ink);border-radius:50%"></i></div><b class="good">0.7</b></div><div class="fac-ax"><span>Регионы</span><div class="ruler"><i style="left:30%;background:var(--p2)"></i><i style="left:45%;background:var(--ink);border-radius:50%"></i></div><b class="good">0.6</b></div><div class="fac-ax"><span>Внешний курс</span><div class="ruler"><i style="left:40%;background:var(--p2)"></i><i style="left:40%;background:var(--ink);border-radius:50%"></i></div><b class="good">0.0</b></div></div>
+  </div>
+  <footer><button class="btn sm">Переговоры · Собрание</button><button class="btn sm">Переговоры · Сенат</button></footer></div>
+</div>
+
+<h3 class="sub" style="margin-top:var(--x8)">Гонка</h3>
+<p class="why" style="margin-top:0">График опросов в штабе: линия на партию, квартал на шаг, подпись в цвете партии у конца линии —
+чтобы не держать легенду в голове. Своя линия толще. Шкала всегда от нуля: отрыв в три пункта не должен выглядеть пропастью.</p>
+<div class="spec" style="max-width:640px"><svg class="poll" viewBox="0 0 560 190"><line x1="34" x2="474" y1="168.0" y2="168.0" class="pg"/><text x="28" y="171.0" class="pl" text-anchor="end">0</text><line x1="34" x2="474" y1="141.7" y2="141.7" class="pg"/><text x="28" y="144.7" class="pl" text-anchor="end">5</text><line x1="34" x2="474" y1="115.3" y2="115.3" class="pg"/><text x="28" y="118.3" class="pl" text-anchor="end">10</text><line x1="34" x2="474" y1="89.0" y2="89.0" class="pg"/><text x="28" y="92.0" class="pl" text-anchor="end">15</text><line x1="34" x2="474" y1="62.7" y2="62.7" class="pg"/><text x="28" y="65.7" class="pl" text-anchor="end">20</text><line x1="34" x2="474" y1="36.3" y2="36.3" class="pg"/><text x="28" y="39.3" class="pl" text-anchor="end">25</text><line x1="34" x2="474" y1="10.0" y2="10.0" class="pg"/><text x="28" y="13.0" class="pl" text-anchor="end">30</text><text x="34.0" y="184" class="pl" text-anchor="middle">2029/I</text><text x="180.7" y="184" class="pl" text-anchor="middle">2029/II</text><text x="327.3" y="184" class="pl" text-anchor="middle">2029/III</text><text x="474.0" y="184" class="pl" text-anchor="middle">2029/IV</text><path d="M34.0 12.1 L180.7 13.2 L327.3 15.8 L474.0 20.5" fill="none" stroke="var(--p1)" stroke-width="2.6"/><circle cx="34.0" cy="12.1" r="3" fill="var(--p1)"/><circle cx="180.7" cy="13.2" r="3" fill="var(--p1)"/><circle cx="327.3" cy="15.8" r="3" fill="var(--p1)"/><circle cx="474.0" cy="20.5" r="3" fill="var(--p1)"/><path d="M34.0 70.0 L180.7 54.2 L327.3 48.4 L474.0 48.4" fill="none" stroke="var(--p2)" stroke-width="1.6"/><circle cx="34.0" cy="70.0" r="2.2" fill="var(--p2)"/><circle cx="180.7" cy="54.2" r="2.2" fill="var(--p2)"/><circle cx="327.3" cy="48.4" r="2.2" fill="var(--p2)"/><circle cx="474.0" cy="48.4" r="2.2" fill="var(--p2)"/><path d="M34.0 82.2 L180.7 86.9 L327.3 90.6 L474.0 83.2" fill="none" stroke="var(--p5)" stroke-width="1.6"/><circle cx="34.0" cy="82.2" r="2.2" fill="var(--p5)"/><circle cx="180.7" cy="86.9" r="2.2" fill="var(--p5)"/><circle cx="327.3" cy="90.6" r="2.2" fill="var(--p5)"/><circle cx="474.0" cy="83.2" r="2.2" fill="var(--p5)"/><path d="M34.0 92.2 L180.7 86.4 L327.3 93.7 L474.0 98.5" fill="none" stroke="var(--p6)" stroke-width="1.6"/><circle cx="34.0" cy="92.2" r="2.2" fill="var(--p6)"/><circle cx="180.7" cy="86.4" r="2.2" fill="var(--p6)"/><circle cx="327.3" cy="93.7" r="2.2" fill="var(--p6)"/><circle cx="474.0" cy="98.5" r="2.2" fill="var(--p6)"/><text x="482" y="23.5" class="pl me" fill="var(--p1)">НВ 28.0%</text><text x="482" y="51.4" class="pl" fill="var(--p2)">СТ 22.7%</text><text x="482" y="86.2" class="pl" fill="var(--p5)">ЗВ 16.1%</text><text x="482" y="101.5" class="pl" fill="var(--p6)">НР 13.2%</text></svg></div>
+
+<h3 class="sub" style="margin-top:var(--x8)">Скандалы</h3>
+<p class="why" style="margin-top:0">У скандала есть температура — сколько о нём пишут. Полоса красная, если скандал против вас,
+серая — если у соперника. Кнопка ответа выделена, пока вы не выбрали тактику: молчание тоже выбор, но его надо сделать.</p>
+<div class="spec" style="padding:0;max-width:640px">
+  <table class="tight"><tbody>
+    <tr><td><b>Чьи деньги в кассе партии: следы «Рудогорск»</b><div class="sub2">против вас · с 2030/I</div></td>
+      <td style="width:110px"><div class="bar" style="height:8px"><i style="width:63%;background:var(--bad)"></i></div></td><td class="n bad">63</td>
+      <td class="r"><button class="btn sm pri">Ответить</button></td></tr>
+    <tr><td><b>Касса «СТ»: откуда деньги</b><div class="sub2">«СТ» · с 2029/IV</div></td>
+      <td style="width:110px"><div class="bar" style="height:8px"><i style="width:34%;background:var(--ink-3)"></i></div></td><td class="n">34</td><td></td></tr>
+  </tbody></table>
 </div>
 </section>
 
@@ -2604,6 +2656,7 @@ const ICON={
   city:'<path d="M3 21h18"/><path d="M5 21V11h4.5v10"/><path d="M9.5 21V4.5h6V21"/><path d="M15.5 21v-8H19v8"/>'+
        '<path d="M12 8h1.5M12 11.5h1.5M12 15h1.5M6.8 14.5h1"/>',
   vp:'<path d="M12.2 4.2l7.6 7.6-3 3-7.6-7.6z"/><path d="M13 11l-7.5 7.5"/><path d="M3.5 21h9"/>',
+  fac:'<path d="M3 19a9 9 0 0 1 18 0z"/><path d="M12 10v9M6.6 12.4 12 19M17.4 12.4 12 19"/>',
 };
 function icon(id,size){
   return `<svg class="ic" viewBox="0 0 24 24" width="${size||19}" height="${size||19}" fill="none"
