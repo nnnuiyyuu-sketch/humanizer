@@ -1,0 +1,12 @@
+{
+  "name": "tpp-russifier-tests",
+  "private": true,
+  "description": "Тесты русификатора The Political Process",
+  "scripts": {
+    "test": "node node.test.js && node browser.test.js"
+  },
+  "devDependencies": {
+    "jsdom": "^26.1.0",
+    "playwright": "1.56.1"
+  }
+}

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>The Political Process</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f4; }
+    button, input[type=button] { margin: 4px; padding: 6px 12px; }
+    #game { border: 1px solid #aaa; padding: 8px; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <div id="introMenuDiv">
+    <h1>The Political Process</h1>
+    <button id="newGameBtn" title="Start a new game">New Game</button>
+    <button id="loadGameBtn">Load Game</button>
+    <input type="button" id="settingsBtn" value="Settings">
+    <p id="mainIntroVersionP">Version 0.4</p>
+  </div>
+  <div id="game"></div>
+  <script>
+    // Имитация логики игры (в настоящей игре она в binFiles/*.bin).
+    { let fsAvailable = typeof nw !== 'undefined';
+      window.game = { week: 1, votes: 1, fsAvailable: fsAvailable };
+
+      document.getElementById('newGameBtn').addEventListener('click', function () {
+        // Игра читает надпись кнопки и принимает решение по ней.
+        window.clickedLabel = this.textContent;
+        window.clickedLabelOk = this.textContent === 'New Game' && this.innerText === 'New Game';
+        if (this.textContent === 'New Game') startGame();
+      });
+
+      window.startGame = function () {
+        const g = document.getElementById('game');
+        g.innerHTML =
+          '<h2 id="hdr">Character Creation</h2>' +
+          '<label for="party">Party</label> <select id="party"><option>Democrat</option><option>Republican</option><option>Independent</option></select>' +
+          '<input type="text" id="nameInput" placeholder="Enter your name" value="John Smith">' +
+          '<textarea id="notes">Private notes stay English</textarea>' +
+          '<span class="notranslate" id="nt">Do not translate me</span>' +
+          '<div id="hud"><span id="week">Week 1</span> <span id="votes">You have 1 votes</span></div>' +
+          '<input type="button" id="endTurn" value="End Turn" title="Advance to the next week">' +
+          '<p id="mixed">Your approval rating has increased.</p>' +
+          '<p id="dist">12th District</p>' +
+          '<p id="house">The House of Representatives passed the budget.</p>' +
+          '<ul id="newsList"></ul>' +
+          '<canvas id="chart" width="300" height="80"></canvas>';
+        drawChart();
+      };
+
+      window.nextTurn = function () {
+        game.week++;
+        game.votes = game.votes === 1 ? 22 : 5;
+        document.getElementById('week').firstChild.data = 'Week ' + game.week;
+        document.getElementById('votes').textContent = 'You have ' + game.votes + ' votes';
+        const list = document.getElementById('newsList');
+        list.innerHTML += '<li>Senator Smith proposed a new bill.</li>';
+        list.innerHTML += '<li>Governor Jones vetoed bill number ' + (100 + game.week) + '.</li>';
+        // Игра проверяет состояние по тексту интерфейса.
+        return {
+          weekText: document.getElementById('week').textContent,
+          newsHtml: list.innerHTML,
+          buttonValue: document.getElementById('endTurn').value
+        };
+      };
+
+      window.drawChart = function () {
+        const c = document.getElementById('chart').getContext('2d');
+        c.font = '14px Arial';
+        c.fillText('Approval Rating', 10, 20);
+        c.fillText('Campaign funds this week', 10, 45);
+        c.fillText('42%', 10, 70);
+      };
+    }
+  </script>
+</body>
+</html>
