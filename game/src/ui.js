@@ -545,6 +545,10 @@ function apSlots(){
 function nextSteps(){
   const out=[], add=(t,why,label,js,go)=>{ if(out.length<4)out.push({t,why,label,js,go}); };
   const m=S.motion, cr=S.crisis, imp=S.imp;
+  if(S.rref&&centralPower())add('Референдум в крае',R(S.rref.rid).name+' голосует '+RREF_NAME[S.rref.kind]+' — '+dateLabel(S.rref.due)+'. Прогноз «за» '+Math.round(rrefYes()*100)+'%.',
+    'Решить','askRref()');
+  const sovR=REGIONS.find(r=>regSov(r.id));
+  if(sovR&&centralPower())add('Край объявил суверенитет',sovR.name+' не платит налоги в центр. Каждый квартал без решения стоит легитимности.','Решить',"askSov('"+sovR.id+"')");
   if(blocOn())add('Расколите блок','Против кабинета голосуют вместе '+S.bloc.members.map(id=>P(id).short).join(', ')+' — '+blocSeats()+' мандатов. Сделка с одной из фракций может его расколоть.','Фракции','',"fac");
   const sc=scMine().find(x=>!x.resp||x.heat>=60);
   if(sc)add('Ответьте на скандал','«'+sc.title+'»: температура '+Math.round(sc.heat)+'. Молчание дешевле всего, но горит дольше.','Ответить','askScandal('+sc.id+')');
@@ -2249,13 +2253,14 @@ function tabWorld(){
 }
 
 /* ─── 8 · Регионы ────────────────────────────────────────────── */
-const MAPMODE=[['sup','Поддержка'],['unrest','Напряжённость'],['govs','Главы'],['seats','Мандаты'],['dev','Развитие']];
+const MAPMODE=[['sup','Поддержка'],['unrest','Напряжённость'],['govs','Главы'],['seats','Мандаты'],['dev','Развитие'],['sep','Сепаратизм']];
 const RAMP_SUP=['#7B2018','#B4744A','#C9B98F','#6E8F5E','#2C6547'];
 const RAMP_UNR=['#E7E0CE','#D9C08A','#C08A3E','#A85A2A','#7B2018'];
 function regionFill(r){
   if(S.mapMode==='unrest'){ const v=S.unrest[r.id];
     return RAMP_UNR[v<12?0:v<24?1:v<38?2:v<55?3:4]; }
   if(S.mapMode==='dev')return ['#4A3B26','#6B5533','#9A7211','#C2A24A'][clamp(r.dev,0,3)];
+  if(S.mapMode==='sep'){ const v=regSep(r.id); return regSov(r.id)?RAMP_UNR[4]:RAMP_UNR[v<10?0:v<25?1:v<45?2:v<65?3:4]; }
   if(S.mapMode==='govs'){ const g=govOf(r.id); return g?P(g.party).color:'#3A4553'; }
   if(S.mapMode==='seats'){
     let best=null,bv=-1;
@@ -2281,6 +2286,8 @@ function mapLegend(){
     `<span class="chip dim">${govElected()?'глав выбирают края':'глав назначает кабинет'}</span>`;
   if(S.mapMode==='unrest')return ['спокойно','ропот','тревожно','митинги','на грани'].map((t,i)=>
     `<span class="chip"><s style="background:${RAMP_UNR[i]}"></s>${t}</span>`).join('');
+  if(S.mapMode==='sep')return ['нет','разговоры','движение','сильное','на грани или суверенитет'].map((t,i)=>
+    `<span class="chip"><s style="background:${RAMP_UNR[i]}"></s>${t}</span>`).join('');
   if(S.mapMode==='dev')return ['слабое','среднее','высокое'].map((t,i)=>
     `<span class="chip"><s style="background:${['#4A3B26','#6B5533','#9A7211'][i]}"></s>${t}</span>`).join('');
   return ['ниже 38%','38—46%','около половины','52—60%','выше 60%'].map((t,i)=>
@@ -2294,7 +2301,7 @@ function tabCountry(){
     const dom=S.parties.map(p=>({p,n:S.deputies.filter(d=>d.region===r.id&&d.party===p.id).length}))
       .sort((a,b)=>b.n-a.n)[0];
     const g=govOf(r.id);
-    return `<tr class="${S.sel===r.id?'sel':''}"><td><b>${r.name}</b><div class="sub2">${r.cap} · ${r.pop} млн · ${mandates(S.regSeats[r.id])}</div></td>
+    return `<tr class="${S.sel===r.id?'sel':''}"><td><b>${r.name}</b>${regSov(r.id)?' <span class="tag r">суверенитет</span>':regAuto(r.id)?' <span class="tag b">автономия</span>':''}<div class="sub2">${r.cap} · ${r.pop} млн · ${mandates(S.regSeats[r.id])}</div></td>
       <td class="n ${sup<46?'bad':'good'}">${est(Math.round(sup)+'%',polled())}</td>
       <td class="n">${Math.round(S.unrest[r.id])} <span class="dim">${unrestWord(S.unrest[r.id])}</span></td>
       <td>${g?chip(P(g.party))+' <span class="dim">'+govLoyal(g)+'</span>':''}</td>
@@ -2315,6 +2322,7 @@ function tabCountry(){
           <span>Вклад в поддержку</span><b class="${govEffect(sel.id)<0?'bad':'good'}">${sign(govEffect(sel.id))}</b>
           <span>Как получил край</span><b class="w">${g.appointed?'назначен центром':'выбран краем'}</b>
           <span>Срок до</span><b>${dateLabel(g.till)}</b></div>`;})()}
+     ${regCardExtra(sel.id)}
      <h3 class="sub">Соседи</h3>
      <div class="legend">${NB(sel.id).map(n=>`<span class="chip"><s style="background:${
        S.unrest[n]>38?'var(--bad)':'var(--good)'}"></s>${R(n).name.replace(/ (регион|область|край)$/,'')} ${Math.round(S.unrest[n])}</span>`).join('')}</div>
@@ -2337,6 +2345,7 @@ function tabCountry(){
        ${mapSVG()}<div class="legend">${mapLegend()}</div>`})}
     ${card}
   </div>
+  ${regCenterPanel()}
   ${panel({title:'Субъекты',meta:'по напряжённости',flush:true,body:
     `<div class="scrollx"><table><thead><tr><th>Субъект</th><th class="n">Поддержка</th><th class="n">Напряжённость</th>
       <th>Глава края</th><th class="n hide-s">Вклад</th><th></th></tr></thead><tbody>${rows}</tbody></table>
@@ -2715,6 +2724,15 @@ function helpBody(){
       а при независимой прокуратуре или суде может обернуться новым скандалом. Если дело против вас, а в регламенте есть
       неприкосновенность, палата сначала решает, снимать ли её. Приговор вам — потеря кресла и мандата и запрет выдвигаться
       на восемь кварталов; апелляция — один раз. Громкие скандалы соперников тоже доходят до суда, и власть может их подтолкнуть.</p>
+    <h3 class="sub">Края: мэры, просьбы, референдумы, сепаратизм</h3>
+    <p>В столице каждого края свой мэр, и он не всегда из партии губернатора. Вражда растёт от разницы курсов и горячего края;
+      в открытой войне центр может помирить их или встать на чью-то сторону, а губернатор или мэр — договориться,
+      отстранить соперника или вынести войну на публику. Главы краёв шлют в центр просьбы: деньги на стройку, полномочия,
+      исключение из закона, помощь против мэра — отказ обижает, уступка стоит казне или легитимности. Сепаратизм тянется
+      к своему уровню: своя история края, напряжённость, низкая поддержка, обида на центр. Сильное движение назначает
+      референдум — сначала о полномочиях, потом о суверенитете. Центр может разрешить, оспорить в суде, договориться
+      заранее или ввести прямое управление. Автономный край оставляет часть налогов себе и его главу не снять из центра;
+      суверенный не платит налоги вовсе, пока не подписан договор. Губернатор может сам назначить референдум о полномочиях.</p>
     <h3 class="sub">Бюджет как торг</h3>
     <p>У каждой фракции своя строка: статья, которую ждут её избиратели, или налог, который они ненавидят.
       Премьер вписывает строки на вкладке «Бюджет»: фракция голосует за бюджет охотнее, а сделка с её лидером дешевле —

@@ -1790,6 +1790,7 @@ function dealGov(rid){
 function fireGov(rid){
   const g=govOf(rid); if(!g)return;
   if(govElected()){toast('Выборного главу центр не снимает');return;}
+  if(regAuto(rid)>=1){toast('У края автономия: главу из центра не снять');return;}
   if(!isPM()){toast('Назначения делает глава кабинета');return;}
   if(g.party===PL){toast('Это и так ваш человек');return;}
   if(!pay({ap:1,cap:GOV_FIRE},'Отставка главы края'))return;
@@ -1817,7 +1818,7 @@ function askGov(rid){
   const g=govOf(rid); if(!g)return;
   const r=R(rid), elected=govElected();
   const opts=[{label:'Договориться',hint:GOV_DEAL+' веса · отношение вверх, напряжённость вниз',fn:()=>dealGov(rid)}];
-  if(!elected&&isPM()&&g.party!==PL)
+  if(!elected&&isPM()&&g.party!==PL&&!regAuto(rid))
     opts.push({label:'Отправить в отставку',hint:GOV_FIRE+' веса · край возглавит ваш человек',fn:()=>fireGov(rid)});
   opts.push({label:'Оставить как есть',hint:'не тратить квартал',fn(){}});
   sheetOpen({eye:'Глава субъекта · '+r.name,title:g.name,
@@ -2605,7 +2606,7 @@ function endQuarter(){
   powerTick();
   campEventTick();
   mediaTick();
-  rivalsTick();
+  rivalsTick(); regionsTick();
   offerTick();
   pressTick();
   judgeTick();
@@ -2950,13 +2951,14 @@ const SAVE='novaria.save.v1';
    наследство до версий: проверки «если поля нет». Новое изменение
    формата — новая запись в MIGRATIONS со следующим номером; load()
    прогоняет записи новее сохранения по порядку и ставит текущую. */
-const SAVE_VER=3;
+const SAVE_VER=4;
 const MIGRATIONS=[
   {v:2, why:'списки сделок, скандалов и дел капитала', run(){
     S.deals=S.deals||[]; S.scandals=S.scandals||[]; S.bizLog=S.bizLog||[]; S.senLog=S.senLog||[]; }},
   {v:3, why:'дело идёт ступенями: проверка, обыски, обвинение, суд', run(){
     if(S.probe&&!S.probe.stage)S.probe={...S.probe,stage:'check',left:1,ev:Math.round(clamp(trail()*0.5+18,5,95)),src:'trail',used:{}};
     S.rcases=S.rcases||[]; }},
+  {v:4, why:'мэры, автономия, сепаратизм и суверенитет краёв', run(){ regInit(); }},
 ];
 function save(){ try{ S.ver=SAVE_VER; localStorage.setItem(SAVE,JSON.stringify(S)); }catch(e){} }
 function migrate(){

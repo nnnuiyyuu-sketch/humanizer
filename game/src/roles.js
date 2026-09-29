@@ -391,6 +391,8 @@ function deskActs(){
     A({id:'fight',name:'Спор с центром',cap:3,txt:'край и страна вас заметят; центр — тоже',
       run(){ S.rmod[rid]=clamp(S.rmod[rid]+4,-22,22); bumpRep('folk',2); bumpRep('firm',2); d.center=clamp(d.center-15,0,100);
         if(!chief())S.you.inf=clamp(S.you.inf+3,0,100); return 'Губернатор публично поспорил с центром.'; }});
+    if(regAuto(rid)<2&&!S.rref)A({id:'autoref',name:'Референдум о полномочиях',cap:8,txt:'край голосует за автономию; центр будет недоволен',
+      run(){ return govRefAct(rid); }});
     A({id:'deleg',name:'Делегация края',cap:5,txt:'сенаторы и депутаты от края теплеют к вам',
       run(){ let n=0; S.senate.concat(S.deputies).forEach(x=>{ if(x.region===rid&&!x.you){ x.rel=clamp(x.rel+ri(5,9),0,100); n++; } });
         return 'Встреча с делегацией края: '+n+' человек.'; }});

@@ -873,6 +873,7 @@ function revenue(){
   if(S.gov.posts.fin===PL||inCoal(S.gov.posts.fin))v*=1.06;
   v*=1+minPower('fin');                       // министр финансов, а не только его фракция
   v*=clamp(1-avgUnrest()*0.004,0.7,1);
+  if(typeof regRevenueCut==='function')v*=1-regRevenueCut();   // автономные и суверенные края оставляют налоги себе
   return r1(v);
 }
 function outlay(){
