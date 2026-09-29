@@ -21,7 +21,9 @@ await ev(()=>{ HELPQ=''; goTab('brief'); });
 r=await ev(()=>{ let best=null; TOPICS.filter(z=>!z.special).forEach(t=>[-2,-1,1,2].forEach(st=>{ newBill(t.id); S.bill.stance=st;
     const y=tally(S.bill).yes; if(y>=165&&y<MAJ&&(!best||Math.abs(y-195)<Math.abs(best.y-195)))best={t:t.id,st,y}; }));
   newBill(best.t); S.bill.stance=best.st; const sb={k:'b',topic:S.bill.topic,stance:S.bill.stance,bill:S.bill};
-  const x=S.parties.filter(z=>z.id!==PL&&dealDemand(z.id,'h',sb)!==null).sort(bySeats)[0];
+  // договариваемся с той фракцией, у которой больше всего голосов «не за»: с уже согласной сделка ничего не прибавит
+  const notYes=pid=>tally(S.bill).list.filter(z=>z.d.party===pid&&z.st!=='yes').length;
+  const x=S.parties.filter(z=>z.id!==PL&&dealDemand(z.id,'h',sb)!==null).sort((a,b)=>notYes(b.id)-notYes(a.id))[0];
   S.deals.push({id:1,pid:x.id,house:'h',key:subjKey(sb),due:S.q+3,trait:'drill',renege:false,q:S.q});
   return {y0:best.y,y1:tally(S.bill).yes}; });
 check('сделка по закону', r.y1>r.y0, r.y0+' → '+r.y1+' из 218');
