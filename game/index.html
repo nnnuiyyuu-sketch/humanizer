@@ -131,6 +131,7 @@ h3.sub:first-child{margin-top:0}
 .panel.info{border-top:3px solid var(--info)}
 .panel.inset{background:var(--surface-2)}
 .cols{display:grid;gap:var(--x6);align-items:start}
+.cols>*{min-width:0}                /* колонка не раздвигается длинной лентой кнопок — лента прокручивается */
 .c21{grid-template-columns:2fr 1fr} .c11{grid-template-columns:1fr 1fr}
 .c12{grid-template-columns:1fr 2fr} .c111{grid-template-columns:repeat(3,1fr)}
 .grid{display:grid;gap:var(--x4)} .g2{grid-template-columns:1fr 1fr}
@@ -445,6 +446,14 @@ input:focus,select:focus{outline:2px solid var(--mark);outline-offset:-1px}
 .desk .levers{grid-template-columns:repeat(auto-fit,minmax(118px,1fr));margin-bottom:var(--x4)}
 .desk .rules div:not(.ok):not(.no) s{border-color:var(--line-2)}
 .desk .rules .no b{color:var(--ink)}
+.desk table.acts td.r{width:150px}
+.desk table.acts .btn .cost{white-space:nowrap}
+/* на телефоне рычаг — строка в два яруса: описание во всю ширину, кнопка под ним */
+@media (max-width:560px){
+  .desk table.acts tr{display:grid;grid-template-columns:minmax(0,1fr);row-gap:5px;padding:7px 0;border-bottom:var(--hair-2)}
+  .desk table.acts td{height:auto;padding:0 2px;border:0}
+  .desk table.acts td.r{width:auto;text-align:left}
+}
 /* ── опросы гонки: линия на партию, подпись у конца линии ── */
 .poll{width:100%;height:auto;display:block}
 .poll .pg{stroke:var(--line-3);stroke-width:1}
@@ -854,7 +863,7 @@ tr.hd+tr td{border-top:0}
   .nav .dot{position:absolute;margin:0;transform:translate(14px,-10px)}
   .nav span{flex:none;overflow:hidden;text-overflow:ellipsis;max-width:100%;white-space:nowrap}
   #view{padding:var(--x5) var(--x5) 74px}
-  .cols,.c21,.c11,.c12,.c111,.g4,.g3{grid-template-columns:1fr}
+  .cols,.c21,.c11,.c12,.c111,.g4,.g3{grid-template-columns:minmax(0,1fr)}
   .g4{grid-template-columns:1fr 1fr}
   .gates{grid-template-columns:1fr}
   .gate{border-right:0;border-bottom:1px solid var(--line-2)}
@@ -869,6 +878,41 @@ tr.hd+tr td{border-top:0}
   #modal{padding:var(--x4) var(--x2)}
   .bline{grid-template-columns:1fr 44px;row-gap:var(--x2)}
   .bline>div:last-child{grid-column:1/3}
+}
+/* списки депутатов и сенаторов на телефоне — строки-карточки: имя слева, фракция, отношение
+   и позиция в колонке справа, кнопка «Работать» всегда видна */
+@media(max-width:560px){
+  table.people,table.people tbody{display:block;width:100%}
+  table.people thead{display:none}
+  table.people tr{display:grid;grid-template-columns:minmax(0,1fr) auto auto;
+    grid-template-areas:"who party btn" "who rel btn" "who pos btn";column-gap:var(--x4);align-items:center;
+    padding:6px var(--x4);border-bottom:var(--hair-2)}
+  table.people td{height:auto;padding:0;border:0}
+  table.people td:nth-child(1){grid-area:who} table.people td:nth-child(2){grid-area:party;justify-self:end}
+  table.people td:nth-child(3){display:none} table.people td:nth-child(4){grid-area:rel;justify-self:end}
+  table.people td:nth-child(5){grid-area:pos;justify-self:end} table.people td:nth-child(6){grid-area:btn}
+  table.people caption{display:block}
+}
+/* комитеты в узкой колонке и на телефоне: комитет и председатель рядом, кнопки строкой ниже */
+@media(max-width:1180px){
+  table.comm,table.comm tbody{display:block;width:100%}
+  table.comm tr{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:var(--x4);row-gap:5px;
+    padding:7px var(--x4);border-bottom:var(--hair-2)}
+  table.comm td{height:auto;padding:0;border:0}
+  table.comm td.r{grid-column:1/3;text-align:left;display:flex;gap:var(--x3)}
+  table.comm caption{display:block}
+}
+/* планшет и узкий ноутбук: статьи бюджета в два яруса, ступени поправки с переносом */
+@media(max-width:1180px){
+  .bline{grid-template-columns:minmax(0,1fr) 44px;row-gap:var(--x2)}
+  .bline>div:last-child{grid-column:1/3}
+  .stg{grid-template-columns:minmax(0,1fr) auto;row-gap:2px}
+  .stg u{min-width:0}
+}
+/* самые узкие телефоны: таблицы с кнопкой в последней колонке не должны выпирать */
+@media(max-width:420px){
+  td,th{padding:0 4px}
+  .btn.sm,.b.sm{padding:4px 6px;letter-spacing:.03em}
 }
 </style>
 </head>
@@ -13557,12 +13601,12 @@ function deskPanel(){
     const cost=[a.ap===0?'':'ход',a.cap?capCost(a.cap)+' веса':'',a.gold?a.gold+' млрд':'',a.funds?a.funds+' млн':'',
       a.purse?a.purse+' млрд '+(s==='mayor'?'города':'края'):''].filter(Boolean).join(' · ');
     return `<tr><td><b>${a.name}</b><div class="sub2">${a.txt}${why!==true?' · <span class="warn-t">'+why.toLowerCase()+'</span>':''}</div></td>
-      <td class="r" style="width:150px"><button class="btn sm" onclick="deskAct('${a.id}')" ${(a.ap===0||S.ap)&&why===true?'':'disabled'}>${a.pick?'Выбрать':'Сделать'}${cost?`<span class="cost">${cost}</span>`:''}</button></td></tr>`; }).join('');
+      <td class="r"><button class="btn sm" onclick="deskAct('${a.id}')" ${(a.ap===0||S.ap)&&why===true?'':'disabled'}>${a.pick?'Выбрать':'Сделать'}${cost?`<span class="cost">${cost}</span>`:''}</button></td></tr>`; }).join('');
   return panel({cls:'desk',title:'Ваше кресло · '+seatTitle(),meta:'оценка работы '+Math.round(d.score)+' из 100',
     body:`<div class="desk-h">${icon(role.icon||'self',30)}<p class="lead">${deskLead()}</p></div>
       <div class="levers">${kp.map(x=>`<div class="lever ${x.cls||''}"><i>${x.i}</i><b>${x.v}</b><span>${x.sp}</span></div>`).join('')}</div>
       <h3 class="sub">Рычаги кресла</h3>
-      <table><tbody>${rows}</tbody></table>
+      <table class="acts"><tbody>${rows}</tbody></table>
       ${path.length?`<h3 class="sub">Дорога дальше</h3>
       <div class="rules">${path.map(x=>`<div class="${x.ok===true?'ok':x.ok===false?'no':''}"><s></s><b>${x.t}</b><i>${x.i}</i></div>`).join('')}</div>`:''}`,
     foot:`<button class="btn sm" onclick="askRaces()">Выборный календарь</button>
@@ -13841,10 +13885,10 @@ function factionPanel(house){
       <td class="n hide-s">${n?'<span class="tag g">'+n+'</span>':''}${L.owe?' <span class="tag y">должок</span>':''}</td>
       <td class="r">${me_?'':`<button class="btn sm" onclick="askFaction('${p.id}','${house}')">Переговоры</button>`}</td></tr>`;}).join('');
   return panel({title:house==='s'?'Лидеры сенаторов':'Лидеры фракций',meta:'договариваются с ними, а не с партией',flush:true,
-    body:`<table class="tight"><thead><tr><th></th><th>Лидер</th><th class="n">Мест</th><th class="n">Отнош.</th>
+    body:`<div class="scrollx"><table class="tight"><thead><tr><th></th><th>Лидер</th><th class="n">Мест</th><th class="n">Отнош.</th>
       <th class="n hide-s">Доверие</th><th class="n hide-s">Сделки</th><th></th></tr></thead><tbody>${rows}</tbody>
       <caption>Доверие — верят ли вашему слову: падает, когда вы не возвращаете долги, и тогда дорожает каждая сделка.
-        Сделка ведёт фракцию за вами по одному предмету: закону, поправке, бюджету или вотуму.</caption></table>`});
+        Сделка ведёт фракцию за вами по одному предмету: закону, поправке, бюджету или вотуму.</caption></table></div>`});
 }
 function askFaction(pid,house){
   const L=flLeader(pid,house), p=P(pid), t=FT(L.trait);
@@ -13882,7 +13926,7 @@ function commPanel(){
   }).join('');
   const hl=(S.hearLog||[]).slice(0,3).map(h=>`<div><s>${shortDate(h.q)}</s>${h.you?'Ваши слушания':'Комитет «'+AXNAME[h.ax]+'»'}: ${h.name}</div>`).join('');
   return panel({title:'Комитеты',meta:COMM_SIZE+' членов · места по фракциям',flush:true,
-    body:`<table class="tight"><tbody>${rows}</tbody>
+    body:`<table class="tight comm"><tbody>${rows}</tbody>
       <caption>Комитет голосует первым: за — проект идёт в зал с рекомендацией и лишними голосами, против — с минусом,
         а чужой председатель при поддержке комитета может положить его под сукно. Чужие комитеты сами вызывают ваших министров.</caption></table>
       ${hl?'<div class="log" style="padding:var(--x4) var(--x5)">'+hl+'</div>':''}`});
@@ -13928,7 +13972,7 @@ function tabParl(){
     body:`<div style="padding:var(--x4) var(--x5);border-bottom:var(--hair-2)" class="row">
         ${filters}
         ${tl?`<span class="dim" style="margin-left:auto;font-size:11.5px">колеблются ${tl.und}</span>`:''}</div>
-      <div class="scrollx"><table><thead><tr><th>Депутат</th><th>Фракция</th><th class="n hide-s">Дисц.</th>
+      <div class="scrollx"><table class="people"><thead><tr><th>Депутат</th><th>Фракция</th><th class="n hide-s">Дисц.</th>
         <th class="n">Отношение</th><th>Позиция</th><th></th></tr></thead><tbody>${rows}</tbody>
         <caption>Показаны ${shown} из ${deps.length}. ${b?'Сверху — те, чей голос ещё не предрешён.':'Сверху — те, кто хуже к вам относится.'}
           Дисциплина — насколько депутат идёт за фракцией, отношение — как он относится лично к вам.</caption></table></div>`,
@@ -14066,7 +14110,7 @@ function cnParlPanel(){
         и сколько следа осталось от сделок в те кварталы.</p>`,
     foot:`<button class="btn sm" data-go="court">К надзору</button>`})
    :panel({title:'Что можно внести',meta:'прогноз голосов',flush:true,
-    body:soon?`<table class="tight"><tbody>${soon}</tbody></table>`
+    body:soon?`<div class="scrollx"><table class="tight"><tbody>${soon}</tbody></table></div>`
       :'<div class="empty">Вносить нечего: всё, что можно было изменить, изменено.</div>',
     foot:`<button class="btn" data-go="const">К конституции</button>`}))
   +`</div></div>`;
@@ -14367,7 +14411,7 @@ function tabSenate(){
   +panel({title:'Сенаторы',meta:b?'по проекту «'+T(b.topic).name+'»':'сортировка: кто хуже к вам относится',flush:true,
     body:`<div style="padding:var(--x4) var(--x5);border-bottom:var(--hair-2)" class="row">${filters}
         ${tl?`<span class="dim" style="margin-left:auto;font-size:11.5px">колеблются ${tl.und}</span>`:''}</div>
-      <div class="scrollx"><table><thead><tr><th>Сенатор</th><th>Фракция</th><th class="n hide-s">Сроков</th>
+      <div class="scrollx"><table class="people"><thead><tr><th>Сенатор</th><th>Фракция</th><th class="n hide-s">Сроков</th>
         <th class="n">Отношение</th><th>Позиция</th><th></th></tr></thead><tbody>${rows}</tbody>
         <caption>Показаны ${shown} из ${sens.length}. Сенатор меньше слушает фракцию и больше — свой субъект.
           Старейшина сидит четвёртый срок и тянет за собой делегацию своего края.</caption></table></div>`,
@@ -14635,9 +14679,9 @@ function tabGov(){
     </div>
   </div>
   ${panel({title:'Фракции вне правительства',flush:true,body:
-    `<table><thead><tr><th>Фракция</th><th class="n">Мандаты</th><th class="n">Расхождение</th><th>Готовность</th><th></th></tr></thead>
+    `<div class="scrollx"><table><thead><tr><th>Фракция</th><th class="n">Мандаты</th><th class="n">Расхождение</th><th>Готовность</th><th></th></tr></thead>
       <tbody>${outside||'<tr><td class="dim">Все фракции в коалиции.</td></tr>'}</tbody>
-      <caption>Расхождение выше 2,0 — партия не сядет за стол ни за какие портфели.</caption></table>`})}`;
+      <caption>Расхождение выше 2,0 — партия не сядет за стол ни за какие портфели.</caption></table></div>`})}`;
 }
 function askPost(post){
   sheetOpen({eye:'Кадровое решение · 1 действие',title:POSTS.find(p=>p.id===post).name,

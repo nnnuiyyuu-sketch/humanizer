@@ -722,12 +722,12 @@ function deskPanel(){
     const cost=[a.ap===0?'':'ход',a.cap?capCost(a.cap)+' веса':'',a.gold?a.gold+' млрд':'',a.funds?a.funds+' млн':'',
       a.purse?a.purse+' млрд '+(s==='mayor'?'города':'края'):''].filter(Boolean).join(' · ');
     return `<tr><td><b>${a.name}</b><div class="sub2">${a.txt}${why!==true?' · <span class="warn-t">'+why.toLowerCase()+'</span>':''}</div></td>
-      <td class="r" style="width:150px"><button class="btn sm" onclick="deskAct('${a.id}')" ${(a.ap===0||S.ap)&&why===true?'':'disabled'}>${a.pick?'Выбрать':'Сделать'}${cost?`<span class="cost">${cost}</span>`:''}</button></td></tr>`; }).join('');
+      <td class="r"><button class="btn sm" onclick="deskAct('${a.id}')" ${(a.ap===0||S.ap)&&why===true?'':'disabled'}>${a.pick?'Выбрать':'Сделать'}${cost?`<span class="cost">${cost}</span>`:''}</button></td></tr>`; }).join('');
   return panel({cls:'desk',title:'Ваше кресло · '+seatTitle(),meta:'оценка работы '+Math.round(d.score)+' из 100',
     body:`<div class="desk-h">${icon(role.icon||'self',30)}<p class="lead">${deskLead()}</p></div>
       <div class="levers">${kp.map(x=>`<div class="lever ${x.cls||''}"><i>${x.i}</i><b>${x.v}</b><span>${x.sp}</span></div>`).join('')}</div>
       <h3 class="sub">Рычаги кресла</h3>
-      <table><tbody>${rows}</tbody></table>
+      <table class="acts"><tbody>${rows}</tbody></table>
       ${path.length?`<h3 class="sub">Дорога дальше</h3>
       <div class="rules">${path.map(x=>`<div class="${x.ok===true?'ok':x.ok===false?'no':''}"><s></s><b>${x.t}</b><i>${x.i}</i></div>`).join('')}</div>`:''}`,
     foot:`<button class="btn sm" onclick="askRaces()">Выборный календарь</button>
@@ -1006,10 +1006,10 @@ function factionPanel(house){
       <td class="n hide-s">${n?'<span class="tag g">'+n+'</span>':''}${L.owe?' <span class="tag y">должок</span>':''}</td>
       <td class="r">${me_?'':`<button class="btn sm" onclick="askFaction('${p.id}','${house}')">Переговоры</button>`}</td></tr>`;}).join('');
   return panel({title:house==='s'?'Лидеры сенаторов':'Лидеры фракций',meta:'договариваются с ними, а не с партией',flush:true,
-    body:`<table class="tight"><thead><tr><th></th><th>Лидер</th><th class="n">Мест</th><th class="n">Отнош.</th>
+    body:`<div class="scrollx"><table class="tight"><thead><tr><th></th><th>Лидер</th><th class="n">Мест</th><th class="n">Отнош.</th>
       <th class="n hide-s">Доверие</th><th class="n hide-s">Сделки</th><th></th></tr></thead><tbody>${rows}</tbody>
       <caption>Доверие — верят ли вашему слову: падает, когда вы не возвращаете долги, и тогда дорожает каждая сделка.
-        Сделка ведёт фракцию за вами по одному предмету: закону, поправке, бюджету или вотуму.</caption></table>`});
+        Сделка ведёт фракцию за вами по одному предмету: закону, поправке, бюджету или вотуму.</caption></table></div>`});
 }
 function askFaction(pid,house){
   const L=flLeader(pid,house), p=P(pid), t=FT(L.trait);
@@ -1047,7 +1047,7 @@ function commPanel(){
   }).join('');
   const hl=(S.hearLog||[]).slice(0,3).map(h=>`<div><s>${shortDate(h.q)}</s>${h.you?'Ваши слушания':'Комитет «'+AXNAME[h.ax]+'»'}: ${h.name}</div>`).join('');
   return panel({title:'Комитеты',meta:COMM_SIZE+' членов · места по фракциям',flush:true,
-    body:`<table class="tight"><tbody>${rows}</tbody>
+    body:`<table class="tight comm"><tbody>${rows}</tbody>
       <caption>Комитет голосует первым: за — проект идёт в зал с рекомендацией и лишними голосами, против — с минусом,
         а чужой председатель при поддержке комитета может положить его под сукно. Чужие комитеты сами вызывают ваших министров.</caption></table>
       ${hl?'<div class="log" style="padding:var(--x4) var(--x5)">'+hl+'</div>':''}`});
@@ -1093,7 +1093,7 @@ function tabParl(){
     body:`<div style="padding:var(--x4) var(--x5);border-bottom:var(--hair-2)" class="row">
         ${filters}
         ${tl?`<span class="dim" style="margin-left:auto;font-size:11.5px">колеблются ${tl.und}</span>`:''}</div>
-      <div class="scrollx"><table><thead><tr><th>Депутат</th><th>Фракция</th><th class="n hide-s">Дисц.</th>
+      <div class="scrollx"><table class="people"><thead><tr><th>Депутат</th><th>Фракция</th><th class="n hide-s">Дисц.</th>
         <th class="n">Отношение</th><th>Позиция</th><th></th></tr></thead><tbody>${rows}</tbody>
         <caption>Показаны ${shown} из ${deps.length}. ${b?'Сверху — те, чей голос ещё не предрешён.':'Сверху — те, кто хуже к вам относится.'}
           Дисциплина — насколько депутат идёт за фракцией, отношение — как он относится лично к вам.</caption></table></div>`,
@@ -1231,7 +1231,7 @@ function cnParlPanel(){
         и сколько следа осталось от сделок в те кварталы.</p>`,
     foot:`<button class="btn sm" data-go="court">К надзору</button>`})
    :panel({title:'Что можно внести',meta:'прогноз голосов',flush:true,
-    body:soon?`<table class="tight"><tbody>${soon}</tbody></table>`
+    body:soon?`<div class="scrollx"><table class="tight"><tbody>${soon}</tbody></table></div>`
       :'<div class="empty">Вносить нечего: всё, что можно было изменить, изменено.</div>',
     foot:`<button class="btn" data-go="const">К конституции</button>`}))
   +`</div></div>`;
@@ -1532,7 +1532,7 @@ function tabSenate(){
   +panel({title:'Сенаторы',meta:b?'по проекту «'+T(b.topic).name+'»':'сортировка: кто хуже к вам относится',flush:true,
     body:`<div style="padding:var(--x4) var(--x5);border-bottom:var(--hair-2)" class="row">${filters}
         ${tl?`<span class="dim" style="margin-left:auto;font-size:11.5px">колеблются ${tl.und}</span>`:''}</div>
-      <div class="scrollx"><table><thead><tr><th>Сенатор</th><th>Фракция</th><th class="n hide-s">Сроков</th>
+      <div class="scrollx"><table class="people"><thead><tr><th>Сенатор</th><th>Фракция</th><th class="n hide-s">Сроков</th>
         <th class="n">Отношение</th><th>Позиция</th><th></th></tr></thead><tbody>${rows}</tbody>
         <caption>Показаны ${shown} из ${sens.length}. Сенатор меньше слушает фракцию и больше — свой субъект.
           Старейшина сидит четвёртый срок и тянет за собой делегацию своего края.</caption></table></div>`,
@@ -1800,9 +1800,9 @@ function tabGov(){
     </div>
   </div>
   ${panel({title:'Фракции вне правительства',flush:true,body:
-    `<table><thead><tr><th>Фракция</th><th class="n">Мандаты</th><th class="n">Расхождение</th><th>Готовность</th><th></th></tr></thead>
+    `<div class="scrollx"><table><thead><tr><th>Фракция</th><th class="n">Мандаты</th><th class="n">Расхождение</th><th>Готовность</th><th></th></tr></thead>
       <tbody>${outside||'<tr><td class="dim">Все фракции в коалиции.</td></tr>'}</tbody>
-      <caption>Расхождение выше 2,0 — партия не сядет за стол ни за какие портфели.</caption></table>`})}`;
+      <caption>Расхождение выше 2,0 — партия не сядет за стол ни за какие портфели.</caption></table></div>`})}`;
 }
 function askPost(post){
   sheetOpen({eye:'Кадровое решение · 1 действие',title:POSTS.find(p=>p.id===post).name,

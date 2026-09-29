@@ -131,6 +131,7 @@ h3.sub:first-child{margin-top:0}
 .panel.info{border-top:3px solid var(--info)}
 .panel.inset{background:var(--surface-2)}
 .cols{display:grid;gap:var(--x6);align-items:start}
+.cols>*{min-width:0}                /* колонка не раздвигается длинной лентой кнопок — лента прокручивается */
 .c21{grid-template-columns:2fr 1fr} .c11{grid-template-columns:1fr 1fr}
 .c12{grid-template-columns:1fr 2fr} .c111{grid-template-columns:repeat(3,1fr)}
 .grid{display:grid;gap:var(--x4)} .g2{grid-template-columns:1fr 1fr}
@@ -445,6 +446,14 @@ input:focus,select:focus{outline:2px solid var(--mark);outline-offset:-1px}
 .desk .levers{grid-template-columns:repeat(auto-fit,minmax(118px,1fr));margin-bottom:var(--x4)}
 .desk .rules div:not(.ok):not(.no) s{border-color:var(--line-2)}
 .desk .rules .no b{color:var(--ink)}
+.desk table.acts td.r{width:150px}
+.desk table.acts .btn .cost{white-space:nowrap}
+/* на телефоне рычаг — строка в два яруса: описание во всю ширину, кнопка под ним */
+@media (max-width:560px){
+  .desk table.acts tr{display:grid;grid-template-columns:minmax(0,1fr);row-gap:5px;padding:7px 0;border-bottom:var(--hair-2)}
+  .desk table.acts td{height:auto;padding:0 2px;border:0}
+  .desk table.acts td.r{width:auto;text-align:left}
+}
 /* ── опросы гонки: линия на партию, подпись у конца линии ── */
 .poll{width:100%;height:auto;display:block}
 .poll .pg{stroke:var(--line-3);stroke-width:1}
@@ -854,7 +863,7 @@ tr.hd+tr td{border-top:0}
   .nav .dot{position:absolute;margin:0;transform:translate(14px,-10px)}
   .nav span{flex:none;overflow:hidden;text-overflow:ellipsis;max-width:100%;white-space:nowrap}
   #view{padding:var(--x5) var(--x5) 74px}
-  .cols,.c21,.c11,.c12,.c111,.g4,.g3{grid-template-columns:1fr}
+  .cols,.c21,.c11,.c12,.c111,.g4,.g3{grid-template-columns:minmax(0,1fr)}
   .g4{grid-template-columns:1fr 1fr}
   .gates{grid-template-columns:1fr}
   .gate{border-right:0;border-bottom:1px solid var(--line-2)}
@@ -869,6 +878,41 @@ tr.hd+tr td{border-top:0}
   #modal{padding:var(--x4) var(--x2)}
   .bline{grid-template-columns:1fr 44px;row-gap:var(--x2)}
   .bline>div:last-child{grid-column:1/3}
+}
+/* списки депутатов и сенаторов на телефоне — строки-карточки: имя слева, фракция, отношение
+   и позиция в колонке справа, кнопка «Работать» всегда видна */
+@media(max-width:560px){
+  table.people,table.people tbody{display:block;width:100%}
+  table.people thead{display:none}
+  table.people tr{display:grid;grid-template-columns:minmax(0,1fr) auto auto;
+    grid-template-areas:"who party btn" "who rel btn" "who pos btn";column-gap:var(--x4);align-items:center;
+    padding:6px var(--x4);border-bottom:var(--hair-2)}
+  table.people td{height:auto;padding:0;border:0}
+  table.people td:nth-child(1){grid-area:who} table.people td:nth-child(2){grid-area:party;justify-self:end}
+  table.people td:nth-child(3){display:none} table.people td:nth-child(4){grid-area:rel;justify-self:end}
+  table.people td:nth-child(5){grid-area:pos;justify-self:end} table.people td:nth-child(6){grid-area:btn}
+  table.people caption{display:block}
+}
+/* комитеты в узкой колонке и на телефоне: комитет и председатель рядом, кнопки строкой ниже */
+@media(max-width:1180px){
+  table.comm,table.comm tbody{display:block;width:100%}
+  table.comm tr{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:var(--x4);row-gap:5px;
+    padding:7px var(--x4);border-bottom:var(--hair-2)}
+  table.comm td{height:auto;padding:0;border:0}
+  table.comm td.r{grid-column:1/3;text-align:left;display:flex;gap:var(--x3)}
+  table.comm caption{display:block}
+}
+/* планшет и узкий ноутбук: статьи бюджета в два яруса, ступени поправки с переносом */
+@media(max-width:1180px){
+  .bline{grid-template-columns:minmax(0,1fr) 44px;row-gap:var(--x2)}
+  .bline>div:last-child{grid-column:1/3}
+  .stg{grid-template-columns:minmax(0,1fr) auto;row-gap:2px}
+  .stg u{min-width:0}
+}
+/* самые узкие телефоны: таблицы с кнопкой в последней колонке не должны выпирать */
+@media(max-width:420px){
+  td,th{padding:0 4px}
+  .btn.sm,.b.sm{padding:4px 6px;letter-spacing:.03em}
 }
 </style>
 </head>

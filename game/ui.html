@@ -402,6 +402,14 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
 .desk .levers{grid-template-columns:repeat(auto-fit,minmax(118px,1fr));margin-bottom:var(--x4)}
 .desk .rules div:not(.ok):not(.no) s{border-color:var(--line-2)}
 .desk .rules .no b{color:var(--ink)}
+.desk table.acts td.r{width:150px}
+.desk table.acts .btn .cost{white-space:nowrap}
+/* на телефоне рычаг — строка в два яруса: описание во всю ширину, кнопка под ним */
+@media (max-width:560px){
+  .desk table.acts tr{display:grid;grid-template-columns:minmax(0,1fr);row-gap:5px;padding:7px 0;border-bottom:var(--hair-2)}
+  .desk table.acts td{height:auto;padding:0 2px;border:0}
+  .desk table.acts td.r{width:auto;text-align:left}
+}
 /* ── опросы гонки: линия на партию, подпись у конца линии ── */
 .poll{width:100%;height:auto;display:block}
 .poll .pg{stroke:var(--line-3);stroke-width:1}
