@@ -965,7 +965,9 @@ function submitBudget(){
   if(pass){
     S.lastBudget=snapshotBudget(); S.budget.fails=0;
     addCap(8); shiftAll(0.8);
-    coalition().filter(x=>x!==PL).forEach(id=>{ if(S.partners[id])S.partners[id].anger=Math.max(0,S.partners[id].anger-1); });
+    coalition().filter(x=>x!==PL).forEach(id=>{ if(!S.partners[id])return; const a=bAsk(id);
+      S.partners[id].anger=a&&!bAskMet(a)?clamp(S.partners[id].anger+1,0,6):Math.max(0,S.partners[id].anger-1); });
+    S.parties.filter(p=>p.id!==PL&&seatsOf(p.id)>0).forEach(p=>{ const a=bAsk(p.id); if(a&&bAskMet(a))bAskGroups(a).forEach(g=>shiftMood(g,0.6)); });
     logMsg('Бюджет на '+budgetYear()+' год принят ('+yes+' против '+no+').',1);
     chron('Собрание утвердило бюджет на '+budgetYear()+' год.','g');
   } else {
@@ -978,7 +980,7 @@ function submitBudget(){
   }
   sheetOpen({eye:'Народное собрание · бюджет '+budgetYear(),title:pass?'Бюджет принят':'Бюджет провален',
     body:voteBar(yes,no)+`<div style="text-align:center;margin:14px 0 4px">
-      <span class="stamp ${pass?'y':'n'}">${pass?'утверждён':'отклонён'}</span></div>`+
+      <span class="stamp ${pass?'y':'n'}">${pass?'утверждён':'отклонён'}</span></div>`+bAskSummary()+
       (pass?'<p class="hint">Ставки и статьи закреплены на год. Менять их до следующего бюджета можно, но защищать придётся снова.</p>'
            :'<p>Ставки и статьи откатились к прошлогодним. Оппозиция получила повод для вотума недоверия'+
             (S.budget.fails>=2?', а второй провал подряд означает отставку кабинета.':'.')+'</p>'),
@@ -2653,7 +2655,7 @@ function endQuarter(){
   pendingTick();
   if(!isPM()){govBill();aiBudget();}
   else if(Math.random()<0.35)oppositionBill();
-  budgetTick();
+  budgetTick(); bPromTick();
   decreeTick();
   governorTick();
   presVacancy();

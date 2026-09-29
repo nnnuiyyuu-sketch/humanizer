@@ -942,6 +942,7 @@ function budgetSupport(d){
     if(ch&&ch.party===d.party)v+=5; });
   if(S.unrest[d.region]>30&&S.spend.soc>=3)v+=4;      // округ на взводе ценит соцстатью
   if(typeof inBloc==='function'&&inBloc(d.party))v-=6;   // блок против бюджета кабинета
+  if(typeof bAskPull==='function'&&d.party!==PL)v+=bAskPull(d);   // своя строка вписана или нет
   const dd=typeof dealFor==='function'?dealFor(d.party,'h','budget'):null;
   if(dd)v+=26*d.loyal/100*dealGrip(dd);                // лидер фракции обещал бюджет
   v+=noise(d.id+'budget'+S.q+taxLoad()+avgSpend(),7);

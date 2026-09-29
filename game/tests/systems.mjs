@@ -85,4 +85,16 @@ r=await ev(()=>{ S.bill=null; campaignStart(); const m=document.getElementById('
   rivalCampTick(); const t=S.camp.themes||{}; return {n:Object.keys(t).length, all:S.parties.length-1}; });
 check('кампании соперников', r.n===r.all, 'тем '+r.n+' из '+r.all);
 await settle(page);
+
+r=await ev(()=>{ const p=S.parties.filter(x=>x.id!==PL&&!bAskMet(bAsk(x.id))).sort(bySeats)[0]; if(!p)return {ok:false};
+  const a=bAsk(p.id), y0=budgetTally().yes, d0=dealDemand(p.id,'h',{k:'budget'}); bAskAccept(p.id);
+  const y1=budgetTally().yes, d1=dealDemand(p.id,'h',{k:'budget'});
+  const L=S.fl[p.id].h, tr0=L.trust; if(a.kind==='spend')S.spend[a.id]=1; else S.tax[a.id]=4; bPromTick();
+  return {ok:y1>y0&&d1<d0&&L.trust<tr0, v:y0+' → '+y1+' за · цена '+d0+' → '+d1+' · доверие '+tr0+' → '+L.trust}; });
+check('бюджет: строка фракции', r.ok, r.v);
+await boot(page,{role:'dep',pick:2});
+r=await ev(()=>{ S.ap=3; S.cap=60; askBudgetLine(); const o=document.querySelector('#msheet .opt'); const rr=Math.random; Math.random=()=>0.01;
+  o.click(); Math.random=rr; const t=document.querySelector('#msheet h2').textContent; return {t,again:bReqOpen()}; });
+check('бюджет: требование строки у кабинета', r.t==='Строка вписана'&&!r.again, r.t);
+await settle(page);
 await done(browser,errors,fails);

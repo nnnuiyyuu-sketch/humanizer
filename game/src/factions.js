@@ -72,7 +72,8 @@ function dealDemand(pid,house,sb){
     if(far>1.8&&t.id==='ideo')return null; if(far>2.2)return null; }
   if(sb.k==='c'){ const c=cnAny(sb.id); base=17+Math.max(0,-cnCost(c))*0.9-(c.self>0?7:0); if(t.id==='ideo')base+=6; }
   if(sb.k==='budget'){ const bs=budgetStance(); far=(Math.abs(p.st.tax-bs.tax)+Math.abs(p.st.econ-bs.econ))/2;
-    base=12+far*8*t.ideo; }
+    base=12+far*8*t.ideo;
+    const a=bAsk(pid); if(a)base+=bAskMet(a)?-8:6; }            // строка фракции в проекте
   if(sb.k==='m'){ base=S.motion&&S.motion.against===PL?16+(inCoal(pid)?-6:axDist(p.st,me().st)*6):14; }
   base*=t.price;
   base*=0.7+flSeats(pid,house)/(house==='s'?SEN_SEATS:SEATS)*2.2;      // крупная фракция стоит дороже
