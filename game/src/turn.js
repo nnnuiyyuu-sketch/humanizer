@@ -1533,25 +1533,15 @@ function nbTick(){
   if(!S.nb)return;
   NEIGHBOURS.forEach(x=>{
     const st=nbOf(x.id); if(!st)return;
-    let want=clamp(60-axDist(x.st,me().st)*10,10,90);
+    let want=clamp(60-axDist(st.st||x.st,me().st)*10,10,90);   // курс соседа может смениться вместе с его властью
     if(st.treaty)want+=12;
     if(hasTrait('diplo'))want+=6;
     st.rel=clamp(st.rel+(want-st.rel)*0.09+rnd(-2.5,2.5),0,100);
   });
 }
-function nbVisit(id){
-  const x=NB_(id), st=nbOf(id);
-  if(!pay({ap:1,gold:VISIT_COST},'Визит к соседям'))return;
-  st.rel=clamp(st.rel+ri(6,13)+(hasTrait('diplo')?5:0),0,100);
-  x.border.forEach(r=>S.unrest[r]=clamp(S.unrest[r]-ri(1,4),0,100));
-  bumpRep('comp',0.8);
-  head(pick(PRESS),'Переговоры с «'+x.name+'»: стороны довольны','');
-  logMsg('Визит в «'+x.name+'»: отношения улучшились.');
-  toast('Визит состоялся');
-  render();
-}
 function nbTreaty(id){
   const x=NB_(id), st=nbOf(id);
+  if(!fpCan()){toast('Договоры подписывает кабинет или президент');return;}
   if(st.treaty){toast('Договор уже есть');return;}
   if(st.rel<48){toast('С таким отношением договор не подпишут');return;}
   if(!pay({ap:1,cap:TREATY_COST},'Договор с соседями'))return;
@@ -1577,22 +1567,7 @@ function nbTreaty(id){
   logMsg('Договор с «'+x.name+'» ратифицирован Сенатом.',1);
   render();
 }
-function askNeighbour(id){
-  const x=NB_(id), st=nbOf(id);
-  sheetOpen({eye:'Внешняя политика · '+x.name,title:nbWord(st.rel),
-    body:`<p class="lead">${x.note}</p>
-      <div class="res"><span>Отношения</span><b class="${st.rel<38?'bad':st.rel>=54?'good':''}">${Math.round(st.rel)} · ${nbWord(st.rel)}</b>
-        <span>Вес соседа</span><b>${x.power}</b>
-        <span>Торговля</span><b>${x.trade}</b>
-        <span>Договор</span><b class="w">${st.treaty?'есть':'нет'}</b>
-        <span>Граничит с</span><b class="w">${x.border.map(r=>R(r).cap).join(', ')}</b></div>
-      <p class="hint">Вражда греет приграничные края: сейчас они получают
-        ${x.border.map(r=>'+'+r1(nbPressure(r))).join(', ')} к напряжённости.</p>`,
-    opts:[
-      {label:'Визит',hint:VISIT_COST+' млрд · отношения вверх, граница спокойнее',fn:()=>nbVisit(id)},
-      {label:'Договор',hint:TREATY_COST+' веса · нужна ратификация Сенатом',fn:()=>nbTreaty(id)},
-      {label:'Ничего',hint:'сохранить квартал',fn(){}}]});
-}
+/* визит с повесткой, лист соседа, торговля, санкции и граница — в foreign.js */
 
 /* ═══ РЕФЕРЕНДУМ ══════════════════════════════════════════════════
    Вопрос стране мимо палат и мимо подписи. Считается по настроению
@@ -2612,7 +2587,7 @@ function endQuarter(){
   judgeTick();
   probeTick(); rcaseTick();
   challengeTick();
-  nbTick();
+  nbTick(); fpTick();
   if(S.ref&&S.q>=S.ref.until)S.ref=null;
   worldShock();
   fireEvent();

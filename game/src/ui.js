@@ -545,6 +545,9 @@ function apSlots(){
 function nextSteps(){
   const out=[], add=(t,why,label,js,go)=>{ if(out.length<4)out.push({t,why,label,js,go}); };
   const m=S.motion, cr=S.crisis, imp=S.imp;
+  if(S.bcrisis&&fpCan())add(S.bcrisis.stage===2?'Кризис на границе':'Инцидент на границе','«'+NB_(S.bcrisis.nb).name+'» у '+R(S.bcrisis.rid).cap+'. Край горячеет, внешний спрос проседает.','Решать','askCrisis()');
+  const snc=NEIGHBOURS.find(x=>sancOn(x.id));
+  if(snc&&fpCan())add('Санкции «'+snc.short+'»','«'+snc.name+'» держит санкции до '+dateLabel(nbOf(snc.id).sanc.until)+'. Уступка, обход или визит поднимут отношения.','Соседи','',"world");
   if(S.rref&&centralPower())add('Референдум в крае',R(S.rref.rid).name+' голосует '+RREF_NAME[S.rref.kind]+' — '+dateLabel(S.rref.due)+'. Прогноз «за» '+Math.round(rrefYes()*100)+'%.',
     'Решить','askRref()');
   const sovR=REGIONS.find(r=>regSov(r.id));
@@ -2216,7 +2219,9 @@ function tabWorld(){
     return `<tr><td><b>${x.name}</b><div class="sub2">${x.note}</div></td>
       <td class="n ${st.rel<38?'bad':st.rel>=54?'good':''}">${Math.round(st.rel)}</td>
       <td class="hide-s dim">${nbWord(st.rel)}</td>
-      <td class="n">${st.treaty?'<span class="tag g">договор</span>':'<span class="dim">нет</span>'}</td>
+      <td class="n">${[st.treaty?'<span class="tag g">договор</span>':'',st.trade?'<span class="tag b">торговля</span>':'',
+        sancOn(x.id)?'<span class="tag r">их санкции</span>':'',ourSanc(x.id)?'<span class="tag y">наши санкции</span>':'',
+        crisisWith(x.id)?'<span class="tag r">граница</span>':''].filter(Boolean).join(' ')||'<span class="dim">нет</span>'}</td>
       <td class="n ${x.border.some(r=>nbPressure(r)>0.4)?'bad':''}">${
         r1(x.border.reduce((a,r)=>a+nbPressure(r),0))}</td>
       <td class="r"><button class="btn sm" onclick="askNeighbour('${x.id}')" ${S.ap?'':'disabled'}>Открыть</button></td></tr>`;}).join('');
@@ -2234,14 +2239,19 @@ function tabWorld(){
       <div class="res" style="margin-bottom:0"><span>Внешний спрос</span><b>${Math.round(S.world.demand)}</b>
         <span>Цены на сырьё</span><b>${Math.round(S.world.res)}</b>
         <span>Договоров</span><b>${NEIGHBOURS.filter(x=>nbOf(x.id).treaty).length} из ${NEIGHBOURS.length}</b>
+        <span>Торговых соглашений</span><b>${NEIGHBOURS.filter(x=>nbOf(x.id).trade).length}</b>
+        <span>Вклад во внешний спрос</span><b class="${fpDemand()<0?'bad':fpDemand()>0?'good':''}">${sign(fpDemand())}</b>
         <span>Ваш внешний курс</span><b>${sign(r1(me().st.world))}</b></div>
      </div></div>`})
   +panel({title:'Государства',flush:true,
     body:`<div class="scrollx"><table><thead><tr><th>Сосед</th><th class="n">Отношения</th>
-      <th class="hide-s">Тон</th><th class="n">Договор</th><th class="n">Давление</th><th></th></tr></thead>
+      <th class="hide-s">Тон</th><th class="n">Связи</th><th class="n">Давление</th><th></th></tr></thead>
       <tbody>${rows}</tbody>
       <caption>Давление — сколько напряжённости сосед добавляет своим приграничным краям за квартал.
         Оно растёт, когда отношения падают ниже 38.</caption></table></div>`})
+  +(S.bcrisis?panel({cls:'warn',title:S.bcrisis.stage===2?'Кризис на границе':'Пограничный инцидент',meta:NB_(S.bcrisis.nb).name,
+    body:`<p class="lead">У ${R(S.bcrisis.rid).cap}: ${S.bcrisis.stage===2?'стороны стянули силы':'задержаны пограничники'}. Осталось ${quarters(S.bcrisis.left)}, если ничего не делать.</p>`,
+    foot:fpCan()?`<button class="btn pri" onclick="askCrisis()">Решать</button><span class="hint">дипломатия, сила, посредник или уступка</span>`:''}):'')
   +(hot.length?panel({cls:'warn',title:'Граница',meta:'края под внешним давлением',flush:true,
     body:`<table class="tight"><tbody>${hot.map(r=>
       `<tr><td><b>${r.name}</b><div class="sub2">${r.cap}</div></td>
@@ -2724,6 +2734,14 @@ function helpBody(){
       а при независимой прокуратуре или суде может обернуться новым скандалом. Если дело против вас, а в регламенте есть
       неприкосновенность, палата сначала решает, снимать ли её. Приговор вам — потеря кресла и мандата и запрет выдвигаться
       на восемь кварталов; апелляция — один раз. Громкие скандалы соперников тоже доходят до суда, и власть может их подтолкнуть.</p>
+    <h3 class="sub">Внешняя политика: торговля, санкции, граница, визиты</h3>
+    <p>Торговое соглашение открывает рынок соседа: внешний спрос и инвестиции растут, но одна группа проигрывает
+      от конкуренции — и Сенат ратифицирует его голосами краёв, где эта группа сильна. Холодный сосед вводит санкции
+      (внешний спрос и инвестиции падают): можно ответить зеркально, уступить или искать обход. Наши санкции радуют патриотов,
+      бьют по бизнесу и ускоряют уступку в пограничном кризисе. Инцидент на границе греет приграничный край и сепаратистов:
+      дипломатия, демонстрация силы (зависит от расходов на оборону, при неудаче — эскалация), посредник или уступка.
+      Визит — это повестка: торговля с контрактом краю, граница и соотечественники или энергетика. У соседей меняется
+      власть, а с ней и курс. Договоры, соглашения и санкции — дело кабинета, президента или министра иностранных дел.</p>
     <h3 class="sub">Края: мэры, просьбы, референдумы, сепаратизм</h3>
     <p>В столице каждого края свой мэр, и он не всегда из партии губернатора. Вражда растёт от разницы курсов и горячего края;
       в открытой войне центр может помирить их или встать на чью-то сторону, а губернатор или мэр — договориться,

@@ -185,7 +185,8 @@ function sepTick(){
     // сепаратизм тянется к своему уровню: своя история, напряжённость, низкая поддержка, обида на центр
     const b=SEP_BASE[r.id]||0, g=govOf(r.id), k=0.5+b;
     let target=b*22+Math.max(0,S.unrest[r.id]-15)*0.8*k+Math.max(0,50-regApproval(r.id))*0.6*k
-      +regAuto(r.id)*4*b+(g&&!g.you&&g.rel<30?6:0)+(regSov(r.id)?20:0)-(S.direct[r.id]>S.q?15:0);
+      +regAuto(r.id)*4*b+(g&&!g.you&&g.rel<30?6:0)+(regSov(r.id)?20:0)-(S.direct[r.id]>S.q?15:0)
+      +nbPressure(r.id)*5;                                   // враждебный сосед подкармливает сепаратистов
     S.sep[r.id]=clamp(r1(regSep(r.id)+(target-regSep(r.id))*0.12+rnd(-2,2.5)),0,100);
   });
 }
@@ -252,6 +253,8 @@ function rrefDirect(rid){
   S.direct[rid]=S.q+8; S.sov[rid]=false; if(S.rref&&S.rref.rid===rid){ S.rref=null; S.rrefCool=S.q+6; }
   shiftMood('intel',-3); shiftMood('youth',-2); shiftMood('patr',2); bumpRep('firm',4); bumpRep('honest',-2);
   REGIONS.forEach(x=>{ if(x.id!==rid&&SEP_BASE[x.id])S.sep[x.id]=clamp(regSep(x.id)+5,0,100); });
+  NEIGHBOURS.forEach(x=>{ const st=nbOf(x.id); if(!st)return;            // за рубежом прямое управление тоже заметят
+    if(x.id==='ostmark')st.rel=clamp(st.rel-8,0,100); if(x.border.indexOf(rid)>=0)st.rel=clamp(st.rel-6,0,100); });
   regLog(rid,'Введено прямое управление из центра.','b'); chron('Прямое управление в крае '+r.name+'.','b');
   cover({ax:'reg',stance:-2,good:'Центр восстановил порядок в крае '+r.name,bad:'Прямое управление: край '+r.name+' лишён самоуправления',
     flat:'В крае '+r.name+' введено прямое управление'});

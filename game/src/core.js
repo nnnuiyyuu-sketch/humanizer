@@ -306,6 +306,7 @@ function nbPressure(rid){
     if(x.border.indexOf(rid)<0)return;
     if(st.rel<38)v+=(38-st.rel)*0.05*x.power;
   });
+  if(typeof fpBorder==='function')v+=fpBorder(rid);     // инцидент на границе
   return r1(v);
 }
 
@@ -894,7 +895,7 @@ function econTick(){
   const e=S.econ, W=S.world;
   // хозяйственный цикл идёт сам по себе, что бы вы ни делали
   S.cyc.ph+=1/S.cyc.len; if(S.cyc.ph>1){S.cyc.ph-=1;S.cyc.len=ri(13,19);}
-  const tgt=100+nbTrade()*0.55;                 // отношения с соседями — это торговля
+  const tgt=100+nbTrade()*0.55+(typeof fpDemand==='function'?fpDemand():0);   // отношения, соглашения и санкции — это торговля
   W.demand=clamp(W.demand+(tgt-W.demand)*0.07+rnd(-5.5,5.5),55,142);
   W.res=clamp(W.res+(100-W.res)*0.05+rnd(-9,9),45,168);
   const cyc=cycleImpulse();

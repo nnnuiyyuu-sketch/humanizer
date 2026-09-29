@@ -242,6 +242,7 @@ function caseDo(id){
     render(); return; }
   if(id==='fire'){ if(!pay({ap:1,cap:20},'Смена генпрокурора'))return;
     S.prosHit=S.q+8; bumpLegit(-8); pr.ev=Math.round(clamp(pr.ev-30,0,100));
+    const om=nbOf('ostmark'); if(om)om.rel=clamp(om.rel-5,0,100);
     logMsg('Генпрокурор отправлен в отставку посреди дела.',1); chron('Президент сменил генпрокурора посреди дела.','b');
     scOpenYou('trail',ri(50,65),75); }
   if(id==='judge'){ if(!pay({ap:1,cap:12},'Давление на суд'))return;
