@@ -171,4 +171,12 @@ r=await ev(()=>{ S.ap=3; nbVisit('meridia'); const os=[...document.querySelector
   return {n:os.length, gain:Math.round(S.treasury-t0)}; });
 check('внешняя: визит с повесткой', r.n===4&&r.gain>0, 'повесток '+(r.n-1)+' · казна '+(r.gain>0?'+':'')+r.gain);
 await settle(page);
+
+r=await ev(()=>{ localStorage.removeItem(REC_KEY); S.held={pm:1}; S.startSeat='none'; S.held.pres=S.q; S.cnt={deals:10};
+  achvTick(); const got=Object.keys(S.achv);
+  finish(true,'Проверка финала.'); const m=document.getElementById('modal');m.classList.remove('show');mopen=false;mq.length=0;
+  S.tab='final'; render();
+  return {got:got.join(','), paper:!!document.querySelector('#view .paper'), rec:records().length, bio:bioText().length,
+    head:(document.querySelector('#view .paper-h')||{}).textContent}; });
+check('наследие: достижения, полоса, зал славы', /climb/.test(r.got)&&/dealer/.test(r.got)&&r.paper&&r.rec===1&&r.bio>=3, r.got+' · '+r.head);
 await done(browser,errors,fails);

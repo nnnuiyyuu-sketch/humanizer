@@ -95,7 +95,7 @@ function caseGuilty(pr){
 function caseVerdict(){
   const pr=S.probe; if(!pr)return;
   if(Math.random()>=caseGuilty(pr)){
-    S.probe=null; addTrail(-10); bumpRep('honest',4); shiftAll(1);
+    S.probe=null; addTrail(-10); bumpRep('honest',4); shiftAll(1); if(pr.you)cnt('acquit');
     logMsg('Суд оправдал: '+caseWho(pr)+'.',1); chron('Оправдательный приговор: '+caseWho(pr)+'.','g');
     cover({good:'Суд оправдал: обвинение развалилось',bad:'Оправдание, которое никого не убедило',flat:'Суд вынес оправдательный приговор'});
     sheetOpen({eye:'Суд · '+dateLabel(),title:'Оправдан',

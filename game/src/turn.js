@@ -963,7 +963,7 @@ function submitBudget(){
     else { (Math.random()<0.5+x.v/30?yes++:no++); } });
   const pass=yes>no;
   if(pass){
-    S.lastBudget=snapshotBudget(); S.budget.fails=0;
+    S.lastBudget=snapshotBudget(); S.budget.fails=0; cnt('budgetRun');
     addCap(8); shiftAll(0.8);
     coalition().filter(x=>x!==PL).forEach(id=>{ if(!S.partners[id])return; const a=bAsk(id);
       S.partners[id].anger=a&&!bAskMet(a)?clamp(S.partners[id].anger+1,0,6):Math.max(0,S.partners[id].anger-1); });
@@ -971,7 +971,7 @@ function submitBudget(){
     logMsg('Бюджет на '+budgetYear()+' год принят ('+yes+' против '+no+').',1);
     chron('Собрание утвердило бюджет на '+budgetYear()+' год.','g');
   } else {
-    S.budget.fails++;
+    S.budget.fails++; if(S.cnt)S.cnt.budgetRun=0;
     if(S.lastBudget){ S.tax={...S.lastBudget.tax}; S.spend={...S.lastBudget.spend}; }
     addCap(-10); shiftAll(-2); S.noConfCool=0;
     coalition().filter(x=>x!==PL).forEach(id=>{ if(S.partners[id])S.partners[id].anger=clamp(S.partners[id].anger+1,0,6); });
@@ -2581,7 +2581,7 @@ function endQuarter(){
   powerTick();
   campEventTick();
   mediaTick();
-  rivalsTick(); regionsTick();
+  rivalsTick(); regionsTick(); achvTick();
   offerTick();
   pressTick();
   judgeTick();
@@ -2859,7 +2859,7 @@ function score(){
   const ap=approval();
   let s=Math.round(ap*3+seatsOf(PL)*2.2+S.laws.filter(l=>l.by===PL).length*7
     +(S.econ.gdp-100)*2.4-S.debt*0.12-avgUnrest()*1.6+(S.term-1)*40);
-  const t=s>620?'Основатель республики':s>470?'Сильный премьер':s>340?'Крепкий хозяйственник':
+  const t=s>620?'Основатель республики':s>470?'Сильный лидер':s>340?'Крепкий хозяйственник':
           s>210?'Проходная фигура':s>90?'Слабое правление':'Провал';
   return {s,t};
 }
@@ -2867,6 +2867,7 @@ function finish(won,why){
   S.over=true;S.ended=why;
   const {s,t}=score();
   chron(why,won?'g':'b');
+  achvTick(); recSave(won);
   sheetOpen({eye:'Итог правления',title:won?'Срок отработан':'Конец карьеры',
     body:`<p>${why}</p>
       <div class="res"><span>Кварталов у власти</span><b>${S.q-1}</b>
@@ -2877,7 +2878,8 @@ function finish(won,why){
         <span>Долг</span><b>${Math.round(S.debt)} млрд</b></div>
       <div style="text-align:center;margin:12px 0 4px"><span class="stamp ${won?'y':'n'}">${s} очков</span></div>
       <p style="text-align:center;font:700 17px 'PT Serif',serif;margin:8px 0 0">«${t}»</p>`,
-    acts:[{label:'Посмотреть летопись',fn:()=>{S.tab='arch';}},
+    acts:[{label:'Последняя полоса',fn:()=>{S.tab='final';}},
+          {label:'Посмотреть летопись',fn:()=>{S.tab='arch';}},
           {label:'Начать заново',fn:()=>{try{localStorage.removeItem(SAVE);}catch(e){}location.reload();}}]});
 }
 

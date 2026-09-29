@@ -477,6 +477,30 @@ input:focus,select:focus{outline:2px solid var(--mark);outline-offset:-1px}
   border-top:3px solid var(--line);color:var(--ink-3)}
 .case-steps span.done{border-top-color:var(--ink-2);color:var(--ink-2)}
 .case-steps span.on{border-top-color:var(--bad);color:var(--bad)}
+/* ── последняя полоса и достижения ── */
+.paper{background:var(--surface);border-top:var(--rule);border-bottom:var(--rule);padding:var(--x6) var(--x7) var(--x7);max-width:1180px;margin:0 auto}
+.paper-mast{display:flex;justify-content:space-between;align-items:baseline;gap:var(--x5);border-bottom:var(--rule-thin);padding-bottom:var(--x4);flex-wrap:wrap}
+.paper-mast b{font:700 34px/1 var(--f-display);letter-spacing:.02em;text-align:center;flex:1 1 260px}
+.paper-mast span{font:700 9px var(--f-cond);text-transform:uppercase;letter-spacing:.16em;color:var(--ink-3)}
+.paper-h{font:700 40px/1.08 var(--f-display);margin:var(--x6) 0 var(--x4);text-align:center}
+.paper-dek{font:italic 400 17px/1.45 var(--f-display);text-align:center;max-width:80ch;margin:0 auto var(--x6);color:var(--ink-2)}
+.paper-cols{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:var(--x7);border-top:var(--hair);padding-top:var(--x5)}
+.paper-cols section+section{border-left:var(--hair);padding-left:var(--x7)}
+.paper-cols h3{font:700 9.5px var(--f-cond);text-transform:uppercase;letter-spacing:.16em;margin:0 0 var(--x4);color:var(--mark)}
+.paper-cols h3:not(:first-child){margin-top:var(--x6)}
+.paper-cols section>p{font:400 14.5px/1.55 var(--f-display)}
+.paper-cols section>p:first-of-type::first-letter{font:700 44px/.9 var(--f-display);float:left;margin:4px 6px 0 0}
+.paper blockquote{margin:0 0 var(--x4);padding-left:var(--x5);border-left:3px solid var(--line-2)}
+.paper blockquote p{font:italic 400 14px/1.4 var(--f-display);margin:0}
+.paper blockquote cite{font:400 11px var(--f-num);color:var(--ink-3);font-style:normal}
+.paper-foot{display:flex;gap:var(--x4);justify-content:center;border-top:var(--hair);margin-top:var(--x6);padding-top:var(--x5)}
+.achv{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:6px}
+.achv div{border:var(--hair-2);padding:6px 8px;opacity:.55}
+.achv div.on{opacity:1;border-color:var(--ink);background:var(--surface-2)}
+.achv b{display:block;font:700 13px/1.25 var(--f-display)}
+.achv span{font-size:11.5px;color:var(--ink-3)}
+@media (max-width:860px){ .paper-cols{grid-template-columns:1fr} .paper-cols section+section{border-left:0;padding-left:0;border-top:var(--hair);padding-top:var(--x5)}
+  .paper-h{font-size:28px} .paper-mast b{font-size:26px} .paper{padding:var(--x5)} }
 @media (max-width:520px){ .roles{grid-template-columns:1fr} }
 /* ── полукруг зала ───────────────────────────────────────────
    Ровные концентрические ряды, фракции клиньями слева направо.

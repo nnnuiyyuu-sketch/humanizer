@@ -79,7 +79,7 @@ function tradeSign(id){
       acts:[{label:'Закрыть'}]});
     render(); return;
   }
-  st.trade=true; st.tradeQ=S.q; st.rel=clamp(st.rel+8,0,100);
+  st.trade=true; st.tradeQ=S.q; st.rel=clamp(st.rel+8,0,100); cnt('trade');
   shiftMood(hurt,-4); shiftMood('biz',3); S.econ.invest=r1(S.econ.invest+3); bumpRep('comp',2);
   x.border.forEach(r=>S.rmod[r]=clamp(S.rmod[r]+1,-22,22));
   career('Торговое соглашение с «'+x.name+'».'); chron('Ратифицировано торговое соглашение с «'+x.name+'».','g');
@@ -156,7 +156,7 @@ function askCrisis(){
   const force=clamp(0.25+S.spend.def*0.12-(x.power-1)*0.15,0.1,0.85);
   const opts=[{label:'Дипломатия',hint:'ход и 6 веса · шанс '+Math.round(dip*100)+'%',fn(){
       if(!pay({ap:1,cap:6},'Переговоры о границе'))return;
-      if(Math.random()<dip)return bcrisisEnd('Переговоры сняли напряжение на границе.',5);
+      if(Math.random()<dip){ cnt('peace'); return bcrisisEnd('Переговоры сняли напряжение на границе.',5); }
       logMsg('Переговоры с «'+x.name+'» ничего не дали.',1); render(); }},
     {label:'Показать силу',hint:'ход и 4 веса · шанс '+Math.round(force*100)+'% · иначе эскалация',fn(){
       if(!pay({ap:1,cap:4},'Демонстрация силы'))return;
@@ -168,7 +168,7 @@ function askCrisis(){
       render(); }}];
   if(med)opts.push({label:'Посредничество «'+med.name+'»',hint:'5 веса · шанс 75% · посредник теплеет',fn(){
     if(!payCap(5))return; nbOf(med.id).rel=clamp(nbOf(med.id).rel+4,0,100);
-    if(Math.random()<0.75)return bcrisisEnd('При посредничестве «'+med.name+'» стороны договорились.',3);
+    if(Math.random()<0.75){ cnt('peace'); return bcrisisEnd('При посредничестве «'+med.name+'» стороны договорились.',3); }
     logMsg('Посредничество «'+med.name+'» не помогло.',1); render(); }});
   opts.push({label:'Уступить',hint:'8 веса · кризис снят · легитимность −2 · патриоты −4',fn(){
     if(!payCap(8))return; bumpLegit(-2); shiftMood('patr',-4); bumpRep('firm',-3); bcrisisEnd('Новария уступила в споре о границе.',8); }});

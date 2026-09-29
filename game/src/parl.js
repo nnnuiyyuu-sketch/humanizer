@@ -583,7 +583,7 @@ function motionVote(){
       } else {
         S.noConfCool=MOT_COOL;
         if(m.by===PL){ addCap(-6); bumpRep('comp',-2); }
-        if(m.against===PL){ addCap(8); bumpRep('firm',3); }
+        if(m.against===PL){ addCap(8); bumpRep('firm',3); cnt('motionWon'); }
         logMsg('Вотум недоверия провален: '+yes+' «за» при нужных '+MAJ+'.',1);
       }
       render(); }}]});

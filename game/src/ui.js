@@ -432,6 +432,7 @@ const TABS=[
   {id:'world',  name:'Соседи',       n:()=>Math.round(nbTrade())},
   {id:'camp',   name:'Кампания',     n:()=>Math.round(S.funds), only:()=>!!S.camp},
   {id:'arch',   name:'Летопись',     grp:'Прочее', n:()=>S.chron.length},
+  {id:'final',  name:'Последняя полоса',short:'Полоса', icon:'press', n:()=>'', only:()=>!!S.over},
   {id:'hist',   name:'Правители',     n:()=>rulers().pres.length},
   {id:'help',   name:'Справка',      n:()=>''},
 ];
@@ -460,7 +461,7 @@ const isNarrow=()=>window.matchMedia('(max-width:900px)').matches;
 function navItems(){ return TABS.filter(t=>!t.only||t.only()); }
 function navBtn(t,i){
   return `<button class="nav ${S.tab===t.id?'on':''}" data-t="${t.id}" title="${t.name}${
-    i!==undefined?' · клавиша '+(i+1):''}">${icon(t.id)}<span>${(i===undefined||t.name.length>13)&&t.short?t.short:t.name}</span>${
+    i!==undefined?' · клавиша '+(i+1):''}">${icon(t.icon||t.id)}<span>${(i===undefined||t.name.length>13)&&t.short?t.short:t.name}</span>${
     t.dot&&t.dot()?'<span class="dot"></span>':''}<u>${t.n()}</u></button>`;
 }
 function renderNav(){
@@ -504,7 +505,7 @@ function render(){
             budget:tabBudget,pm:tabPM,gov:tabGov,pres:tabPres,court:tabCourt,country:tabCountry,
             society:tabSociety,press:tabPress,world:tabWorld,camp:tabCamp,firms:tabFirms,
             const:tabConst,hist:tabHist,fac:tabFac,
-            arch:tabArch,help:tabHelp})[S.tab]||tabBrief;
+            arch:tabArch,help:tabHelp,final:tabFinal})[S.tab]||tabBrief;
   document.getElementById('view').innerHTML=f();
   bindActions();
 }
@@ -1333,7 +1334,8 @@ function tabSelf(){
       <button class="btn danger" onclick="askResign()">Отставка</button>`})
   +panel({title:'Карьера',meta:(y.career||[]).length+' записей',flush:true,
     body:`<div class="career">${car}</div>`})
-  +`</div></div>`;
+  +`</div></div>`
+  +`<div class="cols c11"><div>${bioPanel()}</div><div>${achvPanel()}</div></div>`;
 }
 
 /* ─── Бизнес ─────────────────────────────────────────────────────
@@ -2734,6 +2736,11 @@ function helpBody(){
       а при независимой прокуратуре или суде может обернуться новым скандалом. Если дело против вас, а в регламенте есть
       неприкосновенность, палата сначала решает, снимать ли её. Приговор вам — потеря кресла и мандата и запрет выдвигаться
       на восемь кварталов; апелляция — один раз. Громкие скандалы соперников тоже доходят до суда, и власть может их подтолкнуть.</p>
+    <h3 class="sub">Наследие: достижения, биография, последняя полоса</h3>
+    <p>Двадцать достижений собраны по креслам: кабинет, президентство, край и город, палаты, путь. Они открываются сами,
+      а список с отметками — в «Моём политике» рядом с биографией, которая пишется из карьеры и летописи.
+      Когда карьера заканчивается, выходит последняя полоса: заголовок, биография, цифры эпохи, что о вас писали,
+      достижения. Зал славы на этом устройстве помнит все прожитые партии; он виден и в «Статистике» на титульном экране.</p>
     <h3 class="sub">Внешняя политика: торговля, санкции, граница, визиты</h3>
     <p>Торговое соглашение открывает рынок соседа: внешний спрос и инвестиции растут, но одна группа проигрывает
       от конкуренции — и Сенат ратифицирует его голосами краёв, где эта группа сильна. Холодный сосед вводит санкции

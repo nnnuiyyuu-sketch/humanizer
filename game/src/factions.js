@@ -179,7 +179,7 @@ function offerDeal(pid,house,sb,x){
   const d={id:(S.dealNo=(S.dealNo||0)+1), pid, house, key, label:subjName(sb), pay:x.id, trait:L.trait, leader:L.name,
     q:S.q, due:S.q+DEAL_LEN, renege:Math.random()>t.keep, told:false};
   if(x.id==='bill'){ const pc=pactFor(pid,PL); d.iou={ax:pc.ax,sign:pc.sign,topic:pc.topic,due:S.q+IOU_LEN,done:false}; }
-  S.deals=(S.deals||[]).filter(z=>!(z.pid===pid&&z.house===house&&z.key===key)).concat([d]);
+  S.deals=(S.deals||[]).filter(z=>!(z.pid===pid&&z.house===house&&z.key===key)).concat([d]); cnt('deals');
   if(S.deals.length>60)S.deals=S.deals.slice(-60);
   L.owe=0; L.rel=clamp(L.rel+(x.id==='favor'?-12:4),0,100);
   if(!chief())S.you.inf=clamp(S.you.inf+2,0,100);          // кто договаривается за партию, того в партии слушают
