@@ -2284,7 +2284,7 @@ function partiesTick(){
   const pop=popularStance();
   S.parties.forEach(p=>{
     if(p.id===PL)return;
-    const base=(AIPARTIES.find(x=>x.id===p.id)||p);
+    const base=(AIPARTIES.find(x=>x.id===p.id)||{st:p.st0||p.st});   // новая партия держится своей учредительной линии
     AX.forEach(a=>{                                  // партия чует, куда идёт страна
       const v=p.st[a]+(pop[a]-p.st[a])*0.035;
       p.st[a]=r2(clamp(clamp(v,base.st[a]-0.8,base.st[a]+0.8),-2,2));
@@ -2673,6 +2673,7 @@ function endQuarter(){
   powerTick();
   campEventTick();
   mediaTick();
+  rivalsTick();
   offerTick();
   pressTick();
   judgeTick();

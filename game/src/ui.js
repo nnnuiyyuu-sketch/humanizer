@@ -545,6 +545,7 @@ function apSlots(){
 function nextSteps(){
   const out=[], add=(t,why,label,js,go)=>{ if(out.length<4)out.push({t,why,label,js,go}); };
   const m=S.motion, cr=S.crisis, imp=S.imp;
+  if(blocOn())add('Расколите блок','Против кабинета голосуют вместе '+S.bloc.members.map(id=>P(id).short).join(', ')+' — '+blocSeats()+' мандатов. Сделка с одной из фракций может его расколоть.','Фракции','',"fac");
   const sc=scMine().find(x=>!x.resp||x.heat>=60);
   if(sc)add('Ответьте на скандал','«'+sc.title+'»: температура '+Math.round(sc.heat)+'. Молчание дешевле всего, но горит дольше.','Ответить','askScandal('+sc.id+')');
   const da=deskAdvice(); if(da)add(da[0],da[1],da[2],da[3]);
@@ -937,7 +938,10 @@ function tabFac(){
       <td class="n ${p.id===PL?'':h.rel>=60?'good':h.rel<35?'bad':''}">${p.id===PL?'—':Math.round(h.rel)}</td>
       <td class="n hide-s ${p.id===PL||!s?'':s.rel>=60?'good':s.rel<35?'bad':''}">${p.id===PL||!s?'—':Math.round(s.rel)}</td></tr>`; }).join('');
   const cards=S.parties.filter(p=>p.id!==PL).sort(bySeats).map(p=>facCard(p)).join('');
-  return panel({cls:'lead-p',title:'Фракции',meta:'Собрание · Сенат · отношение лидеров',flush:true,
+  const bloc=blocOn()?`<div class="crisis"><b>Оппозиционный блок до ${shortDate(S.bloc.until)}</b>
+      <span>${S.bloc.members.map(id=>P(id).name).join(', ')} — ${blocSeats()} мандатов голосуют вместе против ваших законов и бюджета.
+        Сделка с одной из фракций может расколоть блок.</span></div>`:'';
+  return bloc+panel({cls:'lead-p',title:'Фракции',meta:'Собрание · Сенат · отношение лидеров',flush:true,
     body:`<table class="tight"><thead><tr><th></th><th>Фракция</th><th class="n">Собр.</th><th class="n">Сенат</th>
       <th class="n hide-s">Дисц.</th><th class="n">Опрос</th><th class="n">Лидер</th><th class="n hide-s">Сенаторы</th></tr></thead><tbody>${sum}</tbody>
       <caption>Дисциплина — насколько депутаты идут за линией фракции: у дисциплинированной сделка с лидером приносит почти все голоса,
@@ -2420,13 +2424,15 @@ function forecastAll(){
 }
 function racePanel(){
   const polls=S.camp&&S.camp.polls||[], last=polls[polls.length-1], fc=forecastAll();
+  const th=(S.camp&&S.camp.themes)||{};
   const rows=S.parties.slice().sort((a,b)=>(last?last.sh[b.id]-last.sh[a.id]:0)).map(p=>{ const t=campTrend(p.id);
     return `<tr class="${p.id===PL?'mine':''}"><td>${chip(p)} ${p.name}</td><td class="n">${last?last.sh[p.id]+'%':'—'}</td>
       <td class="n ${t>0?'good':t<0?'bad':'dim'}">${t?(t>0?'▲ ':'▼ ')+Math.abs(t):'—'}</td><td class="n">${fc[p.id]}</td>
-      <td class="n hide-s">${p.id===PL?sign(r1(S.camp.swing||0)):sign(r1(p.mom||0))}</td></tr>`; }).join('');
+      <td class="n hide-s">${p.id===PL?sign(r1(S.camp.swing||0)):sign(r1(p.mom||0))}</td>
+      <td class="hide-s dim">${th[p.id]?AXNAME[th[p.id].ax].toLowerCase()+' · '+Math.round(th[p.id].spent)+' млн':p.id===PL?'ваш штаб':'—'}</td></tr>`; }).join('');
   return panel({cls:'lead-p',title:'Гонка',meta:polls.length?'опрос '+shortDate(last.q)+' · ±2 пункта':'опросов ещё нет',
     body:pollChart(polls)+`<table class="tight" style="margin-top:8px"><thead><tr><th>Партия</th><th class="n">Опрос</th><th class="n">За квартал</th>
-      <th class="n">Мандатов</th><th class="n hide-s">Импульс</th></tr></thead><tbody>${rows}</tbody>
+      <th class="n">Мандатов</th><th class="n hide-s">Импульс</th><th class="hide-s">Тема и траты</th></tr></thead><tbody>${rows}</tbody>
       <caption>Импульс — то, что кампания добавила сверх курса и дел: скандалы, дебаты, события. Мандаты — по опросу, методом Д'Ондта по краям.</caption></table>`});
 }
 function presRacePanel(){
@@ -2694,6 +2700,11 @@ function helpBody(){
     <p>Скандал горит кварталами: враждебная печать разогревает, извинение, сданный помощник, смена повестки
       или удачный суд остужают, отрицание при больших документах возвращается новой волной. Утечки растут из следа
       сделок, конвертов и корпоративных денег. Компромат на соперника может привести обратно к вам.</p>
+    <h3 class="sub">Соперники: блок, расколы, кампании</h3>
+    <p>Против слабого кабинета оппозиция собирается в блок на восемь кварталов: его фракции голосуют против
+      ваших законов и бюджета. Сделка с членом блока может его расколоть. Крупная партия в провале, в скандале
+      или после поражения на выборах раскалывается — рождается новая фракция со своим лидером. Лидер в горящем
+      скандале может уйти. В кампании соперники выбирают тему и тратят кассу — это видно в таблице гонки.</p>
     <h3 class="sub">Деловой климат</h3>
     <p>Отношение восьми групп капитала к власти двигает инвестиции. Группы отвечают на законы по своей теме,
       открывают заводы, сокращают людей и выводят капитал. Деловой совет поднимает климат, просьба о проекте

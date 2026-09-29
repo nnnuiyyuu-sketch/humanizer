@@ -66,4 +66,23 @@ check('капитал отвечает на закон', r.r1<r.r0, Math.round(r
 
 r=await ev(()=>{ S.tab='fac'; render(); return document.querySelectorAll('#view .fac-ax').length; });
 check('вкладка «Фракции»', r>=30, 'осей '+r);
+
+await boot(page,{role:'pm'});
+r=await ev(()=>{ const big=S.parties.filter(p=>p.id!==PL).sort(bySeats)[0], n0=S.parties.length;
+  const np=splitParty(big.id); if(!np)return {ok:false};
+  const hs=S.parties.reduce((a,p)=>a+seatsOf(p.id),0), ss=S.parties.reduce((a,p)=>a+senSeatsOf(p.id),0);
+  const dOk=S.parties.every(p=>S.deputies.filter(d=>d.party===p.id).length===seatsOf(p.id));
+  const sOk=S.parties.every(p=>S.senate.filter(x=>x.party===p.id).length===senSeatsOf(p.id));
+  return {ok:S.parties.length===n0+1&&hs===SEATS&&dOk&&sOk&&!!flLeader(np.id,'h'), v:big.short+' → '+np.name+' · '+seatsOf(np.id)+' деп. · '+hs+'/'+ss}; });
+check('раскол партии', r.ok, r.v);
+r=await ev(()=>{ const opp=S.parties.filter(p=>p.id!==PL&&!inCoal(p.id)).sort(bySeats).slice(0,2).map(p=>p.id);
+  S.bloc={members:opp.slice(),since:S.q,until:S.q+8,lead:opp[0]};
+  newBill(TOPICS.find(t=>!t.special).id); const line=leaderLine(opp[0],S.bill);
+  const rr=Math.random; Math.random=()=>0.1; blocDealBreak(opp[1]); Math.random=rr;
+  return {line,after:S.bloc?S.bloc.members.length:0}; });
+check('оппозиционный блок', r.line===-1&&r.after<2, 'линия '+r.line+' · после сделки в блоке '+r.after);
+r=await ev(()=>{ S.bill=null; campaignStart(); const m=document.getElementById('modal');m.classList.remove('show');mopen=false;mq.length=0;
+  rivalCampTick(); const t=S.camp.themes||{}; return {n:Object.keys(t).length, all:S.parties.length-1}; });
+check('кампании соперников', r.n===r.all, 'тем '+r.n+' из '+r.all);
+await settle(page);
 await done(browser,errors,fails);

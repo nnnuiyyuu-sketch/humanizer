@@ -182,6 +182,7 @@ function offerDeal(pid,house,sb,x){
   if(S.deals.length>60)S.deals=S.deals.slice(-60);
   L.owe=0; L.rel=clamp(L.rel+(x.id==='favor'?-12:4),0,100);
   if(!chief())S.you.inf=clamp(S.you.inf+2,0,100);          // кто договаривается за партию, того в партии слушают
+  if(typeof blocDealBreak==='function')blocDealBreak(pid);
   logMsg('Сделка: '+L.name+' («'+p.short+'», '+(house==='s'?'Сенат':'Собрание')+') поддержит '+subjName(sb)+' — '+x.name.toLowerCase()+'.',1);
   sheetOpen({eye:'Переговоры',title:'По рукам',
     body:`<p class="lead">${L.name} поведёт ${house==='s'?'сенаторов':'фракцию'} «${p.name}» за вами: ${subjName(sb)}.</p>
@@ -278,7 +279,7 @@ function dealApproach(){
         S.deals=(S.deals||[]).concat([{id:(S.dealNo=(S.dealNo||0)+1),pid:cand.p.id,house:'h',key,label:subjName(sb),pay:x.id,
           trait:L.trait,leader:L.name,q:S.q,due:S.q+DEAL_LEN,renege:Math.random()>t.keep,told:false,
           iou:x.id==='bill'?(()=>{const pc=pactFor(cand.p.id,PL);return {ax:pc.ax,sign:pc.sign,topic:pc.topic,due:S.q+IOU_LEN,done:false};})():null}]);
-        L.rel=clamp(L.rel+5,0,100);
+        L.rel=clamp(L.rel+5,0,100); if(typeof blocDealBreak==='function')blocDealBreak(cand.p.id);
         logMsg('Сделка по предложению '+L.name+': «'+cand.p.short+'» поддержит '+subjName(sb)+'.',1); render(); }},
       {label:'Отказать',hint:'отношение немного упадёт',fn(){ L.rel=clamp(L.rel-3,0,100); }}]});
 }

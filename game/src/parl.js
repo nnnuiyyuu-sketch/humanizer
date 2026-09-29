@@ -613,9 +613,9 @@ function aiMotionTick(){
   const opp=S.parties.filter(p=>!inCoal(p.id)&&p.id!==PL).sort(bySeats)[0];
   if(!opp)return;
   if(S.gov.lead===PL){
-    const weak=coalSeats()<MAJ, low=approval()<38;
-    if(!(weak||low))return;
-    if(Math.random()>=(weak?0.5:0.15))return;
+    const weak=coalSeats()<MAJ, low=approval()<38, bloc=typeof blocOn==='function'&&blocOn()&&approval()<47;
+    if(!(weak||low||bloc))return;
+    if(Math.random()>=(weak?0.5:bloc?0.22:0.15))return;
     S.motion={by:opp.id,against:PL,q:S.q,due:S.q,lob:{},succ:noconfKind()==='constructive'?opp.id:null,sig:MOT_SIG+ri(5,60)};
     logMsg('«'+opp.name+'» внесла вотум недоверия вашему кабинету. Голосование — в конце квартала.',1);
     chron('Оппозиция внесла вотум недоверия.','b');

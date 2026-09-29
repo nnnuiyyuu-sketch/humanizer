@@ -941,6 +941,7 @@ function budgetSupport(d){
     const ch=id?S.deputies.find(x=>x.id===id):null;
     if(ch&&ch.party===d.party)v+=5; });
   if(S.unrest[d.region]>30&&S.spend.soc>=3)v+=4;      // округ на взводе ценит соцстатью
+  if(typeof inBloc==='function'&&inBloc(d.party))v-=6;   // блок против бюджета кабинета
   const dd=typeof dealFor==='function'?dealFor(d.party,'h','budget'):null;
   if(dd)v+=26*d.loyal/100*dealGrip(dd);                // лидер фракции обещал бюджет
   v+=noise(d.id+'budget'+S.q+taxLoad()+avgSpend(),7);
@@ -1014,6 +1015,7 @@ function bigOpp(){
 function leaderLine(pid,bill,house){
   const dl=typeof dealBillLine==='function'?dealBillLine(pid,house||'h',bill):null;
   if(dl&&!dl.renege)return 1;                     // о законе договорились с лидером
+  if(typeof inBloc==='function'&&inBloc(pid)&&(bill.by||PL)===PL)return -1;   // блок голосует против вас
   const p=P(pid), d=Math.abs((p.st[T(bill.topic).ax]||0)-bill.stance);
   if(pid===PL) return d>2.3?-1:1;
   let line = d<1.15?1:d>2.25?-1:0;
