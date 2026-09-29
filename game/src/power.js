@@ -175,6 +175,7 @@ function askRaces(){
       .concat([{label:'Закрыть',hint:'',fn(){}}])});
 }
 function registerCand(k,rid,q,free){
+  if(convicted()){ toast('Приговор в силе: выдвигаться нельзя ещё '+quarters(S.you.convicted+CONVICT_LEN-S.q)); return; }
   if(!free&&!pay(CAND_COST,'Выдвижение: '+k))return;
   S.you.cands=S.you.cands||{}; S.you.cands[k]={rid,q,since:S.q};
   logMsg('Вы выдвинулись: '+({sen:'в Сенат от края ',gov:'в главы края ',mayor:'в мэры '}[k])+(k==='mayor'?R(rid).cap:R(rid).name)+'. Голосование — '+shortDate(q)+'.',1);

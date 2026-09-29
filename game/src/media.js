@@ -47,6 +47,7 @@ function scOpenParty(pid,title,heat){
   scHead(sc); const p=P(pid); p.mom=clamp((p.mom||0)-3,-14,14);
   const L=S.fl&&S.fl[pid]&&S.fl[pid].h; if(L)L.hit=(L.hit||0)+1;
   logMsg('Скандал у «'+p.short+'»: '+title+'.');
+  if(typeof rcaseFromScandal==='function')rcaseFromScandal(sc);
   return sc;
 }
 /* реакция: у каждой своя цена и свой риск */

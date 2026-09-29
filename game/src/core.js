@@ -217,7 +217,7 @@ function addTrail(v,who){
 /* независимость прокуратуры: антикоррупционный закон плюс суд */
 function prosFree(){
   const l=lawOn('graft');
-  return clamp(0.5+(l?l.stance:0)*0.18+courtFree()*0.08,0.1,1.1);
+  return clamp(0.5+(l?l.stance:0)*0.18+courtFree()*0.08-(S.prosHit>S.q?0.3:0),0.1,1.1);   // новый генпрокурор послушнее
 }
 function probeRisk(){
   // неприкосновенность депутата: дело возбуждается только с согласия палаты

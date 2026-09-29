@@ -16,7 +16,7 @@ import {fileURLToPath} from 'node:url';
 const here = dirname(fileURLToPath(import.meta.url));
 /* порядок важен: данные раньше ядра, ядро раньше хода, интерфейс в конце */
 export const PARTS = ['head.html','assets.js','icons.js','data.js','core.js','turn.js','parl.js',
-  'roles.js','factions.js','power.js','media.js','rivals.js','budget.js','ui.js','boot.js'];
+  'roles.js','factions.js','power.js','media.js','rivals.js','budget.js','cases.js','ui.js','boot.js'];
 const TAIL = '</script>\n</body>\n</html>\n';
 
 export function assemble(){

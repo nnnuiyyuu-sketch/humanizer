@@ -428,6 +428,12 @@ input[type=text]:focus,select:focus{outline:2px solid var(--mark);outline-offset
 .course ol.all li.now b{color:var(--mark)}
 .help-q input{width:100%;max-width:520px}
 .help-s[hidden]{display:none}
+/* ── дело: ступени от проверки до суда ── */
+.case-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;margin:10px 0 4px}
+.case-steps span{font:700 8.5px var(--f-cond);text-transform:uppercase;letter-spacing:.12em;padding:6px 2px 0;text-align:center;
+  border-top:3px solid var(--line);color:var(--ink-3)}
+.case-steps span.done{border-top-color:var(--ink-2);color:var(--ink-2)}
+.case-steps span.on{border-top-color:var(--bad);color:var(--bad)}
 @media (max-width:520px){ .roles{grid-template-columns:1fr} }
 /* ── полукруг зала ───────────────────────────────────────────
    Ровные концентрические ряды, фракции клиньями слева направо.

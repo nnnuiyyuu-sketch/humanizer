@@ -97,4 +97,30 @@ r=await ev(()=>{ S.ap=3; S.cap=60; askBudgetLine(); const o=document.querySelect
   o.click(); Math.random=rr; const t=document.querySelector('#msheet h2').textContent; return {t,again:bReqOpen()}; });
 check('бюджет: требование строки у кабинета', r.t==='Строка вписана'&&!r.again, r.t);
 await settle(page);
+
+await boot(page,{role:'pm'});
+r=await ev(()=>{ S.ap=3; S.cap=90; S.funds=90; const path=[];
+  caseOpen({k:'министр',name:minOf('fin').name,post:'fin'},'trail',60); path.push(S.probe.stage);
+  const m=document.getElementById('modal');m.classList.remove('show');mopen=false;mq.length=0;
+  const rr=Math.random; Math.random=()=>0.5;
+  let ev0=-1,ev1=-1,l0=legit();
+  for(let i=0;i<3&&S.probe;i++){ caseStep(); m.classList.remove('show');mopen=false;mq.length=0; if(S.probe)path.push(S.probe.stage);
+    if(S.probe&&S.probe.stage==='search'){ ev0=S.probe.ev; caseDo('press'); ev1=S.probe.ev; m.classList.remove('show');mopen=false;mq.length=0; } }
+  Math.random=rr;
+  return {path:path.join('→'),ev0,ev1,l0,l1:legit()}; });
+check('дело: ступени и давление', r.path==='check→search→charge→court'&&r.ev1<r.ev0&&r.l1<r.l0, r.path+' · улики '+r.ev0+' → '+r.ev1+' · легитимность '+r.l0+' → '+r.l1);
+r=await ev(()=>{ const rr=Math.random; Math.random=()=>0.01; caseVerdict(); Math.random=rr;
+  const t=document.querySelector('#msheet h2').textContent; return {t,probe:!!S.probe}; });
+check('дело: приговор', r.t==='Виновен'&&!r.probe, r.t);
+await settle(page);
+r=await ev(()=>{ S.ap=3; S.cap=90; S.funds=90; caseOpen({k:'политик',name:S.you.name,you:true},'scandal',80);
+  const m=document.getElementById('modal');m.classList.remove('show');mopen=false;mq.length=0;
+  S.probe.stage='court'; S.probe.left=1; const rr=Math.random; Math.random=()=>0.01; caseVerdict(); Math.random=rr;
+  document.querySelectorAll('#msheet .opt')[1].click();
+  return {seat:mySeat(),conv:convicted(),gov:S.gov.lead===PL}; });
+check('дело: приговор вам', r.seat==='none'&&r.conv&&!r.gov, 'кресло '+r.seat+' · запрет '+r.conv);
+await settle(page);
+r=await ev(()=>{ const p=S.parties.find(x=>x.id!==PL); S.rcases=[{sc:0,pid:p.id,name:p.leader,stage:3,left:1,ev:90,q:S.q}];
+  const L0=p.leader, rr=Math.random; Math.random=()=>0.01; rcaseTick(); Math.random=rr; return {L0,L1:p.leader,done:S.rcases[0].done}; });
+check('дело соперника', r.done==='guilty'&&r.L0!==r.L1, r.L0+' → '+r.L1);
 await done(browser,errors,fails);

@@ -1450,77 +1450,7 @@ function mateBonus(pid){
 
 /* ═══ НАДЗОР ══════════════════════════════════════════════════════
    След копится сам, дело заводят не сразу и не всегда. */
-function probeTick(){
-  if(S.probe){                                  // дело уже идёт
-    S.probe.left--;
-    if(S.probe.left<=0)probeVerdict();
-    return;
-  }
-  if(Math.random()>probeRisk())return;
-  const targets=[];
-  if(isPM())POSTS.forEach(x=>targets.push({k:'министр',name:minOf(x.id).name,post:x.id}));
-  REGIONS.forEach(r=>{const g=govOf(r.id); if(g&&(g.party===PL||inCoal(g.party)))
-    targets.push({k:'глава края',name:g.name,region:r.id});});
-  targets.push({k:'ваше окружение',name:S.you.name});
-  const t=pick(targets);
-  S.probe={...t,q:S.q,left:2,buried:false};
-  logMsg('Прокуратура начала проверку: '+t.k+' '+t.name+'.',1);
-  cover({good:'Проверка в правительстве: власть не мешает следствию',
-    bad:'Прокуратура пришла к своим: '+t.k+' под проверкой',
-    flat:'Начата проверка: '+t.k+' '+t.name});
-  sheetOpen({eye:'Надзор · '+dateLabel(),title:'Начата проверка',
-    body:`<p class="lead">Прокуратура взялась за ${t.k}а — ${t.name}. Через два квартала будет результат.</p>
-      <div class="res"><span>След от сделок</span><b class="${trail()>55?'bad':''}">${Math.round(trail())} · ${trailWord()}</b>
-        <span>Независимость надзора</span><b>${r1(prosFree())}</b></div>
-      <p class="hint">Дело можно свернуть, пока оно идёт, — но это стоит веса, пачкает честность
-        и добавляет к следу вдвое больше, чем сняло.</p>`,
-    acts:[{label:'Принять к сведению'}]});
-}
-function probeVerdict(){
-  const pr=S.probe; if(!pr)return;
-  const guilty=Math.random()<clamp(trail()/120+0.18,0.15,0.85);
-  S.probe=null;
-  if(!guilty){
-    addTrail(-8);
-    bumpRep('honest',3);
-    logMsg('Проверка окончена: нарушений не нашли.',1);
-    cover({good:'Проверка ничего не нашла: обвинения не подтвердились',
-      bad:'Проверка свёрнута без выводов — вопросы остались',
-      flat:'Проверка завершена без последствий'});
-    return;
-  }
-  addTrail(-16);
-  bumpRep('honest',-11); bumpRep('comp',-3);
-  shiftAll(-3);
-  addCap(-9);
-  if(pr.post&&isPM()){ S.ministers[pr.post]=makeMinister(pr.post,minOf(pr.post).party);
-    logMsg('Министр отправлен в отставку по итогам проверки.',1); }
-  if(pr.region){ const g=govOf(pr.region); if(g)g.rel=clamp(g.rel-22,0,100); }
-  career('Скандал: '+pr.k+' '+pr.name+' под следствием.');
-  chron('Коррупционный скандал: '+pr.k+' '+pr.name+'.','b');
-  cover({good:'Власть сама вычистила своих: виновный отстранён',
-    bad:'Скандал: '+pr.k+' '+pr.name+' попался',
-    flat:'По итогам проверки '+pr.k+' '+pr.name+' отстранён'});
-  sheetOpen({eye:'Надзор · приговор',title:'Скандал',
-    body:`<p class="lead">Проверка подтвердилась. ${pr.k[0].toUpperCase()+pr.k.slice(1)} ${pr.name} отстранён.</p>
-      <p>Честность просела, страна недовольна, политический вес потерян. След от прошлых сделок
-        уменьшился — часть его сгорела в этом деле.</p>`,
-    acts:[{label:'Принять'}]});
-}
-function buryProbe(){
-  if(!S.probe){toast('Дела нет');return;}
-  if(prosFree()>0.8){toast('Независимую прокуратуру не остановить');return;}
-  if(!pay({ap:1,cap:BURY_COST},'Свернуть дело'))return;
-  addTrail(ri(14,22),'свёрнутое дело');
-  bumpRep('honest',-6); bumpRep('firm',3);
-  S.probe=null;
-  logMsg('Дело свёрнуто. Об этом узнают позже.',1);
-  cover({good:'Дело закрыто за отсутствием состава',
-    bad:'Дело замяли: следствие остановлено сверху',
-    flat:'Проверка прекращена'});
-  toast('Дело закрыто');
-  render();
-}
+/* проверка, обыски, обвинение и суд — в cases.js */
 
 /* ═══ ПАРТИЯ ИЗНУТРИ ══════════════════════════════════════════════
    Крыло ропщет, когда линия уезжает от него. Если ропот копится
@@ -2679,7 +2609,7 @@ function endQuarter(){
   offerTick();
   pressTick();
   judgeTick();
-  probeTick();
+  probeTick(); rcaseTick();
   challengeTick();
   nbTick();
   if(S.ref&&S.q>=S.ref.until)S.ref=null;
@@ -3020,10 +2950,13 @@ const SAVE='novaria.save.v1';
    наследство до версий: проверки «если поля нет». Новое изменение
    формата — новая запись в MIGRATIONS со следующим номером; load()
    прогоняет записи новее сохранения по порядку и ставит текущую. */
-const SAVE_VER=2;
+const SAVE_VER=3;
 const MIGRATIONS=[
   {v:2, why:'списки сделок, скандалов и дел капитала', run(){
     S.deals=S.deals||[]; S.scandals=S.scandals||[]; S.bizLog=S.bizLog||[]; S.senLog=S.senLog||[]; }},
+  {v:3, why:'дело идёт ступенями: проверка, обыски, обвинение, суд', run(){
+    if(S.probe&&!S.probe.stage)S.probe={...S.probe,stage:'check',left:1,ev:Math.round(clamp(trail()*0.5+18,5,95)),src:'trail',used:{}};
+    S.rcases=S.rcases||[]; }},
 ];
 function save(){ try{ S.ver=SAVE_VER; localStorage.setItem(SAVE,JSON.stringify(S)); }catch(e){} }
 function migrate(){
@@ -3839,7 +3772,7 @@ function askResign(){
         <span>Мандатов у фракции</span><b>${seatsOf(PL)}</b></div>`,
     opts});
 }
-function stepDown(){
+function stepDown(forced){
   const was=mySeat();
   if(was==='pm'){
     S.gov.lead=bigOpp().id; S.gov.coal=[S.gov.lead]; S.gov.posts={};
@@ -3865,6 +3798,7 @@ function stepDown(){
   else if(was==='gov')setSeat(fallbackSeat(),'Край сдан заместителю.');
   else if(was==='mayor')setSeat(fallbackSeat(),'Город сдан заместителю.');
   else if(was==='sen')setSeat(fallbackSeat(),'Место в Сенате сдано.');
+  if(forced){ logMsg('Вы оставили кресло: '+(SEATS_YOU[was]||{}).name.toLowerCase()+'. '+forced,1); render(); return; }
   addCap(-8); bumpRep('firm',-3); bumpRep('honest',4); shiftAll(-1);
   logMsg('Вы оставили кресло: '+(SEATS_YOU[was]||{}).name.toLowerCase()+'.',1);
   chron('Вы ушли с поста добровольно.','');
