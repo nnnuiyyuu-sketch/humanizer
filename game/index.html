@@ -2193,6 +2193,8 @@ function me(){ return P(PL); }
    при чужом лидере правительство вашей партии — не ваше */
 function isPM(){ return S.gov.lead===PL && chief(); }
 function chief(){ return !S.you || S.you.chief!==false; }
+/* жёсткая страна: выбирается перед игрой в настройках и живёт в сохранении */
+function hard(){ return !!(S&&S.diff==='hard'); }
 function coalition(){ return S.gov.coal; }
 function inCoal(id){ return S.gov.coal.indexOf(id)>=0; }
 
@@ -3136,6 +3138,7 @@ function moodTarget(g){
   let base=0.55*fitOf(g,me().st)+0.45*(52+perfOf(g))-wear;
   base+=(rep('folk')-50)*0.06;                      // народного прощают охотнее
   if(hasTrait('iron')&&g.id==='intel')base-=4;      // твёрдую руку интеллигенция не любит
+  if(hard())base-=(isPM()||isPres())?7:3;           // жёсткая страна: власти верят меньше, всем — чуть меньше
   return clamp(base+(S.moodShock&&S.moodShock[g.id]||0),3,97);
 }
 function moodTick(){
@@ -5623,10 +5626,10 @@ function askGov(rid){
    может быть каким угодно — Сенат меняется своим ходом. */
 function senateElection(){
   const cls=S.senCls, was={...S.senSeats};
-  const kept=S.senate.filter(s=>s.cls!==cls), fresh=[];
+  const kept=S.senate.filter(s=>s.cls!==cls||s.life), fresh=[];
   let retired=0, kept_in=0;
   REGIONS.forEach(r=>{
-    const old=S.senate.filter(s=>s.cls===cls&&s.region===r.id);
+    const old=S.senate.filter(s=>s.cls===cls&&s.region===r.id&&!s.life);   // пожизненный сенатор не переизбирается
     if(!old.length)return;
     // старик уходит сам: после четвёртого срока каждый второй не выдвигается
     const runs=old.filter(s=>{ const go=!s.you&&senRank(s)>=4&&Math.random()<0.42;
@@ -5731,7 +5734,7 @@ function installPres(pid,share){
   else seatVP(pid);
   S.mate=null; S.mateOffer=null; S.primWin=null; S.primLost=null;
   if(youRun)setSeat('pres','Избрание президентом.');
-  else if(wasPres)setSeat(fallbackSeat(),'Президентский срок окончен.');
+  else if(wasPres){ setSeat(fallbackSeat(),'Президентский срок окончен.'); offerLifeSenate(); }
   if(mySeat()==='vp'&&!(S.vp&&S.vp.you))setSeat(fallbackSeat(),'Срок вице-президента окончен.');
   S.presRel=pid===PL?(youRun?100:86):clamp(Math.round(70-axDist(p.st,me().st)*12),20,85);
   if(youRun){ addCap(22); shiftAll(1.6); bumpRep('comp',5); bumpRep('folk',4);
@@ -6057,7 +6060,7 @@ const SHOCKS=[
 ];
 function worldShock(){
   if(S.shockCool>0){S.shockCool--;return;}
-  if(Math.random()>0.16)return;
+  if(Math.random()>(hard()?0.26:0.16))return;
   const pool=SHOCKS.filter(x=>x.cond());
   if(!pool.length)return;
   const bag=[];pool.forEach(e=>{for(let i=0;i<e.w;i++)bag.push(e);});
@@ -6341,6 +6344,9 @@ function endQuarter(){
     S.unrest[r.id]=clamp(S.unrest[r.id]+du,0,100);
   });
   S.fatigue=clamp((S.fatigue||0)+(isPM()?0.32:-0.5),0,10);   // усталость избирателя от вашей власти
+  if(hard()){                                                // жёсткая страна: власть изнашивается быстрее, край горячее
+    REGIONS.forEach(r=>S.unrest[r.id]=clamp(S.unrest[r.id]+0.9,0,100));
+  }
   S.govAge=(S.govAge||0)+1;                                  // возраст действующего кабинета
   if(S.you){                                                 // политик стареет вместе со страной
     S.you.age=r1(S.you.age+0.25);
@@ -6727,7 +6733,21 @@ function reformConstitution(){
 
 /* ─── сохранение ─────────────────────────────────────────────── */
 const SAVE='novaria.save.v1';
-function save(){ try{ localStorage.setItem(SAVE,JSON.stringify(S)); }catch(e){} }
+/* Версия формата сохранения. Всё, что в load() идёт без номера, —
+   наследство до версий: проверки «если поля нет». Новое изменение
+   формата — новая запись в MIGRATIONS со следующим номером; load()
+   прогоняет записи новее сохранения по порядку и ставит текущую. */
+const SAVE_VER=2;
+const MIGRATIONS=[
+  {v:2, why:'списки сделок, скандалов и дел капитала', run(){
+    S.deals=S.deals||[]; S.scandals=S.scandals||[]; S.bizLog=S.bizLog||[]; S.senLog=S.senLog||[]; }},
+];
+function save(){ try{ S.ver=SAVE_VER; localStorage.setItem(SAVE,JSON.stringify(S)); }catch(e){} }
+function migrate(){
+  const from=S.ver||1;
+  MIGRATIONS.filter(m=>m.v>from).sort((a,b)=>a.v-b.v).forEach(m=>m.run());
+  S.ver=SAVE_VER;
+}
 function load(){
   try{ const raw=localStorage.getItem(SAVE); if(!raw)return false;
     const d=JSON.parse(raw); if(!d||!d.parties)return false;
@@ -6853,8 +6873,9 @@ function load(){
       S.desk=null;
       logMsg('У кресла появился свой стол: рычаги, цифра, по которой судят, и дорога дальше.',1);
     }
+    migrate();
     return true;
-  }catch(e){ return false; }
+  }catch(e){ console.warn('Сохранение не загрузилось:',e); return false; }
 }
 
 /* ═══ ПАРЛАМЕНТСКОЕ РАССЛЕДОВАНИЕ ═════════════════════════════════
@@ -7364,7 +7385,8 @@ function offerTick(){
   // вице-премьером — когда фракция крупная и союзники устали
   if(inCoal(PL)&&!isPM()&&seat==='dep'&&seatsOf(PL)>=70&&chief())pool.push('vice');
   // вторым номером зовёт чужой президентский список
-  if(S.pres&&!isPres()&&!presOurs()&&presLeft()<=6&&presLeft()>1&&['vp','pres'].indexOf(seat)<0)pool.push('vp');
+  if(S.pres&&!isPres()&&!presOurs()&&presLeft()<=6&&presLeft()>1&&['vp','pres'].indexOf(seat)<0&&
+     S.mateAsked!==S.pres.until&&rep('folk')>=50)pool.push('vp');       // вторым номером зовут раз за цикл
   // премьером — когда кабинет валится, а вы крупнейшая фракция
   if(!isPM()&&chief()&&seat!=='pres'&&seatsOf(PL)>=seatsOf(bigOpp().id)&&S.presRel>52&&approval()>46)pool.push('pm');
   if(!pool.length)return;
@@ -7412,6 +7434,7 @@ function offerVicePM(){
 }
 function offerRunningMate(){
   const p=presParty();
+  S.mateAsked=S.pres.until;
   sheetOpen({eye:'Список · '+dateLabel(),title:'Вас зовут вторым номером',
     body:`<p class="lead">«${p.name}» предлагает вам идти вторым номером на президентских выборах.
         Кресло вице-президента: председательство в Сенате, наследование при вакансии — и полная
@@ -8332,9 +8355,13 @@ function pactTick(){
 }
 /* прочность партнёра: 100 — держится, 0 — уходит */
 function partnerLoyal(pid){
-  if(S.gov.lead===PL){ const st=S.partners[pid]||{anger:0}; return Math.round(clamp(100-st.anger/6*100,0,100)); }
+  if(isPM()){ const st=S.partners[pid]||{anger:0}; return Math.round(clamp(100-st.anger/6*100,0,100)); }
   const lead=P(S.gov.lead), p=P(pid);
-  const strain=(axDist(p.st,lead.st)-0.9)*26+(48-stateOfThings())*0.8+((S.split||{})[pid]||0);
+  // чужой кабинет изнашивается: после полутора лет каждый квартал — ещё немного усталости,
+  // а скандал у партии премьера партнёры помнят лучше избирателей
+  const heat=(typeof scLive==='function'?scLive():[]).filter(x=>x.who===S.gov.lead).reduce((a,x)=>a+x.heat,0);
+  const strain=(axDist(p.st,lead.st)-0.9)*26+(48-stateOfThings())*0.8+((S.split||{})[pid]||0)
+    +Math.max(0,(S.govAge||0)-6)*1.3+heat*0.25;
   return Math.round(clamp(100-strain,5,100));
 }
 function coalStrength(){
@@ -8494,7 +8521,7 @@ function leaveAsJunior(){
 }
 /* ИИ-коалиция трещит сама: расхождение, плохие дела и ваши уговоры */
 function aiCoalTick(){
-  if(S.gov.lead===PL||S.crisis)return;
+  if(isPM()||S.crisis)return;                      // кабинет вашей партии при чужом лидере тоже живёт по этим правилам
   coalition().filter(id=>id!==S.gov.lead&&id!==PL).forEach(id=>{
     const loy=partnerLoyal(id);
     if(loy<45&&Math.random()<(45-loy)/120){
@@ -10105,7 +10132,7 @@ function deskPath(){
     add(null,'Срок мэра','до '+shortDate(d.till)); }
   if(s==='sen'){ const rec=S.senate.find(x=>x.you);
     add(d.home>=50,'Поддержка в крае от 50 — место удержите',String(Math.round(d.home)));
-    add(null,'Выборы вашего класса',rec?'класс '+(rec.cls+1)+' · каждые '+quarters(senCyc()):'—');
+    add(null,rec&&rec.life?'Место пожизненное, выборы класса вас не касаются':'Выборы вашего класса',rec&&rec.life?'ст. 96':rec?'класс '+(rec.cls+1)+' · каждые '+quarters(senCyc()):'—');
     add(null,'Второй номер в президентском списке','могут позвать'); }
   if(s==='pres'){
     add(d.cab>=45,'Отношения с кабинетом от 45 — поручения исполняют',String(Math.round(d.cab)));
@@ -10254,6 +10281,21 @@ function askDesk(){
     opts:acts.map(a=>({label:a.name,hint:a.txt,fn:()=>deskAct(a.id)})).concat([{label:'Закрыть',hint:'',fn(){}}])});
 }
 
+
+/* ─── после президентства ───────────────────────────────────────────
+   Ст. 96: бывший президент может занять место в Сенате пожизненно —
+   от своего края, вне классов и выборов. Можно и отказаться. */
+function offerLifeSenate(){
+  const rid=S.you.home||homeOf();
+  sheetOpen({eye:'Статья 96 · '+dateLabel(),title:'Место в Сенате — пожизненно',
+    body:`<p class="lead">Срок окончен. Конституция оставляет бывшему президенту кресло в верхней палате —
+        от края ${R(rid).name}, без выборов и без срока. Голос, трибуна, слушания — и имя, которое в палате весит больше стажа.</p>`,
+    opts:[{label:'Занять место',hint:'кресло сенатора · край '+R(rid).name,fn(){
+        takeSen(rid); const rec=S.senate.find(x=>x.you); if(rec){ rec.life=true; rec.terms=5; }
+        career('Пожизненный сенатор по статье 96.'); chron(S.you.name+' — пожизненный сенатор.','');
+        logMsg('Вы заняли пожизненное место в Сенате от края '+R(rid).name+'.',1); render(); }},
+      {label:'Уйти на покой от должностей',hint:'партия, имя и выборы остаются',fn(){ bumpRep('honest',2); }}]});
+}
 /* ════════════════════════════════════════════════════════════════
    ФРАКЦИИ, СДЕЛКИ, КОМИТЕТЫ, ПОВЕСТКА СЕНАТА
    Палата голосует не партиями, а людьми, но людей ведут лидеры.
@@ -10324,7 +10366,8 @@ function dealDemand(pid,house,sb){
   const t=FT(L.trait), p=P(pid);
   let base=12, far=0;
   if(sb.k==='b'){ const tp=T(sb.topic); far=Math.abs((p.st[tp.ax]||0)-sb.stance); base=11+far*9*t.ideo;
-    if(far>2.2&&t.id==='ideo')return null; if(far>2.7)return null; }   // своих так далеко не уведёт никто
+    // дальше двух делений депутат не пойдёт и за лидером: сделка ничего бы не дала
+    if(far>1.8&&t.id==='ideo')return null; if(far>2.2)return null; }
   if(sb.k==='c'){ const c=cnAny(sb.id); base=17+Math.max(0,-cnCost(c))*0.9-(c.self>0?7:0); if(t.id==='ideo')base+=6; }
   if(sb.k==='budget'){ const bs=budgetStance(); far=(Math.abs(p.st.tax-bs.tax)+Math.abs(p.st.econ-bs.econ))/2;
     base=12+far*8*t.ideo; }
@@ -10913,8 +10956,9 @@ function offerTick2(){
   if(S.over||S.camp&&Math.random()<0.5)return;
   const s=mySeat(), home=S.you.home||homeOf(), c=S.you.cands||{};
   const pool=[];
-  if(S.pres&&!isPres()&&S.vp&&!S.vp.you&&(presOurs()||inCoal(S.pres.party)&&inCoal(PL))&&
-     ['dep','none','sen','gov','min','mayor','lead'].indexOf(s)>=0&&rep('folk')>=52&&presLeft()>3)pool.push('vp');
+  // место вице предлагают раз за срок президента и тому, кто хорошо работает
+  if(S.pres&&!isPres()&&S.vp&&!S.vp.you&&(presOurs()||inCoal(S.pres.party)&&inCoal(PL))&&S.vpOffered!==S.pres.since&&
+     ['dep','none','sen','gov','min','mayor','lead'].indexOf(s)>=0&&rep('folk')>=58&&(S.desk?S.desk.score:50)>=60&&presLeft()>3)pool.push('vp');
   const g=govOf(home);
   if(g&&!g.you&&g.till-S.q<=2&&g.till>S.q&&!c.gov&&s!=='gov'&&['none','dep','mayor','sen'].indexOf(s)>=0)pool.push('gov');
   const nq=nextSenQ();
@@ -10927,6 +10971,7 @@ function offerTick2(){
 }
 function offerVPPost(){
   const party=S.pres.party, old=S.vp;
+  S.vpOffered=S.pres.since;
   sheetOpen({eye:'Предложение · '+dateLabel(),title:'Президент зовёт вас в вице-президенты',
     body:`<p class="lead">${S.pres.name} недоволен своим вторым номером и предлагает кресло вам. ${old.name} уйдёт,
         вас утвердит Сенат — если захочет.</p>
@@ -12662,7 +12707,7 @@ function tabSenate(){
     const v=b?senSupport(s,b):null;
     const st=v===null?'':v>10?'<span class="tag g">за</span>':v<-10?'<span class="tag r">против</span>':'<span class="tag y">колеблется</span>';
     const lead=S.senLead&&S.senLead.id===s.id;
-    return `<tr><td><b>${s.name}</b>${lead?' <span class="tag y">лидер</span>':senElder(s)?' <span class="tag">старейшина</span>':''}
+    return `<tr><td><b>${s.name}</b>${lead?' <span class="tag y">лидер</span>':s.life?' <span class="tag">пожизненно</span>':senElder(s)?' <span class="tag">старейшина</span>':''}
       <div class="sub2">${R(s.region).name} · класс ${QUARTERS[s.cls]}${s.note?' · '+s.note:''}</div></td>
       <td>${chip(P(s.party))}</td><td class="n hide-s">${senRank(s)}</td>
       <td class="n">${Math.round(s.rel)} ${mini(s.rel)}</td><td>${st}</td>
@@ -14488,7 +14533,9 @@ function askStartConfirm(base,role){
     acts:[{label:'Принять присягу',fn:()=>swear(base)},{label:'Другое кресло',fn:()=>askStartRole(base)}]});
 }
 function swear(base){
-  initState(base); S.tab='brief'; save(); render();
+  initState(base); S.tab='brief';
+  try{ if(localStorage.getItem('nov.hard')==='1')S.diff='hard'; }catch(e){}
+  save(); render();
   const s=mySeat(), T0={pm:'Кабинет ваш',pres:'Президент — вы',vp:'Второе кресло',min:'Портфель ваш',gov:'Край ваш',
     mayor:'Город ваш',sen:'Место в Сенате',dep:'Мандат ваш',none:'Партийный билет'}[s]||'Присяга принята';
   const line=s==='pm'?'«'+base.name+'» формирует правительство. В коалиции '+coalSeats()+' мандатов из '+SEATS+', для большинства нужно '+MAJ+'.'
@@ -14586,12 +14633,16 @@ function menuSettings(){
       <div class="res"><span>Движение на титульном экране</span><b>${on('motion')?'включено':'выключено'}</b>
         <span>Подсказки в карточках</span><b>${on('tips')?'включены':'выключены'}</b>
         <span>Вопрос перед закрытием квартала</span><b>${on('askend')?'задаётся':'не задаётся'}</b>
+        <span>Страна для новой игры</span><b>${on('hard')&&localStorage.getItem('nov.hard')==='1'?'жёсткая':'обычная'}</b>
         <span>Сохранение</span><b>${hasSave()?'есть':'нет'}</b></div>`,
     opts:[
       {label:on('motion')?'Выключить движение':'Включить движение',hint:'плавные переходы интерфейса',
        fn(){ set('motion',!on('motion')); applyPrefs(); menuSettings(); }},
       {label:on('tips')?'Скрыть подсказки':'Показывать подсказки',hint:'пояснения под таблицами',
        fn(){ set('tips',!on('tips')); applyPrefs(); menuSettings(); }},
+      {label:localStorage.getItem('nov.hard')==='1'?'Новая игра — обычная страна':'Новая игра — жёсткая страна',
+       hint:'жёсткая: власть изнашивается быстрее, края горячее, потрясения чаще',
+       fn(){ try{ localStorage.setItem('nov.hard',localStorage.getItem('nov.hard')==='1'?'0':'1'); }catch(e){} menuSettings(); }},
       {label:on('askend')?'Не спрашивать о несгоревших ходах':'Спрашивать о несгоревших ходах',
        hint:'вопрос, если квартал закрывают с оставшимися действиями',
        fn(){ set('askend',!on('askend')); menuSettings(); }},
