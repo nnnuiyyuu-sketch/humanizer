@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>НОВАРИЯ — правительственный терминал</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=PT+Sans+Narrow:wght@400;700&family=PT+Sans:ital,wght@0,400;0,700;1,400&family=PT+Serif:ital,wght@0,400;0,700;1,400&family=PT+Mono&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   NOVARIA UI · токены. Полное описание системы — в game/ui.html.
+   Здесь те же значения; менять их следует сначала там.
+   ═══════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════
+   NOVARIA UI · вторая редакция: газетная полоса.
+   Первая была архивной бумагой в коробке. Эта — сегодняшний номер:
+   белое поле, чёрные линейки, серифные заголовки, колонки. Числа
+   остаются моноширинными: газета верстает таблицы так же.
+   Полное описание — в game/ui.html; менять сначала там.
+   ═══════════════════════════════════════════════════════════════ */
+:root{
+  /* бумага и краска */
+  --bg:#EDEAE2; --surface:#FFFDF9; --surface-2:#F4F1E9; --surface-3:#E8E4D9;
+  --band:#14130F; --band-2:#312E27;
+  --ink:#14130F; --ink-2:#4B473E; --ink-3:#807B70; --ink-inv:#FBF9F3; --ink-inv-2:#A8A297;
+  --line:#171510; --line-2:#CFCABC; --line-3:#E2DED2;
+  /* один акцент на всю полосу: газетный красный */
+  --act:#14130F; --mark:#A4211B; --bad:#A4211B; --good:#1C5738; --info:#1C3C68;
+  --mark-bg:#F6E9E5; --bad-bg:#F6E4E0; --good-bg:#E4EEE7;
+  --p1:#9A7211; --p2:#93261E; --p3:#23456B; --p4:#14675F; --p5:#4C6A22; --p6:#5A3868;
+  --x1:2px; --x2:4px; --x3:6px; --x4:8px; --x5:12px; --x6:16px; --x7:20px; --x8:24px; --x9:32px; --x10:40px;
+  /* линейки — главный инструмент полосы: волосяная, обычная, жирная */
+  --hair:1px solid var(--line-2); --hair-2:1px solid var(--line-3);
+  --rule:3px solid var(--ink); --rule-thin:1px solid var(--ink);
+  --shadow:0 18px 48px rgba(16,14,10,.30);
+  --f-display:'PT Serif',Georgia,'Times New Roman',serif;
+  --f-text:'PT Sans',system-ui,sans-serif;
+  --f-cond:'PT Sans Narrow',sans-serif; --f-num:'PT Mono',ui-monospace,monospace;
+  --t-fast:90ms; --t:150ms; --t-slow:240ms; --ease:cubic-bezier(.2,.7,.3,1);
+  --row:30px; --row-tight:24px; --rail:232px; --page:1420px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font:400 14px/1.45 var(--f-text);
+  min-height:100vh;overscroll-behavior-y:none}
+p{margin:0 0 var(--x4)} p:last-child{margin-bottom:0}
+
+/* ── типографика ───────────────────────────────────────────────
+   Заголовок всегда серифный и всегда с линейкой. Текст — гротеск,
+   числа — моноширинный. Три гарнитуры, ни одной лишней. */
+.t-sec{font:700 15px/1.15 var(--f-display);letter-spacing:-.01em}
+.t-micro,.up{font:700 9.5px/1.2 var(--f-cond);text-transform:uppercase;letter-spacing:.16em;color:var(--ink-3)}
+.n,.num{font-family:var(--f-num);font-variant-numeric:tabular-nums;letter-spacing:-.04em}
+.num-l{font:400 23px/1 var(--f-num);letter-spacing:-.05em}
+.num-s{font:400 12.5px/1.2 var(--f-num);letter-spacing:-.04em}
+.good,.pos{color:var(--good)} .bad,.neg{color:var(--bad)} .dim{color:var(--ink-3)}
+.lead{font:400 14.5px/1.5 var(--f-display);color:var(--ink-2)}
+.hint,.note{font-size:12px;line-height:1.45;color:var(--ink-3)}
+h3.sub{font:700 13px/1.2 var(--f-display);letter-spacing:-.01em;color:var(--ink);
+  margin:var(--x6) 0 var(--x4);padding-bottom:3px;border-bottom:var(--rule-thin)}
+h3.sub:first-child{margin-top:0}
+.est{border-bottom:1px dotted var(--ink-3);cursor:help}
+
+/* ── шапка: заголовок номера ───────────────────────────────────
+   Не тёмная панель, а титул газеты: белое поле, крупный сериф,
+   под ним жирная линейка, справа — колонка сегодняшних цифр. */
+#top{position:sticky;top:0;z-index:40;background:var(--surface);color:var(--ink);
+  display:flex;align-items:stretch;border-bottom:var(--rule)}
+#top .brand{display:flex;align-items:center;gap:10px;padding:7px var(--x6) 7px var(--x5);flex:none;
+  border-right:var(--rule-thin)}
+#top .brand img{width:30px;height:33px;display:block}
+#top .brand b{font:700 24px/1 var(--f-display);letter-spacing:.02em;display:block}
+#top .brand span{font:700 8.5px/1.2 var(--f-cond);text-transform:uppercase;letter-spacing:.2em;
+  color:var(--ink-3);display:block;margin-top:2px}
+#strip{margin-left:auto;display:flex;overflow-x:auto;scrollbar-width:none}
+#strip::-webkit-scrollbar{display:none}
+.sv{padding:6px 14px;border-left:1px solid var(--line-3);display:flex;flex-direction:column;
+  justify-content:center;min-width:80px;flex:none}
+.sv i{font:700 8.5px var(--f-cond);text-transform:uppercase;letter-spacing:.16em;
+  color:var(--ink-3);font-style:normal}
+.sv b{font:400 16px var(--f-num);letter-spacing:-.04em;color:var(--ink);white-space:nowrap}
+.sv b.warn{color:#8A5A0E} .sv b.bad{color:var(--bad)} .sv b.good{color:var(--good)}
+.sv.act{background:var(--ink);}
+.sv.act i{color:var(--ink-inv-2)} .sv.act b{color:var(--ink-inv)}
+
+/* ── каркас ────────────────────────────────────────────────────
+   Указатель разделов слева — как содержание номера. */
+#shell{display:flex;align-items:flex-start;max-width:var(--page);margin:0 auto;
+  background:var(--surface);border-left:var(--hair);border-right:var(--hair)}
+#side{position:sticky;top:57px;width:var(--rail);flex:none;padding:var(--x4) 0 var(--x10);
+  border-right:var(--rule-thin);min-height:calc(100vh - 57px)}
+.navsec{font:700 8.5px var(--f-cond);text-transform:uppercase;letter-spacing:.2em;color:var(--ink-3);
+  padding:var(--x3) var(--x5) var(--x2);border-bottom:var(--rule-thin);margin-bottom:var(--x1)}
+.nav{display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:none;border:0;
+  border-bottom:var(--hair-2);padding:8px var(--x5);cursor:pointer;color:var(--ink-2);
+  font:400 13.5px var(--f-cond);text-transform:uppercase;letter-spacing:.06em;
+  transition:background var(--t-fast) var(--ease)}
+.nav:hover{background:var(--surface-2);color:var(--ink)}
+.nav.on{background:var(--ink);color:var(--ink-inv);font-weight:700}
+.nav .ic{flex:none;opacity:.7}
+.nav.on .ic{opacity:1;color:var(--ink-inv)}
+.nav span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nav u{flex:none;margin-left:auto;text-decoration:none;font:400 11px var(--f-num);color:var(--ink-3)}
+.nav.on u{color:var(--ink-inv-2)}
+.nav .dot{width:6px;height:6px;background:var(--mark);display:inline-block;flex:none}
+.nav.on .dot{background:var(--ink-inv)}
+.navkeys{font:400 10px var(--f-cond);text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);
+  padding:var(--x5) var(--x5) 0;line-height:1.7;border-top:var(--rule-thin);margin-top:var(--x4)}
+.navkeys b{font-family:var(--f-num);font-weight:400;border:1px solid var(--line-2);
+  padding:0 4px;color:var(--ink-2)}
+#view{flex:1;min-width:0;padding:var(--x6) var(--x7) 90px}
+
+/* ── панели: заметки на полосе ─────────────────────────────────
+   Жирная линейка сверху, серифный заголовок, дальше материал.
+   Рамка тонкая и почти незаметна — держит колонку, а не рисует. */
+.panel{background:var(--surface);border:var(--hair);border-top:var(--rule-thin);margin-bottom:var(--x6)}
+.panel>header{display:flex;align-items:baseline;gap:var(--x4);padding:7px var(--x5) 5px;
+  border-bottom:var(--rule-thin);flex-wrap:wrap}
+.panel>header h4{margin:0;font:700 16px/1.15 var(--f-display);letter-spacing:-.01em;
+  flex:1 1 auto;min-width:0}
+.panel>header .meta{margin-left:auto;font:400 11px/1.3 var(--f-cond);text-transform:uppercase;
+  letter-spacing:.1em;color:var(--ink-3);text-align:right;flex:0 1 auto}
+.panel>.body{padding:var(--x5)}
+.panel>.body.flush{padding:0}
+.panel>footer{padding:var(--x4) var(--x5);border-top:var(--hair);background:var(--surface-2);
+  display:flex;gap:var(--x3);flex-wrap:wrap;align-items:center}
+.panel.lead-p{border-top:6px double var(--ink)}
+.panel.warn{border-top:3px solid var(--bad)}
+.panel.calm{border-top:3px solid var(--good)}
+.panel.info{border-top:3px solid var(--info)}
+.panel.inset{background:var(--surface-2)}
+.cols{display:grid;gap:var(--x6);align-items:start}
+.cols>*{min-width:0}                /* колонка не раздвигается длинной лентой кнопок — лента прокручивается */
+.c21{grid-template-columns:2fr 1fr} .c11{grid-template-columns:1fr 1fr}
+.c12{grid-template-columns:1fr 2fr} .c111{grid-template-columns:repeat(3,1fr)}
+.grid{display:grid;gap:var(--x4)} .g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:repeat(3,1fr)} .g4{grid-template-columns:repeat(4,1fr)}
+.row,.brow{display:flex;gap:var(--x3);flex-wrap:wrap;align-items:center}
+/* врезка — то, что в газете ставят в рамку посреди текста */
+.pin{border-top:var(--rule-thin);border-bottom:var(--rule-thin);background:var(--surface);
+  padding:var(--x4) 0;font:400 14.5px/1.5 var(--f-display);margin-bottom:var(--x6)}
+.pin.warn{border-color:var(--bad);color:#6E1712}
+.pin b{display:block;font:700 8.5px var(--f-cond);text-transform:uppercase;letter-spacing:.2em;
+  color:var(--ink-3);margin-bottom:2px}
+.pin.warn b{color:var(--bad)}
+
+/* ── кнопки ────────────────────────────────────────────────────
+   Прямоугольник с чёрной линией. Главная — залитая, остальные — контур. */
+.btn,.b{display:inline-flex;align-items:center;justify-content:center;gap:5px;
+  font:700 11.5px var(--f-cond);text-transform:uppercase;letter-spacing:.1em;
+  padding:7px 13px;border:var(--rule-thin);background:var(--surface);color:var(--ink);
+  cursor:pointer;transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease)}
+.btn:hover:not(:disabled),.b:hover:not(:disabled){background:var(--ink);color:var(--ink-inv)}
+.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.pri,.b.pri{background:var(--ink);color:var(--ink-inv)}
+.btn.pri:hover:not(:disabled){background:var(--mark);border-color:var(--mark)}
+.btn.danger{border-color:var(--bad);color:var(--bad)}
+.btn.danger:hover:not(:disabled){background:var(--bad);color:#fff}
+.btn.ghost{border-color:var(--line-2);color:var(--ink-2)}
+.btn.sel{background:var(--mark);border-color:var(--mark);color:#fff}
+.btn:disabled,.b:disabled{opacity:.34;cursor:not-allowed}
+.btn.sm,.b.sm{padding:4px 9px;font-size:10.5px;letter-spacing:.08em}
+.btn.lg{padding:12px 20px;font-size:14px}
+.btn.block,.b.wide{display:flex;width:100%;text-align:center}
+.btn .cost{font-family:var(--f-num);font-size:11px;opacity:.7;margin-left:5px;letter-spacing:-.03em}
+
+/* ── плашки-переключатели ──────────────────────────────────────
+   Рубрикатор: сплошная лента, выбранная рубрика залита чёрным. */
+.seg{display:inline-flex;border:var(--rule-thin);background:var(--surface);max-width:100%;
+  overflow-x:auto;scrollbar-width:none}
+.seg::-webkit-scrollbar{display:none}
+.seg button{border:0;border-right:1px solid var(--line-2);background:none;padding:7px 13px;
+  cursor:pointer;flex:none;font:700 11px var(--f-cond);text-transform:uppercase;letter-spacing:.1em;
+  color:var(--ink-2);display:flex;align-items:center;gap:6px;
+  transition:background var(--t-fast) var(--ease)}
+.seg button:last-child{border-right:0}
+.seg button:hover:not(.on){background:var(--surface-2);color:var(--ink)}
+.seg button.on{background:var(--ink);color:var(--ink-inv)}
+.seg button u{text-decoration:none;font:400 11px var(--f-num);opacity:.65;letter-spacing:-.03em}
+.seg.wide{display:flex;width:100%}
+.seg.wide button{flex:1;justify-content:center}
+
+/* ── путь закона: три ступени ──────────────────────────────── */
+.gates{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:var(--rule-thin)}
+.gate{background:var(--surface);padding:var(--x4) var(--x5);display:flex;flex-direction:column;gap:3px;
+  border-right:1px solid var(--line-2)}
+.gate:last-child{border-right:0}
+.gate i{font:700 8.5px var(--f-cond);text-transform:uppercase;letter-spacing:.18em;
+  color:var(--ink-3);font-style:normal}
+.gate b{font:400 27px/1 var(--f-num);letter-spacing:-.05em}
+.gate u{text-decoration:none;font:400 10.5px var(--f-cond);color:var(--ink-3);
+  text-transform:uppercase;letter-spacing:.06em}
+.gate span.dim{font-size:11px}
+.gate.ok{box-shadow:inset 0 3px 0 var(--good)}
+.gate.no{box-shadow:inset 0 3px 0 var(--bad)}
+
+.path{border-top:var(--rule-thin);border-bottom:var(--rule-thin);margin:var(--x5) 0}
+.stg{display:grid;grid-template-columns:1fr auto auto auto;align-items:center;gap:var(--x4);
+  padding:9px var(--x2);border-bottom:var(--hair-2);background:var(--surface)}
+.stg:last-child{border-bottom:0}
+.stg i{font-style:normal;font:700 14px var(--f-display);letter-spacing:-.01em}
+.stg b{font-weight:400;font-size:11px;font-family:var(--f-cond);text-transform:uppercase;
+  letter-spacing:.1em;color:var(--ink-3)}
+.stg u{text-decoration:none;font:400 15px var(--f-num);letter-spacing:-.04em;min-width:66px;text-align:right}
+.stg.ok{box-shadow:inset 3px 0 0 var(--good)}
+.stg.no{box-shadow:inset 3px 0 0 var(--bad)}
+
+/* линейка направления */
+.ruler{position:relative;height:22px;background:var(--surface-2);border:1px solid var(--line-2)}
+.ruler::after{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line-2)}
+.ruler i{position:absolute;top:5px;width:7px;height:7px;margin-left:-3.5px}
+.ruler s{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:var(--ink);
+  text-decoration:none}
+
+/* ── молва: четыре шкалы личного дела ──────────────────────── */
+.repline{display:grid;grid-template-columns:118px 1fr 34px auto;align-items:center;gap:var(--x4);
+  padding:5px 0;border-bottom:var(--hair-2)}
+.repline:last-of-type{border-bottom:0}
+.repline i{font-style:normal;font:700 11px var(--f-cond);text-transform:uppercase;
+  letter-spacing:.1em;color:var(--ink-2);white-space:nowrap}
+.repline b{font:400 13px var(--f-num);text-align:right;letter-spacing:-.04em}
+.repline u{text-decoration:none;font-size:11px;color:var(--ink-3);min-width:88px}
+.repscale{position:relative;height:8px;background:var(--surface-3);border:1px solid var(--line-2)}
+.repscale::after{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line-2)}
+.repscale span{position:absolute;top:-3px;width:3px;height:14px;background:var(--ink);margin-left:-1.5px}
+
+/* ── первая полоса: заголовки изданий ──────────────────────── */
+.heads{max-height:420px;overflow-y:auto}
+.head{display:flex;gap:var(--x4);padding:8px var(--x5);border-bottom:var(--hair-2)}
+.head:last-child{border-bottom:0}
+.head s{text-decoration:none;font:400 10.5px var(--f-num);color:var(--ink-3);flex:none;
+  width:46px;padding-top:3px}
+.head b{display:block;font:700 14.5px/1.25 var(--f-display);letter-spacing:-.01em}
+.head span{display:block;font:700 8.5px var(--f-cond);text-transform:uppercase;
+  letter-spacing:.16em;color:var(--ink-3);margin-top:2px}
+.head.hg{box-shadow:inset 3px 0 0 var(--good)}
+.head.hb{box-shadow:inset 3px 0 0 var(--bad)}
+
+/* ── карьера политика ──────────────────────────────────────── */
+.career{max-height:340px;overflow-y:auto}
+.crow{display:flex;gap:var(--x4);padding:6px var(--x5);border-bottom:var(--hair-2);font-size:12.5px}
+.crow:last-child{border-bottom:0}
+.crow s{text-decoration:none;font:400 11px var(--f-num);color:var(--ink-3);flex:none;width:48px}
+.crow span{flex:1;min-width:0}
+
+/* ── таблицы: газетная вёрстка ─────────────────────────────────
+   Жирная линейка над шапкой, волосяные между строками, никаких
+   вертикальных линий и никакой заливки заголовка. */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font:700 8.5px var(--f-cond);text-transform:uppercase;letter-spacing:.16em;color:var(--ink-2);
+  text-align:left;padding:4px 8px;border-top:var(--rule-thin);border-bottom:1px solid var(--line-2);
+  white-space:nowrap;background:none}
+td{padding:0 8px;height:var(--row);border-bottom:var(--hair-2);vertical-align:middle}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:var(--surface-2)}
+tr.sel td{background:var(--surface-2);box-shadow:inset 3px 0 0 var(--ink)}
+td.n,th.n,td.num{text-align:right;font-family:var(--f-num);font-size:12.5px;letter-spacing:-.04em;white-space:nowrap}
+td.r,th.r{text-align:right}
+table.tight td{height:var(--row-tight);padding:0 7px}
+table.tight th{padding:3px 7px}
+caption{caption-side:bottom;text-align:left;font-size:11.5px;color:var(--ink-3);
+  padding:var(--x3) var(--x5) var(--x4);border-top:1px solid var(--line-3)}
+.scrollx{overflow-x:auto}
+.sub2{font-size:11.5px;color:var(--ink-3)}
+
+/* ── индикаторы ────────────────────────────────────────────── */
+.meter,.bar{height:9px;background:var(--surface-3);border:1px solid var(--line-2);display:flex;position:relative}
+.meter i,.bar i{display:block;height:100%}
+.meter .mid,.bar .mid{position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--ink)}
+.meter.tall{height:16px}
+.mini{display:inline-block;width:60px;height:6px;background:var(--surface-3);border:1px solid var(--line-2);vertical-align:middle}
+.mini i{display:block;height:100%;background:var(--ink-2)}
+/* показатель — как биржевая сводка: подпись капителью, число крупно */
+.stat{border-top:var(--rule-thin);padding:var(--x4) 0 var(--x3)}
+.stat .k,.stat i{font:700 8.5px var(--f-cond);text-transform:uppercase;letter-spacing:.18em;
+  color:var(--ink-3);white-space:nowrap;font-style:normal;display:block}
+.stat .v{font:400 30px/1.05 var(--f-num);letter-spacing:-.055em;margin-top:3px}
+.stat .v u{text-decoration:none;font:400 12px var(--f-text);color:var(--ink-3);margin-left:3px;letter-spacing:0}
+.stat .d,.stat span{font-size:11.5px;color:var(--ink-3);margin-top:1px;display:block}
+.stat.alert{border-top-color:var(--bad)} .stat.alert .v{color:var(--bad)}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;white-space:nowrap}
+.chip s{width:9px;height:9px;flex:none;text-decoration:none;display:inline-block}
+.tag{display:inline-block;font:700 8.5px var(--f-cond);text-transform:uppercase;letter-spacing:.12em;
+  border:1px solid currentColor;padding:1px 5px;white-space:nowrap}
+.tag.g{color:var(--good)} .tag.r{color:var(--bad)} .tag.b{color:var(--info)} .tag.y{color:#8A5A0E}
+/* печать ставится поверх материала, как штамп в наборной кассе */
+.stamp{display:inline-block;font:700 16px var(--f-display);text-transform:uppercase;letter-spacing:.14em;
+  border:2px solid currentColor;box-shadow:inset 0 0 0 1px currentColor;padding:4px 14px;
+  transform:rotate(-3deg)}
+.stamp.yes,.stamp.y{color:var(--good)} .stamp.no,.stamp.n{color:var(--bad)}
+.kv{display:flex;justify-content:space-between;gap:var(--x5);padding:4px 0;
+  border-bottom:1px dotted var(--line-2);font-size:13px}
+.kv:last-child{border-bottom:none}
+.kv b{font-family:var(--f-num);font-weight:400;letter-spacing:-.04em}
+/* сводка ключ-значение: точечный лидер между колонками, как в программе передач */
+.res{display:grid;grid-template-columns:1fr auto;gap:2px var(--x6);font-size:13px;
+  border-top:var(--rule-thin);border-bottom:1px solid var(--line-2);padding:var(--x4) 0;margin:var(--x4) 0}
+.res span{color:var(--ink-2)}
+.res b{font-family:var(--f-num);font-weight:400;text-align:right;letter-spacing:-.04em}
+.res b.w{font-family:var(--f-text);font-weight:700;letter-spacing:0}
+
+/* ── формы и шкалы ─────────────────────────────────────────── */
+input[type=text],input[type=number],select{font:400 14px var(--f-text);background:var(--surface);
+  border:1px solid var(--line-2);border-bottom:var(--rule-thin);
+  padding:6px 8px;color:var(--ink);width:100%;border-radius:0}
+input:focus,select:focus{outline:2px solid var(--mark);outline-offset:-1px}
+.field{margin-bottom:var(--x5)}
+.field>label{display:block;font:700 8.5px var(--f-cond);text-transform:uppercase;
+  letter-spacing:.18em;color:var(--ink-2);margin-bottom:3px}
+.ax{margin-bottom:var(--x5)}
+.axh,.scale-l{display:flex;justify-content:space-between;font:700 9px var(--f-cond);
+  text-transform:uppercase;letter-spacing:.14em;color:var(--ink-3);margin-bottom:3px}
+.axr,.scale{display:flex;gap:1px;background:var(--line-2);border:var(--rule-thin)}
+.axr button,.scale button{flex:1;height:30px;border:0;background:var(--surface);cursor:pointer;
+  font:400 12px var(--f-num);color:var(--ink-2);transition:background var(--t-fast) var(--ease)}
+.axr button:hover,.scale button:hover{background:var(--surface-2)}
+.axr button.on,.scale button.on{background:var(--ink);color:var(--ink-inv)}
+.steps{display:flex;gap:1px;background:var(--line-2);border:1px solid var(--line-2)}
+.steps button{width:31px;height:25px;border:0;background:var(--surface);cursor:pointer;
+  font:400 11px var(--f-num);color:var(--ink-2)}
+.steps button:hover{background:var(--surface-2)}
+.steps button.on{background:var(--ink);color:var(--ink-inv)}
+.now{font-size:11.5px;color:var(--ink-2);margin-top:4px}
+
+/* ── политические и экономические блоки ────────────────────── */
+.whip{display:grid;grid-template-columns:repeat(3,1fr);border-top:var(--rule-thin);
+  border-bottom:1px solid var(--line-2)}
+.whip div{padding:6px 10px;border-right:1px solid var(--line-3)}
+.whip div:last-child{border-right:0}
+.whip i{display:block;font:700 8.5px var(--f-cond);text-transform:uppercase;
+  letter-spacing:.16em;color:var(--ink-3);font-style:normal}
+.whip b{font:400 22px var(--f-num);letter-spacing:-.05em}
+.dep{display:flex;align-items:center;gap:var(--x5);padding:6px 0;border-bottom:var(--hair-2)}
+.dep:last-child{border-bottom:0}
+.dep .who{flex:1;min-width:0}
+.dep .who b{display:block;font:700 14px var(--f-display);letter-spacing:-.01em}
+.dep .who span{font-size:11.5px;color:var(--ink-3)}
+/* ── ход квартала ────────────────────────────────────────────
+   Три действия видны всегда: квадраты в шапке (чёрный — ход есть),
+   три ячейки в «Кабинете» с подписью, на что ушёл ход, и советы
+   с кнопкой прямо туда. */
+.sv.apcell{cursor:pointer;border:0;border-left:1px solid var(--line-3);text-align:left;font:inherit}
+.sv.apcell:hover{background:var(--band-2)}
+.pips{display:inline-flex;gap:3px;vertical-align:1px;margin-right:4px}
+.pips s{width:9px;height:9px;display:block;text-decoration:none;border:1.5px solid currentColor;opacity:.55}
+.pips s.on{background:currentColor;opacity:1}
+.apslots{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--x3)}
+.apslots div{border:1px dashed var(--line-2);padding:7px 10px 8px;min-height:62px;display:grid;
+  grid-template-rows:auto 1fr auto;gap:2px}
+.apslots div.done{border:1px solid var(--ink);background:var(--surface-2)}
+.apslots u{text-decoration:none;font:400 18px/1 var(--f-num);color:var(--ink-3)}
+.apslots .done u{color:var(--ink)}
+.apslots b{font:700 12.5px/1.25 var(--f-display);color:var(--ink-3)}
+.apslots .done b{color:var(--ink)}
+.apslots i{font:700 8.5px var(--f-cond);text-transform:uppercase;letter-spacing:.14em;color:var(--ink-3);font-style:normal}
+.apslots .done i{color:var(--good)}
+.todo{border-top:var(--hair)}
+.todo-i{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:var(--x4);align-items:center;
+  padding:7px 0;border-bottom:var(--hair-2)}
+.todo-i u{text-decoration:none;font:400 15px var(--f-num);color:var(--ink-3)}
+.todo-i b{display:block;font:700 13.5px/1.25 var(--f-display)}
+.todo-i span{display:block;font-size:12px;color:var(--ink-2);line-height:1.35}
+/* обучение первых кварталов */
+.tut{border:2px solid var(--ink);background:var(--surface);padding:var(--x4) var(--x5) var(--x3);margin-bottom:var(--x5)}
+.tut-h{display:flex;justify-content:space-between;align-items:center;gap:var(--x5)}
+.tut-h b{font:700 9.5px var(--f-cond);text-transform:uppercase;letter-spacing:.2em}
+.tut ol{list-style:none;margin:6px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:var(--x5)}
+.tut li{display:grid;grid-template-columns:16px 1fr;gap:8px;align-items:start}
+.tut li s{width:14px;height:14px;border:1.5px solid var(--ink);display:block;margin-top:2px;text-decoration:none}
+.tut li.ok s{background:var(--good);border-color:var(--good)}
+.tut li b{display:block;font:700 13px/1.25 var(--f-display)}
+.tut li.ok b{text-decoration:line-through;color:var(--ink-3)}
+.tut li span{display:block;font-size:11.5px;color:var(--ink-2);line-height:1.35}
+@media (max-width:720px){ .tut ol{grid-template-columns:1fr} .apslots{grid-template-columns:1fr} }
+/* ── пульт палаты ────────────────────────────────────────────
+   Над полукругом: кто правит и на скольких голосах, и четыре рычага.
+   Рычаг в работе — чёрная планка слева, против вас — красная. */
+.gov-line{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:var(--x5);padding-bottom:var(--x5);
+  border-bottom:var(--hair);margin-bottom:var(--x5)}
+.gov-line i{display:block;font:700 8.5px var(--f-cond);text-transform:uppercase;letter-spacing:.16em;
+  color:var(--ink-3);font-style:normal}
+.gov-line b{display:block;font:700 16px/1.2 var(--f-display);margin:2px 0 4px}
+.gov-line span{font-size:12px;color:var(--ink-2)}
+.gov-line .chip{margin-right:8px}
+.levers{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--x4)}
+.lever{border:1px solid var(--line-2);border-top:3px solid var(--ink);padding:8px 10px 10px;background:var(--surface);
+  display:grid;grid-template-rows:auto auto 1fr auto;gap:3px;min-width:0}
+.lever i{font:700 8.5px var(--f-cond);text-transform:uppercase;letter-spacing:.16em;color:var(--ink-3);font-style:normal}
+.lever b{font:400 17px/1.15 var(--f-num);letter-spacing:-.03em}
+.lever span{font-size:11.5px;line-height:1.35;color:var(--ink-2)}
+.lever .btn{justify-self:start;margin-top:6px}
+.lever.on{box-shadow:inset 3px 0 0 var(--ink)}
+.lever.warn{border-top-color:var(--mark)}
+.lever.bad{border-top-color:var(--bad);box-shadow:inset 3px 0 0 var(--bad)}
+.warn-t{font:inherit;color:var(--mark)}
+.crisis{border:2px solid var(--bad);background:var(--bad-bg);padding:9px 12px;margin-bottom:var(--x5);
+  display:grid;grid-template-columns:1fr auto;gap:4px var(--x5);align-items:center}
+.crisis b{font:700 10px var(--f-cond);text-transform:uppercase;letter-spacing:.16em;color:var(--bad);grid-column:1}
+.crisis span{font-size:12.5px;color:var(--ink);grid-column:1}
+.crisis .btn{grid-column:2;grid-row:1/3}
+/* условия роспуска: каждое видно — выполнено или нет */
+.rules{border-top:var(--hair);margin:var(--x4) 0}
+.rules div{display:grid;grid-template-columns:16px 1fr auto;gap:8px;align-items:center;padding:5px 0;border-bottom:var(--hair-2)}
+.rules s{width:12px;height:12px;display:block;text-decoration:none;border:1.5px solid var(--good)}
+.rules .ok s{background:var(--good)}
+.rules .no s{border-color:var(--bad)}
+.rules b{font-size:13px;font-weight:400}
+.rules .no b{color:var(--bad)}
+.rules i{font:400 11px var(--f-num);color:var(--ink-3);font-style:normal}
+/* путь импичмента: пять ступеней, пройденные закрашены */
+.ipath{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;border:1px solid var(--line-2);margin:0 0 var(--x5)}
+.ipath div{padding:6px 8px;border-right:1px solid var(--line-2);display:flex;gap:6px;align-items:baseline;min-width:0}
+.ipath div:last-child{border-right:0}
+.ipath u{text-decoration:none;font:400 13px var(--f-num);color:var(--ink-3)}
+.ipath b{font:700 10px var(--f-cond);text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ipath .ok{background:var(--surface-2)} .ipath .ok b,.ipath .ok u{color:var(--ink-2)}
+.ipath .on{background:var(--ink)} .ipath .on b,.ipath .on u{color:var(--ink-inv)}
+/* Конституционный суд голосует девятью квадратами */
+.court{display:flex;gap:5px;margin:var(--x4) 0}
+.court s{width:26px;height:26px;display:block;text-decoration:none;border:1.5px solid var(--ink)}
+.court s.y{background:var(--good);border-color:var(--good)}
+.court s.n{background:var(--surface)}
+@media (max-width:900px){ .levers{grid-template-columns:repeat(2,minmax(0,1fr))} .gov-line{grid-template-columns:1fr} }
+@media (max-width:520px){ .levers{grid-template-columns:1fr} .ipath{grid-auto-flow:row} .ipath div{border-right:0;border-bottom:1px solid var(--line-2)} }
+/* ── кресло: выбор на старте и стол в «Кабинете» ─────────────
+   На старте кресла лежат карточками: символ, имя, чем живёт и
+   сколько власти даёт. Стол — символ кресла, четыре цифры,
+   рычаги и дорога дальше; неопределённый шаг дороги — серый. */
+.roles{display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));gap:var(--x4);margin-top:var(--x5)}
+.role{display:grid;grid-template-columns:28px minmax(0,1fr);gap:2px var(--x5);align-content:start;text-align:left;
+  padding:9px 11px 10px;border:1px solid var(--line-2);border-top:3px solid var(--ink);background:var(--surface);
+  color:var(--ink);font:inherit;cursor:pointer;min-width:0}
+.role:hover{background:var(--surface-2)}
+.role:focus-visible{outline:2px solid var(--mark);outline-offset:1px}
+.role .ic{grid-row:1/4;margin-top:1px}
+.role b{font:700 15px/1.2 var(--f-display)}
+.role span{font-size:12px;line-height:1.35;color:var(--ink-2)}
+.role i{font:700 8.5px var(--f-cond);text-transform:uppercase;letter-spacing:.14em;color:var(--ink-3);font-style:normal;margin-top:3px}
+.role i u{text-decoration:none;letter-spacing:.05em;color:var(--ink)}
+.desk-h{display:grid;grid-template-columns:32px minmax(0,1fr);gap:var(--x5);align-items:start;margin-bottom:var(--x5)}
+.desk-h .ic{margin-top:2px}
+.desk-h .lead{margin:0}
+.panel.desk{border-top:3px solid var(--ink)}
+.desk .levers{grid-template-columns:repeat(auto-fit,minmax(118px,1fr));margin-bottom:var(--x4)}
+.desk .rules div:not(.ok):not(.no) s{border-color:var(--line-2)}
+.desk .rules .no b{color:var(--ink)}
+.desk table.acts td.r{width:150px}
+.desk table.acts .btn .cost{white-space:nowrap}
+/* на телефоне рычаг — строка в два яруса: описание во всю ширину, кнопка под ним */
+@media (max-width:560px){
+  .desk table.acts tr{display:grid;grid-template-columns:minmax(0,1fr);row-gap:5px;padding:7px 0;border-bottom:var(--hair-2)}
+  .desk table.acts td{height:auto;padding:0 2px;border:0}
+  .desk table.acts td.r{width:auto;text-align:left}
+}
+/* ── опросы гонки: линия на партию, подпись у конца линии ── */
+.poll{width:100%;height:auto;display:block}
+.poll .pg{stroke:var(--line-3);stroke-width:1}
+.poll .pl{font:700 8px var(--f-cond);letter-spacing:.06em;fill:var(--ink-3)}
+.poll .pl.me{font-size:9px}
+/* ── разбор фракции: шапка с эмблемой и оси рядом с вашими ── */
+.fac-h{display:grid;grid-template-columns:40px minmax(0,1fr);gap:var(--x5);align-items:center;margin-bottom:var(--x4)}
+.fac-axes{display:grid;gap:4px;margin-top:var(--x4)}
+.fac-ax{display:grid;grid-template-columns:96px minmax(0,1fr) 30px;gap:var(--x4);align-items:center}
+.fac-ax span{font-size:12px;color:var(--ink-2)}
+.fac-ax b{font:400 12px var(--f-num);text-align:right}
+.fac-ax .ruler{height:14px}
+.fac-ax .ruler i{top:2.5px}
+/* ── курс молодого политика: текущий урок крупно, остальные списком ── */
+.course .tut-now{border-top:var(--hair);margin-top:6px;padding:8px 0 4px}
+.course .tut-now i{font:700 8.5px var(--f-cond);text-transform:uppercase;letter-spacing:.16em;color:var(--mark);font-style:normal}
+.course .tut-now b{display:block;font:700 17px/1.2 var(--f-display);margin:2px 0 3px}
+.course .tut-now p{margin:0 0 6px;font-size:13px;line-height:1.45;color:var(--ink-2);max-width:72ch}
+.course .tut-do{display:flex;gap:var(--x5);align-items:center;justify-content:space-between;flex-wrap:wrap}
+.course .tut-do span{font-size:12.5px;color:var(--ink)}
+.course ol.all{grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:4px var(--x5);border-top:var(--hair-2);padding-top:6px}
+.course ol.all li{cursor:pointer;align-items:center}
+.course ol.all li b{font-size:12.5px}
+.course ol.all li.now b{color:var(--mark)}
+.help-q input{width:100%;max-width:520px}
+.help-s[hidden]{display:none}
+/* ── дело: ступени от проверки до суда ── */
+.case-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;margin:10px 0 4px}
+.case-steps span{font:700 8.5px var(--f-cond);text-transform:uppercase;letter-spacing:.12em;padding:6px 2px 0;text-align:center;
+  border-top:3px solid var(--line);color:var(--ink-3)}
+.case-steps span.done{border-top-color:var(--ink-2);color:var(--ink-2)}
+.case-steps span.on{border-top-color:var(--bad);color:var(--bad)}
+/* ── последняя полоса и достижения ── */
+.paper{background:var(--surface);border-top:var(--rule);border-bottom:var(--rule);padding:var(--x6) var(--x7) var(--x7);max-width:1180px;margin:0 auto}
+.paper-mast{display:flex;justify-content:space-between;align-items:baseline;gap:var(--x5);border-bottom:var(--rule-thin);padding-bottom:var(--x4);flex-wrap:wrap}
+.paper-mast b{font:700 34px/1 var(--f-display);letter-spacing:.02em;text-align:center;flex:1 1 260px}
+.paper-mast span{font:700 9px var(--f-cond);text-transform:uppercase;letter-spacing:.16em;color:var(--ink-3)}
+.paper-h{font:700 40px/1.08 var(--f-display);margin:var(--x6) 0 var(--x4);text-align:center}
+.paper-dek{font:italic 400 17px/1.45 var(--f-display);text-align:center;max-width:80ch;margin:0 auto var(--x6);color:var(--ink-2)}
+.paper-cols{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:var(--x7);border-top:var(--hair);padding-top:var(--x5)}
+.paper-cols section+section{border-left:var(--hair);padding-left:var(--x7)}
+.paper-cols h3{font:700 9.5px var(--f-cond);text-transform:uppercase;letter-spacing:.16em;margin:0 0 var(--x4);color:var(--mark)}
+.paper-cols h3:not(:first-child){margin-top:var(--x6)}
+.paper-cols section>p{font:400 14.5px/1.55 var(--f-display)}
+.paper-cols section>p:first-of-type::first-letter{font:700 44px/.9 var(--f-display);float:left;margin:4px 6px 0 0}
+.paper blockquote{margin:0 0 var(--x4);padding-left:var(--x5);border-left:3px solid var(--line-2)}
+.paper blockquote p{font:italic 400 14px/1.4 var(--f-display);margin:0}
+.paper blockquote cite{font:400 11px var(--f-num);color:var(--ink-3);font-style:normal}
+.paper-foot{display:flex;gap:var(--x4);justify-content:center;border-top:var(--hair);margin-top:var(--x6);padding-top:var(--x5)}
+.achv{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:6px}
+.achv div{border:var(--hair-2);padding:6px 8px;opacity:.55}
+.achv div.on{opacity:1;border-color:var(--ink);background:var(--surface-2)}
+.achv b{display:block;font:700 13px/1.25 var(--f-display)}
+.achv span{font-size:11.5px;color:var(--ink-3)}
+@media (max-width:860px){ .paper-cols{grid-template-columns:1fr} .paper-cols section+section{border-left:0;padding-left:0;border-top:var(--hair);padding-top:var(--x5)}
+  .paper-h{font-size:28px} .paper-mast b{font-size:26px} .paper{padding:var(--x5)} }
+@media (max-width:520px){ .roles{grid-template-columns:1fr} }
+/* ── полукруг зала ───────────────────────────────────────────
+   Ровные концентрические ряды, фракции клиньями слева направо.
+   В Собрании кресла круглые, в Сенате квадратные: две палаты
+   узнаются с первого взгляда. */
+.arch{width:100%;height:auto;display:block;max-height:340px;margin:0 auto}
+.arch .a-floor{stroke:var(--ink);stroke-width:1}
+.arch .a-maj{stroke:var(--ink);stroke-width:1.5}
+.arch .a-ring{fill:none;stroke-width:4}
+.arch .a-lab{font:700 10.5px var(--f-cond);letter-spacing:.08em;fill:var(--ink-2)}
+.arch .a-big{font-family:var(--f-num);letter-spacing:-.05em;fill:var(--ink)}
+.arch .a-sub{font:700 9.5px var(--f-cond);letter-spacing:.14em;text-transform:uppercase;fill:var(--ink-3)}
+.arch .s-yes{fill:var(--good)}
+.arch .s-no{fill:var(--bad)}
+.arch .s-und{fill:var(--surface);stroke:var(--ink-3);stroke-width:1}
+.arch-leg{display:flex;flex-wrap:wrap;justify-content:center;gap:var(--x3) var(--x7);margin-top:var(--x5);
+  font-size:12px;color:var(--ink-2)}
+.arch-leg span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.arch-leg b{font:400 13px var(--f-num);color:var(--ink)}
+.arch-leg u{text-decoration:none;font:700 8.5px var(--f-cond);letter-spacing:.14em;text-transform:uppercase;color:var(--good)}
+/* ── табло голосования ───────────────────────────────────────
+   Слева зал, где цвет кресла — его голос, а внешняя дуга — фракция.
+   Справа щит: счёт светлыми цифрами на чёрном, как на табло в зале,
+   под ним итог. Внизу фракции с эмблемами и своими полосами. */
+.vb{border-top:var(--rule);margin:var(--x5) 0 var(--x4)}
+.vb-h{display:flex;justify-content:space-between;align-items:baseline;gap:var(--x5);flex-wrap:wrap;
+  padding:6px 0 7px;border-bottom:var(--hair);font:700 9.5px var(--f-cond);text-transform:uppercase;
+  letter-spacing:.14em;color:var(--ink-3)}
+.vb-h b{color:var(--ink)}
+.vb-m{display:grid;grid-template-columns:minmax(0,1fr) 206px;gap:var(--x6);align-items:center;
+  padding:var(--x5) 0 var(--x5)}
+.vb-sc{background:var(--ink);color:var(--ink-inv);padding:3px 0}
+.vb-sc div{display:grid;grid-template-columns:12px 1fr auto;align-items:center;gap:10px;
+  padding:8px 14px 7px;border-bottom:1px solid rgba(251,249,243,.13)}
+.vb-sc div:last-child{border-bottom:0}
+.vb-sc div.on{background:var(--band-2)}
+.vb-sc i{width:10px;height:10px;border-radius:50%;display:block;box-shadow:0 0 0 1.5px var(--ink-inv)}
+.vb-sc i.s-yes{background:var(--good)}
+.vb-sc i.s-no{background:var(--bad)}
+.vb-sc i.s-und{background:var(--ink)}
+.vb-sc .t i{box-shadow:none}
+.vb-sc span{font:700 10px var(--f-cond);text-transform:uppercase;letter-spacing:.16em;color:var(--ink-inv-2)}
+.vb-sc b{font:400 30px/1 var(--f-num);letter-spacing:-.05em;text-align:right}
+.vb-sc .t b{color:var(--ink-inv-2);font-size:22px}
+.vb-v{margin-top:var(--x3);padding:8px 10px 7px;border:2px solid var(--ink);text-align:center;
+  font:700 11px var(--f-cond);text-transform:uppercase;letter-spacing:.16em}
+.vb-v.y{border-color:var(--good);color:var(--good);background:var(--good-bg)}
+.vb-v.n{border-color:var(--bad);color:var(--bad);background:var(--bad-bg)}
+.vb-v.f{border:1px dashed var(--ink-3);color:var(--ink-2)}
+.vb-f{width:100%;border-collapse:collapse;border-top:var(--rule-thin)}
+.vb-f th{font:700 8.5px var(--f-cond);text-transform:uppercase;letter-spacing:.14em;color:var(--ink-3);
+  text-align:left;padding:6px 6px 5px;border-bottom:var(--hair)}
+.vb-f th.n,.vb-f td.n{text-align:right;font-family:var(--f-num);width:52px}
+.vb-f td{padding:6px;border-bottom:var(--hair-2);font-size:13px;vertical-align:middle}
+.vb-f td b{font:700 13.5px var(--f-display)}
+.vb-f td.vb-e{width:22px;padding-right:0}
+.vb-f td.vb-e .emb{display:block}
+.vb-f td.vb-n{white-space:nowrap}
+.vb-bar{width:30%}
+.vb-bar span{display:flex;height:8px;background:var(--surface-3)}
+.vb-bar i{display:block;height:100%}
+.vb-bar i.y{background:var(--good)}
+.vb-bar i.u{background:var(--line-2)}
+.vb-bar i.n{background:var(--bad)}
+@media (max-width:720px){
+  .vb-m{grid-template-columns:1fr}
+  .vb-sc{display:grid;grid-template-columns:repeat(2,1fr)}
+  .vb-sc div{border-right:1px solid rgba(251,249,243,.13)}
+}
+/* ── эмблемы партий ──────────────────────────────────────────
+   Поле — цвет фракции, знак — белый, золотой или чёрный. На малом
+   размере кайма пропадает сама: остаются форма и знак. */
+.emb{display:inline-block;flex:none;vertical-align:middle}
+.chip .emb{margin-top:-1px}
+/* карточка своей партии и строка всех эмблем страны */
+.emb-card{display:flex;gap:var(--x5);align-items:center;padding-bottom:var(--x5);margin-bottom:var(--x5);border-bottom:var(--hair)}
+.emb-card b{display:block;font:700 19px/1.15 var(--f-display)}
+.emb-card span{display:block;font:700 10px var(--f-cond);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin:3px 0 8px}
+.emb-row{display:flex;flex-wrap:wrap;align-items:flex-end;gap:var(--x5) var(--x7);margin-top:var(--x5);
+  padding-top:var(--x5);border-top:var(--hair)}
+.emb-row span{display:grid;justify-items:center;gap:3px}
+.emb-row b{font:700 10px var(--f-cond);letter-spacing:.12em;color:var(--ink-2)}
+.emb-row u{text-decoration:none;font:400 11px var(--f-num);color:var(--ink-3)}
+.emb-row .on b{color:var(--ink)}
+/* конструктор: образец крупно, под ним ряды решений */
+.ek-kit{display:grid;grid-template-columns:150px minmax(0,1fr);gap:var(--x6);align-items:start}
+.ek-prev{text-align:center;padding:var(--x5) var(--x4) var(--x4);background:var(--surface-2);border-top:var(--rule)}
+.ek-prev .emb{display:block;margin:0 auto var(--x4)}
+.ek-prev b{display:block;font:700 16px/1.15 var(--f-display)}
+.ek-prev span{font:700 10px var(--f-cond);letter-spacing:.16em;color:var(--ink-3)}
+.ek-row{display:grid;grid-template-columns:70px minmax(0,1fr);gap:var(--x4);align-items:center;
+  padding:6px 0;border-bottom:var(--hair-2)}
+.ek-row:last-child{border-bottom:0}
+.ek-row>i{font:700 9px var(--f-cond);text-transform:uppercase;letter-spacing:.14em;color:var(--ink-3);font-style:normal}
+.ek-row>div{display:flex;flex-wrap:wrap;gap:4px}
+.ek{width:36px;height:36px;display:grid;place-items:center;background:var(--surface);
+  border:1px solid var(--line-2);cursor:pointer;padding:0}
+.ek:hover{border-color:var(--ink)}
+.ek.on{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.ek s{width:22px;height:22px;display:block;text-decoration:none}
+.ek-riv{grid-column:1/-1;display:flex;align-items:center;gap:var(--x6);flex-wrap:wrap;
+  padding-top:var(--x4);border-top:var(--hair)}
+.ek-riv>i{font:700 9px var(--f-cond);text-transform:uppercase;letter-spacing:.14em;color:var(--ink-3);font-style:normal}
+.ek-riv span{display:inline-flex;align-items:center;gap:6px}
+.ek-riv u{text-decoration:none;font:700 10px var(--f-cond);letter-spacing:.12em;color:var(--ink-2)}
+@media (max-width:720px){ .ek-kit{grid-template-columns:1fr} .ek-row{grid-template-columns:1fr} }
+/* своя строка в архиве правителей — вынесена тоном, а не цветом */
+tr.mine td{background:var(--surface-2)}
+tr.mine td:first-child{box-shadow:inset 3px 0 0 var(--ink)}
+/* заголовок главы внутри таблицы конституции: разделитель, а не строка данных */
+tr.hd td{background:var(--surface-2);border-top:var(--rule);padding-top:9px;padding-bottom:7px}
+tr.hd td b{font:700 11px/1.2 var(--f-cond);text-transform:uppercase;letter-spacing:.09em}
+tr.hd+tr td{border-top:0}
+/* палата субъектов: делегации стоят блоками, а не общим кольцом */
+.deleg{display:flex;flex-wrap:wrap;gap:var(--x4);margin:var(--x4) 0}
+.deleg .d{border:1px solid var(--line-2);background:var(--surface-2);padding:5px 6px 6px}
+.deleg .d u{display:block;font:700 8px var(--f-cond);text-transform:uppercase;
+  letter-spacing:.12em;color:var(--ink-3);text-decoration:none;margin-bottom:4px;white-space:nowrap}
+.deleg .d div{display:grid;grid-auto-flow:column;grid-template-rows:repeat(2,9px);gap:2px}
+.deleg .d s{display:block;width:9px;height:9px;text-decoration:none;border:1px solid rgba(20,19,15,.18)}
+/* линейка порогов под доской Сената */
+.thr{position:relative;height:26px;margin-top:var(--x4);border-top:1px solid var(--line-2)}
+.thr i{position:absolute;top:0;bottom:0;width:1px;background:var(--ink)}
+.thr span{position:absolute;top:4px;font:700 8.5px var(--f-cond);text-transform:uppercase;
+  letter-spacing:.12em;white-space:nowrap;padding-left:4px}
+.bline{display:grid;grid-template-columns:1fr 54px 168px;gap:var(--x5);align-items:center;
+  padding:6px 0;border-bottom:var(--hair-2)}
+.bline:last-child{border-bottom:0}
+.bline .who{font-size:11.5px;color:var(--ink-3)}
+.gauge{display:flex;align-items:center;gap:var(--x4);margin-bottom:var(--x4)}
+.gauge:last-child{margin-bottom:0}
+.gauge .track{flex:1;height:9px;background:var(--surface-3);border:1px solid var(--line-2);position:relative}
+.gauge .track i{position:absolute;top:-3px;width:2px;height:15px;background:var(--ink)}
+.spark{display:block;width:100%;height:46px}
+
+/* ── карта ─────────────────────────────────────────────────── */
+.mapbox{background:var(--surface-2);border:var(--rule-thin);padding:6px;max-width:880px;margin:0 auto}
+.mapsvg{width:100%;display:block}
+.rgn{stroke:var(--ink);stroke-width:1.1;cursor:pointer;transition:filter var(--t-fast) var(--ease)}
+.rgn:hover{filter:brightness(1.1)}
+.rgn.sel{stroke:var(--mark);stroke-width:3}
+.caplbl{fill:var(--ink);font:700 14px var(--f-cond);pointer-events:none;paint-order:stroke;
+  stroke:var(--surface);stroke-width:3.5px;stroke-linejoin:round;letter-spacing:.04em}
+.legend{display:flex;flex-wrap:wrap;gap:var(--x2) var(--x6);font-size:11.5px;color:var(--ink-2);margin-top:var(--x4)}
+
+/* ── журнал, состояния ─────────────────────────────────────── */
+.log div{padding:5px 0;border-bottom:1px dotted var(--line-2);font-size:12.5px}
+.log div:last-child{border-bottom:0}
+.log div.key{border-left:3px solid var(--mark);padding-left:8px;margin-left:-11px}
+.log s{text-decoration:none;font:400 10.5px var(--f-num);color:var(--ink-3);margin-right:7px}
+.empty{padding:var(--x8);text-align:center;color:var(--ink-3);font-size:13px;
+  border-top:1px solid var(--line-3);border-bottom:1px solid var(--line-3)}
+.chron{display:flex;gap:var(--x5);padding:6px 0;border-bottom:var(--hair-2);font-size:13px}
+.chron:last-child{border-bottom:0}
+.chron .y{font:400 11.5px var(--f-num);color:var(--ink-3);width:40px;flex:none;padding-top:2px}
+.chron.g{box-shadow:inset 3px 0 0 var(--good);padding-left:9px}
+.chron.b{box-shadow:inset 3px 0 0 var(--bad);padding-left:9px}
+
+/* ── модальное окно: экстренный выпуск ─────────────────────── */
+
+/* ════════════════════════════════════════════════════════════════
+   ТИТУЛЬНЫЙ ЭКРАН
+   Не обложка, а первая полоса: та же бумага, те же линейки и те же
+   гарнитуры, что внутри. Игра открывается номером газеты, в котором
+   страна ещё только представлена, — и следующим разворотом идёт
+   работа. Ни одного нового цвета, ни одного скругления.
+   ════════════════════════════════════════════════════════════════ */
+#menu{position:fixed;inset:0;z-index:100;overflow:auto;background:var(--bg);
+  color:var(--ink);font-family:var(--f-text);opacity:1;transition:opacity 280ms var(--ease)}
+#menu.gone{opacity:0;pointer-events:none}
+.mn-sheet{max-width:1180px;margin:0 auto;min-height:100%;background:var(--surface);
+  border-left:var(--hair);border-right:var(--hair);padding:0 clamp(16px,3vw,38px) 14px;
+  display:flex;flex-direction:column}
+/* верхняя служебная строка — выходные данные номера */
+.mn-top{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;
+  padding:7px 0 6px;font:700 9.5px var(--f-cond);text-transform:uppercase;
+  letter-spacing:.2em;color:var(--ink-3)}
+.mn-tools{display:flex;align-items:center;gap:0;border:var(--rule-thin)}
+.mn-ver{font:400 11px var(--f-num);letter-spacing:0;color:var(--ink-2);
+  padding:0 10px;border-right:var(--hair)}
+.mn-tools button{width:30px;height:24px;display:grid;place-items:center;border:0;
+  border-right:var(--hair);background:transparent;color:var(--ink-2);cursor:pointer}
+.mn-tools button:last-child{border-right:0}
+.mn-tools button:hover{background:var(--ink);color:var(--ink-inv)}
+.mn-tools button svg{width:15px;height:15px}
+/* маштхед */
+.mn-head{display:flex;align-items:center;gap:clamp(14px,2.4vw,28px);
+  border-top:var(--rule);border-bottom:6px double var(--ink);padding:11px 0 9px}
+.mn-flag{width:clamp(78px,7.4vw,112px);height:auto;flex:none;filter:drop-shadow(0 2px 3px rgba(20,19,15,.22))}
+.mn-name{min-width:0;flex:1}
+.mn-name i{display:block;font:700 10.5px var(--f-cond);letter-spacing:.42em;
+  text-transform:uppercase;color:var(--ink-3);font-style:normal;margin-bottom:4px}
+.mn-name h1{margin:0;font:700 clamp(44px,6.4vw,84px)/.9 var(--f-display);letter-spacing:.02em}
+.mn-name u{display:block;text-decoration:none;margin-top:8px;
+  font:700 10px var(--f-cond);letter-spacing:.34em;text-transform:uppercase;color:var(--ink-2)}
+.mn-est{flex:none;text-align:right;font:400 11.5px/1.5 var(--f-display);color:var(--ink-3);
+  max-width:190px;border-left:var(--hair);padding-left:16px;align-self:stretch;
+  display:flex;flex-direction:column;justify-content:center}
+/* три колонки полосы */
+.mn-body{display:grid;grid-template-columns:300px minmax(0,1fr) 250px;gap:0;flex:1;
+  border-bottom:var(--rule-thin)}
+.mn-col{padding:14px 0;min-width:0}
+.mn-col+.mn-col{border-left:var(--hair);padding-left:18px;margin-left:18px}
+.mn-cap{font:700 9px var(--f-cond);letter-spacing:.24em;text-transform:uppercase;
+  color:var(--ink-3);border-bottom:var(--rule-thin);padding-bottom:5px;margin-bottom:2px}
+/* меню как указатель номера */
+.mn-btn{display:flex;align-items:baseline;gap:12px;width:100%;text-align:left;cursor:pointer;
+  background:transparent;border:0;border-bottom:var(--hair-2);padding:11px 4px;
+  color:var(--ink);font-family:inherit;transition:background var(--t-fast) var(--ease),
+    padding-left var(--t-fast) var(--ease)}
+.mn-btn:hover{background:var(--surface-2);padding-left:11px}
+.mn-btn.on{background:var(--ink);color:var(--ink-inv);border-bottom-color:var(--ink)}
+.mn-btn.on:hover{background:var(--band-2)}
+.mn-btn.off{opacity:.36;cursor:not-allowed}
+.mn-btn.off:hover{background:transparent;padding-left:4px}
+.mn-btn em{font:400 12px var(--f-num);color:var(--ink-3);font-style:normal;flex:none;width:20px}
+.mn-btn.on em{color:var(--ink-inv-2)}
+.mn-btn span{flex:1;min-width:0}
+.mn-btn b{display:block;font:700 17px/1.1 var(--f-display);letter-spacing:-.01em}
+.mn-btn s{display:block;text-decoration:none;margin-top:2px;font-size:11.5px;color:var(--ink-3)}
+.mn-btn.on s{color:var(--ink-inv-2)}
+.mn-btn svg{width:17px;height:17px;flex:none;color:currentColor;align-self:center}
+/* передовица */
+.mn-lead{font:400 clamp(23px,2.5vw,33px)/1.16 var(--f-display);letter-spacing:-.015em;
+  margin:10px 0 0;max-width:17ch}
+.mn-lead::first-letter{initial-letter:2;font-weight:700;margin-right:6px}
+.mn-dek{margin-top:11px;padding-top:9px;border-top:var(--hair);
+  font:400 13.5px/1.55 var(--f-display);color:var(--ink-2);max-width:46ch}
+.mn-quote{margin-top:11px;padding:9px 0 8px;border-top:var(--rule-thin);border-bottom:var(--hair);
+  font:italic 400 15px/1.45 var(--f-display);color:var(--ink);max-width:40ch}
+.mn-quote b{display:block;margin-top:5px;font:700 8.5px var(--f-cond);letter-spacing:.2em;
+  text-transform:uppercase;color:var(--ink-3)}
+/* карта страны как гравюра */
+.mn-map{margin-top:10px;border-top:var(--hair);padding-top:8px}
+.mn-map svg{width:100%;height:clamp(140px,22vh,240px);display:block}
+.mn-map .rg{fill:var(--surface-2);stroke:var(--ink);stroke-width:1.1;stroke-linejoin:round}
+.mn-map .rg.d3{fill:var(--surface-3)}
+.mn-map .rg.d1{fill:var(--surface)}
+.mn-map .cap{font:700 7.5px var(--f-cond);letter-spacing:.1em;fill:var(--ink-3);text-transform:uppercase}
+.mn-map .dot{fill:var(--ink)}
+/* правая колонка — сводка номера */
+/* памятка по управлению — низ левой колонки */
+.mn-keys{margin-top:16px;border-top:var(--rule-thin);padding-top:8px}
+.mn-keys i{display:block;font:700 9px var(--f-cond);letter-spacing:.24em;text-transform:uppercase;
+  color:var(--ink-3);font-style:normal;margin-bottom:4px}
+.mn-keys div{display:flex;justify-content:space-between;gap:10px;align-items:baseline;
+  padding:4px 0;border-bottom:var(--hair-2);font-size:11.5px;color:var(--ink-2)}
+.mn-keys b{font:400 12px var(--f-num);color:var(--ink)}
+.mn-facts{border-top:var(--rule-thin)}
+.mn-facts div{display:flex;justify-content:space-between;gap:10px;align-items:baseline;
+  padding:6px 0;border-bottom:var(--hair-2);font-size:12px;color:var(--ink-2)}
+.mn-facts b{font:400 14px var(--f-num);color:var(--ink);letter-spacing:-.03em}
+.mn-save{margin-top:14px;border:var(--rule-thin);padding:10px 11px 11px;background:var(--surface-2)}
+.mn-save i{display:block;font:700 8.5px var(--f-cond);letter-spacing:.2em;text-transform:uppercase;
+  color:var(--ink-3);font-style:normal;margin-bottom:5px}
+.mn-save b{display:block;font:700 15px var(--f-display)}
+.mn-save s{display:block;text-decoration:none;font-size:11.5px;color:var(--ink-3);margin-top:3px}
+/* нижние четыре колонки */
+.mn-cards{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:var(--rule-thin)}
+.mn-card{padding:10px 15px 11px;min-width:0}
+.mn-card+.mn-card{border-left:var(--hair)}
+.mn-card svg.art{width:100%;height:66px;display:block;margin-bottom:8px}
+.mn-card b{display:block;font:700 11px var(--f-cond);letter-spacing:.2em;text-transform:uppercase;
+  border-bottom:var(--rule-thin);padding-bottom:5px;margin-bottom:6px}
+.mn-card p{margin:0;font:400 12px/1.45 var(--f-display);color:var(--ink-2)}
+.mn-foot{display:flex;justify-content:space-between;gap:16px;padding:10px 0 2px;
+  font:700 9px var(--f-cond);letter-spacing:.2em;text-transform:uppercase;color:var(--ink-3)}
+@media(max-width:1020px){
+  .mn-body{grid-template-columns:260px minmax(0,1fr)}
+  .mn-col:nth-child(3){grid-column:1/-1;border-left:0;padding-left:0;margin-left:0;
+    border-top:var(--hair);margin-top:4px}
+  .mn-cards{grid-template-columns:1fr 1fr}
+  .mn-card:nth-child(3){border-left:0}
+  .mn-card:nth-child(n+3){border-top:var(--hair)}
+}
+@media(max-width:720px){
+  .mn-sheet{padding:0 14px 12px}
+  .mn-head{flex-wrap:wrap;gap:12px;padding:12px 0 10px}
+  .mn-est{display:none}
+  .mn-name h1{font-size:clamp(38px,11vw,54px)}
+  .mn-body{grid-template-columns:1fr}
+  .mn-col+.mn-col{border-left:0;padding-left:0;margin-left:0;border-top:var(--hair)}
+  .mn-cards{grid-template-columns:1fr}
+  .mn-card+.mn-card{border-left:0;border-top:var(--hair)}
+  .mn-card svg.art{height:64px}
+  .mn-foot{flex-direction:column;gap:4px}
+}
+#modal{position:fixed;inset:0;z-index:130;background:rgba(20,18,12,.62);display:none;
+  align-items:flex-start;justify-content:center;padding:var(--x8) var(--x5);overflow-y:auto}
+#modal.show{display:flex}
+#msheet{background:var(--surface);border:var(--rule);box-shadow:var(--shadow);
+  width:100%;max-width:640px;animation:rise var(--t-slow) var(--ease)}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+#msheet .mh{padding:var(--x5) var(--x6) var(--x4);border-bottom:var(--rule-thin)}
+#msheet .mh i{display:block;font:700 8.5px var(--f-cond);text-transform:uppercase;
+  letter-spacing:.2em;color:var(--ink-3);font-style:normal}
+#msheet .mh h2{margin:3px 0 0;font:700 25px/1.1 var(--f-display);letter-spacing:-.015em}
+#msheet .mb{padding:var(--x5) var(--x6);font-size:13.5px}
+#msheet .mf{padding:var(--x4) var(--x6);border-top:var(--rule-thin);background:var(--surface-2);
+  display:flex;gap:var(--x3);justify-content:flex-end;flex-wrap:wrap}
+.opt{display:block;width:100%;text-align:left;background:var(--surface);border:0;
+  border-top:1px solid var(--line-2);padding:9px 2px;margin:0;cursor:pointer;
+  font:400 13px var(--f-text);color:var(--ink);
+  transition:background var(--t-fast) var(--ease),padding-left var(--t-fast) var(--ease)}
+.opt:last-child{border-bottom:1px solid var(--line-2)}
+.opt:hover{background:var(--surface-2);padding-left:9px}
+.opt b{display:flex;align-items:center;gap:9px;font:700 14px var(--f-display);letter-spacing:-.01em}
+.opt b .ic{flex:none;opacity:.7}
+.opt span{display:block;font-size:11.5px;color:var(--ink-3);margin-top:1px}
+
+/* ── плашки ────────────────────────────────────────────────── */
+#toasts{position:fixed;right:var(--x5);bottom:var(--x5);z-index:70;display:flex;
+  flex-direction:column;gap:5px;align-items:flex-end}
+.toast{background:var(--ink);color:var(--ink-inv);padding:7px 13px;font:400 12.5px var(--f-text);
+  border-left:3px solid var(--mark);
+  animation:tin var(--t) var(--ease),tout var(--t-slow) var(--ease) 2.4s forwards}
+@keyframes tin{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:none}}
+@keyframes tout{to{opacity:0}}
+
+/* ── экран загрузки: первая полоса ─────────────────────────── */
+#splash{position:fixed;inset:0;z-index:80;background:var(--surface);color:var(--ink);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  transition:opacity var(--t-slow) var(--ease)}
+#splash.hide{opacity:0;pointer-events:none}
+#splash img{width:66px;height:72px;margin-bottom:var(--x5)}
+#splash h1{font:700 40px var(--f-display);letter-spacing:.06em;margin:0;
+  border-top:var(--rule);border-bottom:var(--rule-thin);padding:var(--x3) var(--x8)}
+#splash p{color:var(--ink-3);font:700 10px var(--f-cond);text-transform:uppercase;
+  letter-spacing:.28em;margin:var(--x4) 0 var(--x6)}
+#splash .load{width:240px;height:3px;background:var(--surface-3);overflow:hidden}
+#splash .load i{display:block;height:100%;width:40%;background:var(--ink);animation:slide 1.1s var(--ease) infinite}
+@keyframes slide{from{transform:translateX(-100%)}to{transform:translateX(250%)}}
+
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(max-width:900px){
+  #top{flex-wrap:wrap} #top .brand{min-height:44px;border-right:0;width:100%}
+  #top .brand b{font-size:20px}
+  #strip{width:100%;margin-left:0;order:3;border-top:var(--rule-thin)}
+  .sv{padding:5px 11px;min-width:0} .sv:first-child{border-left:0} .sv b{font-size:14px}
+  #shell{display:block;border:0}
+  #side{position:fixed;left:0;right:0;bottom:0;top:auto;width:auto;min-height:0;display:flex;
+    border-right:0;border-top:var(--rule);background:var(--surface);padding:0;z-index:35;
+    box-shadow:0 -6px 18px rgba(20,18,12,.12)}
+  .navsec,.navkeys{display:none}
+  .nav{flex:1;min-width:0;border-bottom:0;border-top:3px solid transparent;padding:7px 2px 6px;
+    flex-direction:column;gap:3px;align-items:center;justify-content:center;
+    font-size:10px;letter-spacing:.04em;line-height:1.1}
+  .nav.on{border-top-color:var(--mark);background:var(--ink)}
+  .nav u{display:none}
+  .nav .ic{width:22px;height:22px}
+  .nav .dot{position:absolute;margin:0;transform:translate(14px,-10px)}
+  .nav span{flex:none;overflow:hidden;text-overflow:ellipsis;max-width:100%;white-space:nowrap}
+  #view{padding:var(--x5) var(--x5) 74px}
+  .cols,.c21,.c11,.c12,.c111,.g4,.g3{grid-template-columns:minmax(0,1fr)}
+  .g4{grid-template-columns:1fr 1fr}
+  .gates{grid-template-columns:1fr}
+  .gate{border-right:0;border-bottom:1px solid var(--line-2)}
+  .gate:last-child{border-bottom:0}
+}
+@media(max-width:560px){
+  .g2,.g4{grid-template-columns:1fr 1fr}
+  .hide-s,.mini{display:none}
+  td,th{padding:0 6px}
+  .stat .v{font-size:23px}
+  #msheet .mh h2{font-size:21px}
+  #modal{padding:var(--x4) var(--x2)}
+  .bline{grid-template-columns:1fr 44px;row-gap:var(--x2)}
+  .bline>div:last-child{grid-column:1/3}
+}
+/* списки депутатов и сенаторов на телефоне — строки-карточки: имя слева, фракция, отношение
+   и позиция в колонке справа, кнопка «Работать» всегда видна */
+@media(max-width:560px){
+  table.people,table.people tbody{display:block;width:100%}
+  table.people thead{display:none}
+  table.people tr{display:grid;grid-template-columns:minmax(0,1fr) auto auto;
+    grid-template-areas:"who party btn" "who rel btn" "who pos btn";column-gap:var(--x4);align-items:center;
+    padding:6px var(--x4);border-bottom:var(--hair-2)}
+  table.people td{height:auto;padding:0;border:0}
+  table.people td:nth-child(1){grid-area:who} table.people td:nth-child(2){grid-area:party;justify-self:end}
+  table.people td:nth-child(3){display:none} table.people td:nth-child(4){grid-area:rel;justify-self:end}
+  table.people td:nth-child(5){grid-area:pos;justify-self:end} table.people td:nth-child(6){grid-area:btn}
+  table.people caption{display:block}
+}
+/* комитеты в узкой колонке и на телефоне: комитет и председатель рядом, кнопки строкой ниже */
+@media(max-width:1180px){
+  table.comm,table.comm tbody{display:block;width:100%}
+  table.comm tr{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:var(--x4);row-gap:5px;
+    padding:7px var(--x4);border-bottom:var(--hair-2)}
+  table.comm td{height:auto;padding:0;border:0}
+  table.comm td.r{grid-column:1/3;text-align:left;display:flex;gap:var(--x3)}
+  table.comm caption{display:block}
+}
+/* планшет и узкий ноутбук: статьи бюджета в два яруса, ступени поправки с переносом */
+@media(max-width:1180px){
+  .bline{grid-template-columns:minmax(0,1fr) 44px;row-gap:var(--x2)}
+  .bline>div:last-child{grid-column:1/3}
+  .stg{grid-template-columns:minmax(0,1fr) auto;row-gap:2px}
+  .stg u{min-width:0}
+}
+/* самые узкие телефоны: таблицы с кнопкой в последней колонке не должны выпирать */
+@media(max-width:420px){
+  td,th{padding:0 4px}
+  .btn.sm,.b.sm{padding:4px 6px;letter-spacing:.03em}
+}
+</style>
+</head>
+<body>
+<div id="splash"><img id="splash-em" alt=""><h1>НОВАРИЯ</h1><p>правительственный терминал</p>
+  <div class="load"><i></i></div></div>
+<div id="menu" hidden></div>
+<header id="top">
+  <div class="brand"><img id="emb" alt="Герб Республики Новария"><div>
+    <b>НОВАРИЯ</b><span id="subtitle">правительственный терминал</span></div></div>
+  <div id="strip"></div>
+</header>
+<div id="shell">
+  <nav id="side"></nav>
+  <main id="view"></main>
+</div>
+<div id="modal"><div id="msheet"></div></div>
+<div id="toasts"></div>
+<script>
+'use strict';
