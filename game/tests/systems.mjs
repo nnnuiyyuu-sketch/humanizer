@@ -7,7 +7,18 @@ const check=(name,ok,v)=>{ say(name,v); if(!ok)fails.push(name+': '+v); };
 const ev=f=>page.evaluate(f);
 await boot(page);
 
-let r=await ev(()=>{ let best=null; TOPICS.filter(z=>!z.special).forEach(t=>[-2,-1,1,2].forEach(st=>{ newBill(t.id); S.bill.stance=st;
+let r=await ev(()=>{ S.tab='brief'; render(); const c=document.querySelector('#view .course');
+  const n0=courseList().filter(x=>x.done()).length; goTab('fac'); goTab('press'); goTab('senate'); goTab('brief');
+  return {has:!!c, n0, n1:courseList().filter(x=>x.done()).length, all:courseList().length}; });
+check('курс молодого политика', r.has&&r.n1>r.n0, r.n0+' → '+r.n1+' из '+r.all);
+await page.evaluate(()=>goTab('help'));
+await page.fill('#helpq','клотур');
+r=await ev(()=>({shown:document.querySelectorAll('#view section.help-s:not([hidden])').length,all:document.querySelectorAll('#view section.help-s').length,
+  focus:document.activeElement&&document.activeElement.id}));
+check('поиск в справке', r.shown>0&&r.shown<r.all&&r.focus==='helpq', r.shown+' из '+r.all+' · фокус '+r.focus);
+await ev(()=>{ HELPQ=''; goTab('brief'); });
+
+r=await ev(()=>{ let best=null; TOPICS.filter(z=>!z.special).forEach(t=>[-2,-1,1,2].forEach(st=>{ newBill(t.id); S.bill.stance=st;
     const y=tally(S.bill).yes; if(y>=165&&y<MAJ&&(!best||Math.abs(y-195)<Math.abs(best.y-195)))best={t:t.id,st,y}; }));
   newBill(best.t); S.bill.stance=best.st; const sb={k:'b',topic:S.bill.topic,stance:S.bill.stance,bill:S.bill};
   const x=S.parties.filter(z=>z.id!==PL&&dealDemand(z.id,'h',sb)!==null).sort(bySeats)[0];

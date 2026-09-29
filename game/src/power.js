@@ -163,7 +163,7 @@ function raceList(){
   return out.sort((a,b)=>a.q-b.q);
 }
 function askRaces(){
-  const L=raceList();
+  const L=raceList(); S.tutSaw=S.tutSaw||{}; S.tutSaw.races=true;
   sheetOpen({eye:'Выборный календарь · '+dateLabel(),title:'Куда выдвинуться',
     body:`<p class="lead">Выборы идут по своим часам: Сенат третями, главы краёв и мэры по своим срокам, президент раз в шесть лет.
         Выдвижение — ${CAND_COST.ap} ход, ${CAND_COST.cap} веса и ${CAND_COST.funds} млн; выиграете — кресло ваше, прежнее перейдёт преемнику.</p>
