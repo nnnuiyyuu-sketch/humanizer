@@ -18,7 +18,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #101713;
     --surface: #18221c;
     --ink: #e8efe9;
@@ -34,7 +34,27 @@
     --f: #e5aa55;
     --c: #4fb283;
     --shadow: none;
+    color-scheme: dark;
   }
+}
+
+:root[data-theme="dark"] {
+  --bg: #101713;
+  --surface: #18221c;
+  --ink: #e8efe9;
+  --muted: #9fb0a6;
+  --line: #2a382f;
+  --accent: #4fb283;
+  --accent-ink: #06150d;
+  --accent-soft: #1e3328;
+  --warn-bg: #3a2f12;
+  --warn-ink: #f1d089;
+  --danger: #ff8a80;
+  --p: #6bb4d8;
+  --f: #e5aa55;
+  --c: #4fb283;
+  --shadow: none;
+  color-scheme: dark;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -112,11 +132,16 @@ p { margin: 0; }
 /* intro */
 .intro { padding-top: 24px; gap: 24px; }
 .checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
-.checks li { display: flex; gap: 10px; align-items: flex-start; }
-.checks li::before {
-  content: ""; flex: none; width: 22px; height: 22px; margin-top: 1px;
-  border-radius: 50%; background: var(--accent-soft) no-repeat center / 12px;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232f7d5b' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 12.5l4.5 4.5L19 7.5'/></svg>");
+.checks li { position: relative; padding-left: 32px; }
+.checks li::before, .checks li::after {
+  content: ""; position: absolute; left: 0; top: 1px; width: 22px; height: 22px; border-radius: 50%;
+}
+.checks li::before { background: var(--accent-soft); }
+.checks li::after {
+  background: var(--accent);
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 12.5l4 4L18 8'/></svg>") center / 14px no-repeat;
+  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 12.5l4 4L18 8'/></svg>") center / 14px no-repeat;
+  border-radius: 0;
 }
 
 /* options */
@@ -230,6 +255,11 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 
 .row-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .row-actions .btn { flex: 1 1 180px; width: auto; }
+
+.plan-text {
+  width: 100%; font: inherit; font-size: .9rem; color: var(--ink); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 12px; padding: 12px; resize: vertical;
+}
 
 .noscript { padding: 24px; text-align: center; }
 

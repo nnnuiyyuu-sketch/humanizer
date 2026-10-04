@@ -5,6 +5,8 @@ const CONFIG = {
   // Необязательная кнопка в конце результата, например запись на консультацию.
   // null — кнопка скрыта. Пример: { text: 'Записаться на консультацию', url: 'https://example.com' }
   cta: null,
+  // Кнопка печати. Во встроенных просмотрщиках диалог печати недоступен, там её выключают.
+  print: true,
 };
 
 const ACTIVITY = { sedentary: 1.2, light: 1.375, moderate: 1.55, high: 1.725 };
@@ -478,6 +480,16 @@ function showStep(step) {
   const next = $('#next');
   let advancing = false;
 
+  // «Далее» и Enter обрабатываем сами, а не через отправку формы: во встроенных фреймах
+  // без разрешения на формы браузер отправку блокирует и событие submit не приходит.
+  const wire = (attempt) => {
+    next.addEventListener('click', (e) => { e.preventDefault(); attempt(); });
+    form.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); attempt(); }
+    });
+    form.addEventListener('submit', (e) => { e.preventDefault(); attempt(); });
+  };
+
   if (step.type === 'number') {
     const input = $('#num');
     const msg = $('#msg');
@@ -496,8 +508,7 @@ function showStep(step) {
     };
     input.addEventListener('input', () => refresh(false));
     input.addEventListener('blur', () => refresh(true));
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
+    wire(() => {
       const r = refresh(true);
       if (r.error) { input.focus(); return; }
       commit(step, r.value);
@@ -540,8 +551,7 @@ function showStep(step) {
     });
   }
 
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
+  wire(() => {
     const values = read();
     if (!values.length) return;
     commit(step, step.type === 'multi' ? values : values[0]);
@@ -558,9 +568,8 @@ function commit(step, value) {
 }
 
 function goBack() {
-  const h = location.hash.replace(/^#\/?/, '');
   const vis = visibleSteps();
-  const idx = vis.findIndex((s) => `q/${s.id}` === h);
+  const idx = vis.findIndex((s) => `q/${s.id}` === currentRoute);
   go(idx > 0 ? `#/q/${vis[idx - 1].id}` : '#/');
 }
 
@@ -695,8 +704,8 @@ function showResult() {
       </section>
 
       <div class="row-actions">
-        <button class="btn" type="button" data-action="print">Сохранить в PDF / распечатать</button>
-        <button class="btn ghost" type="button" data-action="copy">Скопировать план</button>
+        ${CONFIG.print ? '<button class="btn" type="button" data-action="print">Сохранить в PDF / распечатать</button>' : ''}
+        <button class="btn${CONFIG.print ? ' ghost' : ''}" type="button" data-action="copy">Скопировать план</button>
         ${CONFIG.cta ? `<a class="btn ghost" href="${esc(CONFIG.cta.url)}" rel="noopener">${esc(CONFIG.cta.text)}</a>` : ''}
         <button class="btn ghost" type="button" data-action="restart">Пройти заново</button>
       </div>
@@ -746,24 +755,47 @@ function planAsText() {
 
 async function copyPlan() {
   const status = $('#status');
+  const text = planAsText();
   try {
-    await navigator.clipboard.writeText(planAsText());
+    await navigator.clipboard.writeText(text);
     status.textContent = 'План скопирован.';
   } catch (e) {
-    status.textContent = 'Не удалось скопировать. Воспользуйтесь кнопкой печати.';
+    status.textContent = 'Браузер не дал скопировать автоматически. Выделите текст ниже и скопируйте его.';
+    let box = $('#plan-text');
+    if (!box) {
+      box = document.createElement('textarea');
+      box.id = 'plan-text';
+      box.className = 'plan-text';
+      box.readOnly = true;
+      box.rows = 10;
+      box.setAttribute('aria-label', 'Текст плана');
+      status.after(box);
+    }
+    box.value = text;
+    box.focus();
+    box.select();
   }
 }
 
 // ---------- маршрутизация ----------
 
+const normRoute = (h) => h.replace(/^#\/?/, '');
+let currentRoute = normRoute(location.hash);
+
+// Маршрут держим в переменной, а в адрес пишем для кнопки «Назад» браузера.
+// Если адрес изменить не удалось (встроенный фрейм), тест всё равно работает.
 function go(hash) {
-  if (location.hash === hash) route();
-  else location.hash = hash;
+  const next = normRoute(hash);
+  currentRoute = next;
+  try {
+    if (normRoute(location.hash) !== next) location.hash = `#/${next}`;
+  } catch (e) { /* ignore */ }
+  route();
 }
 
 function route() {
   app.onclick = null;
-  const h = location.hash.replace(/^#\/?/, '');
+  const h = currentRoute;
   const missing = firstMissing();
 
   if (h === 'result') {
@@ -781,6 +813,11 @@ function route() {
 }
 
 $('#back').addEventListener('click', goBack);
-window.addEventListener('hashchange', route);
+window.addEventListener('hashchange', () => {
+  const next = normRoute(location.hash);
+  if (next === currentRoute) return;
+  currentRoute = next;
+  route();
+});
 loadState();
 route();
