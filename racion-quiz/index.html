@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Рацион под вашу цель — тест и план питания</title>
+  <meta name="description" content="Ответьте на несколько вопросов и получите расчёт калорий, БЖУ, прогноз по весу и меню на день. Без регистрации, данные остаются на вашем устройстве.">
+  <meta name="theme-color" content="#2f7d5b">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232f7d5b'/%3E%3Cpath d='M9 17c0-5 4-8 14-9-1 10-4 14-9 14-3 0-5-2-5-5z' fill='%23fff'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="shell" id="shell">
+    <header class="topbar" id="topbar" hidden>
+      <button class="icon-btn" id="back" type="button" aria-label="Назад">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div class="progress" id="progress" role="progressbar" aria-label="Прогресс теста" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <span id="bar"></span>
+      </div>
+      <span class="count" id="count"></span>
+    </header>
+    <main id="app"></main>
+  </div>
+  <noscript><p class="noscript">Для работы теста нужен включённый JavaScript.</p></noscript>
+  <script src="dishes.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
