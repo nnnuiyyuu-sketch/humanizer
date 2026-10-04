@@ -6,7 +6,8 @@
      node game/build.mjs --check  только проверить, что index.html собран из src/
 
    Проверки: синтаксис скрипта (node --check), совпадение токенов
-   :root, объекта ICON и блока стилей кресла/фракций с ui.html. */
+   :root, объекта ICON, блока стилей кресла/фракций и парадной
+   редакции с ui.html. */
 import {readFileSync, writeFileSync, mkdtempSync, rmSync} from 'node:fs';
 import {join, dirname} from 'node:path';
 import {tmpdir} from 'node:os';
@@ -46,6 +47,7 @@ function checkParity(html){
     ['токены :root', '\n:root{', '\n}\n'],
     ['объект ICON', 'const ICON={', '\n};'],
     ['блок кресла и фракций', '/* ── кресло: выбор на старте и стол в «Кабинете»', '@media (max-width:520px){ .roles{grid-template-columns:1fr} }'],
+    ['парадная редакция', '/* ══ третья редакция: парадный госстиль', '/* ══ конец парадной редакции ══ */'],
   ];
   const bad=[];
   pairs.forEach(([name,s,e])=>{ const g=block(html,s,e), u=block(ui,s,e);

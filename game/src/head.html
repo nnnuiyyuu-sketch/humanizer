@@ -6,35 +6,39 @@
 <title>НОВАРИЯ — правительственный терминал</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=PT+Sans+Narrow:wght@400;700&family=PT+Sans:ital,wght@0,400;0,700;1,400&family=PT+Serif:ital,wght@0,400;0,700;1,400&family=PT+Mono&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Forum&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=PT+Sans+Narrow:wght@400;700&family=PT+Sans:ital,wght@0,400;0,700;1,400&family=PT+Serif:ital,wght@0,400;0,700;1,400&family=PT+Mono&display=swap" rel="stylesheet">
 <style>
 /* ═══════════════════════════════════════════════════════════════
    NOVARIA UI · токены. Полное описание системы — в game/ui.html.
    Здесь те же значения; менять их следует сначала там.
    ═══════════════════════════════════════════════════════════════ */
 /* ═══════════════════════════════════════════════════════════════
-   NOVARIA UI · вторая редакция: газетная полоса.
+   NOVARIA UI · третья редакция: парадный госстиль поверх газетной
+   вёрстки (последний блок стилей). Ниже — основа второй редакции.
    Первая была архивной бумагой в коробке. Эта — сегодняшний номер:
    белое поле, чёрные линейки, серифные заголовки, колонки. Числа
    остаются моноширинными: газета верстает таблицы так же.
    Полное описание — в game/ui.html; менять сначала там.
    ═══════════════════════════════════════════════════════════════ */
 :root{
-  /* бумага и краска */
-  --bg:#EDEAE2; --surface:#FFFDF9; --surface-2:#F4F1E9; --surface-3:#E8E4D9;
-  --band:#14130F; --band-2:#312E27;
-  --ink:#14130F; --ink-2:#4B473E; --ink-3:#807B70; --ink-inv:#FBF9F3; --ink-inv-2:#A8A297;
-  --line:#171510; --line-2:#CFCABC; --line-3:#E2DED2;
-  /* один акцент на всю полосу: газетный красный */
-  --act:#14130F; --mark:#A4211B; --bad:#A4211B; --good:#1C5738; --info:#1C3C68;
-  --mark-bg:#F6E9E5; --bad-bg:#F6E4E0; --good-bg:#E4EEE7;
+  /* третья редакция: парадный госстиль. Гербовая бумага, государственный синий, золото */
+  --bg:#E6E0CF; --surface:#FBF8F0; --surface-2:#F3EEE1; --surface-3:#E6DECB;
+  --band:#0E1B38; --band-2:#1B2D55;
+  --ink:#16213B; --ink-2:#434D64; --ink-3:#7A8092; --ink-inv:#F6EFDC; --ink-inv-2:#BBB196;
+  --line:#16213B; --line-2:#D5CAAE; --line-3:#E8E0CC;
+  /* золото — парадный знак: рамки, гербы, выделенное. Красный остался только для тревоги */
+  --gold:#B08A3E; --gold-2:#D9BE7A; --gold-3:#83631E;
+  --act:#16213B; --mark:#9C1C24; --bad:#9C1C24; --good:#1E5B3B; --info:#1C3F78;
+  --mark-bg:#F5E6E2; --bad-bg:#F5E3E0; --good-bg:#E3EDE5;
   --p1:#9A7211; --p2:#93261E; --p3:#23456B; --p4:#14675F; --p5:#4C6A22; --p6:#5A3868;
   --x1:2px; --x2:4px; --x3:6px; --x4:8px; --x5:12px; --x6:16px; --x7:20px; --x8:24px; --x9:32px; --x10:40px;
-  /* линейки — главный инструмент полосы: волосяная, обычная, жирная */
+  /* линейки: волосяная тёплая, синяя рабочая, золотая двойная — парадная */
   --hair:1px solid var(--line-2); --hair-2:1px solid var(--line-3);
-  --rule:3px solid var(--ink); --rule-thin:1px solid var(--ink);
-  --shadow:0 18px 48px rgba(16,14,10,.30);
+  --rule:3px solid var(--ink); --rule-thin:1px solid var(--ink); --rule-gold:3px double var(--gold);
+  --shadow:0 18px 48px rgba(10,18,40,.34);
   --f-display:'PT Serif',Georgia,'Times New Roman',serif;
+  --f-head:'Playfair Display','PT Serif',Georgia,serif;
+  --f-cer:'Forum','Playfair Display','PT Serif',Georgia,serif;
   --f-text:'PT Sans',system-ui,sans-serif;
   --f-cond:'PT Sans Narrow',sans-serif; --f-num:'PT Mono',ui-monospace,monospace;
   --t-fast:90ms; --t:150ms; --t-slow:240ms; --ease:cubic-bezier(.2,.7,.3,1);
@@ -914,6 +918,253 @@ tr.hd+tr td{border-top:0}
   td,th{padding:0 4px}
   .btn.sm,.b.sm{padding:4px 6px;letter-spacing:.03em}
 }
+/* ══ третья редакция: парадный госстиль ═══════════════════════════
+   Поверх газетной вёрстки — государственный кабинет. Шапка и указатель
+   разделов набраны на синем поле, как обложка паспорта; рабочее поле —
+   гербовая бумага цвета слоновой кости. Золото обозначает парадное:
+   двойную линейку над панелью, ромб у заголовка, выбранный раздел.
+   Красный по-прежнему значит только тревогу. Здесь меняются цвет,
+   шрифт и линии; раскладка остаётся той, что выше, поэтому блок стоит
+   последним и не трогает отступы и сетки. */
+body{background:var(--bg);font-variant-numeric:lining-nums}   /* у Playfair по умолчанию старостильные цифры */
+::selection{background:var(--gold-2);color:var(--ink)}
+
+/* шапка: синее поле, герб, золотая двойная линейка снизу */
+#top{background:var(--band);color:var(--ink-inv);border-bottom:var(--rule-gold);
+  box-shadow:0 2px 0 var(--band),0 6px 18px rgba(10,18,40,.22)}
+#top .brand{border-right:1px solid rgba(217,190,122,.28)}
+#top .brand b{font:400 27px/1 var(--f-cer);letter-spacing:.16em;color:var(--gold-2)}
+#top .brand span{color:var(--ink-inv-2)}
+.sv{border-left:1px solid rgba(217,190,122,.18)}
+.sv i{color:var(--gold-2);opacity:.85}
+.sv b{color:var(--ink-inv)}
+.sv b.warn{color:#E7C56E} .sv b.bad{color:#F08A84} .sv b.good{color:#8FD0A6}
+.sv.act{background:var(--gold);}
+.sv.act i{color:var(--band);opacity:.8} .sv.act b{color:var(--band)}
+.sv.apcell{border-left:1px solid rgba(217,190,122,.18)}
+.sv.apcell:hover{background:var(--band-2)}
+.sv.act.apcell:hover{background:var(--gold-2)}
+
+/* указатель разделов: синий корешок, золотые рубрики */
+#shell{background:var(--surface);border-left:1px solid var(--line-2);border-right:1px solid var(--line-2)}
+#side{background:var(--band);color:var(--ink-inv);border-right:0;
+  background-image:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,0) 240px)}
+.navsec{color:var(--gold-2);border-bottom:1px solid rgba(217,190,122,.3);letter-spacing:.24em}
+.nav{color:#D9D2BE;border-bottom:1px solid rgba(246,239,220,.06)}
+.nav:hover{background:var(--band-2);color:var(--ink-inv)}
+.nav .ic{color:var(--gold-2);opacity:.8}
+.nav.on{background:linear-gradient(90deg,rgba(176,138,62,.32),rgba(176,138,62,.08));color:var(--gold-2)}
+.nav.on .ic{color:var(--gold-2)}
+.nav u{color:#8F93A3}
+.nav.on u{color:var(--gold-2)}
+.nav .dot{background:#E25B52;border-radius:50%}
+.nav.on .dot{background:#E25B52}
+.navkeys{color:#8F93A3;border-top:1px solid rgba(217,190,122,.3)}
+.navkeys b{border-color:rgba(217,190,122,.35);color:var(--ink-inv)}
+@media(min-width:901px){
+  .nav{box-shadow:inset 3px 0 0 transparent}
+  .nav.on{box-shadow:inset 3px 0 0 var(--gold)}
+}
+
+/* типографика: парадный заголовок, рабочий текст прежний */
+h3.sub{font:700 13.5px/1.2 var(--f-head);color:var(--ink);border-bottom:1px solid var(--gold)}
+.t-sec{font-family:var(--f-head)}
+.t-micro,.up{color:var(--gold-3)}
+
+/* панели: двойная золотая линейка сверху, ромб у заголовка */
+.panel{border:1px solid var(--line-2);border-top:var(--rule-gold);
+  box-shadow:0 1px 0 rgba(22,33,59,.04),0 6px 16px -12px rgba(14,27,56,.35)}
+.panel>header{border-bottom:1px solid var(--line-2);
+  background:linear-gradient(180deg,var(--surface-2),var(--surface))}
+.panel>header h4{font:700 16.5px/1.15 var(--f-head);color:var(--ink);letter-spacing:0}
+.panel>header h4::before{content:'';display:inline-block;width:6px;height:6px;margin:0 9px 2px 1px;
+  background:var(--gold);transform:rotate(45deg);vertical-align:middle}
+.panel>header .meta{color:var(--gold-3)}
+.panel>footer{background:var(--surface-2);border-top:1px solid var(--line-2)}
+/* главная панель раздела — на синем поле, как гербовый бланк */
+.panel.lead-p{border-top:3px solid var(--gold)}
+.panel.lead-p>header{background:var(--band);border-bottom:2px solid var(--gold)}
+.panel.lead-p>header h4{color:var(--ink-inv)}
+.panel.lead-p>header h4::before{background:var(--gold-2)}
+.panel.lead-p>header .meta{color:var(--gold-2)}
+.panel.warn{border-top:3px solid var(--bad)}
+.panel.warn>header h4::before{background:var(--bad)}
+.panel.calm{border-top:3px solid var(--good)}
+.panel.calm>header h4::before{background:var(--good)}
+.panel.info{border-top:3px solid var(--info)}
+.panel.info>header h4::before{background:var(--info)}
+.pin{border-top:1px solid var(--gold);border-bottom:1px solid var(--gold)}
+.pin b{color:var(--gold-3)}
+
+/* кнопки: синий контур, на наведении — синее поле и золото */
+.btn,.b{border:1px solid var(--ink);color:var(--ink);background:var(--surface);border-radius:2px}
+.btn:hover:not(:disabled),.b:hover:not(:disabled){background:var(--band);color:var(--gold-2);border-color:var(--band)}
+.btn.pri,.b.pri{background:var(--band);color:var(--gold-2);border-color:var(--band);
+  box-shadow:inset 0 0 0 1px rgba(217,190,122,.45)}
+.btn.pri:hover:not(:disabled){background:var(--gold);border-color:var(--gold);color:var(--band);box-shadow:none}
+.btn.danger{border-color:var(--bad);color:var(--bad)}
+.btn.danger:hover:not(:disabled){background:var(--bad);border-color:var(--bad);color:#fff}
+.btn.ghost{border-color:var(--line-2);color:var(--ink-2)}
+.btn.sel{background:var(--gold);border-color:var(--gold);color:var(--band)}
+.seg{border:1px solid var(--ink);border-radius:2px}
+.seg button.on{background:var(--band);color:var(--gold-2)}
+.axr,.scale{border:1px solid var(--ink)}
+.axr button.on,.scale button.on,.steps button.on{background:var(--band);color:var(--gold-2)}
+input:focus,select:focus{outline:2px solid var(--gold)}
+.field>label{color:var(--gold-3)}
+
+/* таблицы: шапка золотом, синяя линейка */
+th{color:var(--gold-3);border-top:1px solid var(--ink);border-bottom:1px solid var(--gold)}
+tbody tr:hover{background:#F6F1E4}
+tr.sel td{box-shadow:inset 3px 0 0 var(--gold)}
+tr.mine td:first-child{box-shadow:inset 3px 0 0 var(--gold)}
+tr.hd td{border-top:2px solid var(--gold)}
+
+/* показатели и сводки */
+.stat{border-top:1px solid var(--gold)}
+.stat .k,.stat i{color:var(--gold-3)}
+.stat .v{color:var(--ink)}
+.res{border-top:1px solid var(--gold)}
+.whip{border-top:1px solid var(--gold)}
+.whip i,.gate i,.gov-line i,.lever i,.apslots i,.sv i{letter-spacing:.18em}
+.gates{border:1px solid var(--ink)}
+.lever{border-top:3px solid var(--band)}
+.lever.on{box-shadow:inset 3px 0 0 var(--gold)}
+.tut{border:1px solid var(--gold);box-shadow:inset 0 0 0 3px var(--surface),inset 0 0 0 4px rgba(176,138,62,.45)}
+.tut-h b{color:var(--gold-3)}
+.dep .who b,.todo-i b,.apslots b,.role b,.stg i,.opt b,.head b,.emb-card b{font-family:var(--f-head)}
+.chron.g{box-shadow:inset 3px 0 0 var(--good)} .chron.b{box-shadow:inset 3px 0 0 var(--bad)}
+.log div.key{border-left-color:var(--gold)}
+.stamp{font-family:var(--f-cer);letter-spacing:.18em}
+.role{border-top:3px solid var(--band)}
+.role:hover{background:var(--surface-2);border-color:var(--gold)}
+.vb{border-top:var(--rule-gold)}
+.vb-sc{background:var(--band)}
+.vb-sc div.on{background:var(--band-2)}
+.mapbox{border:1px solid var(--gold);background:var(--surface-2);
+  box-shadow:inset 0 0 0 3px var(--surface),inset 0 0 0 4px rgba(176,138,62,.35)}
+.rgn.sel{stroke:var(--gold);stroke-width:3.4}
+.empty{color:var(--ink-3)}
+
+/* лист решения: синяя шапка с гербовым золотом */
+#modal{background:rgba(9,16,34,.7)}
+#msheet{border:1px solid var(--gold);border-top:0;box-shadow:var(--shadow),0 0 0 4px rgba(176,138,62,.18)}
+#msheet .mh{background:var(--band);border-bottom:var(--rule-gold);padding-top:var(--x6)}
+#msheet .mh i{color:var(--gold-2)}
+#msheet .mh h2{font:700 25px/1.15 var(--f-head);color:var(--ink-inv);letter-spacing:0}
+#msheet .mf{background:var(--surface-2);border-top:1px solid var(--line-2)}
+.opt{border-top:1px solid var(--line-2)}
+.opt:hover{background:#F6F1E4;box-shadow:inset 3px 0 0 var(--gold)}
+.opt b .ic{color:var(--gold-3);opacity:1}
+
+/* плашки и заставка */
+.toast{background:var(--band);color:var(--ink-inv);border-left:3px solid var(--gold)}
+#splash{background:radial-gradient(ellipse at 50% 38%,#203A70 0%,var(--band) 58%,#08122A 100%);color:var(--ink-inv)}
+#splash h1{font:400 46px var(--f-cer);letter-spacing:.3em;color:var(--gold-2);
+  border-top:1px solid var(--gold);border-bottom:1px solid var(--gold);padding:var(--x4) var(--x8) var(--x3) calc(var(--x8) + .3em)}
+#splash p{color:var(--ink-inv-2)}
+#splash .load{background:rgba(217,190,122,.2)}
+#splash .load i{background:var(--gold-2)}
+
+/* последняя полоса: та же газета, но в гербовой рамке */
+.paper{border-top:3px solid var(--gold);border-bottom:3px solid var(--gold);
+  box-shadow:inset 0 0 0 6px var(--surface),inset 0 0 0 7px rgba(176,138,62,.4)}
+.paper-mast b{font-family:var(--f-cer);letter-spacing:.12em}
+.paper-h{font-family:var(--f-head)}
+.paper-cols h3{color:var(--gold-3)}
+.achv div.on{border-color:var(--gold);background:#F7F0DD}
+
+@media(max-width:900px){
+  #top .brand{border-right:0}
+  #strip{border-top:1px solid rgba(217,190,122,.3)}
+  #side{background:var(--band);border-top:2px solid var(--gold);box-shadow:0 -6px 18px rgba(10,18,40,.3)}
+  .nav{border-bottom:0;color:#C9C2AE}
+  .nav.on{background:var(--band-2);border-top-color:var(--gold);color:var(--gold-2)}
+}
+
+/* ── титульный экран: парадный зал ──────────────────────────────
+   Синий зал с гильоширной сеткой, герб и флаг по центру, имя страны
+   золотом. Внутри меню токены переопределены: «бумага» становится
+   синей, «чернила» — светлыми, поэтому вся вёрстка указателя и даже
+   штриховые виньетки перекрашиваются сами, без отдельных правил. */
+#menu{--surface:#13234A; --surface-2:#1A2D58; --surface-3:#22386A;
+  --ink:#F3EAD2; --ink-2:#D1C7AB; --ink-3:#A39C88; --ink-inv:#0E1B38; --ink-inv-2:#3A4766;
+  --line-2:rgba(217,190,122,.32); --line-3:rgba(217,190,122,.16);
+  --rule:2px solid var(--gold); --rule-thin:1px solid rgba(217,190,122,.55);
+  background:
+    repeating-linear-gradient(45deg,rgba(217,190,122,.035) 0 1px,transparent 1px 11px),
+    repeating-linear-gradient(-45deg,rgba(217,190,122,.035) 0 1px,transparent 1px 11px),
+    radial-gradient(ellipse at 50% 0%,#24407A 0%,#0E1B38 58%,#08122A 100%);
+  background-attachment:fixed}
+.mn-sheet{background:transparent;border:0}
+.mn-top{color:var(--gold-2)}
+.mn-tools{border:1px solid rgba(217,190,122,.5);border-radius:2px}
+.mn-tools button{color:var(--gold-2)}
+.mn-tools button:hover{background:var(--gold);color:var(--band)}
+.mn-ver{color:var(--ink-2)}
+.mn-head{flex-direction:column;text-align:center;border-top:1px solid rgba(217,190,122,.45);
+  border-bottom:var(--rule-gold);padding:22px 0 18px;gap:10px;position:relative}
+.mn-flag{width:clamp(96px,9vw,132px);filter:drop-shadow(0 6px 14px rgba(0,0,0,.45));
+  border:1px solid rgba(217,190,122,.55);padding:3px;background:rgba(217,190,122,.08)}
+.mn-name i{font:400 13px var(--f-cer);letter-spacing:.6em;color:var(--gold-2);margin:0 0 6px .6em}
+.mn-name h1{font:400 clamp(52px,8vw,108px)/.92 var(--f-cer);letter-spacing:.14em;margin-left:.14em;
+  background:linear-gradient(180deg,#F4E2A8 0%,#D9BE7A 46%,#A8832F 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 2px 0 rgba(0,0,0,.35))}
+.mn-name u{font:400 13px var(--f-head);font-style:italic;letter-spacing:.08em;text-transform:none;
+  color:var(--ink-2);margin-top:12px}
+.mn-orn{display:flex;align-items:center;justify-content:center;gap:12px;margin:12px auto 0;
+  color:var(--gold-2);font-size:13px;max-width:420px}
+.mn-orn i{flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--gold) 40%,var(--gold) 60%,transparent)}
+.mn-est{border-left:0;padding-left:0;max-width:none;text-align:center;font:400 12px var(--f-cond);
+  letter-spacing:.3em;text-transform:uppercase;color:var(--gold-2);opacity:.85}
+.mn-body{border-bottom:1px solid rgba(217,190,122,.45);gap:18px;padding:18px 0}
+.mn-col{background:rgba(255,255,255,.035);border:1px solid rgba(217,190,122,.28);padding:12px 16px;
+  box-shadow:inset 0 0 0 3px rgba(14,27,56,.6),inset 0 0 0 4px rgba(217,190,122,.12)}
+.mn-col+.mn-col{border-left:1px solid rgba(217,190,122,.28);padding-left:16px;margin-left:0}
+.mn-cap{font:400 12px var(--f-cer);letter-spacing:.24em;color:var(--gold-2);
+  border-bottom:1px solid rgba(217,190,122,.45);text-align:center;padding-bottom:7px;margin-bottom:6px}
+.mn-btn{border-bottom:1px solid rgba(217,190,122,.16);border-radius:2px}
+.mn-btn:hover{background:rgba(217,190,122,.1)}
+.mn-btn b{font-family:var(--f-head)}
+.mn-btn.on{background:linear-gradient(180deg,#E2C886,#B08A3E);color:var(--band);border-bottom-color:transparent;
+  box-shadow:inset 0 0 0 1px rgba(255,240,200,.5),0 4px 14px -6px rgba(0,0,0,.6)}
+.mn-btn.on:hover{background:linear-gradient(180deg,#EED7A0,#C29A48)}
+.mn-btn.on em,.mn-btn.on s{color:rgba(14,27,56,.7)}
+.mn-btn em{color:var(--gold-2)}
+.mn-lead{font:400 clamp(24px,2.6vw,34px)/1.15 var(--f-head);text-align:center;margin:12px auto 0}
+.mn-lead::first-letter{initial-letter:normal;font-weight:400;margin-right:0}
+.mn-dek{text-align:center;margin-left:auto;margin-right:auto;border-top:1px solid rgba(217,190,122,.3)}
+.mn-quote{text-align:center;margin-left:auto;margin-right:auto;border-top:1px solid rgba(217,190,122,.45);
+  font-family:var(--f-head);color:var(--gold-2)}
+.mn-quote b{color:var(--ink-3)}
+.mn-map{border-top:1px solid rgba(217,190,122,.3)}
+.mn-map .rg{fill:#1E3466;stroke:#D9BE7A;stroke-width:1.2;transition:fill var(--t) var(--ease)}
+.mn-map .rg.d3{fill:#284177}
+.mn-map .rg.d1{fill:#172B58}
+.mn-map .rg:hover{fill:#3A5590}
+.mn-map .dot{fill:var(--gold-2)}
+.mn-map .cap{fill:var(--ink-2)}
+.mn-keys{border-top:1px solid rgba(217,190,122,.45)}
+.mn-keys i,.mn-save i{color:var(--gold-2)}
+.mn-facts{border-top:0}
+.mn-facts b{color:var(--gold-2)}
+.mn-save{border:1px solid rgba(217,190,122,.45);background:rgba(217,190,122,.07);border-radius:2px}
+.mn-save b{font-family:var(--f-head)}
+.mn-cards{border-bottom:1px solid rgba(217,190,122,.45);gap:14px;padding:16px 0}
+.mn-card{border:1px solid rgba(217,190,122,.28);background:rgba(255,255,255,.03);text-align:center}
+.mn-card+.mn-card{border-left:1px solid rgba(217,190,122,.28)}
+.mn-card svg.art{filter:drop-shadow(0 0 6px rgba(217,190,122,.18))}
+.mn-card svg.art g[stroke],.mn-card svg.art g{stroke:var(--gold-2)}
+.mn-card b{font:400 13px var(--f-cer);letter-spacing:.26em;color:var(--gold-2);border-bottom:1px solid rgba(217,190,122,.4)}
+.mn-card p{font-family:var(--f-head);color:var(--ink-2)}
+.mn-foot{color:var(--gold-2);opacity:.8}
+@media(max-width:1020px){ .mn-col:nth-child(3){border-left:1px solid rgba(217,190,122,.28);margin-top:0}
+  .mn-card+.mn-card{border-left:1px solid rgba(217,190,122,.28)} }
+@media(max-width:720px){ .mn-col+.mn-col{border-left:1px solid rgba(217,190,122,.28)}
+  .mn-card+.mn-card{border-left:1px solid rgba(217,190,122,.28);border-top:1px solid rgba(217,190,122,.28)}
+  .mn-name h1{font-size:clamp(42px,13vw,64px)} }
+/* ══ конец парадной редакции ══ */
 </style>
 </head>
 <body>
