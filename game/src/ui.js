@@ -566,6 +566,10 @@ function nextSteps(){
   if(imp&&imp.stage&&imp.stage!=='done')add(imp.kind==='you'?'Защищайтесь от импичмента':'Ведите импичмент',
     impStageWord(imp)+'.','К импичменту','askImpeachStage()');
   if(isPM()){
+    if(repDue())add('Отчитайтесь перед Собранием','Год работы кабинета: палата ждёт отчёта. Не отчитаетесь до конца следующего квартала — оппозиция получит повод для вотума.','Отчёт','askReport()');
+    if(S.cabIssue&&CI(S.cabIssue.id))add('Спор в кабинете: '+CI(S.cabIssue.id).title.toLowerCase(),CI(S.cabIssue.id).lead+' Решите до конца квартала, иначе обидятся оба.','Решить','askIssue()');
+    if(S.presDir)add('Поручение президента','Президент поручает '+presDirText(S.presDir)+'. Отказ испортит отношения.','Ответить','askPresDir()');
+    if(!projs().length&&S.treasury>=30&&S.q>=3)add('Запустите национальный проект','Стройка на несколько кварталов с итогом надолго: дороги, больницы, армия, экспорт. Ведёт профильный министр.','Проекты','askProjects()');
     const shaky=coalition().filter(id=>id!==PL&&(S.partners[id]||{}).anger>=3);
     if(shaky.length)add('Удержите партнёра','«'+P(shaky[0]).name+'» на грани выхода из коалиции. Уступка или встреча с лидером снимут напряжение.',
       'Коалиция','askCoalition()');
@@ -716,7 +720,7 @@ function deskLead(){
 }
 function deskPanel(){
   const s=mySeat();
-  if(['pm','vice','lead'].indexOf(s)>=0&&chief())return '';
+  if(['pm','lead'].indexOf(s)>=0&&chief())return '';
   const d=desk(), acts=deskActs(), kp=deskKpis(), path=deskPath(), role=SR(s)||{};
   const rows=acts.map(a=>{ const why=a.ok?a.ok():true;
     const cost=[a.ap===0?'':'ход',a.cap?capCost(a.cap)+' веса':'',a.gold?a.gold+' млрд':'',a.funds?a.funds+' млн':'',
@@ -1817,63 +1821,87 @@ function askPost(post){
    арифметика — она рядом, во «Правительстве», — а работа кабинета:
    кто именно сидит в министерствах и что это даёт стране. */
 function tabPM(){
-  const p=S.pm, mine=isPM(), power=cabinetPower();
-  const tired=POSTS.filter(x=>S.q-minOf(x.id).since>MIN_TERM);
-  const rows=POSTS.map(x=>{ const m=minOf(x.id), pw=minPower(x.id), old=S.q-m.since>MIN_TERM;
-    return `<tr><td><b>${m.name}</b><div class="sub2">${x.name} · ${x.eff}</div></td>
+  const p=S.pm, mine=isPM(), power=cabinetPower(), coh=cohesion();
+  const fv=S.fvp&&minOf(S.fvp);
+  const rows=POSTS.map(x=>{ const m=minOf(x.id), pw=minPower(x.id), old=S.q-m.since>MIN_TERM, ec=minComp(m);
+    return `<tr><td><b>${m.you?'Вы · ':''}${m.name}</b>${S.fvp===x.id?' <span class="tag y">1-й вице</span>':''}
+        <div class="sub2">${x.name}${m.you?'':' · '+MT(m.trait).name.toLowerCase()}</div></td>
       <td>${chip(P(m.party))}</td>
-      <td class="n ${m.comp<40?'bad':m.comp>=72?'good':''}">${m.comp}</td>
+      <td class="n ${ec<40?'bad':ec>=72?'good':''}">${ec}</td>
+      <td class="n ${m.you?'':m.loyal<35?'bad':m.loyal>=70?'good':''}">${m.you?'—':m.loyal}<div class="sub2">${m.you?'':loyalWord(m.loyal)}</div></td>
       <td class="hide-s dim">${old?'<span class="tag y">засиделся</span>':quarters(S.q-m.since)}</td>
       <td class="n ${pw<0?'bad':'good'}">${sign(Math.round(pw*100))}%</td>
-      <td class="r"><button class="btn sm" onclick="askMinister('${x.id}')" ${S.ap&&mine?'':'disabled'}>Кресло</button></td></tr>`;}).join('');
-  const best=POSTS.slice().sort((a,b)=>minOf(b.id).comp-minOf(a.id).comp)[0];
-  const worst=POSTS.slice().sort((a,b)=>minOf(a.id).comp-minOf(b.id).comp)[0];
+      <td class="r"><button class="btn sm" onclick="askMinister('${x.id}')" ${mine&&!m.you?'':'disabled'}>Кресло</button></td></tr>`;}).join('');
 
+  const c=S.cabIssue, ci=c&&CI(c.id);
+  const agenda=ci?panel({cls:'warn',title:'Повестка заседания',meta:'спор ведомств · до конца квартала',body:
+      `<p class="lead"><b>${ci.title}.</b> ${ci.lead}</p>
+       <div class="cols c11" style="margin-top:8px">${[['A',ci.a,ci.A],['B',ci.b,ci.B]].map(([k,post,o])=>{ const m=minOf(post);
+         return `<div class="lever"><i>${POSTS.find(z=>z.id===post).name}</i><b style="font-family:var(--f-head);font-size:15px">${m.you?'Вы':m.name}</b>
+           <span>${o.label}: ${o.hint}</span>
+           ${mine?`<button class="btn sm" onclick="cabDecide('${k}')">Поддержать</button>`:''}</div>`; }).join('')}</div>`,
+      foot:mine?`<button class="btn" onclick="cabDecide('C')" ${S.cap>=3?'':'disabled'}>Компромисс<span class="cost">3</span></button>
+        <span class="hint">Победитель станет вернее, проигравший обидится. Не решите — обидятся оба.</span>`
+        :`<span class="hint">Решает премьер ${p.name}.${mySeat()==='min'&&(S.you.post===ci.a||S.you.post===ci.b)?' Ваше ведомство — сторона спора.':''}</span>
+          ${mySeat()==='min'&&(S.you.post===ci.a||S.you.post===ci.b)?'<button class="btn sm" onclick="askIssueMinister()">Отстоять позицию</button>':''}`})
+    :panel({title:'Повестка заседания',meta:S.cabPrio&&S.cabPrio.until>=S.q?'приоритет до '+shortDate(S.cabPrio.until):'приоритета нет',
+      body:`<p class="hint">Споров ведомств нет. ${S.cabPrio&&S.cabPrio.until>=S.q?'Кабинет работает на «'+CAB_PRIO.find(z=>z.id===S.cabPrio.id).name.toLowerCase()+'».':'Приоритет заседания ускоряет профильные проекты и ведомства.'}</p>`,
+      foot:mine?`<button class="btn" onclick="askCabinet()" ${S.ap&&S.cap>=5?'':'disabled'}>Задать приоритет<span class="cost">5</span></button>`:''});
+
+  const pr=projs().map(x=>{ const n=NP(x.id), m=minOf(x.post);
+    return `<tr><td><b>${n.name}</b><div class="sub2">${POSTS.find(z=>z.id===x.post).name} · ${m?(m.you?'вы':m.name):''}${x.vice?' · под контролем вице-премьера':''}</div>
+        <div class="meter" style="margin-top:4px"><i style="width:${x.prog}%;background:var(--gold)"></i></div></td>
+      <td class="n">${x.prog}%</td><td class="n hide-s">+${projRate(x)}</td><td class="n hide-s">${n.cost}</td><td class="n">${quarters(projEta(x))}</td>
+      <td class="r">${mine?`<button class="btn sm ghost" onclick="projCancel('${x.id}')">Закрыть</button>`:''}</td></tr>`; }).join('');
+  const done=(S.projDone||[]).map(x=>`<span class="tag g">${NP(x.id).name} · ${shortDate(x.q)}</span>`).join(' ');
+  const projPanel=panel({title:'Национальные проекты',meta:projs().length+' из '+PROJ_MAX+' в работе',flush:true,
+    body:(pr?`<div class="scrollx"><table><thead><tr><th>Проект</th><th class="n">Готов</th><th class="n hide-s">В квартал</th>
+        <th class="n hide-s">Млрд/кв</th><th class="n">Осталось</th><th></th></tr></thead><tbody>${pr}</tbody></table></div>`
+      :'<div class="empty">Проектов нет. Проект — это стройка на несколько кварталов: ведёт профильный министр, платит казна, итог остаётся стране надолго.</div>')
+      +(done?`<div style="padding:8px 12px">${done}</div>`:''),
+    foot:mine?`<button class="btn pri" onclick="askProjects()" ${S.ap&&S.cap>=PROJ_LAUNCH&&projs().length<PROJ_MAX?'':'disabled'}>Запустить проект<span class="cost">${PROJ_LAUNCH}</span></button>
+      <span class="hint">Скорость — от компетентности министра, сплочённости и приоритета заседания. Нечестный министр уводит часть сметы.</span>`:''});
+
+  const pd=S.presDir;
+  const presPanel=cohab()?panel({cls:pd?'warn':'',title:'Президент и кабинет',meta:inCoal(S.pres.party)?'президент от партнёра':'сожительство',body:
+      `<div class="res" style="margin-top:0"><span>Президент</span><b class="w">${S.pres.name} · «${P(S.pres.party).short}»</b>
+        <span>Отношения</span><b class="${S.presRel<40?'bad':S.presRel>=60?'good':''}">${Math.round(S.presRel)}</b>
+        ${pd?`<span>Поручение</span><b class="w">${presDirText(pd)}</b>`:''}</div>
+       <p class="hint">Президент чужой партии раздаёт кабинету поручения. Исполнять не обязательно, но он подписывает ваши законы.</p>`,
+      foot:pd?`<button class="btn" onclick="askPresDir()">Ответить на поручение</button>`:''}):'';
+
+  const rd=mine&&S.repDue!=null;
   return panel({cls:mine?'lead-p':'info',title:mine?'Правительство под вашим началом':'Кабинет ведёт не ваша партия',
     meta:'мандат от Собрания',body:
     `<div class="cols c12"><div>
-      <div class="stat"><i>${P(p.party).name}</i><div class="v" style="font-family:var(--f-display);font-size:23px;letter-spacing:0">${p.name}</div>
+      <div class="stat"><i>${P(p.party).name}</i><div class="v" style="font-family:var(--f-head);font-size:24px;letter-spacing:0">${p.name}</div>
         <span>премьер-министр · ${quarters(S.q-p.since)} в должности</span></div>
+      <div class="stat"><i>сплочённость кабинета</i><div class="v ${coh<35?'bad':''}">${coh}<u>${cohWord(coh)}</u></div>
+        <span>средняя верность министров премьеру</span></div>
      </div><div>
       <div class="res" style="margin:0">
         <span>Сила кабинета</span><b class="${power<0?'bad':'good'}">${sign(Math.round(power*100))}%</b>
+        <span>Первый вице-премьер</span><b class="w">${fv?fv.name+' · '+POSTS.find(z=>z.id===S.fvp).name.toLowerCase():'не назначен'}</b>
         <span>Опора в Собрании</span><b class="${coalSeats()>=MAJ?'good':'bad'}">${coalSeats()} · нужно ${MAJ}</b>
         <span>Опора в Сенате</span><b class="${senCoalSeats()>=SEN_MAJ?'good':'bad'}">${senCoalSeats()} · нужно ${SEN_MAJ}</b>
+        ${rd?`<span>Отчёт перед Собранием</span><b class="${repDue()?'bad':''}">${repDue()?'в этом квартале':dateLabel(S.repDue)}</b>`:''}
         <span>Перестановок</span><b>${p.reshuffles||0}</b>
         <span>Вотум недоверия</span><b class="w">${S.noConfCool>0?'не раньше чем через '+S.noConfCool:'возможен'}</b></div>
-      <p class="hint">Сила кабинета — среднее по шести ведомствам. Она не политика, а качество работы:
-        сильный министр вытягивает свою статью, слабый тянет вниз даже при верной программе.</p>
-     </div></div>`})
+      <p class="hint">Сплочённость — это то, насколько министры готовы работать на вас: верный министр тянет ведомство и проект,
+        обиженный — срывается в интервью, уходит, метит в ваше кресло.</p>
+     </div></div>`,
+    foot:mine?`<button class="btn" onclick="askFvp()">Первый вице-премьер</button>
+      ${repDue()?`<button class="btn pri" onclick="askReport()">Отчитаться перед Собранием</button>`:''}`:''})
+  +agenda
   +panel({title:'Министры',meta:mine?'перестановка — '+PM_COST+' веса':'кресла не ваши',flush:true,
-    body:`<div class="scrollx"><table><thead><tr><th>Министр</th><th>Фракция</th><th class="n">Компет.</th>
+    body:`<div class="scrollx"><table class="mins"><thead><tr><th>Министр</th><th>Фракция</th><th class="n">Компет.</th><th class="n">Верность</th>
       <th class="hide-s">В должности</th><th class="n">Вклад</th><th></th></tr></thead><tbody>${rows}</tbody>
-      <caption>Партия портфеля — это коалиция; человек в кресле — это работа ведомства. Заменить министра
-        можно, не трогая расклад: та же фракция, другое лицо. После ${quarters(MIN_TERM)} в должности
-        министр начинает выдыхаться.</caption></table></div>`})
-  +`<div class="cols c11"><div>`
-  +panel({cls:tired.length?'warn':'',title:'Что требует внимания',body:
-    tired.length
-      ? `<p class="lead">Засиделись: ${tired.map(x=>x.name.toLowerCase()).join(', ')}.</p>
-         <p>Каждое такое кресло отнимает у ведомства шесть процентов отдачи. Перестановка возвращает их
-            и обычно приводит человека сильнее — но фракция, чей министр ушёл, это заметит.</p>`
-      : `<p class="lead">Кабинет свежий: никто не пересидел срок.</p>
-         <p class="hint">Присматривайте за компетентностью: она важнее партийной принадлежности
-            там, где нужен результат, а не голоса.</p>`,
-    foot:tired.length&&mine?`<button class="btn pri" onclick="askMinister('${tired[0].id}')" ${S.ap&&S.cap>=PM_COST?'':'disabled'}>Заняться креслом<span class="cost">${PM_COST}</span></button>`:''})
-  +`</div><div>`
-  +panel({title:'Сильное и слабое звено',body:
-    `<div class="dep"><div class="who"><b>${minOf(best.id).name}</b>
-        <span>${best.name} · ${minWord(minOf(best.id))}</span></div>
-       <b class="num-s good">${minOf(best.id).comp}</b></div>
-     <div class="dep"><div class="who"><b>${minOf(worst.id).name}</b>
-        <span>${worst.name} · ${minWord(minOf(worst.id))}</span></div>
-       <b class="num-s bad">${minOf(worst.id).comp}</b></div>
-     <p class="hint" style="margin-top:8px">Министр финансов прямо меняет сборы, остальные — свои статьи
-       и настроение групп, которые за ними следят.</p>`,
-    foot:`<button class="btn" data-go="gov">К коалиции и портфелям</button>`})
-  +`</div></div>`;
+      <caption>Компетентность — с поправкой на характер: технократ сильнее, аппаратчик слабее. Верность — премьеру:
+        она растёт, когда вы встаёте на сторону министра, и падает, когда его партия обижена или кабинет теряет одобрение.
+        После ${quarters(MIN_TERM)} в должности министр выдыхается.</caption></table></div>`})
+  +`<div class="cols c21"><div>${projPanel}</div><div>${presPanel||panel({title:'Характеры министров',body:
+      MIN_TRAITS.map(t=>`<div class="dep"><div class="who"><b>${t.name}</b><span>${t.txt}</span></div></div>`).join('')})}</div></div>`;
 }
-
 /* ─── 8 · Президент ──────────────────────────────────────────────
    Отдельная власть с отдельным сроком: подписывает или заворачивает
    законы, поручает кабинет, распускает Собрание, правит указами.
@@ -2736,8 +2764,20 @@ function helpBody(){
       а при независимой прокуратуре или суде может обернуться новым скандалом. Если дело против вас, а в регламенте есть
       неприкосновенность, палата сначала решает, снимать ли её. Приговор вам — потеря кресла и мандата и запрет выдвигаться
       на восемь кварталов; апелляция — один раз. Громкие скандалы соперников тоже доходят до суда, и власть может их подтолкнуть.</p>
+    <h3 class="sub">Правительство: министры, заседание, проекты, отчёт</h3>
+    <p>У каждого министра характер (технократ, аппаратчик, популист, ястреб, реформатор, карьерист, человек капитала),
+      верность премьеру, амбиции и репутация. Компетентность с поправкой на характер и верность решают, как работает ведомство:
+      МВД гасит напряжённость, оборона держит стабильность, экономика тянет инвестиции, соцзащита — пенсионеров и рабочих, МИД — соседей.
+      Сплочённость кабинета — средняя верность министров. На заседании ведомства спорят; премьер встаёт на одну сторону
+      (победитель вернее, проигравший обижен), идёт на компромисс за 3 веса или откладывает — тогда к концу квартала обижены оба.
+      Обиженный министр срывается в интервью или уходит, карьерист при слабом одобрении метит в премьеры, человек капитала
+      приводит инвесторов вместе со следом денег. Национальный проект — стройка на несколько кварталов: ведёт профильный министр,
+      платит казна, нечестный министр уводит часть сметы; сданный проект даёт стране плоды надолго. Раз в год премьер отчитывается
+      перед Собранием и выбирает тон. Первый вице-премьер ускоряет проекты и сплачивает кабинет, но может стать преемником.
+      Президент чужой партии раздаёт кабинету поручения. Министр и вице-премьер видят ту же кухню изнутри: свой проект,
+      интрига, спор на заседании, координация и контроль проектов.</p>
     <h3 class="sub">Наследие: достижения, биография, последняя полоса</h3>
-    <p>Двадцать достижений собраны по креслам: кабинет, президентство, край и город, палаты, путь. Они открываются сами,
+    <p>Двадцать одно достижение собрано по креслам: кабинет, президентство, край и город, палаты, путь. Они открываются сами,
       а список с отметками — в «Моём политике» рядом с биографией, которая пишется из карьеры и летописи.
       Когда карьера заканчивается, выходит последняя полоса: заголовок, биография, цифры эпохи, что о вас писали,
       достижения. Зал славы на этом устройстве помнит все прожитые партии; он виден и в «Статистике» на титульном экране.</p>

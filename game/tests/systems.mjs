@@ -181,4 +181,31 @@ r=await ev(()=>{ localStorage.removeItem(REC_KEY); S.held={pm:1}; S.startSeat='n
   return {got:got.join(','), paper:!!document.querySelector('#view .paper'), rec:records().length, bio:bioText().length,
     head:(document.querySelector('#view .paper-h')||{}).textContent}; });
 check('наследие: достижения, полоса, зал славы', /climb/.test(r.got)&&/dealer/.test(r.got)&&r.paper&&r.rec===1&&r.bio>=3, r.got+' · '+r.head);
+
+await boot(page,{role:'pm'});
+r=await ev(()=>{ const ms=npcMins(); return {n:ms.length, ok:ms.every(m=>m.trait&&m.loyal!=null&&m.amb!=null&&m.integ!=null), coh:cohesion()}; });
+check('правительство: министры с характером', r.n===6&&r.ok&&r.coh>0, r.n+' министров · сплочённость '+r.coh);
+r=await ev(()=>{ S.cabIssue={id:'cuts',q:S.q,left:1}; const f0=minOf('fin').loyal, s0=minOf('soc').loyal; cabDecide('A');
+  return {f:minOf('fin').loyal-f0, s:minOf('soc').loyal-s0, left:!!S.cabIssue}; });
+check('правительство: спор министров', r.f>0&&r.s<0&&!r.left, 'финансы '+(r.f>0?'+':'')+r.f+' · соцзащита '+r.s);
+r=await ev(()=>{ S.ap=3; S.cap=60; S.treasury=200; const i0=S.econ.invest; const ok=projStart('roads');
+  const p=projLive('roads'); p.prog=95; projTick(); const m=document.getElementById('modal'); m.classList.remove('show'); mopen=false; mq.length=0;
+  return {ok, done:projDone('roads'), inv:Math.round(S.econ.invest-i0), live:projs().length}; });
+check('правительство: национальный проект', r.ok&&r.done&&r.inv>=8&&r.live===0, 'сдан · инвестиции +'+r.inv);
+r=await ev(()=>{ S.repDue=S.q; askReport(); const t=document.querySelector('#msheet h2').textContent; document.querySelector('#msheet .opt').click();
+  return {t, due:S.repDue-S.q, n:cntOf('report')}; });
+check('правительство: отчёт перед Собранием', r.t==='Отчёт правительства'&&r.due===4&&r.n===1, r.t+' · следующий через '+r.due);
+r=await ev(()=>{ const other=S.parties.find(p=>p.id!==PL); S.pres.party=other.id; S.presRel=40;
+  S.presDir={k:'spend',id:'def',q:S.q}; const d0=S.spend.def; askPresDir(); document.querySelector('#msheet .opt').click();
+  return {d:S.spend.def-d0, rel:S.presRel, cohab:cohab()}; });
+check('правительство: поручение президента', r.cohab&&r.d===1&&r.rel===50, 'оборона +'+r.d+' · отношения '+r.rel);
+r=await ev(()=>{ const m=npcMins()[0]; S.cap=60; askFvp(); document.querySelector('#msheet .opt').click(); return {fvp:S.fvp, coh:cohesion()}; });
+check('правительство: первый вице-премьер', !!r.fvp, r.fvp+' · сплочённость '+r.coh);
+await settle(page);
+await boot(page,{role:'min',pick:1});
+r=await ev(()=>deskActs().map(a=>a.id).filter(id=>id==='myproj'||id==='intrigue').length);
+check('правительство: стол министра', r===2, 'новых рычагов '+r);
+r=await ev(()=>{ S.you.seat='vice'; S.desk=null; return deskActs().map(a=>a.id).join(','); });
+check('правительство: стол вице-премьера', /coord/.test(r)&&/curate/.test(r)&&/mediate/.test(r), r);
+await settle(page);
 await done(browser,errors,fails);

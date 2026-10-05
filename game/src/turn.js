@@ -1678,20 +1678,26 @@ function reshuffle(post){
   render();
 }
 function askMinister(post){
-  const m=minOf(post), pn=POSTS.find(x=>x.id===post);
+  const m=minOf(post), pn=POSTS.find(x=>x.id===post), t=MT(m.trait), mine=isPM()&&!m.you;
+  const opts=[{label:'Заменить министра',hint:PM_COST+' веса · та же партия, другой человек',fn:()=>reshuffle(post)},
+    {label:'Поговорить с глазу на глаз',hint:'3 веса · верность +8',fn(){ if(!payCap(3))return; loyalShift(post,8); logMsg('Премьер поговорил с министром '+m.name+'.'); render(); }},
+    {label:'Передать портфель другой фракции',hint:'политическое решение, меняет коалицию',fn:()=>askPost(post)}];
+  if(S.fvp!==post)opts.push({label:'Сделать первым вице-премьером',hint:'4 веса · верность +15 · амбиции растут',fn(){ if(!payCap(4))return;
+    S.fvp=post; m.loyal=clamp(m.loyal+15,0,100); m.amb=clamp(m.amb+8,0,100); logMsg(m.name+' — первый вице-премьер.',1); render(); }});
+  opts.push({label:'Оставить',hint:'не тратить квартал',fn(){}});
   sheetOpen({eye:'Министерство · '+pn.name,title:m.name,
-    body:`<div class="res"><span>Ведомство даёт</span><b class="w">${pn.eff}</b>
+    body:`<p class="lead">${t.name}: ${t.txt}.</p>
+      <div class="res"><span>Ведомство даёт</span><b class="w">${pn.eff}</b>
         <span>Партия</span><b class="w">${P(m.party).name}</b>
-        <span>Компетентность</span><b class="${m.comp<40?'bad':m.comp>=72?'good':''}">${m.comp} · ${minWord(m)}</b>
+        <span>Компетентность</span><b class="${minComp(m)<40?'bad':minComp(m)>=72?'good':''}">${minComp(m)} · ${minWord({comp:minComp(m)})}</b>
+        <span>Верность вам</span><b class="${m.loyal<35?'bad':m.loyal>=70?'good':''}">${m.loyal} · ${loyalWord(m.loyal)}</b>
+        <span>Амбиции</span><b class="${m.amb>=72?'bad':''}">${m.amb>=72?'метит выше':m.amb>=45?'обычные':'скромные'}</b>
+        <span>Репутация</span><b class="${m.integ<35?'bad':''}">${m.integ<35?'о нём шепчутся':m.integ<60?'обычная':'безупречная'}</b>
         <span>В должности</span><b>${quarters(S.q-m.since)}</b>
         <span>Вклад ведомства</span><b class="${minPower(post)<0?'bad':'good'}">${sign(Math.round(minPower(post)*100))}%</b></div>
-      <p class="hint">${S.q-m.since>MIN_TERM
-        ? 'Министр засиделся: после двух лет в кресле ведомство работает хуже, чем могло бы.'
-        : 'Компетентность министра усиливает или гасит эффект ведомства. Партия портфеля при этом не меняется.'}</p>`,
-    opts:[
-      {label:'Заменить министра',hint:PM_COST+' веса · та же партия, другой человек',fn:()=>reshuffle(post)},
-      {label:'Передать портфель другой фракции',hint:'политическое решение, меняет коалицию',fn:()=>askPost(post)},
-      {label:'Оставить',hint:'не тратить квартал',fn(){}}]});
+      <p class="hint">${S.q-m.since>MIN_TERM?'Министр засиделся: после двух лет в кресле ведомство работает хуже, чем могло бы.'
+        :'Компетентность и верность министра усиливают или гасят эффект ведомства и скорость его проектов.'}</p>`,
+    opts:mine?opts:[{label:'Закрыть',hint:''}]});
 }
 
 /* ═══ ГЛАВЫ СУБЪЕКТОВ ═════════════════════════════════════════════
@@ -2581,7 +2587,7 @@ function endQuarter(){
   powerTick();
   campEventTick();
   mediaTick();
-  rivalsTick(); regionsTick(); achvTick();
+  rivalsTick(); regionsTick(); cabinetTick(); achvTick();
   offerTick();
   pressTick();
   judgeTick();
@@ -2928,7 +2934,7 @@ const SAVE='novaria.save.v1';
    наследство до версий: проверки «если поля нет». Новое изменение
    формата — новая запись в MIGRATIONS со следующим номером; load()
    прогоняет записи новее сохранения по порядку и ставит текущую. */
-const SAVE_VER=4;
+const SAVE_VER=5;
 const MIGRATIONS=[
   {v:2, why:'списки сделок, скандалов и дел капитала', run(){
     S.deals=S.deals||[]; S.scandals=S.scandals||[]; S.bizLog=S.bizLog||[]; S.senLog=S.senLog||[]; }},
@@ -2936,6 +2942,8 @@ const MIGRATIONS=[
     if(S.probe&&!S.probe.stage)S.probe={...S.probe,stage:'check',left:1,ev:Math.round(clamp(trail()*0.5+18,5,95)),src:'trail',used:{}};
     S.rcases=S.rcases||[]; }},
   {v:4, why:'мэры, автономия, сепаратизм и суверенитет краёв', run(){ regInit(); }},
+  {v:5, why:'министры с характером, национальные проекты, отчёт правительства', run(){
+    if(S.ministers)Object.values(S.ministers).forEach(m=>minFill(m)); S.proj=S.proj||[]; S.projDone=S.projDone||[]; }},
 ];
 function save(){ try{ S.ver=SAVE_VER; localStorage.setItem(SAVE,JSON.stringify(S)); }catch(e){} }
 function migrate(){

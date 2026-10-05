@@ -897,6 +897,22 @@ tr.hd+tr td{border-top:0}
   table.people td:nth-child(5){grid-area:pos;justify-self:end} table.people td:nth-child(6){grid-area:btn}
   table.people caption{display:block}
 }
+/* министры на телефоне: имя и характер слева, цифры справа, «Кресло» всегда видно */
+@media(max-width:560px){
+  table.mins,table.mins tbody{display:block;width:100%}
+  table.mins thead{display:none}
+  table.mins tr{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;
+    grid-template-areas:"who party pw btn" "who comp loyal btn";column-gap:var(--x4);row-gap:2px;align-items:center;
+    padding:6px var(--x4);border-bottom:var(--hair-2)}
+  table.mins td{height:auto;padding:0;border:0}
+  table.mins td:nth-child(1){grid-area:who} table.mins td:nth-child(2){grid-area:party;justify-self:end}
+  table.mins td:nth-child(3){grid-area:comp;justify-self:end} table.mins td:nth-child(4){grid-area:loyal;justify-self:end;text-align:right}
+  table.mins td:nth-child(5){display:none} table.mins td:nth-child(6){grid-area:pw;justify-self:end}
+  table.mins td:nth-child(7){grid-area:btn}
+  table.mins td:nth-child(3)::before{content:'комп. ';font:400 10px var(--f-cond);color:var(--ink-3)}
+  table.mins td:nth-child(4) .sub2{display:inline;margin-left:4px}
+  table.mins caption{display:block}
+}
 /* комитеты в узкой колонке и на телефоне: комитет и председатель рядом, кнопки строкой ниже */
 @media(max-width:1180px){
   table.comm,table.comm tbody{display:block;width:100%}

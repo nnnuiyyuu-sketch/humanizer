@@ -94,8 +94,9 @@ function minOf(post){ return S.ministers?S.ministers[post]:null; }
 function minPower(post){
   const m=minOf(post); if(!m)return 0;
   // доля, а не разы: даже блестящий министр правит ведомство на десятую часть
-  let v=(m.comp-50)*0.0035;
+  let v=((typeof minComp==='function'?minComp(m):m.comp)-50)*0.0035;
   if(m.party===PL)v+=0.025; else if(inCoal(m.party))v+=0.012;
+  if(m.loyal!=null)v+=(m.loyal-50)*0.0006;    // министр, который не верит премьеру, работает вполсилы
   if(S.q-m.since>MIN_TERM)v-=0.03;          // засидевшийся министр выдыхается
   return r2(clamp(v,-0.13,0.15));
 }
@@ -778,7 +779,8 @@ function seatVP(party,name,who){
    Премьер и министры заводятся людьми: у портфеля есть не только
    партия, но и фамилия, компетентность и срок в должности. */
 function makeMinister(post,party){
-  return {post, party, name:depName(), comp:ri(30,86), since:S.q};
+  const m={post, party, name:depName(), comp:ri(30,86), since:S.q};
+  return typeof minFill==='function'?minFill(m):m;              // характер, верность и амбиции — в cabinet.js
 }
 function seedCabinet(){
   S.pm={party:S.gov.lead, name:pmName(S.gov.lead), since:S.q, reshuffles:0};
@@ -874,7 +876,8 @@ function revenue(){
   if(S.gov.posts.fin===PL||inCoal(S.gov.posts.fin))v*=1.06;
   v*=1+minPower('fin');                       // министр финансов, а не только его фракция
   v*=clamp(1-avgUnrest()*0.004,0.7,1);
-  if(typeof regRevenueCut==='function')v*=1-regRevenueCut();   // автономные и суверенные края оставляют налоги себе
+  if(typeof regRevenueCut==='function')v*=1-regRevenueCut();
+  if(typeof projDone==='function'&&projDone('digital'))v*=1.03;   // цифровое государство собирает лучше   // автономные и суверенные края оставляют налоги себе
   return r1(v);
 }
 function outlay(){

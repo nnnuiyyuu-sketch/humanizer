@@ -23,6 +23,7 @@ function fpDemand(){
     if(sancOn(x.id))v-=x.power*7*(st.sanc.soft?0.5:1);
     if(ourSanc(x.id))v-=x.trade*4;
     const c=crisisWith(x.id); if(c)v-=x.power*3*c.stage; });
+  if(typeof projDone==='function'&&projDone('export'))v+=3;      // экспортный коридор
   return r1(v);
 }
 /* горячая граница: к давлению отношений прибавляется кризис */
@@ -153,7 +154,7 @@ function askCrisis(){
   const c=S.bcrisis; if(!c)return;
   const x=NB_(c.nb), st=nbOf(c.nb), med=mediator(c.nb);
   const dip=clamp(0.55+(st.treaty?0.15:0)+(hasTrait('diplo')?0.12:0)+(st.rel-25)*0.006,0.2,0.9);
-  const force=clamp(0.25+S.spend.def*0.12-(x.power-1)*0.15,0.1,0.85);
+  const force=clamp(0.25+S.spend.def*0.12-(x.power-1)*0.15+(typeof projDone==='function'&&projDone('army')?0.15:0),0.1,0.9);
   const opts=[{label:'Дипломатия',hint:'ход и 6 веса · шанс '+Math.round(dip*100)+'%',fn(){
       if(!pay({ap:1,cap:6},'Переговоры о границе'))return;
       if(Math.random()<dip){ cnt('peace'); return bcrisisEnd('Переговоры сняли напряжение на границе.',5); }

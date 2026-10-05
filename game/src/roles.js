@@ -235,6 +235,7 @@ function roleTick(){
   else if(s==='sen')deskSen(d);
   else if(s==='pres')deskPres(d);
   else if(s==='vp')deskVP(d);
+  else if(s==='vice')deskVice(d);
   else if(s==='dep'||s==='none'){
     d.home=clamp(r1(d.home+(regApproval(d.rid)*0.7+14-d.home)*0.12),0,100);
     d.score=clamp(r1(chief()?approval():(S.you.inf+d.home)/2),0,100);
@@ -328,10 +329,12 @@ function deskActs(){
   if(s==='min'){
     const post=S.you.post||d.post, md=MIN_DESK[post];
     if(md)md.acts.forEach(a=>A({...a, run:(x)=>minRun(a.id,x)}));
+    minActsExtra(A,d,post);
     A({id:'report',name:'Доклад в Собрании',cap:4,txt:'цифра в порядке — оценка растёт; нет — падает',
       run(){ const k=minKpi(post); d.score=clamp(d.score+(k.ok?7:-5),0,100); bumpRep('comp',k.ok?2:-1);
         return 'Доклад министра в Собрании: '+(k.ok?'палата довольна':'палата недовольна цифрами')+'.'; }});
   }
+  if(s==='vice')viceActs(A,d);
   if(s==='pres'){
     A({id:'msg',name:'Послание Собранию',cap:10,txt:'стабильность и доверие; кабинет охотнее исполняет поручения',
       ok:()=>d.msg?'Послание уже прозвучало в этом году':true,
@@ -559,6 +562,7 @@ function deskPick(a){
   if(a.pick==='nb')opts=NEIGHBOURS.map(x=>({label:x.name,hint:'отношения '+Math.round(nbOf(x.id).rel)+' · '+nbWord(nbOf(x.id).rel),fn:go(x.id)}));
   if(a.pick==='minister')opts=POSTS.filter(p=>minOf(p.id)&&minOf(p.id).name!==S.you.name).map(p=>{ const m=minOf(p.id);
     return {label:p.name+' · '+m.name,hint:P(m.party).short+' · '+minWord(m),fn:go(p.id)}; });
+  if(a.pick==='proj')opts=projs().map(p=>({label:NP(p.id).name,hint:'готовность '+p.prog+'% · ведёт '+POSTS.find(z=>z.id===p.post).name.toLowerCase(),fn:go(p.id)}));
   if(a.pick==='party')opts=S.parties.filter(p=>senSeatsOf(p.id)>0).map(p=>({label:p.name,hint:senSeatsOf(p.id)+' в Сенате',fn:go(p.id)}));
   if(a.pick==='press')opts=PRESS.map(o=>({label:o.name,hint:'отношение '+Math.round(pressOf(o.id).rel),fn:go(o.id)}));
   if(a.pick==='glaw')opts=GOV_LAWS.map(l=>({label:l.name+(desk().law&&desk().law.id===l.id?' · действует':''),hint:l.hint,fn:go(l.id)}));
