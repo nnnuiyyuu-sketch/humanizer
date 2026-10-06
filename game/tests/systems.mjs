@@ -207,5 +207,27 @@ r=await ev(()=>deskActs().map(a=>a.id).filter(id=>id==='myproj'||id==='intrigue'
 check('правительство: стол министра', r===2, 'новых рычагов '+r);
 r=await ev(()=>{ S.you.seat='vice'; S.desk=null; return deskActs().map(a=>a.id).join(','); });
 check('правительство: стол вице-премьера', /coord/.test(r)&&/curate/.test(r)&&/mediate/.test(r), r);
+
+await settle(page);
+await boot(page,{role:'pm'});
+r=await ev(()=>{ S.botLog=[]; for(let i=0;i<6;i++){ botsTick(); const m=document.getElementById('modal'); m.classList.remove('show'); mopen=false; mq.length=0; S.q++; }
+  return {n:(S.botLog||[]).length, feed:(()=>{ S.tab='fac'; render(); return /Ход соперников/.test(document.getElementById('view').textContent); })()}; });
+check('боты: штабы ходят', r.n>=3&&r.feed, 'ходов за 6 кварталов '+r.n);
+r=await ev(()=>{ let best=null; TOPICS.filter(z=>!z.special).forEach(t=>[-2,-1,1,2].forEach(st=>{ newBill(t.id); S.bill.stance=st;
+    const y=tally(S.bill).yes; if(y>=MAJ-40&&y<MAJ&&(!best||y>best.y))best={t:t.id,st,y}; }));
+  if(!best)return {skip:true};
+  newBill(best.t); S.bill.stance=best.st; S.botOfferQ=null; const rr=Math.random; Math.random=()=>0.1; botOffer(); Math.random=rr;
+  const t=(document.querySelector('#msheet h2')||{}).textContent||''; return {t, disc:!!S.dealDisc}; });
+check('боты: лидер сам предлагает сделку', r.skip||(/предлагает сделку/.test(r.t)&&r.disc), r.skip?'нет подходящего проекта':r.t);
+await settle(page);
+r=await ev(()=>{ S.bill=null; const p=S.parties.filter(x=>x.id!==PL).sort(bySeats)[0]; p.askedQ=null; S.botAskQ=null; botAsk(p);
+  const t=(document.querySelector('#msheet h2')||{}).textContent||''; return {t, asked:p.askedQ===S.q}; });
+check('боты: просьба о голосах', !r.asked||r.t==='Просьба о голосах', r.asked?r.t:'ваши голоса не решают');
+await settle(page);
+await boot(page,{role:'dep',pick:2});
+r=await ev(()=>{ S.trail=80; S.probe=null; const rr=Math.random; Math.random=()=>0.01; botGovTick(); Math.random=rr;
+  const m=document.getElementById('modal'); m.classList.remove('show'); mopen=false; mq.length=0; return {probe:!!S.probe, inCoal:inCoal(PL)}; });
+check('боты: кабинет натравливает прокуратуру', r.inCoal||r.probe, r.inCoal?'вы в коалиции':'дело открыто');
+await settle(page);
 await settle(page);
 await done(browser,errors,fails);

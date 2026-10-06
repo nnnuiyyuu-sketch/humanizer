@@ -81,6 +81,7 @@ function dealDemand(pid,house,sb){
   base+=inCoal(pid)&&inCoal(PL)?-5:4;
   base-=(L.rel-50)*0.25+(L.trust-50)*0.15;
   if(L.owe)base-=10;                                                      // за ними должок
+  if(S.dealDisc&&S.dealDisc.pid===pid&&S.dealDisc.q===S.q)base-=6;        // лидер сам пришёл с предложением
   // вице, занятый Сенатом, договаривается с сенаторами сам
   if(house==='s'&&S.vp&&(S.vp.party===PL||inCoal(S.vp.party)&&inCoal(PL))&&S.vp.job==='senate')base-=vpSkill()*0.1;
   return Math.max(3,Math.round(base));

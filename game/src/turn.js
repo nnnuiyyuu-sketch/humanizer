@@ -2587,7 +2587,7 @@ function endQuarter(){
   powerTick();
   campEventTick();
   mediaTick();
-  rivalsTick(); regionsTick(); cabinetTick(); achvTick();
+  rivalsTick(); regionsTick(); cabinetTick(); botsTick(); achvTick();
   offerTick();
   pressTick();
   judgeTick();

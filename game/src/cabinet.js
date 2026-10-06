@@ -347,7 +347,7 @@ function projTick(){
     return true;
   });
   // чужой кабинет тоже строит
-  if(!isPM()&&projs().length<1&&Math.random()<0.15){
+  if(!isPM()&&projs().length<PROJ_MAX&&Math.random()<(projs().length?0.12:0.35)){
     const free=NPROJ.filter(x=>!projDone(x.id)&&!projLive(x.id));
     if(free.length)projStart(pick(free).id,S.gov.lead);
   }
