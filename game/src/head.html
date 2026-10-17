@@ -533,6 +533,16 @@ input:focus,select:focus{outline:2px solid var(--mark);outline-offset:-1px}
 .nbc-a{margin:0}
 .nbc footer{display:flex;gap:var(--x3);margin-top:3px}
 .dipc~.legend .chip{white-space:normal}
+.btn.lock .cost,.btn.lock .cost *{opacity:1;font-family:var(--f-body);font-size:10.5px;letter-spacing:0;white-space:nowrap}
+.opt.off{opacity:.5;cursor:not-allowed}
+.opt.off:hover{background:var(--surface);padding-left:0;box-shadow:none}
+.nopow{margin-top:8px}
+/* ── влияние: шкала с уровнями ── */
+.infbar{position:relative;height:16px;background:var(--surface-3);border:1px solid var(--line-2);margin-top:6px}
+.infbar b{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--ink-3),var(--gold))}
+.infbar s{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink);text-decoration:none}
+.infbar u{position:absolute;top:0;bottom:0;width:1px;background:var(--line);opacity:.5;text-decoration:none}
+.infbar u i{position:absolute;top:18px;left:-8px;font:400 10px var(--f-num);font-style:normal;color:var(--ink-3)}
 @media (max-width:860px){ .paper-cols{grid-template-columns:1fr} .paper-cols section+section{border-left:0;padding-left:0;border-top:var(--hair);padding-top:var(--x5)}
   .paper-h{font-size:28px} .paper-mast b{font-size:26px} .paper{padding:var(--x5)} }
 @media (max-width:520px){ .roles{grid-template-columns:1fr} }

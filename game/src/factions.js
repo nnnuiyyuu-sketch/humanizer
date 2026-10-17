@@ -81,6 +81,7 @@ function dealDemand(pid,house,sb){
   base+=inCoal(pid)&&inCoal(PL)?-5:4;
   base-=(L.rel-50)*0.25+(L.trust-50)*0.15;
   if(L.owe)base-=10;                                                      // за ними должок
+  base-=cloutDealDisc();                                                  // влиятельному уступают охотнее
   if(S.dealDisc&&S.dealDisc.pid===pid&&S.dealDisc.q===S.q)base-=6;        // лидер сам пришёл с предложением
   // вице, занятый Сенатом, договаривается с сенаторами сам
   if(house==='s'&&S.vp&&(S.vp.party===PL||inCoal(S.vp.party)&&inCoal(PL))&&S.vp.job==='senate')base-=vpSkill()*0.1;
@@ -163,7 +164,8 @@ function askDealWith(pid,house,sb){
 function offerDeal(pid,house,sb,x){
   const key=subjKey(sb);
   if(!dealRoundPaid(key)){
-    if(!pay({ap:1,cap:DEAL_CAP},'Переговоры: '+subjName(sb)))return;
+    if(cloutFavor())logMsg('Звонок сработал: раунд переговоров без хода и веса.');
+    else if(!pay({ap:1,cap:DEAL_CAP},'Переговоры: '+subjName(sb)))return;
     S.dealRound=S.dealRound||{}; S.dealRound[key]=S.q;
   } else if(!pay({cap:DEAL_CAP},'Переговоры'))return;
   const L=flLeader(pid,house), dem=dealDemand(pid,house,sb), ch=dealChance(dem,x.v), p=P(pid);
@@ -183,7 +185,7 @@ function offerDeal(pid,house,sb,x){
   S.deals=(S.deals||[]).filter(z=>!(z.pid===pid&&z.house===house&&z.key===key)).concat([d]); cnt('deals');
   if(S.deals.length>60)S.deals=S.deals.slice(-60);
   L.owe=0; L.rel=clamp(L.rel+(x.id==='favor'?-12:4),0,100);
-  if(!chief())S.you.inf=clamp(S.you.inf+2,0,100);          // кто договаривается за партию, того в партии слушают
+  infAdd(2,'публичность');          // кто договаривается за партию, того в партии слушают
   if(typeof blocDealBreak==='function')blocDealBreak(pid);
   logMsg('Сделка: '+L.name+' («'+p.short+'», '+(house==='s'?'Сенат':'Собрание')+') поддержит '+subjName(sb)+' — '+x.name.toLowerCase()+'.',1);
   sheetOpen({eye:'Переговоры',title:'По рукам',
@@ -350,6 +352,7 @@ function hearingRun(ax,byYou){
   return 'Слушания в комитете «'+AXNAME[ax]+'»: министр '+m.name+' ('+POSTS.find(p=>p.id===post).name.toLowerCase()+') под огнём, компетентность −'+hit+'.';
 }
 function askHearing(ax){
+  if(!need('hearing'))return;
   const ch=commChair(ax), m=minOf(COMM_MIN[ax]);
   if(!m){ toast('У комитета нет министра'); return; }
   const ours=ch&&(ch.party===PL||inCoal(ch.party)&&inCoal(PL));

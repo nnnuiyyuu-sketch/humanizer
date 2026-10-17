@@ -121,7 +121,7 @@ function ratVotes(it){
   const x=NB_(it.id), t=TRT(it.k), vr=it.v&&t.variants?t.variants.find(z=>z.id===it.v):null; let yes=0;
   S.senate.forEach(s=>{ const p=P(s.party); if(!p)return;
     let v=(s.party===it.by?14:inCoal(s.party)&&inCoal(it.by)?7:-9);
-    v+=t.lean(s,p,x,vr)+(s.rel-50)*0.1+noise(s.id+'rat'+it.k+it.id+it.q,9);
+    v+=t.lean(s,p,x,vr)+(s.rel-50)*0.1+cloutRatLean()+noise(s.id+'rat'+it.k+it.id+it.q,9);
     if(v>0)yes++; });
   yes=clamp(yes+(it.hear||0)+(it.lob||0)-(it.opp||0),0,SEN_SEATS);
   return {yes,need:SEN_MAJ};

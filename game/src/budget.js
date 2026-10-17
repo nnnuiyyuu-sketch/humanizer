@@ -104,6 +104,7 @@ function bReqChance(a){
 function bReqOpen(){ return !isPM()&&seatsOf(PL)>0&&S.bReq!==budgetYear(); }
 function askBudgetLine(){
   if(isPM()){ goTab('budget'); return; }
+  if(!need('budgetLine'))return;
   if(!bReqOpen()){ toast(seatsOf(PL)?'Строку в этом бюджетном году уже требовали':'Без мандатов кабинет вас не услышит'); return; }
   const lead=P(S.gov.lead);
   const lines=SPEND.filter(s=>S.spend[s.id]<BASK_LVL.spend).map(s=>({kind:'spend',id:s.id,lvl:BASK_LVL.spend}))

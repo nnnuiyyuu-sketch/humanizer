@@ -23,9 +23,10 @@ const PL = 'you';
 function parties(){ return S.parties; }
 function P(id){ return S.parties.find(p=>p.id===id); }
 function me(){ return P(PL); }
-/* кабинет ваш, только если партия его ведёт и партию ведёте вы:
-   при чужом лидере правительство вашей партии — не ваше */
-function isPM(){ return S.gov.lead===PL && chief(); }
+/* кабинет ваш, только если партия его ведёт, партию ведёте вы и вы сидите
+   в кресле, с которого им правят: премьер или президент с двумя головами власти.
+   При чужом лидере правительство вашей партии — не ваше */
+function isPM(){ return S.gov.lead===PL && chief() && (!S.you || ['pm','pres'].indexOf(S.you.seat||'pm')>=0); }
 function chief(){ return !S.you || S.you.chief!==false; }
 /* жёсткая страна: выбирается перед игрой в настройках и живёт в сохранении */
 function hard(){ return !!(S&&S.diff==='hard'); }
@@ -1070,6 +1071,7 @@ function support(dep,bill){
   if(mine&&hasTrait('jurist'))v+=4;               // текст написан так, что не придерёшься
   // партию ведёт другой: своя фракция идёт за вашим законом по вашему влиянию и слову лидера
   if(mine&&dep.party===PL&&!chief())v+=(S.you.inf-45)*0.25+(S.you.lrel-50)*0.12;
+  if(mine&&chief())v+=(S.you.inf-50)*0.06;       // вес лидера в собственной фракции
   if(mine)v+=(rep('comp')-50)*0.05;
   v+=noise(dep.id+'|'+bill.topic+bill.stance+(bill.riders||[]).join('')+S.billNo,7);
   if(T(bill.topic).local&&bill.stance>0&&R(dep.region).capital)v-=6;
@@ -1165,7 +1167,7 @@ function logMsg(t,key){ S.log.unshift({d:shortDate(),t,key:!!key}); if(S.log.len
 function chron(t,kind){ S.chron.push({y:2029+Math.floor((S.q-1)/4),t,kind:kind||''}); }
 function snapshot(){
   S.hist.push({q:S.q,ap:r1(approval()),gdp:r1(S.econ.gdp),gr:S.econ.growth,tr:Math.round(S.treasury),
-    un:S.econ.unemp,inf:S.econ.inf,seats:seatsOf(PL),debt:Math.round(S.debt)});
+    un:S.econ.unemp,inf:S.econ.inf,seats:seatsOf(PL),debt:Math.round(S.debt),clout:S.you?Math.round(S.you.inf):0});
   if(S.hist.length>90)S.hist.shift();
 }
 function toast(t){
@@ -1245,11 +1247,13 @@ function seatName(){ const s=SEATS_YOU[mySeat()]; return s?s.name:'Депута�
 function setSeat(id,why){
   if(!S.you)return;
   const was=S.you.seat;
+  const before=was&&was!==id&&S.gov?powerState():null;
   if(was!==id&&typeof leaveDesk==='function')leaveDesk(was,id);
   S.you.seat=id;
   if(was!==id){
     career((why?why+' ':'')+'Кресло: '+(SEATS_YOU[id]||{name:id}).name.toLowerCase()+'.');
     S.you.seatQ=S.q;
+    S.you.shift=before?powerDiff(before,powerState()):null;     // что закрылось и что открылось с этим креслом
   }
 }
 /* есть ли у игрока мандат: без него нельзя вносить законы самому */

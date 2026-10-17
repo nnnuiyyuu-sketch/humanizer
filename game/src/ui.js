@@ -16,7 +16,7 @@ function mnext(){
   const acts=(m.acts||[{label:'Закрыть'}]).map((a,i)=>
     `<button class="btn ${i===0?'pri':''}" data-a="${i}">${a.label}</button>`).join('');
   const opts=(m.opts||[]).map((o,i)=>
-    `<button class="opt" data-o="${i}"><b>${o.label}</b>${o.hint?`<span>${o.hint}</span>`:''}</button>`).join('');
+    `<button class="opt${o.off?' off':''}" data-o="${i}"${o.off?' disabled':''}><b>${o.label}</b>${o.off||o.hint?`<span>${o.off||o.hint}</span>`:''}</button>`).join('');
   sh.innerHTML=`<div class="mh"><i>${m.eye||''}</i><h2>${m.title||''}</h2></div>
     <div class="mb">${m.body||''}${opts?'<div style="margin-top:10px">'+opts+'</div>':''}</div>
     ${m.opts?'':`<div class="mf">${acts}</div>`}`;
@@ -446,7 +446,7 @@ function renderStrip(){
     ['казна',Math.round(S.treasury)+' млрд',S.treasury<25?'bad':''],
     ['баланс',sign(Math.round(bal)),bal<0?'bad':'good'],
     ['вес',Math.round(S.cap),S.cap<15?'warn':''],
-    ...(chief()?[]:[['влияние',Math.round(S.you.inf)+' / '+CONGRESS_INF,S.you.inf>=CONGRESS_INF?'good':'']]),
+    ['влияние',Math.round(S.you.inf)+(chief()?'':' / '+CONGRESS_INF),S.you.inf>=60?'good':S.you.inf<20?'warn':''],
     ['касса',Math.round(S.funds)+' млн',''],
   ];
   document.getElementById('strip').innerHTML=cells.map(c=>c[0]==='действия'
@@ -507,7 +507,7 @@ function render(){
             const:tabConst,hist:tabHist,fac:tabFac,
             arch:tabArch,help:tabHelp,final:tabFinal})[S.tab]||tabBrief;
   document.getElementById('view').innerHTML=f();
-  bindActions();
+  bindActions(); lockPass();
 }
 function bindActions(){
   document.querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>{
@@ -590,9 +590,9 @@ function nextSteps(){
     else add('Внесите проект','«'+T(S.bill.topic).name+'» готов: прогноз '+tl.yes+' из '+MAJ+'.','К проекту','',"bill");
   } else if(canBill())add('Подготовьте закон','Закон — главный способ менять страну. Выберите направление и тему, позицию подберите так, чтобы прошла.',
     'Законы','',"bill");
-  if(!isPM()&&budgetDue()&&bReqOpen()&&S.ap)add('Потребуйте строку бюджета','Кабинет готовит бюджет на '+budgetYear()+' год. Голоса «'+me().short+'» можно обменять на статью для ваших избирателей.',
+  if(!isPM()&&can('budgetLine')&&budgetDue()&&bReqOpen()&&S.ap)add('Потребуйте строку бюджета','Кабинет готовит бюджет на '+budgetYear()+' год. Голоса «'+me().short+'» можно обменять на статью для ваших избирателей.',
     'Строка','askBudgetLine()');
-  if(!isPM()&&!m&&noconfKind()!=='none'&&!(S.noConfCool>0)&&coalSeats()<MAJ+25)
+  if(!isPM()&&hasMandate()&&!m&&noconfKind()!=='none'&&!(S.noConfCool>0)&&coalSeats()<MAJ+25)
     add('Раскачайте кабинет','Правительство держится на '+coalSeats()+' голосах из '+MAJ+'. Раскол коалиции или вотум недоверия могут его уронить.',
       'Собрание','',"parl");
   const ordered=GROUPS.slice().sort((x,y)=>S.mood[x.id]-S.mood[y.id]);
@@ -748,7 +748,7 @@ function leadPanel(){
     body:`<p class="lead">Партию ведёт ${me().leader}: линия, коалиция и программа — его решения. Сменить лидера может только съезд,
         и делегаты смотрят на ваше влияние.</p>
       <div class="levers">
-        <div class="lever ${S.you.inf>=CONGRESS_INF?'on':''}"><i>Ваше влияние</i><b>${Math.round(S.you.inf)}</b><span>съезд — с ${CONGRESS_INF}</span></div>
+        <div class="lever ${S.you.inf>=CONGRESS_INF?'on':''}"><i>Ваше влияние</i><b>${Math.round(S.you.inf)}</b><span>${infTier(S.you.inf).name.toLowerCase()} · съезд — с ${CONGRESS_INF}</span></div>
         <div class="lever ${S.you.lrel<35?'bad':''}"><i>Отношение лидера</i><b>${Math.round(S.you.lrel)}</b><span>${S.you.lrel>=60?'доверяет':S.you.lrel>=35?'терпит':'ждёт промаха'}</span></div>
         <div class="lever ${listRank()<=seatsOf(PL)?'on':'warn'}"><i>Номер в списке</i><b>№${listRank()}</b><span>у фракции ${mandates(seatsOf(PL))}</span></div>
         <div class="lever"><i>Шанс на съезде</i><b>${Math.round(ch*100)}%</b><span>${ok?'можно созывать':congressWhy()}</span></div>
@@ -1308,6 +1308,7 @@ function tabSelf(){
       <p class="hint">Молва движется от решений, а не от рейтинга: она влияет на выборы,
         на терпение союзников и на то, верят ли вашему слову.</p>
      </div></div>`})
+  +infPanel()
   +`<div class="cols c11"><div>`
   +panel({title:'Черты характера',meta:(y.traits||[]).length+' из 2',body:tr})
   +panel({cls:old?'warn':'',title:'Возраст и форма',body:
@@ -1327,7 +1328,7 @@ function tabSelf(){
         <span>Должность</span><b class="w">${seatTitle()}</b>
         <span>В ней с</span><b>${shortDate(y.seatQ||1)}</b>
         <span>Партию ведёт</span><b class="w">${chief()?'вы':me().leader}</b>
-        ${chief()?'':`<span>Влияние в партии</span><b class="${y.inf>=CONGRESS_INF?'good':''}">${Math.round(y.inf)}</b>`}
+        <span>Влияние</span><b class="${y.inf>=CONGRESS_INF?'good':''}">${Math.round(y.inf)} · ${infTier(y.inf).name.toLowerCase()}</b>
         <span>Мандат в Собрании</span><b class="${hasMandate()?'good':mySeat()==='none'?'bad':''}">${hasMandate()?'есть':mySeat()==='none'?'нет':'не нужен креслу'}</b>
         <span>Вес кресла</span><b>${seatPower().toFixed(2)}</b>
         <span>Праймериз пройдено</span><b>${y.primaries||0}</b>
@@ -1335,7 +1336,7 @@ function tabSelf(){
           recallRisk()?Math.round(recallRisk()*100)+'% за квартал':'нет'}</b></div>
       <p class="hint">${(SEATS_YOU[mySeat()]||{}).txt||''} ${hasMandate()
         ? 'Мандат отбирают за след от сделок: чем он длиннее, тем ближе представление надзора.'
-        : 'Без мандата законы вносят чужими руками. Вернуться можно довыборами или следующим созывом.'}</p>`,
+        : 'Без мандата законы вносят чужими руками. Вернуться можно довыборами или следующим созывом.'}</p>${powerNote()}`,
     foot:`${hasMandate()||['gov','mayor','sen','pres','vp','min'].indexOf(mySeat())>=0?'':`<button class="btn pri" onclick="byElection()" ${S.ap&&S.cap>=12&&S.funds>=30?'':'disabled'}>Идти на довыборы<span class="cost">12 · 30 млн</span></button>`}
       <button class="btn" onclick="askRaces()">Выборный календарь</button>
       <button class="btn" onclick="askPrimary()" ${S.ap&&S.cap>=PRIM_CAP&&!S.prim?'':'disabled'}>Праймериз<span class="cost">${PRIM_CAP}</span></button>
@@ -1551,6 +1552,7 @@ function tabSenate(){
 }
 /* тот же ядерный вариант, но вне спора о конкретном законе */
 function askNukeSolo(){
+  if(!need('nuke'))return;
   if(!canNuke()){toast('Для правки регламента нужны '+NUKE_MIN+' своих и свой председатель');return;}
   sheetOpen({eye:'Регламент Сената',title:'Опустить порог клотура?',
     body:`<p class="lead">Председатель ставит вопрос о толковании регламента, и палата решает его
@@ -2731,6 +2733,25 @@ function helpBody(){
       отказать или ответить силой — ястреб растёт на уступках и отступает перед силой), устраивает провокацию, просит помощи (помощь создаёт должника,
       кредит — риск дефолта) или зовёт на встречу. Раз в 6–8 кварталов — региональный саммит всех четырёх: позиция, подарок и декларация
       на два года или раскол. Если у власти не вы, всё решает чужой кабинет по курсу своей партии.</p>
+    <h3 class="sub">Влияние: накопление, содержание, кулуарные ходы</h3>
+    <p>Влияние — личный капитал связей: оно у любого кресла, а не только у тех, кто рвётся к лидерству. Растёт от работы кресла,
+      партийной работы, трибуны, слушаний и сделок, но чем выше, тем труднее прибавить: на 70 прибавка втрое меньше, на 90 — в семь раз.
+      Кресло тянет влияние к своему уровню (у президента он выше, у депутата ниже): выше уровня связи дороги в содержании, ниже — обрастают сами.
+      Уровней пять: никто, свой в узком кругу, заметная фигура, влиятельный и кулуарный лидер. Влиятельным лидеры фракций уступают в цене сделок,
+      сенаторы охотнее ратифицируют, министры вернее, свои законы собирают больше голосов, лидера партии реже свергают; с 60 вес растёт сам.
+      На 80 и выше завидуют: лидер партии или фракция может устроить заговор, если не показать силу или не поделиться местами.
+      «Кулуарные ходы» тратят влияние: должники (голоса дешевле), прикрыть своего (остудить скандал, придержать следствие), канал в печати,
+      дело по звонку (бесплатные переговоры), делегаты съезда или закрепление фракции у лидера, свой человек в кабинет у премьера.</p>
+    <h3 class="sub">Полномочия кресла</h3>
+    <p>Рычаг открыт тому, у кого есть право, а не тому, кто сидел в кресле раньше. Проигравший выборы лишается мандата,
+      портфеля или края, а с ними всего, что к ним прилагалось. Без мандата нельзя внести вотум недоверия, обвинение, правку
+      регламента, назначить слушания, созвать комиссию, торговаться за строку бюджета или задать вопрос кабинету. Поправки к
+      конституции вносят президент, депутат и сенатор; вице-президента меняет президент; деловой совет и нажим на капитал —
+      у власти (кабинет, президент, министр, край, город); частное лицо не просит проектов в край. Лидеру партии без мандата
+      остаются переговоры с фракциями, торг за бюджет и право вывести партию из коалиции. Кнопки на вкладках гасятся и подписаны
+      причиной, а лист потери кресла и «Мой политик» показывают, что закрылось. Вернуть рычаги можно довыборами или следующим
+      созывом. Кабинет остаётся за лидером партии, только пока он сидит в кресле премьера или президента: проигравший президент
+      возвращается к кабинету своей партии, если она его ведёт, и остаётся ни с чем, если нет.</p>
     <h3 class="sub">Штабы соперников</h3>
     <p>У каждой партии ИИ свой штаб и ход-полтора в квартал: компромат на главного соперника (на вас — тем вероятнее,
       чем длиннее след; заказ может раскрыться), поездки по краям, где власть слаба, кампании в печати, агитация за права

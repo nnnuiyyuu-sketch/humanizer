@@ -181,12 +181,14 @@ function bizTick(){
 }
 /* деловой совет и просьба о проекте — рычаги игрока */
 function bizCouncil(){
+  if(!need('bizCouncil'))return;
   if(!pay({ap:1,cap:6},'Деловой совет'))return;
   FIRMS.forEach(d=>{ const f=firmOf(d.id); if(f)f.rel=clamp(f.rel+ri(3,6),0,100); });
   shiftMood('biz',2); shiftMood('work',-0.8);
   logMsg('Деловой совет: капитал выслушали, климат потеплел.',1); render();
 }
 function askProject(){
+  if(!need('project'))return;
   const pool=FIRMS.filter(d=>firmOf(d.id)&&firmOf(d.id).rel>=45);
   if(!pool.length){ toast('Никто из капитала сейчас не готов вкладываться'); return; }
   const rid=(S.desk&&S.desk.rid)||S.you.home||'centr';

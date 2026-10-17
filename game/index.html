@@ -533,6 +533,16 @@ input:focus,select:focus{outline:2px solid var(--mark);outline-offset:-1px}
 .nbc-a{margin:0}
 .nbc footer{display:flex;gap:var(--x3);margin-top:3px}
 .dipc~.legend .chip{white-space:normal}
+.btn.lock .cost,.btn.lock .cost *{opacity:1;font-family:var(--f-body);font-size:10.5px;letter-spacing:0;white-space:nowrap}
+.opt.off{opacity:.5;cursor:not-allowed}
+.opt.off:hover{background:var(--surface);padding-left:0;box-shadow:none}
+.nopow{margin-top:8px}
+/* ── влияние: шкала с уровнями ── */
+.infbar{position:relative;height:16px;background:var(--surface-3);border:1px solid var(--line-2);margin-top:6px}
+.infbar b{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--ink-3),var(--gold))}
+.infbar s{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink);text-decoration:none}
+.infbar u{position:absolute;top:0;bottom:0;width:1px;background:var(--line);opacity:.5;text-decoration:none}
+.infbar u i{position:absolute;top:18px;left:-8px;font:400 10px var(--f-num);font-style:normal;color:var(--ink-3)}
 @media (max-width:860px){ .paper-cols{grid-template-columns:1fr} .paper-cols section+section{border-left:0;padding-left:0;border-top:var(--hair);padding-top:var(--x5)}
   .paper-h{font-size:28px} .paper-mast b{font-size:26px} .paper{padding:var(--x5)} }
 @media (max-width:520px){ .roles{grid-template-columns:1fr} }
@@ -2568,9 +2578,10 @@ const PL = 'you';
 function parties(){ return S.parties; }
 function P(id){ return S.parties.find(p=>p.id===id); }
 function me(){ return P(PL); }
-/* кабинет ваш, только если партия его ведёт и партию ведёте вы:
-   при чужом лидере правительство вашей партии — не ваше */
-function isPM(){ return S.gov.lead===PL && chief(); }
+/* кабинет ваш, только если партия его ведёт, партию ведёте вы и вы сидите
+   в кресле, с которого им правят: премьер или президент с двумя головами власти.
+   При чужом лидере правительство вашей партии — не ваше */
+function isPM(){ return S.gov.lead===PL && chief() && (!S.you || ['pm','pres'].indexOf(S.you.seat||'pm')>=0); }
 function chief(){ return !S.you || S.you.chief!==false; }
 /* жёсткая страна: выбирается перед игрой в настройках и живёт в сохранении */
 function hard(){ return !!(S&&S.diff==='hard'); }
@@ -3615,6 +3626,7 @@ function support(dep,bill){
   if(mine&&hasTrait('jurist'))v+=4;               // текст написан так, что не придерёшься
   // партию ведёт другой: своя фракция идёт за вашим законом по вашему влиянию и слову лидера
   if(mine&&dep.party===PL&&!chief())v+=(S.you.inf-45)*0.25+(S.you.lrel-50)*0.12;
+  if(mine&&chief())v+=(S.you.inf-50)*0.06;       // вес лидера в собственной фракции
   if(mine)v+=(rep('comp')-50)*0.05;
   v+=noise(dep.id+'|'+bill.topic+bill.stance+(bill.riders||[]).join('')+S.billNo,7);
   if(T(bill.topic).local&&bill.stance>0&&R(dep.region).capital)v-=6;
@@ -3710,7 +3722,7 @@ function logMsg(t,key){ S.log.unshift({d:shortDate(),t,key:!!key}); if(S.log.len
 function chron(t,kind){ S.chron.push({y:2029+Math.floor((S.q-1)/4),t,kind:kind||''}); }
 function snapshot(){
   S.hist.push({q:S.q,ap:r1(approval()),gdp:r1(S.econ.gdp),gr:S.econ.growth,tr:Math.round(S.treasury),
-    un:S.econ.unemp,inf:S.econ.inf,seats:seatsOf(PL),debt:Math.round(S.debt)});
+    un:S.econ.unemp,inf:S.econ.inf,seats:seatsOf(PL),debt:Math.round(S.debt),clout:S.you?Math.round(S.you.inf):0});
   if(S.hist.length>90)S.hist.shift();
 }
 function toast(t){
@@ -3790,11 +3802,13 @@ function seatName(){ const s=SEATS_YOU[mySeat()]; return s?s.name:'Депута�
 function setSeat(id,why){
   if(!S.you)return;
   const was=S.you.seat;
+  const before=was&&was!==id&&S.gov?powerState():null;
   if(was!==id&&typeof leaveDesk==='function')leaveDesk(was,id);
   S.you.seat=id;
   if(was!==id){
     career((why?why+' ':'')+'Кресло: '+(SEATS_YOU[id]||{name:id}).name.toLowerCase()+'.');
     S.you.seatQ=S.q;
+    S.you.shift=before?powerDiff(before,powerState()):null;     // что закрылось и что открылось с этим креслом
   }
 }
 /* есть ли у игрока мандат: без него нельзя вносить законы самому */
@@ -4202,6 +4216,7 @@ const ACT = {
   question(){ askQuestion(); },
   whip(){
     if(!S.bill){toast('На столе нет проекта');return;}
+    if(!need('whip'))return;
     if(!pay({ap:1,cap:capCost(11,'lobby')},'Работа с колеблющимися'))return;
     const t=tally(S.bill);let n=0;
     t.list.forEach(x=>{ if(x.st!=='und')return;
@@ -4211,6 +4226,7 @@ const ACT = {
     toast(n?'Обработано: '+n:'Колеблющихся нет');
   },
   talk(pid){
+    if(!need('talk'))return;
     if(!pay({ap:1,cap:capCost(5,'talk')},'Переговоры с фракцией «'+P(pid).name+'»'))return;
     const p=P(pid), n=S.deputies.filter(d=>d.party===pid);
     const g=ri(4,9);
@@ -5273,6 +5289,7 @@ function petition(topic){
   render();
 }
 function askPetition(){
+  if(!need('petition'))return;
   const list=S.laws.filter(l=>T(l.topic));
   if(!list.length){toast('Оспаривать нечего');return;}
   sheetOpen({eye:'Запрос в суд · '+PETITION+' веса',title:'Что оспорить',
@@ -5398,16 +5415,16 @@ function askLead(){
         в календаре палаты и окажется ли вообще. Кресло достаётся самому заслуженному сенатору
         крупнейшей фракции — сместить его можно, только сместив саму фракцию.</p>`,
     opts:[
-      {label:'Договориться о повестке',hint:'вес '+capCost(LEAD_DEAL,'lobby')+' · расположение и след',
+      offOpt('senLead',{label:'Договориться о повестке',hint:'вес '+capCost(LEAD_DEAL,'lobby')+' · расположение и след',
        fn(){ if(!pay({ap:1},'Сделка с лидером большинства'))return; if(!payCap(capCost(LEAD_DEAL,'lobby'))){apBack();return;}
          l.deals=(l.deals||0)+1;
          l.favour=clamp((l.favour||0)+ri(7,14),-40,40);
          if(who)who.rel=clamp(who.rel+ri(5,10),0,100);
          addTrail(ri(3,6),'сделка с лидером Сената');
          logMsg('Договорённость с лидером Сената: расположение '+leadFavour()+'.');
-         toast('Расположение: '+leadFavour()); render(); }},
-      ...(S.senHold?[{label:'Вытащить проект из-под сукна',hint:'вес '+capCost(LEAD_DEAL,'lobby')+' · «'+T(S.senHold.bill.topic).name+'»',
-        fn:()=>pushCalendar()}]:[]),
+         toast('Расположение: '+leadFavour()); render(); }}),
+      ...(S.senHold?[offOpt('senLead',{label:'Вытащить проект из-под сукна',hint:'вес '+capCost(LEAD_DEAL,'lobby')+' · «'+T(S.senHold.bill.topic).name+'»',
+        fn:()=>pushCalendar()})]:[]),
       {label:'Ничего',hint:'закрыть',fn(){}}]});
 }
 
@@ -5490,6 +5507,7 @@ function askVPJob(quiet){
 /* снять напарника со списка: дорого, обидно и не всегда помогает */
 function dropVP(){
   const v=S.vp; if(!v){toast('Кресло и так пусто');return;}
+  if(!need('dropVP'))return;
   if(v.party!==PL){toast('Это не ваш вице-президент');return;}
   if(!pay({ap:1,cap:VP_DROP},'Смена вице-президента'))return;
   const old=v.name;
@@ -5566,10 +5584,11 @@ function mateBonus(pid){
 function challengeTick(){
   if(!chief()){ S.challenge=null; return; }       // вызов бросают лидеру, а лидер — не вы
   if(S.challenge){ S.challenge.left--; if(S.challenge.left<=0)resolveChallenge(); return; }
+  if(S.you.guard>=S.q)return;                      // фракция закреплена ходом влияния
   const w=wings(), weak=[w.left,w.right].filter(x=>x.length>=8&&wingMood(x)<38);
   if(!weak.length)return;
   const bad=approval()<44||rep('comp')<38||(S.you&&rep('honest')<32);
-  if(!bad||Math.random()>0.16)return;
+  if(!bad||Math.random()>0.16*clamp(1.4-S.you.inf/70,0.3,1.4))return;   // влиятельного лидера свергают реже
   const list=weak[0];
   const man=list.slice().sort((a,b)=>b.loyal-a.loyal)[0];
   S.challenge={id:man.id,name:man.name,wing:wingOf(man,w.ax),ax:w.ax,left:2};
@@ -6278,7 +6297,7 @@ function govBill(){
   // сенатор, взявший слово, держит трибуну, пока не наберётся клотур
   if(mySeat()==='sen'&&S.desk&&S.desk.fili===S.q&&clotureCount(bill)<cloture()){
     S.desk.fili=null; S.desk.score=clamp(S.desk.score+5,0,100); bumpRep('firm',2);
-    if(!chief())S.you.inf=clamp(S.you.inf+3,0,100);
+    infAdd(3,'публичность');
     logMsg('Ваши прения остановили правительственный проект «'+t.name+'»: за клотур '+clotureCount(bill)+' из '+cloture()+'.',1);
     chron('Сенатор '+S.you.name+' сорвал проект «'+t.name.toLowerCase()+'».','g');
     return;
@@ -7195,7 +7214,7 @@ function load(){
    вслух, — и от этого уходят в отставку чаще, чем от приговоров. */
 function askInquiry(){
   if(S.inq){ toast('Комиссия уже работает: '+inqTarget()); return; }
-  if(!hasMandate()&&mySeat()!=='pres'&&mySeat()!=='vp'){ toast('Комиссию созывает палата, а вы в ней не заседаете'); return; }
+  if(!need('inquiry'))return;
   const opts=[];
   POSTS.forEach(p=>{ const m=minOf(p.id); if(!m)return;
     opts.push({label:'Министр: '+m.name,hint:p.name+' · '+P(m.party).short+' · компетентность '+m.comp,
@@ -7537,6 +7556,8 @@ function firmAct(id,kind){
   const d=FM(id), f=firmOf(id);
   if(!d||!f)return;
   const a=FIRM_ACT.find(x=>x.id===kind); if(!a)return;
+  if(kind==='deal'&&!need('firmDeal'))return;
+  if(kind==='shake'&&!need('firmShake'))return;
   if(!pay({ap:1},'Разговор с капиталом'))return;
   if(a.cap&&!payCap(capCost(a.cap,'talk'))){apBack();return;}
   if(kind==='meet'){ f.rel=clamp(f.rel+ri(5,11),0,100);
@@ -7598,8 +7619,9 @@ function askFirm(id){
         ${f.angry?`<span>Настроение</span><b class="bad">злится</b>`:''}</div>
       <p class="hint">Чего хочет: ${Object.entries(d.want).filter(([,v])=>Math.abs(v)>0.5)
         .map(([k,v])=>AXNAME[k].toLowerCase()+' '+(v>0?AXES.find(a=>a.id===k).r:AXES.find(a=>a.id===k).l)).join(', ')}.</p>`,
-    opts:FIRM_ACT.map(a=>({label:a.name,hint:(a.cap?'вес '+capCost(a.cap,'talk')+' · ':'')+a.txt,
-      fn:()=>firmAct(id,a.id)})).concat([{label:'Ничего',hint:'закрыть',fn(){}}])});
+    opts:FIRM_ACT.map(a=>{ const o={label:a.name,hint:(a.cap?'вес '+capCost(a.cap,'talk')+' · ':'')+a.txt,
+      fn:()=>firmAct(id,a.id)};
+      return a.id==='deal'?offOpt('firmDeal',o):a.id==='shake'?offOpt('firmShake',o):o; }).concat([{label:'Ничего',hint:'закрыть',fn(){}}])});
 }
 /* национализация: дорого, необратимо и меняет разговор со всеми */
 function nationalise(id){
@@ -7660,6 +7682,7 @@ function loseMandate(why){
         <span>Стало</span><b class="w">${SEATS_YOU.none.name}</b>
         <span>След за вами</span><b class="bad">${Math.round(S.trail||0)}</b>
         <span>Мандатов у фракции</span><b>${seatsOf(PL)}</b></div>
+      ${shiftRows()}
       <p class="hint">Вернуться можно: довыборами, следующим созывом, чужим приглашением в кабинет.
         Партией вы руководите по-прежнему, но всё придётся делать чужими руками.</p>`,
     acts:[{label:'Дальше'}]});
@@ -7668,6 +7691,7 @@ function loseMandate(why){
 /* довыборы: вернуть себе мандат деньгами и весом */
 function byElection(){
   if(hasMandate()){toast('Мандат у вас есть');return;}
+  if(!need('byElection'))return;
   if(!pay({ap:1,cap:12,funds:30},'Довыборы'))return;
   const ch=clamp(0.3+approval()/220+(rep('folk')-50)/260,0.12,0.86);
   if(Math.random()<ch){
@@ -8100,6 +8124,7 @@ function cnForecast(c){
   return {h,s,needH:nh,needS:ns,ok:h>=nh&&s>=ns};
 }
 function askAmend(){
+  if(!need('amend'))return;
   if(convSitting()){ convSheet(); return; }
   const list=cnList(), core=cnCoreList();
   if(!list.length&&!core.length){ toast('Все поправки, какие возможны, уже приняты'); return; }
@@ -8127,6 +8152,7 @@ function askAmend(){
 }
 function askAmendOne(id){
   const c=CONSTS.find(x=>x.id===id); if(!c)return;
+  if(!need('amend'))return;
   if(cnCore(c)){ askConvene(); return; }           // ядро палатам не подведомственно
   if(convSitting()){ convSheet(); return; }
   const f=cnForecast(c), cost=cnCost(c), ref=cnNeedRef(c);
@@ -8270,6 +8296,7 @@ function revokeAmend(entry,why){
    может приписать к вашему пакету собственный пункт, и снять его
    вы уже не сможете. */
 function askConvene(){
+  if(!need('amend'))return;
   if(convOn()){ convSheet(); return; }
   const f=convCallForecast(), core=cnCoreList();
   sheetOpen({eye:'Конституционное собрание · '+dateLabel(),title:'Созвать собрание?',
@@ -8707,13 +8734,14 @@ function askCoalition(){
         <div class="sub2">${mandates(seatsOf(id))} · ${posts(Object.values(S.gov.posts).filter(x=>x===id).length)}${
           pc?' · договор: '+pactText(pc)+(pc.done?' — исполнен':' — до '+shortDate(pc.due)):''}</div></td>
       <td class="n ${loy<40?'bad':loy<65?'warn':'good'}">${isLead?'—':loy+'%'}</td></tr>`; }).join('');
-  const body=`<p class="lead">${mine
+  let body=`<p class="lead">${mine
       ?'Коалиция держится на двух вещах: портфелях и договоре. Обиженный партнёр уходит, и тогда правительство остаётся меньшинством.'
       :'Кабинет '+lead.leader+' держится на '+coalSeats()+' голосах из '+MAJ+'. Чем дальше партнёр от премьера по курсу и чем хуже дела в стране, тем легче его увести.'}</p>
     <table class="tight"><thead><tr><th></th><th>Фракция</th><th class="n">Прочность</th></tr></thead><tbody>${rows}</tbody></table>
     <div class="res"><span>У коалиции</span><b class="${coalSeats()>=MAJ?'good':'bad'}">${coalSeats()} из ${MAJ}</b>
       <span>Самый слабый партнёр</span><b>${coalStrength()}%</b></div>`;
   const opts=[];
+  if(!mine&&!ours&&!can('coalition'))body+=`<p class="hint">Вы не лидер партии: расколоть кабинет и вывести партию из коалиции вам не по чину.</p>`;
   if(mine){
     coalition().filter(id=>id!==PL).forEach(id=>{ const p=P(id), pc=S.pacts&&S.pacts[id];
       opts.push({label:'Встреча с лидером «'+p.short+'»',hint:'1 действие и '+MEET_CAP+' веса · прочность +25',
@@ -8734,10 +8762,10 @@ function askCoalition(){
     opts.push({label:'Отдать портфель',hint:'раздел «Правительство»',fn(){ S.tab='gov'; render(); }});
   } else if(!ours){
     coalition().filter(id=>id!==S.gov.lead&&id!==PL).forEach(id=>{ const p=P(id);
-      opts.push({label:'Расколоть: увести «'+p.short+'» из кабинета',hint:'1 действие и '+SPLIT_CAP+' веса · шанс '+Math.round(splitChance(id)*100)+'%',
-        fn:()=>splitCoalition(id)}); });
-    if(inCoal(PL)&&chief())opts.push({label:'Выйти из коалиции',hint:'портфели сдаются, у кабинета станет '+(coalSeats()-seatsOf(PL))+' из '+MAJ,
-      fn:leaveAsJunior});
+      opts.push(offOpt('coalition',{label:'Расколоть: увести «'+p.short+'» из кабинета',hint:'1 действие и '+SPLIT_CAP+' веса · шанс '+Math.round(splitChance(id)*100)+'%',
+        fn:()=>splitCoalition(id)})); });
+    if(inCoal(PL)&&chief())opts.push(offOpt('coalition',{label:'Выйти из коалиции',hint:'портфели сдаются, у кабинета станет '+(coalSeats()-seatsOf(PL))+' из '+MAJ,
+      fn:leaveAsJunior}));
     if(inCoal(PL)&&!chief())opts.push({label:'Выйти из коалиции',hint:'решает лидер партии — '+me().leader,fn(){ toast('Из коалиции партию выводит лидер'); }});
   }
   opts.push({label:'Закрыть',hint:'',fn(){}});
@@ -8792,6 +8820,7 @@ function splitChance(pid){
     +((S.split||{})[pid]||0)*0.006+(rep('comp')-50)*0.003,0.06,0.75);
 }
 function splitCoalition(pid){
+  if(!need('coalition'))return;
   const p=P(pid), ch=splitChance(pid);
   if(!pay({ap:1,cap:SPLIT_CAP},'Раскол коалиции: «'+p.name+'»'))return;
   S.split=S.split||{};
@@ -8820,6 +8849,7 @@ function splitCoalition(pid){
 }
 /* младший партнёр уходит сам */
 function leaveAsJunior(){
+  if(!need('coalition'))return;
   S.gov.coal=S.gov.coal.filter(x=>x!==PL);
   Object.keys(S.gov.posts).forEach(k=>{ if(S.gov.posts[k]===PL)S.gov.posts[k]=S.gov.lead; });
   S.role='opp'; syncCabinet(); bumpRep('firm',3); bumpRep('honest',-1);
@@ -9078,6 +9108,7 @@ function askMotion(){
   const m=S.motion, lead=P(S.gov.lead);
   if(!m){
     if(S.gov.lead===PL){ toast('Вотум вносит оппозиция, а не вы'); return; }
+    if(!need('motion'))return;
     const bl=motionBlock(); if(bl){ toast(bl); return; }
     const sig=motionSigs(), constr=noconfKind()==='constructive';
     const succ=S.parties.filter(p=>!inCoal(p.id)).sort(bySeats);
@@ -9291,7 +9322,7 @@ function askDissolve(){
   const coalThen=coalition().reduce((a,id)=>a+(snap[id]||0),0);
   const opts=[];
   if(mine&&ok)opts.push({label:'Распустить Собрание',hint:'1 действие и '+DISS_CAP+' веса · выборы в этом квартале',fn:()=>doDissolve(PL)});
-  if(!mine&&S.gov.lead===PL&&CN().dissolve==='pres'&&!isPres()&&ok)
+  if(!mine&&isPM()&&CN().dissolve==='pres'&&!isPres()&&ok)
     opts.push({label:'Просить президента о роспуске',hint:'1 действие · '+S.pres.name+' решает сам',fn:askPresDissolve});
   opts.push({label:'Закрыть',hint:'',fn(){}});
   sheetOpen({eye:'Роспуск Собрания · право: '+dissHolderWord(),title:'Досрочные выборы',
@@ -9366,6 +9397,7 @@ function regSupport(d,r,adopt){
 function regForecast(id,adopt){ const r=REGS.find(x=>x.id===id);
   return S.deputies.filter(d=>regSupport(d,r,adopt)>0).length; }
 function askReg(){
+  if(!need('reg'))return;
   sheetOpen({eye:'Регламент Собрания · простое большинство',title:'Правила палаты',
     body:`<p class="lead">Регламент принимает одно Собрание, ${MAJ} голосов — без Сената и без подписи президента.
         Своя фракция голосует за ваше предложение, остальные — по своему интересу.</p>
@@ -9378,6 +9410,7 @@ function askReg(){
         fn:()=>regVote(r.id)}; }).concat([{label:'Закрыть',hint:'',fn(){}}])});
 }
 function regVote(id){
+  if(!need('reg'))return;
   const r=REGS.find(x=>x.id===id), adopt=!regOn(id);
   if(!pay({ap:1,cap:REG_CAP},(adopt?'Регламент: ':'Отмена: ')+r.name))return;
   const list=S.deputies.map(d=>({d,v:regSupport(d,r,adopt)}));
@@ -9406,6 +9439,7 @@ function qtimeTick(){
 function askQuestion(){
   if(!regOn('qtime')){ toast('Правительственного часа в регламенте нет'); return; }
   if(S.gov.lead===PL){ toast('Вопросы задаёт оппозиция'); return; }
+  if(!need('question'))return;
   if(!pay({ap:1,cap:4},'Запрос правительству'))return;
   const lead=P(S.gov.lead), going=stateOfThings();
   lead.mom=clamp(lead.mom-(going<50?2.2:1),-14,14);
@@ -9468,6 +9502,7 @@ function impPath(i){
 function askImpeach(kind){
   if(S.imp&&S.imp.stage){ askImpeachStage(); return; }
   if(S.imp){ toast('Одно обвинение за раз'); return; }
+  if(!need('impeach'))return;
   if(!kind){
     const opts=IMP_WHO.filter(w=>{
       if(w.id==='pres')return !!S.pres&&!isPres();
@@ -9797,6 +9832,7 @@ function desk(){
 }
 /* где заканчивается кресло: мандат остаётся только у тех, кто его имел */
 function fallbackSeat(){
+  if(chief()&&S.gov.lead===PL)return 'pm';          // кабинет вашей партии вернулся к её лидеру
   if(S.you&&S.you.mand)return chief()&&!inCoal(PL)?'lead':'dep';
   return 'none';
 }
@@ -9867,6 +9903,7 @@ function leaveDesk(was,to){
 /* кресло ушло не по вашей воле */
 function lostSeat(why){
   const was=mySeat();
+  S.you.shift=null;
   setSeat(fallbackSeat(),why[0].toUpperCase()+why.slice(1)+'.');
   addCap(-8); bumpRep('comp',-2);
   logMsg('Кресло потеряно: '+why+'.',1);
@@ -9877,6 +9914,7 @@ function lostSeat(why){
       <div class="res"><span>Было</span><b class="w">${(SEATS_YOU[was]||{}).name}</b>
         <span>Стало</span><b class="w">${seatName()}</b>
         ${chief()?'':`<span>Влияние в партии</span><b>${Math.round(S.you.inf)}</b>`}</div>
+      ${shiftRows()}
       <p class="hint">Дальше — выборы, предложения и съезд. Смотрите «Ваше кресло» в «Кабинете».</p>`,
     acts:[{label:'Дальше'}]});
 }
@@ -9917,11 +9955,8 @@ function distChance(){
 function roleTick(){
   if(!S.you||S.over)return;
   const s=mySeat(), d=desk();
-  if(!chief()){
-    const drift={vp:1,gov:1.1,mayor:0.7,sen:0.8,dep:0.6,min:1,vice:1,none:0.2}[s]||0.3;
-    S.you.inf=clamp(r1(S.you.inf+drift-0.35+(d.score-50)*0.02),0,100);
-    S.you.lrel=clamp(r1(S.you.lrel+(55-S.you.lrel)*0.06+rnd(-1.5,1.5)),0,100);
-  }
+  infTick();
+  if(!chief())S.you.lrel=clamp(r1(S.you.lrel+(55-S.you.lrel)*0.06+rnd(-1.5,1.5)),0,100);
   if(s==='min')deskMin(d);
   else if(s==='gov')deskGov(d);
   else if(s==='mayor')deskMayor(d);
@@ -10066,7 +10101,7 @@ function deskActs(){
       run(){ askVPJob(); return ''; }});
     A({id:'resign',name:'Подать в отставку',ap:0,txt:'уйти с поста вице и остаться в политике',run(){ askResign(); return ''; }});
     A({id:'own',name:'Своя повестка',cap:5,txt:'известность +3, доверие президента −6',
-      run(){ bumpRep('folk',3); d.trust=clamp(d.trust-6,0,100); if(!chief())S.you.inf=clamp(S.you.inf+2,0,100);
+      run(){ bumpRep('folk',3); d.trust=clamp(d.trust-6,0,100); infAdd(2,'публичность');
         return 'Вице-президент выступил со своей повесткой.'; }});
   }
   if(s==='gov'){
@@ -10091,7 +10126,7 @@ function deskActs(){
         return 'Губернатор доложил в правительстве: отношения с центром +'+v+'.'; }});
     A({id:'fight',name:'Спор с центром',cap:3,txt:'край и страна вас заметят; центр — тоже',
       run(){ S.rmod[rid]=clamp(S.rmod[rid]+4,-22,22); bumpRep('folk',2); bumpRep('firm',2); d.center=clamp(d.center-15,0,100);
-        if(!chief())S.you.inf=clamp(S.you.inf+3,0,100); return 'Губернатор публично поспорил с центром.'; }});
+        infAdd(3,'публичность'); return 'Губернатор публично поспорил с центром.'; }});
     if(regAuto(rid)<2&&!S.rref)A({id:'autoref',name:'Референдум о полномочиях',cap:8,txt:'край голосует за автономию; центр будет недоволен',
       run(){ return govRefAct(rid); }});
     A({id:'deleg',name:'Делегация края',cap:5,txt:'сенаторы и депутаты от края теплеют к вам',
@@ -10136,14 +10171,14 @@ function deskActs(){
   if(s==='dep'||s==='none'){
     if(s==='none')A({id:'partywork',name:'Партийная работа',txt:chief()?'касса +6, вес +4':'влияние +5…8, лидер доволен',
       run(){ if(chief()){ S.funds=r1(S.funds+6); addCap(4); return 'Партийная работа: касса и вес.'; }
-        const v=ri(5,8); S.you.inf=clamp(S.you.inf+v,0,100); S.you.lrel=clamp(S.you.lrel+2,0,100);
+        const v=infAdd(ri(5,8),'партийная работа'); S.you.lrel=clamp(S.you.lrel+2,0,100);
         return 'Партийная работа: влияние +'+v+'.'; }});
     A({id:'office',name:s==='dep'?'Приём в округе':'Работа в округе',funds:s==='dep'?3:4,txt:'поддержка в округе, известность +1',
       run(){ d.home=clamp(d.home+6,0,100); S.rmod[d.rid]=clamp(S.rmod[d.rid]+1.5,-22,22); bumpRep('folk',1.2);
         return 'Работа в округе: '+R(d.rid).name+'.'; }});
     if(s==='dep'){
       if(!chief())A({id:'faction',name:'Работа во фракции',cap:3,txt:'влияние +4…7, лидер доволен',
-        run(){ const v=ri(4,7); S.you.inf=clamp(S.you.inf+v,0,100); S.you.lrel=clamp(S.you.lrel+3,0,100);
+        run(){ const v=infAdd(ri(4,7),'работа во фракции'); S.you.lrel=clamp(S.you.lrel+3,0,100);
           S.deputies.filter(x=>x.party===PL).slice(0,12).forEach(x=>x.rel=clamp(x.rel+1,0,100));
           return 'Работа во фракции: влияние +'+v+'.'; }});
       A({id:'ratify',name:'Давить на ратификацию договора',ap:0,txt:'договор в Сенате: лоббировать, слушания или выступить против',
@@ -10153,15 +10188,15 @@ function deskActs(){
       A({id:'inquiry',name:'Депутатский запрос',cap:4,pick:'minister',txt:'неудобный вопрос министру, компетентность +2',
         run(x){ return hearing(x,true); }});
       A({id:'speech',name:'Выступление с трибуны',cap:2,txt:'известность +2, влияние +2, лидер морщится',
-        run(){ bumpRep('folk',2); if(!chief()){ S.you.inf=clamp(S.you.inf+2,0,100); S.you.lrel=clamp(S.you.lrel-2,0,100); }
+        run(){ bumpRep('folk',2); infAdd(2,'трибуна'); if(!chief())S.you.lrel=clamp(S.you.lrel-2,0,100);
           return 'Выступление с трибуны Собрания.'; }});
     } else {
       A({id:'column',name:'Колонка в газете',pick:'press',txt:'издание теплеет, известность +1',
         run(x){ const o=pressOf(x); if(o)o.rel=clamp(o.rel+ri(4,8),0,100); bumpRep('folk',1);
-          if(!chief())S.you.inf=clamp(S.you.inf+1,0,100);
+          infAdd(1,'публичность');
           return 'Ваша колонка в «'+PRESS.find(p=>p.id===x).name+'».'; }});
       A({id:'donors',name:'Собрать деньги партии',txt:'касса +10…18'+(chief()?'':', влияние +3'),
-        run(){ const v=ri(10,18); S.funds=r1(S.funds+v); if(!chief())S.you.inf=clamp(S.you.inf+3,0,100);
+        run(){ const v=ri(10,18); S.funds=r1(S.funds+v); infAdd(3,'публичность');
           return 'Вы собрали партии '+v+' млн.'; }});
     }
     if(!chief())A({id:'district',name:'Выдвинуться по округу',funds:DIST_FUNDS,
@@ -10208,7 +10243,7 @@ function hearing(post,dep){
   bumpRep('comp',dep?2:1.5); bumpRep('folk',1);
   if(!mine)pressAll(1);
   if(!dep)d.hear=(d.hear||0)+1;
-  if(!chief())S.you.inf=clamp(S.you.inf+(mine?-1:2),0,100);
+  infAdd(mine?-1:2,'слушания',mine);
   return (dep?'Запрос министру ':'Слушания: ')+m.name+' ('+POSTS.find(p=>p.id===post).name.toLowerCase()+').';
 }
 /* рычаги министра */
@@ -10290,7 +10325,7 @@ function congressWhy(){
   return true;
 }
 function congressOdds(){
-  const you=S.you.inf+(rep('folk')-50)*0.3+(approval()-45)*0.2;
+  const you=S.you.inf+(rep('folk')-50)*0.3+(approval()-45)*0.2+((S.you.congBoost||0)*100/3);   // делегаты, обработанные заранее
   let him=50+(S.gov.lead===PL?8:0)+(presOurs()&&S.pres.name===me().leader?8:0);
   if(S.you.lrel>65)him-=5;
   if(seatsOf(PL)<SEATS*0.15)him-=6;
@@ -10322,7 +10357,7 @@ function runCongress(){
         <p class="hint">Теперь линия партии, коалиция и список — ваши решения.${isPM()?' Кабинет партии переходит к вам.':''}</p>`,
       acts:[{label:'Принять партию'}]});
   } else {
-    S.you.inf=clamp(S.you.inf-18,0,100); S.you.lrel=clamp(S.you.lrel-20,0,100); addCap(-8);
+    infAdd(-18,'проигранный съезд',true); S.you.lrel=clamp(S.you.lrel-20,0,100); addCap(-8);
     logMsg('Съезд оставил лидером '+old+'. Ваше влияние упало.',1);
     chron('Съезд «'+me().name+'» не поддержал вызов лидеру.','b');
     sheetOpen({eye:'Итог съезда',title:'Лидером остался '+old,
@@ -10383,6 +10418,7 @@ function plCandName(){ return plCandYou()?S.you.name:(S.primWin===false&&S.primL
 /* ─── личный итог всеобщих выборов ──────────────────────────────── */
 function selfElection(seats){
   const s=mySeat(), n=seats[PL]||0;
+  S.you.shift=null;
   if(['dep','lead','pm','vice','none'].indexOf(s)<0){ S.you.run=null; return ''; }
   let got=false, how='';
   if(chief()){ got=n>0; how='первым номером списка'; }
@@ -10394,9 +10430,9 @@ function selfElection(seats){
   }
   S.you.run=null;
   if(got){ if(s==='none')setSeat('dep','Избраны в Собрание '+how+'.'); addCap(4);
-    if(!chief())S.you.inf=clamp(S.you.inf+5,0,100); }
+    infAdd(5,'публичность'); }
   else if(s!=='none')setSeat('none','Не прошли в Собрание.');
-  return `<div class="res" style="margin-top:8px"><span>Вы лично</span><b class="w ${got?'good':'bad'}">${got?'мандат · '+how:'без мандата · '+how}</b></div>`;
+  return `<div class="res" style="margin-top:8px"><span>Вы лично</span><b class="w ${got?'good':'bad'}">${got?'мандат · '+how:'без мандата · '+how}</b></div>`+shiftRows();
 }
 
 /* ─── президентская подпись ─────────────────────────────────────────
@@ -10714,6 +10750,7 @@ function dealDemand(pid,house,sb){
   base+=inCoal(pid)&&inCoal(PL)?-5:4;
   base-=(L.rel-50)*0.25+(L.trust-50)*0.15;
   if(L.owe)base-=10;                                                      // за ними должок
+  base-=cloutDealDisc();                                                  // влиятельному уступают охотнее
   if(S.dealDisc&&S.dealDisc.pid===pid&&S.dealDisc.q===S.q)base-=6;        // лидер сам пришёл с предложением
   // вице, занятый Сенатом, договаривается с сенаторами сам
   if(house==='s'&&S.vp&&(S.vp.party===PL||inCoal(S.vp.party)&&inCoal(PL))&&S.vp.job==='senate')base-=vpSkill()*0.1;
@@ -10796,7 +10833,8 @@ function askDealWith(pid,house,sb){
 function offerDeal(pid,house,sb,x){
   const key=subjKey(sb);
   if(!dealRoundPaid(key)){
-    if(!pay({ap:1,cap:DEAL_CAP},'Переговоры: '+subjName(sb)))return;
+    if(cloutFavor())logMsg('Звонок сработал: раунд переговоров без хода и веса.');
+    else if(!pay({ap:1,cap:DEAL_CAP},'Переговоры: '+subjName(sb)))return;
     S.dealRound=S.dealRound||{}; S.dealRound[key]=S.q;
   } else if(!pay({cap:DEAL_CAP},'Переговоры'))return;
   const L=flLeader(pid,house), dem=dealDemand(pid,house,sb), ch=dealChance(dem,x.v), p=P(pid);
@@ -10816,7 +10854,7 @@ function offerDeal(pid,house,sb,x){
   S.deals=(S.deals||[]).filter(z=>!(z.pid===pid&&z.house===house&&z.key===key)).concat([d]); cnt('deals');
   if(S.deals.length>60)S.deals=S.deals.slice(-60);
   L.owe=0; L.rel=clamp(L.rel+(x.id==='favor'?-12:4),0,100);
-  if(!chief())S.you.inf=clamp(S.you.inf+2,0,100);          // кто договаривается за партию, того в партии слушают
+  infAdd(2,'публичность');          // кто договаривается за партию, того в партии слушают
   if(typeof blocDealBreak==='function')blocDealBreak(pid);
   logMsg('Сделка: '+L.name+' («'+p.short+'», '+(house==='s'?'Сенат':'Собрание')+') поддержит '+subjName(sb)+' — '+x.name.toLowerCase()+'.',1);
   sheetOpen({eye:'Переговоры',title:'По рукам',
@@ -10983,6 +11021,7 @@ function hearingRun(ax,byYou){
   return 'Слушания в комитете «'+AXNAME[ax]+'»: министр '+m.name+' ('+POSTS.find(p=>p.id===post).name.toLowerCase()+') под огнём, компетентность −'+hit+'.';
 }
 function askHearing(ax){
+  if(!need('hearing'))return;
   const ch=commChair(ax), m=minOf(COMM_MIN[ax]);
   if(!m){ toast('У комитета нет министра'); return; }
   const ours=ch&&(ch.party===PL||inCoal(ch.party)&&inCoal(PL));
@@ -11584,12 +11623,14 @@ function bizTick(){
 }
 /* деловой совет и просьба о проекте — рычаги игрока */
 function bizCouncil(){
+  if(!need('bizCouncil'))return;
   if(!pay({ap:1,cap:6},'Деловой совет'))return;
   FIRMS.forEach(d=>{ const f=firmOf(d.id); if(f)f.rel=clamp(f.rel+ri(3,6),0,100); });
   shiftMood('biz',2); shiftMood('work',-0.8);
   logMsg('Деловой совет: капитал выслушали, климат потеплел.',1); render();
 }
 function askProject(){
+  if(!need('project'))return;
   const pool=FIRMS.filter(d=>firmOf(d.id)&&firmOf(d.id).rel>=45);
   if(!pool.length){ toast('Никто из капитала сейчас не готов вкладываться'); return; }
   const rid=(S.desk&&S.desk.rid)||S.you.home||'centr';
@@ -11953,6 +11994,7 @@ function bReqChance(a){
 function bReqOpen(){ return !isPM()&&seatsOf(PL)>0&&S.bReq!==budgetYear(); }
 function askBudgetLine(){
   if(isPM()){ goTab('budget'); return; }
+  if(!need('budgetLine'))return;
   if(!bReqOpen()){ toast(seatsOf(PL)?'Строку в этом бюджетном году уже требовали':'Без мандатов кабинет вас не услышит'); return; }
   const lead=P(S.gov.lead);
   const lines=SPEND.filter(s=>S.spend[s.id]<BASK_LVL.spend).map(s=>({kind:'spend',id:s.id,lvl:BASK_LVL.spend}))
@@ -13139,7 +13181,7 @@ function ratVotes(it){
   const x=NB_(it.id), t=TRT(it.k), vr=it.v&&t.variants?t.variants.find(z=>z.id===it.v):null; let yes=0;
   S.senate.forEach(s=>{ const p=P(s.party); if(!p)return;
     let v=(s.party===it.by?14:inCoal(s.party)&&inCoal(it.by)?7:-9);
-    v+=t.lean(s,p,x,vr)+(s.rel-50)*0.1+noise(s.id+'rat'+it.k+it.id+it.q,9);
+    v+=t.lean(s,p,x,vr)+(s.rel-50)*0.1+cloutRatLean()+noise(s.id+'rat'+it.k+it.id+it.q,9);
     if(v>0)yes++; });
   yes=clamp(yes+(it.hear||0)+(it.lob||0)-(it.opp||0),0,SEN_SEATS);
   return {yes,need:SEN_MAJ};
@@ -14091,7 +14133,7 @@ function minLifeTick(){
     minFill(m);
     // верность тянется к своему уровню: своя партия, дальний партнёр, обиды партии
     const p=P(m.party), base=(m.party===lead?64:52)-(p?axDist(p.st,P(lead).st)*7:0)+MT(m.trait).loyal
-      -((S.partners[m.party]||{}).anger||0)*4+(S.fvp===m.post?12:0)+(approval()-50)*0.25;
+      -((S.partners[m.party]||{}).anger||0)*4+(S.fvp===m.post?12:0)+(approval()-50)*0.25+cloutMinLoyal();
     m.loyal=Math.round(clamp(m.loyal+(base-m.loyal)*0.15+rnd(-2,2),0,100));
     if(S.fvp===m.post)m.amb=clamp(m.amb+1,0,100);
   });
@@ -14557,7 +14599,7 @@ function viceActs(A,d){
     run(){ const x=CI(S.cabIssue.id); S.cabIssue=null; loyalShift(x.a,2); loyalShift(x.b,2); d.score=clamp(d.score+4,0,100); bumpRep('comp',1);
       return 'Вице-премьер развёл спор «'+x.title.toLowerCase()+'».'; }});
   A({id:'stand',name:'Подменить премьера на публике',cap:5,txt:'имя в стране растёт; премьер не всегда этому рад',
-    run(){ bumpRep('folk',2); if(!chief())S.you.inf=clamp(S.you.inf+3,0,100); d.score=clamp(d.score-2,0,100);
+    run(){ bumpRep('folk',2); infAdd(3,'публичность'); d.score=clamp(d.score-2,0,100);
       return 'Вице-премьер выступил от имени правительства.'; }});
 }
 function deskVice(d){
@@ -14775,6 +14817,297 @@ function botFeed(n){
       return `<div class="crow"><s>${shortDate(x.q)}</s><span>${p?emblem(p,14)+' <b>'+p.short+'</b> ':''}<span class="${x.k==='b'?'bad':x.k==='g'?'good':''}">${x.t}</span></span></div>`; }).join('')
     :'<div class="empty">Штабы затаились: в последние кварталы соперники ничего заметного не сделали.</div>'});
 }
+
+/* ════════════════════════════════════════════════════════════════
+   ВЛИЯНИЕ
+   Личный капитал связей: кто вам должен, кто вас слушает, чьи звонки
+   принимают. Он копится от работы, но чем он выше, тем труднее
+   прибавить — и тем дороже содержание: уровень кресла тянет его к
+   себе, а на вершине начинают завидовать. Влияние можно потратить:
+   «кулуарные ходы» меняют цену сделок, гасят скандал, закрепляют
+   фракцию. Оно нужно всем креслам, а не только тем, кто рвётся к
+   лидерству: от него зависят сделки, ратификация, верность министров
+   и безопасность самого лидера партии.
+   ════════════════════════════════════════════════════════════════ */
+const INF_TIERS=[
+  {at:0,  name:'Никто',               perk:'вас не знают за пределами своей фракции'},
+  {at:20, name:'Свой в узком кругу',  perk:'открыты ходы «Должники», «Прикрыть своего», «Канал в печати»'},
+  {at:40, name:'Заметная фигура',     perk:'лидеры фракций сбавляют цену сделок; открыты «Дело по звонку» и «Делегаты»'},
+  {at:60, name:'Влиятельный',         perk:'+1 вес каждый квартал; сенаторы охотнее ратифицируют; открыт «Свой человек в кабинет»'},
+  {at:80, name:'Кулуарный лидер',     perk:'+2 веса в квартал, но завистники плетут заговоры, а содержание связей дорого'},
+];
+const INF_ENVY=80;
+const INF_BASE={pres:72,pm:64,vp:56,vice:56,lead:50,gov:50,min:46,sen:46,dep:36,mayor:34,none:22};
+function infTier(v){ let t=INF_TIERS[0]; INF_TIERS.forEach((x,i)=>{ if(v>=x.at)t={...x,id:i}; }); if(t.id===undefined)t={...INF_TIERS[0],id:0}; return t; }
+function infNow(){ return S.you?S.you.inf:0; }
+/* какой уровень влияния даёт само кресло: от него влияние тянется вниз и вверх */
+function infBase(){
+  const b=(INF_BASE[mySeat()]||30)+(approval()-50)*0.2+(rep('folk')-50)*0.1+(chief()?6:0);
+  return clamp(b,10,88);
+}
+/* чем выше влияние, тем труднее прибавить: на 70 — треть, на 90 — седьмая часть */
+function infMul(){ return clamp(1.15-infNow()/90,0.15,1.1); }
+function infLedger(){ const y=S.you; if(!y.infL||y.infL.q!==S.q)y.infL={q:S.q,plus:0,minus:0,src:{}}; return y.infL; }
+/* прибавить или отнять влияние; raw — без убывающей отдачи (потери и содержание) */
+function infAdd(v,why,raw){
+  const y=S.you; if(!y||!v)return 0;
+  if(y.inf==null)y.inf=30;
+  const d=r1(v>0&&!raw?v*infMul():v), old=y.inf;
+  y.inf=clamp(r1(old+d),0,100);
+  const real=r1(y.inf-old), l=infLedger();
+  if(real>0)l.plus=r1(l.plus+real); else l.minus=r1(l.minus-real);
+  if(why)l.src[why]=r1((l.src[why]||0)+real);
+  return real;
+}
+/* ─── квартал влияния ───────────────────────────────────────────── */
+function infTick(){
+  const y=S.you; if(!y)return;
+  if(y.inf==null)y.inf=30;
+  infLedger();
+  const base=infBase(), d=desk();
+  // выше уровня кресла связи дороги в содержании, ниже — обрастают сами
+  infAdd((base-y.inf)*(y.inf>base?0.14:0.07),y.inf>base?'содержание связей':'связи обрастают',true);
+  infAdd((d.score-50)*0.02,'работа кресла');
+  const t=infTier(y.inf);
+  if(t.id>=3)addCap(t.id-2);
+  if(y.infT!==undefined&&t.id!==y.infT){ logMsg('Влияние: теперь вы — «'+t.name.toLowerCase()+'».',1); if(t.id>y.infT)chron('Рост влияния: '+t.name.toLowerCase()+'.',''); }
+  y.infT=t.id;
+  if(y.congBoost&&!(S.q%8))y.congBoost=Math.max(0,y.congBoost-0.05);
+  infEnvyTick();
+}
+/* на вершине завидуют: лидер партии или фракция решает, что вы слишком выросли */
+function infEnvyTick(){
+  const y=S.you;
+  if(y.inf<INF_ENVY||S.q-(y.envyQ===undefined?-9:y.envyQ)<6||Math.random()>0.14)return;
+  y.envyQ=S.q;
+  const who=chief()?'фракция':'лидер партии '+me().leader;
+  sheetOpen({eye:'Партия · '+dateLabel(),title:'Завистники',
+    body:`<p class="lead">Влияние ${Math.round(y.inf)}: вас слишком хорошо слышно. ${chief()?'Во фракции шепчутся, что пора делить власть.':
+        me().leader+' всё чаще называет вас «амбициозным».'}</p>
+      <div class="res"><span>Влияние</span><b>${Math.round(y.inf)} · ${infTier(y.inf).name.toLowerCase()}</b>
+        <span>Недовольны</span><b class="w">${who}</b></div>`,
+    opts:[{label:'Показать силу',hint:'ход · влияние −8 · твёрдость +2 · завистники притихнут',fn(){ if(!pay({ap:1},'Показать силу'))return;
+        infAdd(-8,'зависть',true); bumpRep('firm',2); S.deputies.filter(d=>d.party===PL).forEach(d=>d.loyal=clamp(d.loyal+1,0,100)); render(); }},
+      {label:'Поделиться местами',hint:'влияние −14 · '+(chief()?'фракция довольна':'лидер доволен'),fn(){
+        infAdd(-14,'зависть',true); if(chief())S.deputies.filter(d=>d.party===PL).forEach(d=>d.rel=clamp(d.rel+2,0,100)); else y.lrel=clamp(y.lrel+8,0,100); render(); }},
+      {label:'Не замечать',hint:'50%: заговор — влияние −14, вес −8',fn(){
+        if(Math.random()<0.5){ infAdd(-14,'заговор',true); addCap(-8); if(!chief())y.lrel=clamp(y.lrel-10,0,100); logMsg('Завистники ударили: влияние и вес потеряны.',1); } }}]});
+}
+
+/* ─── кулуарные ходы: влияние тратится ─────────────────────────── */
+const CLOUT_MOVES=[
+  {id:'debtors', name:'Должники', cost:10, tier:1, txt:'два десятка депутатов и сенаторов теплеют к вам (+4): голоса станут дешевле'},
+  {id:'cover',   name:'Прикрыть своего', cost:12, tier:1, txt:'остудить ваш скандал, придержать следствие или стереть часть следа'},
+  {id:'press',   name:'Канал в печати', cost:10, tier:1, txt:'дружеское издание пишет за вас; одно враждебное теплеет'},
+  {id:'call',    name:'Дело по звонку', cost:14, tier:2, txt:'следующий раунд переговоров с фракцией — без хода и без веса'},
+  {id:'guard',   name:null, cost:18, tier:2, txt:null},
+  {id:'own',     name:'Свой человек в кабинет', cost:16, tier:3, txt:'слабый министр заменён сильным и преданным — без веса и Сената', only:()=>isPM()},
+];
+function cloutMoveInfo(m){
+  if(m.id==='guard')return chief()?{name:'Закрепить фракцию',txt:'снять вызов лидерству и на год закрыть путь новым'}:{name:'Собрать делегатов',txt:'на ближайшем съезде шансы +15%'};
+  return {name:m.name,txt:m.txt};
+}
+function askClout(){
+  const y=S.you, t=infTier(y.inf);
+  const opts=CLOUT_MOVES.filter(m=>!m.only||m.only()).map(m=>{ const i=cloutMoveInfo(m), lock=t.id<m.tier?'нужен уровень «'+INF_TIERS[m.tier].name.toLowerCase()+'»':y.inf<m.cost?'не хватает влияния':null;
+    return {label:i.name+' · '+m.cost,hint:lock||i.txt,fn(){ cloutDo(m.id); }}; });
+  opts.push({label:'Закрыть',hint:'',fn(){}});
+  sheetOpen({eye:'Кулуарные ходы · 1 действие',title:'Потратить влияние',
+    body:`<p class="lead">Влияние — не только счёт, но и ресурс: звонок, услуга, напоминание о долге. Каждый ход стоит действия и части влияния.</p>
+      <div class="res"><span>Влияние</span><b>${Math.round(y.inf)} · ${t.name.toLowerCase()}</b><span>Услуга за звонок</span><b>${y.favor&&y.favor.deal&&y.favor.until>=S.q?'ждёт':'нет'}</b></div>`,opts});
+}
+function cloutDo(id){
+  const m=CLOUT_MOVES.find(z=>z.id===id), y=S.you, t=infTier(y.inf);
+  if(t.id<m.tier){ toast('Нужен уровень «'+INF_TIERS[m.tier].name.toLowerCase()+'»'); return; }
+  if(y.inf<m.cost){ toast('Не хватает влияния: нужно '+m.cost); return; }
+  if(!pay({ap:1},cloutMoveInfo(m).name))return;
+  infAdd(-m.cost,'ход влияния: '+cloutMoveInfo(m).name.toLowerCase(),true);
+  let msg='';
+  if(id==='debtors'){ let n=0; S.deputies.concat(S.senate).filter(x=>!x.you).sort(()=>Math.random()-0.5).slice(0,22).forEach(x=>{ x.rel=clamp(x.rel+4,0,100); n++; }); msg='Должники: '+n+' человек вспомнили, что вам обязаны.'; }
+  if(id==='cover'){
+    const sc=scMine().sort((a,b)=>b.heat-a.heat)[0];
+    if(sc){ sc.heat=Math.max(0,sc.heat-25); msg='Скандал «'+sc.title+'» приглушён: температура −25.'; }
+    else if(S.probe){ S.probe.ev=Math.max(0,S.probe.ev-18); msg='Следствие придержано: улики −18.'; }
+    else { addTrail(-6,'прикрыли'); msg='Часть следа от сделок стёрта.'; }
+  }
+  if(id==='press'){ pressAll(1.5); const o=PRESS.slice().sort((a,b)=>pressOf(a.id).rel-pressOf(b.id).rel)[0]; pressOf(o.id).rel=clamp(pressOf(o.id).rel+8,0,100); msg='Канал в печати: «'+o.name+'» подобрела.'; }
+  if(id==='call'){ y.favor={deal:1,until:S.q+2}; msg='Звонок сделан: ближайшие переговоры с фракцией — бесплатно.'; }
+  if(id==='guard'){
+    if(chief()){ S.challenge=null; y.guard=S.q+4; msg='Фракция закреплена: вызова не будет ближайший год.'; }
+    else { y.congBoost=0.15; msg='Делегаты съезда обработаны: шансы +15%.'; } }
+  if(id==='own'){
+    const post=POSTS.map(p=>p.id).filter(k=>minOf(k)&&!minOf(k).you).sort((a,b)=>minComp(minOf(a))-minComp(minOf(b)))[0];
+    if(post){ const old=minOf(post), m2=makeMinister(post,old.party); m2.comp=clamp(ri(68,90),20,95); m2.loyal=clamp(ri(72,92),0,100);
+      S.ministers[post]=m2; if(S.fvp===post)S.fvp=null; S.pm.reshuffles=(S.pm.reshuffles||0)+1;
+      if(old.party!==PL&&S.partners[old.party])S.partners[old.party].anger=clamp(S.partners[old.party].anger+0.8,0,6);
+      msg='Свой человек в кабинете: '+POSTS.find(p=>p.id===post).name.toLowerCase()+' — '+m2.name+'.'; } }
+  logMsg(msg,1); toast(msg.length>60?'Ход влияния сделан':msg); render();
+}
+/* пользуются услугой на переговорах */
+function cloutFavor(){
+  const f=S.you&&S.you.favor; if(!f||!f.deal||f.until<S.q)return false;
+  f.deal=0; return true;
+}
+/* влияние ощущают другие системы */
+function cloutDealDisc(){ return Math.max(0,(infNow()-35))*0.05; }
+function cloutRatLean(){ return (infNow()-50)*0.03; }
+function cloutMinLoyal(){ return (infNow()-50)*0.06; }
+
+/* ─── панель «Влияние» ─────────────────────────────────────────── */
+function infPanel(){
+  const y=S.you, t=infTier(y.inf), L=infLedger(), next=INF_TIERS[t.id+1], base=Math.round(infBase());
+  const src=Object.entries(L.src).filter(e=>Math.abs(e[1])>=0.1).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1])).slice(0,4);
+  const ticks=INF_TIERS.slice(1).map(x=>`<u style="left:${x.at}%"><i>${x.at}</i></u>`).join('');
+  return panel({cls:y.inf>=INF_ENVY?'warn':'',title:'Влияние',meta:t.name,body:
+    `<div class="cols c12"><div>
+       <div class="stat"><i>индекс влияния</i><div class="v">${Math.round(y.inf)}<u>из 100</u></div><span>${next?'до «'+next.name.toLowerCase()+'» — '+(next.at-Math.round(y.inf)):'выше некуда — теперь удержать'}</span></div>
+     </div><div>
+       <div class="infbar"><b style="width:${y.inf}%"></b><s style="left:${base}%" title="уровень кресла"></s>${ticks}</div>
+       <div class="res" style="margin-top:14px"><span>Уровень кресла</span><b>${base}</b>
+         <span>За квартал</span><b class="${L.plus-L.minus>=0?'good':'bad'}">${sign(r1(L.plus-L.minus))}</b>
+         ${src.map(e=>`<span>${e[0]}</span><b class="${e[1]<0?'bad':'good'}">${sign(e[1])}</b>`).join('')}</div>
+     </div></div>
+     ${spark('clout','var(--gold)','Влияние по кварталам',v=>Math.round(v))}
+     <h3 class="sub">Что даёт влияние</h3>
+     ${INF_TIERS.slice(1).map((x,i)=>`<div class="dep"><div class="who"><b>${x.name} · ${x.at}</b><span>${x.perk}</span></div>
+        <span class="tag ${y.inf>=x.at?'g':''}">${y.inf>=x.at?'есть':'впереди'}</span></div>`).join('')}
+     <p class="hint" style="margin-top:8px">Чем выше влияние, тем труднее его прибавить и тем дороже содержание связей; кресло тянет его к своему уровню.
+       На вершине завидуют. Влияние нужно всем: от него зависят цена сделок, ратификация, верность министров и безопасность лидера партии.</p>`,
+    foot:`<button class="btn pri" onclick="askClout()" ${S.ap?'':'disabled'}>Кулуарные ходы<span class="cost">ход</span></button>
+      <span class="hint">Ходы тратят влияние: должники, прикрытие, звонок, делегаты.</span>`});
+}
+/* ════════════════════════════════════════════════════════════════
+   ПОЛНОМОЧИЯ КРЕСЛА
+   Рычаг открыт тому, у кого есть право, а не тому, кто сидел в кресле
+   раньше. Проигравший выборы теряет мандат, портфель или край, а с ними
+   всё, что к ним прилагалось. Таблица одна: кнопки на вкладках гасятся
+   по ней, а сами действия перепроверяют её на входе — так закрытое
+   нельзя открыть ни клавишей, ни старым листом, ни чужим разделом.
+   ════════════════════════════════════════════════════════════════ */
+const EXEC_SEATS=['pm','vice','pres','vp','min','gov','mayor'];
+/* власть исполнительная: кабинет, президент, министр, край или город */
+function inExec(){ return isPM()||isPres()||EXEC_SEATS.indexOf(mySeat())>=0; }
+/* законодательная: мандат, место в Сенате или кресло, с которого вносят проекты */
+function inLegis(){ return hasMandate()||inSenate()||isPres()||mySeat()==='vp'; }
+
+const POWERS={
+  motion:    {name:'вотум недоверия',            short:'нет мандата',
+    ok:()=>hasMandate(),
+    why:'Вотум недоверия вносят депутаты Собрания, а мандата у вас нет.'},
+  question:  {name:'правительственный час',      short:'нет мандата',
+    ok:()=>hasMandate(),
+    why:'Вопросы кабинету задают депутаты, а мандата у вас нет.'},
+  impeach:   {name:'импичмент',                  short:'нет мандата',
+    ok:()=>hasMandate(),
+    why:'Обвинение выдвигают депутаты Собрания, а мандата у вас нет.'},
+  reg:       {name:'регламент Собрания',         short:'нет мандата',
+    ok:()=>hasMandate(),
+    why:'Регламент правит Собрание, а в нём вы не заседаете.'},
+  hearing:   {name:'слушания в комитетах',       short:'нет мандата',
+    ok:()=>hasMandate(),
+    why:'Слушания назначает комитет Собрания, а вы в нём не заседаете.'},
+  inquiry:   {name:'расследовательская комиссия', short:'нет мандата',
+    ok:()=>hasMandate()||isPres()||mySeat()==='vp',
+    why:'Комиссию созывает палата, а вы в ней не заседаете.'},
+  budgetLine:{name:'строка в бюджете',           short:'нет мандата',
+    ok:()=>hasMandate()||chief(),
+    why:'За строку бюджета торгуется депутат или лидер партии. Вы ни то, ни другое.'},
+  talk:      {name:'переговоры с фракциями',     short:'нет мандата',
+    ok:()=>hasMandate()||chief(),
+    why:'С фракциями договариваются депутаты и лидеры партий. Вы ни то, ни другое.'},
+  coalition: {name:'раскол и выход из коалиции', short:'решает лидер',
+    ok:()=>chief(),
+    why:'Кабинет раскалывает и коалицию покидает лидер партии, а лидер — не вы.'},
+  amend:     {name:'поправки к конституции',     short:'нет права',
+    ok:()=>hasMandate()||inSenate()||isPres(),
+    why:'Поправку вносят президент, депутат или сенатор.'},
+  petition:  {name:'запрос в суд',                short:'нет права',
+    ok:()=>inLegis()||isPM()||mySeat()==='gov',
+    why:'В суд на закон обращаются депутаты, сенаторы, кабинет, президент или край.'},
+  whip:      {name:'работа с колеблющимися',     short:'нет проекта',
+    ok:()=>canBill(),
+    why:'Проекта на столе нет, а вносить его вам нечем: ни мандата, ни поста.'},
+  senLead:   {name:'сделки с лидером Сената',    short:'нет проектов',
+    ok:()=>canBill(),
+    why:'Календарь Сената нужен тому, кто вносит проекты. Ни мандата, ни поста у вас нет.'},
+  dropVP:    {name:'смена вице-президента',      short:'нет поста', rare:1,
+    ok:()=>isPres(),
+    why:'Вице-президента меняет президент.'},
+  nuke:      {name:'правка регламента Сената',   short:'нет места', rare:1,
+    ok:()=>inSenate()||mySeat()==='vp',
+    why:'Порог клотура пересматривает Сенат: место сенатора или кресло председателя.'},
+  bizCouncil:{name:'деловой совет',              short:'нет поста',
+    ok:()=>inExec(),
+    why:'Деловой совет собирает власть: кабинет, президент, министр, край или город.'},
+  project:   {name:'проекты в край',             short:'нет поста',
+    ok:()=>mySeat()!=='none',
+    why:'Просить проект в край может тот, у кого есть кресло. Частное лицо — не может.'},
+  firmShake: {name:'нажим на капитал',           short:'нет поста',
+    ok:()=>inExec(),
+    why:'Просить инвестиции в обмен на спокойствие может только власть.'},
+  firmDeal:  {name:'обещания закона капиталу',   short:'нет проектов',
+    ok:()=>canBill(),
+    why:'Обещать закон может тот, кто вносит проекты. У вас ни мандата, ни поста.'},
+  byElection:{name:'довыборы',                   short:'есть кресло', rare:1,
+    ok:()=>mySeat()==='none',
+    why:'Довыборы нужны тому, у кого кресла нет.'},
+};
+/* причина отказа, пустая строка — право есть */
+function powerWhy(k){ const p=POWERS[k]; return !p||p.ok()?'':p.why; }
+function can(k){ return !powerWhy(k); }
+/* на входе в действие: нет права — отказ тостом */
+function need(k){ const w=powerWhy(k); if(w)toast(w); return !w; }
+/* вариант для листа: пункт гаснет и объясняет почему */
+function offOpt(k,o){ const w=powerWhy(k); return w?{...o,off:w,fn(){ toast(w); }}:o; }
+
+/* кнопки на вкладках: что гасится и по какому праву */
+const POWER_BTN=[
+  [/^askMotion\(/,'motion'], [/^askQuestion\(/,'question'], [/^askImpeach\(/,'impeach'],
+  [/^askReg\(/,'reg'], [/^askHearing\(/,'hearing'], [/^askInquiry\(/,'inquiry'],
+  [/^askBudgetLine\(/,'budgetLine'], [/^askAmend(One)?\(|^askConvene\(/,'amend'],
+  [/^askLead\(/,'senLead'], [/^askPetition\(/,'petition'], [/^dropVP\(/,'dropVP'], [/^askNukeSolo\(/,'nuke'],
+  [/^bizCouncil\(/,'bizCouncil'], [/^askProject\(/,'project'], [/^byElection\(/,'byElection'],
+];
+const POWER_ACT={noconf:'motion', question:'question', talk:'talk', whip:'whip'};
+function powerKey(b){
+  const oc=b.getAttribute('onclick')||'';
+  for(const [re,k] of POWER_BTN)if(re.test(oc))return k;
+  return POWER_ACT[b.dataset.act]||null;
+}
+/* после каждой перерисовки: замок на всё, на что права нет */
+function lockPass(){
+  document.querySelectorAll('#view button').forEach(b=>{
+    if(b.disabled)return;
+    const k=powerKey(b), why=k&&powerWhy(k); if(!why)return;
+    b.disabled=true; b.title=why; b.classList.add('lock');
+    const c=b.querySelector('.cost');
+    if(c)c.textContent=POWERS[k].short;
+    else b.insertAdjacentHTML('beforeend','<span class="cost">'+POWERS[k].short+'</span>');
+  });
+}
+
+/* что открыто, а что закрыто в этом кресле — для листа потери и досье */
+function powerState(){ const o={}; Object.keys(POWERS).forEach(k=>o[k]=POWERS[k].ok()); return o; }
+function powerDiff(a,b){
+  const shut=[], open=[];
+  Object.keys(POWERS).forEach(k=>{ if(a[k]&&!b[k])shut.push(POWERS[k].name); if(!a[k]&&b[k])open.push(POWERS[k].name); });
+  return {shut,open};
+}
+/* строки для листа потери: что закрылось и что открылось */
+function shiftRows(){
+  const d=S.you&&S.you.shift; if(!d||!(d.shut.length||d.open.length))return '';
+  return `<div class="res">${d.shut.length?`<span>Закрыто</span><b class="bad w">${d.shut.join(', ')}</b>`:''}${
+    d.open.length?`<span>Открыто</span><b class="good w">${d.open.join(', ')}</b>`:''}</div>`;
+}
+/* одной строкой в досье: чего нет у этого кресла */
+function powerNote(){
+  if(['none','lead','dep'].indexOf(mySeat())<0)return '';
+  const all=Object.keys(POWERS).filter(k=>!POWERS[k].rare&&!POWERS[k].ok()).map(k=>POWERS[k].name);
+  if(!all.length)return '';
+  const shut=all.length>9?all.slice(0,8).concat('и ещё '+(all.length-8)):all;
+  return `<p class="hint nopow"><b>Вне ваших полномочий:</b> ${shut.join(', ')}.
+    ${hasMandate()?'':'Мандат возвращают довыборы или следующий созыв. '}Кнопки на вкладках погашены и подписаны.</p>`;
+}
 /* ════════════════════════════════════════════════════════════════
    Интерфейс. Вся разметка собрана из компонентов дизайн-системы
    (game/ui.html): panel, btn, table, stat, meter, chip, tag, stamp.
@@ -14793,7 +15126,7 @@ function mnext(){
   const acts=(m.acts||[{label:'Закрыть'}]).map((a,i)=>
     `<button class="btn ${i===0?'pri':''}" data-a="${i}">${a.label}</button>`).join('');
   const opts=(m.opts||[]).map((o,i)=>
-    `<button class="opt" data-o="${i}"><b>${o.label}</b>${o.hint?`<span>${o.hint}</span>`:''}</button>`).join('');
+    `<button class="opt${o.off?' off':''}" data-o="${i}"${o.off?' disabled':''}><b>${o.label}</b>${o.off||o.hint?`<span>${o.off||o.hint}</span>`:''}</button>`).join('');
   sh.innerHTML=`<div class="mh"><i>${m.eye||''}</i><h2>${m.title||''}</h2></div>
     <div class="mb">${m.body||''}${opts?'<div style="margin-top:10px">'+opts+'</div>':''}</div>
     ${m.opts?'':`<div class="mf">${acts}</div>`}`;
@@ -15223,7 +15556,7 @@ function renderStrip(){
     ['казна',Math.round(S.treasury)+' млрд',S.treasury<25?'bad':''],
     ['баланс',sign(Math.round(bal)),bal<0?'bad':'good'],
     ['вес',Math.round(S.cap),S.cap<15?'warn':''],
-    ...(chief()?[]:[['влияние',Math.round(S.you.inf)+' / '+CONGRESS_INF,S.you.inf>=CONGRESS_INF?'good':'']]),
+    ['влияние',Math.round(S.you.inf)+(chief()?'':' / '+CONGRESS_INF),S.you.inf>=60?'good':S.you.inf<20?'warn':''],
     ['касса',Math.round(S.funds)+' млн',''],
   ];
   document.getElementById('strip').innerHTML=cells.map(c=>c[0]==='действия'
@@ -15284,7 +15617,7 @@ function render(){
             const:tabConst,hist:tabHist,fac:tabFac,
             arch:tabArch,help:tabHelp,final:tabFinal})[S.tab]||tabBrief;
   document.getElementById('view').innerHTML=f();
-  bindActions();
+  bindActions(); lockPass();
 }
 function bindActions(){
   document.querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>{
@@ -15367,9 +15700,9 @@ function nextSteps(){
     else add('Внесите проект','«'+T(S.bill.topic).name+'» готов: прогноз '+tl.yes+' из '+MAJ+'.','К проекту','',"bill");
   } else if(canBill())add('Подготовьте закон','Закон — главный способ менять страну. Выберите направление и тему, позицию подберите так, чтобы прошла.',
     'Законы','',"bill");
-  if(!isPM()&&budgetDue()&&bReqOpen()&&S.ap)add('Потребуйте строку бюджета','Кабинет готовит бюджет на '+budgetYear()+' год. Голоса «'+me().short+'» можно обменять на статью для ваших избирателей.',
+  if(!isPM()&&can('budgetLine')&&budgetDue()&&bReqOpen()&&S.ap)add('Потребуйте строку бюджета','Кабинет готовит бюджет на '+budgetYear()+' год. Голоса «'+me().short+'» можно обменять на статью для ваших избирателей.',
     'Строка','askBudgetLine()');
-  if(!isPM()&&!m&&noconfKind()!=='none'&&!(S.noConfCool>0)&&coalSeats()<MAJ+25)
+  if(!isPM()&&hasMandate()&&!m&&noconfKind()!=='none'&&!(S.noConfCool>0)&&coalSeats()<MAJ+25)
     add('Раскачайте кабинет','Правительство держится на '+coalSeats()+' голосах из '+MAJ+'. Раскол коалиции или вотум недоверия могут его уронить.',
       'Собрание','',"parl");
   const ordered=GROUPS.slice().sort((x,y)=>S.mood[x.id]-S.mood[y.id]);
@@ -15525,7 +15858,7 @@ function leadPanel(){
     body:`<p class="lead">Партию ведёт ${me().leader}: линия, коалиция и программа — его решения. Сменить лидера может только съезд,
         и делегаты смотрят на ваше влияние.</p>
       <div class="levers">
-        <div class="lever ${S.you.inf>=CONGRESS_INF?'on':''}"><i>Ваше влияние</i><b>${Math.round(S.you.inf)}</b><span>съезд — с ${CONGRESS_INF}</span></div>
+        <div class="lever ${S.you.inf>=CONGRESS_INF?'on':''}"><i>Ваше влияние</i><b>${Math.round(S.you.inf)}</b><span>${infTier(S.you.inf).name.toLowerCase()} · съезд — с ${CONGRESS_INF}</span></div>
         <div class="lever ${S.you.lrel<35?'bad':''}"><i>Отношение лидера</i><b>${Math.round(S.you.lrel)}</b><span>${S.you.lrel>=60?'доверяет':S.you.lrel>=35?'терпит':'ждёт промаха'}</span></div>
         <div class="lever ${listRank()<=seatsOf(PL)?'on':'warn'}"><i>Номер в списке</i><b>№${listRank()}</b><span>у фракции ${mandates(seatsOf(PL))}</span></div>
         <div class="lever"><i>Шанс на съезде</i><b>${Math.round(ch*100)}%</b><span>${ok?'можно созывать':congressWhy()}</span></div>
@@ -16085,6 +16418,7 @@ function tabSelf(){
       <p class="hint">Молва движется от решений, а не от рейтинга: она влияет на выборы,
         на терпение союзников и на то, верят ли вашему слову.</p>
      </div></div>`})
+  +infPanel()
   +`<div class="cols c11"><div>`
   +panel({title:'Черты характера',meta:(y.traits||[]).length+' из 2',body:tr})
   +panel({cls:old?'warn':'',title:'Возраст и форма',body:
@@ -16104,7 +16438,7 @@ function tabSelf(){
         <span>Должность</span><b class="w">${seatTitle()}</b>
         <span>В ней с</span><b>${shortDate(y.seatQ||1)}</b>
         <span>Партию ведёт</span><b class="w">${chief()?'вы':me().leader}</b>
-        ${chief()?'':`<span>Влияние в партии</span><b class="${y.inf>=CONGRESS_INF?'good':''}">${Math.round(y.inf)}</b>`}
+        <span>Влияние</span><b class="${y.inf>=CONGRESS_INF?'good':''}">${Math.round(y.inf)} · ${infTier(y.inf).name.toLowerCase()}</b>
         <span>Мандат в Собрании</span><b class="${hasMandate()?'good':mySeat()==='none'?'bad':''}">${hasMandate()?'есть':mySeat()==='none'?'нет':'не нужен креслу'}</b>
         <span>Вес кресла</span><b>${seatPower().toFixed(2)}</b>
         <span>Праймериз пройдено</span><b>${y.primaries||0}</b>
@@ -16112,7 +16446,7 @@ function tabSelf(){
           recallRisk()?Math.round(recallRisk()*100)+'% за квартал':'нет'}</b></div>
       <p class="hint">${(SEATS_YOU[mySeat()]||{}).txt||''} ${hasMandate()
         ? 'Мандат отбирают за след от сделок: чем он длиннее, тем ближе представление надзора.'
-        : 'Без мандата законы вносят чужими руками. Вернуться можно довыборами или следующим созывом.'}</p>`,
+        : 'Без мандата законы вносят чужими руками. Вернуться можно довыборами или следующим созывом.'}</p>${powerNote()}`,
     foot:`${hasMandate()||['gov','mayor','sen','pres','vp','min'].indexOf(mySeat())>=0?'':`<button class="btn pri" onclick="byElection()" ${S.ap&&S.cap>=12&&S.funds>=30?'':'disabled'}>Идти на довыборы<span class="cost">12 · 30 млн</span></button>`}
       <button class="btn" onclick="askRaces()">Выборный календарь</button>
       <button class="btn" onclick="askPrimary()" ${S.ap&&S.cap>=PRIM_CAP&&!S.prim?'':'disabled'}>Праймериз<span class="cost">${PRIM_CAP}</span></button>
@@ -16328,6 +16662,7 @@ function tabSenate(){
 }
 /* тот же ядерный вариант, но вне спора о конкретном законе */
 function askNukeSolo(){
+  if(!need('nuke'))return;
   if(!canNuke()){toast('Для правки регламента нужны '+NUKE_MIN+' своих и свой председатель');return;}
   sheetOpen({eye:'Регламент Сената',title:'Опустить порог клотура?',
     body:`<p class="lead">Председатель ставит вопрос о толковании регламента, и палата решает его
@@ -17508,6 +17843,25 @@ function helpBody(){
       отказать или ответить силой — ястреб растёт на уступках и отступает перед силой), устраивает провокацию, просит помощи (помощь создаёт должника,
       кредит — риск дефолта) или зовёт на встречу. Раз в 6–8 кварталов — региональный саммит всех четырёх: позиция, подарок и декларация
       на два года или раскол. Если у власти не вы, всё решает чужой кабинет по курсу своей партии.</p>
+    <h3 class="sub">Влияние: накопление, содержание, кулуарные ходы</h3>
+    <p>Влияние — личный капитал связей: оно у любого кресла, а не только у тех, кто рвётся к лидерству. Растёт от работы кресла,
+      партийной работы, трибуны, слушаний и сделок, но чем выше, тем труднее прибавить: на 70 прибавка втрое меньше, на 90 — в семь раз.
+      Кресло тянет влияние к своему уровню (у президента он выше, у депутата ниже): выше уровня связи дороги в содержании, ниже — обрастают сами.
+      Уровней пять: никто, свой в узком кругу, заметная фигура, влиятельный и кулуарный лидер. Влиятельным лидеры фракций уступают в цене сделок,
+      сенаторы охотнее ратифицируют, министры вернее, свои законы собирают больше голосов, лидера партии реже свергают; с 60 вес растёт сам.
+      На 80 и выше завидуют: лидер партии или фракция может устроить заговор, если не показать силу или не поделиться местами.
+      «Кулуарные ходы» тратят влияние: должники (голоса дешевле), прикрыть своего (остудить скандал, придержать следствие), канал в печати,
+      дело по звонку (бесплатные переговоры), делегаты съезда или закрепление фракции у лидера, свой человек в кабинет у премьера.</p>
+    <h3 class="sub">Полномочия кресла</h3>
+    <p>Рычаг открыт тому, у кого есть право, а не тому, кто сидел в кресле раньше. Проигравший выборы лишается мандата,
+      портфеля или края, а с ними всего, что к ним прилагалось. Без мандата нельзя внести вотум недоверия, обвинение, правку
+      регламента, назначить слушания, созвать комиссию, торговаться за строку бюджета или задать вопрос кабинету. Поправки к
+      конституции вносят президент, депутат и сенатор; вице-президента меняет президент; деловой совет и нажим на капитал —
+      у власти (кабинет, президент, министр, край, город); частное лицо не просит проектов в край. Лидеру партии без мандата
+      остаются переговоры с фракциями, торг за бюджет и право вывести партию из коалиции. Кнопки на вкладках гасятся и подписаны
+      причиной, а лист потери кресла и «Мой политик» показывают, что закрылось. Вернуть рычаги можно довыборами или следующим
+      созывом. Кабинет остаётся за лидером партии, только пока он сидит в кресле премьера или президента: проигравший президент
+      возвращается к кабинету своей партии, если она его ведёт, и остаётся ни с чем, если нет.</p>
     <h3 class="sub">Штабы соперников</h3>
     <p>У каждой партии ИИ свой штаб и ход-полтора в квартал: компромат на главного соперника (на вас — тем вероятнее,
       чем длиннее след; заказ может раскрыться), поездки по краям, где власть слаба, кампании в печати, агитация за права

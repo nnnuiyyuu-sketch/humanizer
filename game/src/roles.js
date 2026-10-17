@@ -104,6 +104,7 @@ function desk(){
 }
 /* где заканчивается кресло: мандат остаётся только у тех, кто его имел */
 function fallbackSeat(){
+  if(chief()&&S.gov.lead===PL)return 'pm';          // кабинет вашей партии вернулся к её лидеру
   if(S.you&&S.you.mand)return chief()&&!inCoal(PL)?'lead':'dep';
   return 'none';
 }
@@ -174,6 +175,7 @@ function leaveDesk(was,to){
 /* кресло ушло не по вашей воле */
 function lostSeat(why){
   const was=mySeat();
+  S.you.shift=null;
   setSeat(fallbackSeat(),why[0].toUpperCase()+why.slice(1)+'.');
   addCap(-8); bumpRep('comp',-2);
   logMsg('Кресло потеряно: '+why+'.',1);
@@ -184,6 +186,7 @@ function lostSeat(why){
       <div class="res"><span>Было</span><b class="w">${(SEATS_YOU[was]||{}).name}</b>
         <span>Стало</span><b class="w">${seatName()}</b>
         ${chief()?'':`<span>Влияние в партии</span><b>${Math.round(S.you.inf)}</b>`}</div>
+      ${shiftRows()}
       <p class="hint">Дальше — выборы, предложения и съезд. Смотрите «Ваше кресло» в «Кабинете».</p>`,
     acts:[{label:'Дальше'}]});
 }
@@ -224,11 +227,8 @@ function distChance(){
 function roleTick(){
   if(!S.you||S.over)return;
   const s=mySeat(), d=desk();
-  if(!chief()){
-    const drift={vp:1,gov:1.1,mayor:0.7,sen:0.8,dep:0.6,min:1,vice:1,none:0.2}[s]||0.3;
-    S.you.inf=clamp(r1(S.you.inf+drift-0.35+(d.score-50)*0.02),0,100);
-    S.you.lrel=clamp(r1(S.you.lrel+(55-S.you.lrel)*0.06+rnd(-1.5,1.5)),0,100);
-  }
+  infTick();
+  if(!chief())S.you.lrel=clamp(r1(S.you.lrel+(55-S.you.lrel)*0.06+rnd(-1.5,1.5)),0,100);
   if(s==='min')deskMin(d);
   else if(s==='gov')deskGov(d);
   else if(s==='mayor')deskMayor(d);
@@ -373,7 +373,7 @@ function deskActs(){
       run(){ askVPJob(); return ''; }});
     A({id:'resign',name:'Подать в отставку',ap:0,txt:'уйти с поста вице и остаться в политике',run(){ askResign(); return ''; }});
     A({id:'own',name:'Своя повестка',cap:5,txt:'известность +3, доверие президента −6',
-      run(){ bumpRep('folk',3); d.trust=clamp(d.trust-6,0,100); if(!chief())S.you.inf=clamp(S.you.inf+2,0,100);
+      run(){ bumpRep('folk',3); d.trust=clamp(d.trust-6,0,100); infAdd(2,'публичность');
         return 'Вице-президент выступил со своей повесткой.'; }});
   }
   if(s==='gov'){
@@ -398,7 +398,7 @@ function deskActs(){
         return 'Губернатор доложил в правительстве: отношения с центром +'+v+'.'; }});
     A({id:'fight',name:'Спор с центром',cap:3,txt:'край и страна вас заметят; центр — тоже',
       run(){ S.rmod[rid]=clamp(S.rmod[rid]+4,-22,22); bumpRep('folk',2); bumpRep('firm',2); d.center=clamp(d.center-15,0,100);
-        if(!chief())S.you.inf=clamp(S.you.inf+3,0,100); return 'Губернатор публично поспорил с центром.'; }});
+        infAdd(3,'публичность'); return 'Губернатор публично поспорил с центром.'; }});
     if(regAuto(rid)<2&&!S.rref)A({id:'autoref',name:'Референдум о полномочиях',cap:8,txt:'край голосует за автономию; центр будет недоволен',
       run(){ return govRefAct(rid); }});
     A({id:'deleg',name:'Делегация края',cap:5,txt:'сенаторы и депутаты от края теплеют к вам',
@@ -443,14 +443,14 @@ function deskActs(){
   if(s==='dep'||s==='none'){
     if(s==='none')A({id:'partywork',name:'Партийная работа',txt:chief()?'касса +6, вес +4':'влияние +5…8, лидер доволен',
       run(){ if(chief()){ S.funds=r1(S.funds+6); addCap(4); return 'Партийная работа: касса и вес.'; }
-        const v=ri(5,8); S.you.inf=clamp(S.you.inf+v,0,100); S.you.lrel=clamp(S.you.lrel+2,0,100);
+        const v=infAdd(ri(5,8),'партийная работа'); S.you.lrel=clamp(S.you.lrel+2,0,100);
         return 'Партийная работа: влияние +'+v+'.'; }});
     A({id:'office',name:s==='dep'?'Приём в округе':'Работа в округе',funds:s==='dep'?3:4,txt:'поддержка в округе, известность +1',
       run(){ d.home=clamp(d.home+6,0,100); S.rmod[d.rid]=clamp(S.rmod[d.rid]+1.5,-22,22); bumpRep('folk',1.2);
         return 'Работа в округе: '+R(d.rid).name+'.'; }});
     if(s==='dep'){
       if(!chief())A({id:'faction',name:'Работа во фракции',cap:3,txt:'влияние +4…7, лидер доволен',
-        run(){ const v=ri(4,7); S.you.inf=clamp(S.you.inf+v,0,100); S.you.lrel=clamp(S.you.lrel+3,0,100);
+        run(){ const v=infAdd(ri(4,7),'работа во фракции'); S.you.lrel=clamp(S.you.lrel+3,0,100);
           S.deputies.filter(x=>x.party===PL).slice(0,12).forEach(x=>x.rel=clamp(x.rel+1,0,100));
           return 'Работа во фракции: влияние +'+v+'.'; }});
       A({id:'ratify',name:'Давить на ратификацию договора',ap:0,txt:'договор в Сенате: лоббировать, слушания или выступить против',
@@ -460,15 +460,15 @@ function deskActs(){
       A({id:'inquiry',name:'Депутатский запрос',cap:4,pick:'minister',txt:'неудобный вопрос министру, компетентность +2',
         run(x){ return hearing(x,true); }});
       A({id:'speech',name:'Выступление с трибуны',cap:2,txt:'известность +2, влияние +2, лидер морщится',
-        run(){ bumpRep('folk',2); if(!chief()){ S.you.inf=clamp(S.you.inf+2,0,100); S.you.lrel=clamp(S.you.lrel-2,0,100); }
+        run(){ bumpRep('folk',2); infAdd(2,'трибуна'); if(!chief())S.you.lrel=clamp(S.you.lrel-2,0,100);
           return 'Выступление с трибуны Собрания.'; }});
     } else {
       A({id:'column',name:'Колонка в газете',pick:'press',txt:'издание теплеет, известность +1',
         run(x){ const o=pressOf(x); if(o)o.rel=clamp(o.rel+ri(4,8),0,100); bumpRep('folk',1);
-          if(!chief())S.you.inf=clamp(S.you.inf+1,0,100);
+          infAdd(1,'публичность');
           return 'Ваша колонка в «'+PRESS.find(p=>p.id===x).name+'».'; }});
       A({id:'donors',name:'Собрать деньги партии',txt:'касса +10…18'+(chief()?'':', влияние +3'),
-        run(){ const v=ri(10,18); S.funds=r1(S.funds+v); if(!chief())S.you.inf=clamp(S.you.inf+3,0,100);
+        run(){ const v=ri(10,18); S.funds=r1(S.funds+v); infAdd(3,'публичность');
           return 'Вы собрали партии '+v+' млн.'; }});
     }
     if(!chief())A({id:'district',name:'Выдвинуться по округу',funds:DIST_FUNDS,
@@ -515,7 +515,7 @@ function hearing(post,dep){
   bumpRep('comp',dep?2:1.5); bumpRep('folk',1);
   if(!mine)pressAll(1);
   if(!dep)d.hear=(d.hear||0)+1;
-  if(!chief())S.you.inf=clamp(S.you.inf+(mine?-1:2),0,100);
+  infAdd(mine?-1:2,'слушания',mine);
   return (dep?'Запрос министру ':'Слушания: ')+m.name+' ('+POSTS.find(p=>p.id===post).name.toLowerCase()+').';
 }
 /* рычаги министра */
@@ -597,7 +597,7 @@ function congressWhy(){
   return true;
 }
 function congressOdds(){
-  const you=S.you.inf+(rep('folk')-50)*0.3+(approval()-45)*0.2;
+  const you=S.you.inf+(rep('folk')-50)*0.3+(approval()-45)*0.2+((S.you.congBoost||0)*100/3);   // делегаты, обработанные заранее
   let him=50+(S.gov.lead===PL?8:0)+(presOurs()&&S.pres.name===me().leader?8:0);
   if(S.you.lrel>65)him-=5;
   if(seatsOf(PL)<SEATS*0.15)him-=6;
@@ -629,7 +629,7 @@ function runCongress(){
         <p class="hint">Теперь линия партии, коалиция и список — ваши решения.${isPM()?' Кабинет партии переходит к вам.':''}</p>`,
       acts:[{label:'Принять партию'}]});
   } else {
-    S.you.inf=clamp(S.you.inf-18,0,100); S.you.lrel=clamp(S.you.lrel-20,0,100); addCap(-8);
+    infAdd(-18,'проигранный съезд',true); S.you.lrel=clamp(S.you.lrel-20,0,100); addCap(-8);
     logMsg('Съезд оставил лидером '+old+'. Ваше влияние упало.',1);
     chron('Съезд «'+me().name+'» не поддержал вызов лидеру.','b');
     sheetOpen({eye:'Итог съезда',title:'Лидером остался '+old,
@@ -690,6 +690,7 @@ function plCandName(){ return plCandYou()?S.you.name:(S.primWin===false&&S.primL
 /* ─── личный итог всеобщих выборов ──────────────────────────────── */
 function selfElection(seats){
   const s=mySeat(), n=seats[PL]||0;
+  S.you.shift=null;
   if(['dep','lead','pm','vice','none'].indexOf(s)<0){ S.you.run=null; return ''; }
   let got=false, how='';
   if(chief()){ got=n>0; how='первым номером списка'; }
@@ -701,9 +702,9 @@ function selfElection(seats){
   }
   S.you.run=null;
   if(got){ if(s==='none')setSeat('dep','Избраны в Собрание '+how+'.'); addCap(4);
-    if(!chief())S.you.inf=clamp(S.you.inf+5,0,100); }
+    infAdd(5,'публичность'); }
   else if(s!=='none')setSeat('none','Не прошли в Собрание.');
-  return `<div class="res" style="margin-top:8px"><span>Вы лично</span><b class="w ${got?'good':'bad'}">${got?'мандат · '+how:'без мандата · '+how}</b></div>`;
+  return `<div class="res" style="margin-top:8px"><span>Вы лично</span><b class="w ${got?'good':'bad'}">${got?'мандат · '+how:'без мандата · '+how}</b></div>`+shiftRows();
 }
 
 /* ─── президентская подпись ─────────────────────────────────────────

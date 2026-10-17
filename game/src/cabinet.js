@@ -69,7 +69,7 @@ function minLifeTick(){
     minFill(m);
     // верность тянется к своему уровню: своя партия, дальний партнёр, обиды партии
     const p=P(m.party), base=(m.party===lead?64:52)-(p?axDist(p.st,P(lead).st)*7:0)+MT(m.trait).loyal
-      -((S.partners[m.party]||{}).anger||0)*4+(S.fvp===m.post?12:0)+(approval()-50)*0.25;
+      -((S.partners[m.party]||{}).anger||0)*4+(S.fvp===m.post?12:0)+(approval()-50)*0.25+cloutMinLoyal();
     m.loyal=Math.round(clamp(m.loyal+(base-m.loyal)*0.15+rnd(-2,2),0,100));
     if(S.fvp===m.post)m.amb=clamp(m.amb+1,0,100);
   });
@@ -535,7 +535,7 @@ function viceActs(A,d){
     run(){ const x=CI(S.cabIssue.id); S.cabIssue=null; loyalShift(x.a,2); loyalShift(x.b,2); d.score=clamp(d.score+4,0,100); bumpRep('comp',1);
       return 'Вице-премьер развёл спор «'+x.title.toLowerCase()+'».'; }});
   A({id:'stand',name:'Подменить премьера на публике',cap:5,txt:'имя в стране растёт; премьер не всегда этому рад',
-    run(){ bumpRep('folk',2); if(!chief())S.you.inf=clamp(S.you.inf+3,0,100); d.score=clamp(d.score-2,0,100);
+    run(){ bumpRep('folk',2); infAdd(3,'публичность'); d.score=clamp(d.score-2,0,100);
       return 'Вице-премьер выступил от имени правительства.'; }});
 }
 function deskVice(d){

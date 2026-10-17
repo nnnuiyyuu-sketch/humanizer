@@ -93,13 +93,14 @@ function askCoalition(){
         <div class="sub2">${mandates(seatsOf(id))} · ${posts(Object.values(S.gov.posts).filter(x=>x===id).length)}${
           pc?' · договор: '+pactText(pc)+(pc.done?' — исполнен':' — до '+shortDate(pc.due)):''}</div></td>
       <td class="n ${loy<40?'bad':loy<65?'warn':'good'}">${isLead?'—':loy+'%'}</td></tr>`; }).join('');
-  const body=`<p class="lead">${mine
+  let body=`<p class="lead">${mine
       ?'Коалиция держится на двух вещах: портфелях и договоре. Обиженный партнёр уходит, и тогда правительство остаётся меньшинством.'
       :'Кабинет '+lead.leader+' держится на '+coalSeats()+' голосах из '+MAJ+'. Чем дальше партнёр от премьера по курсу и чем хуже дела в стране, тем легче его увести.'}</p>
     <table class="tight"><thead><tr><th></th><th>Фракция</th><th class="n">Прочность</th></tr></thead><tbody>${rows}</tbody></table>
     <div class="res"><span>У коалиции</span><b class="${coalSeats()>=MAJ?'good':'bad'}">${coalSeats()} из ${MAJ}</b>
       <span>Самый слабый партнёр</span><b>${coalStrength()}%</b></div>`;
   const opts=[];
+  if(!mine&&!ours&&!can('coalition'))body+=`<p class="hint">Вы не лидер партии: расколоть кабинет и вывести партию из коалиции вам не по чину.</p>`;
   if(mine){
     coalition().filter(id=>id!==PL).forEach(id=>{ const p=P(id), pc=S.pacts&&S.pacts[id];
       opts.push({label:'Встреча с лидером «'+p.short+'»',hint:'1 действие и '+MEET_CAP+' веса · прочность +25',
@@ -120,10 +121,10 @@ function askCoalition(){
     opts.push({label:'Отдать портфель',hint:'раздел «Правительство»',fn(){ S.tab='gov'; render(); }});
   } else if(!ours){
     coalition().filter(id=>id!==S.gov.lead&&id!==PL).forEach(id=>{ const p=P(id);
-      opts.push({label:'Расколоть: увести «'+p.short+'» из кабинета',hint:'1 действие и '+SPLIT_CAP+' веса · шанс '+Math.round(splitChance(id)*100)+'%',
-        fn:()=>splitCoalition(id)}); });
-    if(inCoal(PL)&&chief())opts.push({label:'Выйти из коалиции',hint:'портфели сдаются, у кабинета станет '+(coalSeats()-seatsOf(PL))+' из '+MAJ,
-      fn:leaveAsJunior});
+      opts.push(offOpt('coalition',{label:'Расколоть: увести «'+p.short+'» из кабинета',hint:'1 действие и '+SPLIT_CAP+' веса · шанс '+Math.round(splitChance(id)*100)+'%',
+        fn:()=>splitCoalition(id)})); });
+    if(inCoal(PL)&&chief())opts.push(offOpt('coalition',{label:'Выйти из коалиции',hint:'портфели сдаются, у кабинета станет '+(coalSeats()-seatsOf(PL))+' из '+MAJ,
+      fn:leaveAsJunior}));
     if(inCoal(PL)&&!chief())opts.push({label:'Выйти из коалиции',hint:'решает лидер партии — '+me().leader,fn(){ toast('Из коалиции партию выводит лидер'); }});
   }
   opts.push({label:'Закрыть',hint:'',fn(){}});
@@ -178,6 +179,7 @@ function splitChance(pid){
     +((S.split||{})[pid]||0)*0.006+(rep('comp')-50)*0.003,0.06,0.75);
 }
 function splitCoalition(pid){
+  if(!need('coalition'))return;
   const p=P(pid), ch=splitChance(pid);
   if(!pay({ap:1,cap:SPLIT_CAP},'Раскол коалиции: «'+p.name+'»'))return;
   S.split=S.split||{};
@@ -206,6 +208,7 @@ function splitCoalition(pid){
 }
 /* младший партнёр уходит сам */
 function leaveAsJunior(){
+  if(!need('coalition'))return;
   S.gov.coal=S.gov.coal.filter(x=>x!==PL);
   Object.keys(S.gov.posts).forEach(k=>{ if(S.gov.posts[k]===PL)S.gov.posts[k]=S.gov.lead; });
   S.role='opp'; syncCabinet(); bumpRep('firm',3); bumpRep('honest',-1);
@@ -464,6 +467,7 @@ function askMotion(){
   const m=S.motion, lead=P(S.gov.lead);
   if(!m){
     if(S.gov.lead===PL){ toast('Вотум вносит оппозиция, а не вы'); return; }
+    if(!need('motion'))return;
     const bl=motionBlock(); if(bl){ toast(bl); return; }
     const sig=motionSigs(), constr=noconfKind()==='constructive';
     const succ=S.parties.filter(p=>!inCoal(p.id)).sort(bySeats);
@@ -677,7 +681,7 @@ function askDissolve(){
   const coalThen=coalition().reduce((a,id)=>a+(snap[id]||0),0);
   const opts=[];
   if(mine&&ok)opts.push({label:'Распустить Собрание',hint:'1 действие и '+DISS_CAP+' веса · выборы в этом квартале',fn:()=>doDissolve(PL)});
-  if(!mine&&S.gov.lead===PL&&CN().dissolve==='pres'&&!isPres()&&ok)
+  if(!mine&&isPM()&&CN().dissolve==='pres'&&!isPres()&&ok)
     opts.push({label:'Просить президента о роспуске',hint:'1 действие · '+S.pres.name+' решает сам',fn:askPresDissolve});
   opts.push({label:'Закрыть',hint:'',fn(){}});
   sheetOpen({eye:'Роспуск Собрания · право: '+dissHolderWord(),title:'Досрочные выборы',
@@ -752,6 +756,7 @@ function regSupport(d,r,adopt){
 function regForecast(id,adopt){ const r=REGS.find(x=>x.id===id);
   return S.deputies.filter(d=>regSupport(d,r,adopt)>0).length; }
 function askReg(){
+  if(!need('reg'))return;
   sheetOpen({eye:'Регламент Собрания · простое большинство',title:'Правила палаты',
     body:`<p class="lead">Регламент принимает одно Собрание, ${MAJ} голосов — без Сената и без подписи президента.
         Своя фракция голосует за ваше предложение, остальные — по своему интересу.</p>
@@ -764,6 +769,7 @@ function askReg(){
         fn:()=>regVote(r.id)}; }).concat([{label:'Закрыть',hint:'',fn(){}}])});
 }
 function regVote(id){
+  if(!need('reg'))return;
   const r=REGS.find(x=>x.id===id), adopt=!regOn(id);
   if(!pay({ap:1,cap:REG_CAP},(adopt?'Регламент: ':'Отмена: ')+r.name))return;
   const list=S.deputies.map(d=>({d,v:regSupport(d,r,adopt)}));
@@ -792,6 +798,7 @@ function qtimeTick(){
 function askQuestion(){
   if(!regOn('qtime')){ toast('Правительственного часа в регламенте нет'); return; }
   if(S.gov.lead===PL){ toast('Вопросы задаёт оппозиция'); return; }
+  if(!need('question'))return;
   if(!pay({ap:1,cap:4},'Запрос правительству'))return;
   const lead=P(S.gov.lead), going=stateOfThings();
   lead.mom=clamp(lead.mom-(going<50?2.2:1),-14,14);
@@ -854,6 +861,7 @@ function impPath(i){
 function askImpeach(kind){
   if(S.imp&&S.imp.stage){ askImpeachStage(); return; }
   if(S.imp){ toast('Одно обвинение за раз'); return; }
+  if(!need('impeach'))return;
   if(!kind){
     const opts=IMP_WHO.filter(w=>{
       if(w.id==='pres')return !!S.pres&&!isPres();

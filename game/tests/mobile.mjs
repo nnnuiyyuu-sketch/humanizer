@@ -33,6 +33,13 @@ for(const [role,pick] of [['pm',0],['gov',3],['mayor',0],['dep',2],['pres',0]]){
   }
   say(role,'проверено экранов: '+n);
 }
+/* без кресла: погашенные кнопки несут подпись причины и не должны выпирать */
+await boot(page,{role:'dep',pick:2});
+await page.evaluate(()=>{ setSeat('none','проверка'); const m=document.getElementById('modal'); m.classList.remove('show'); mopen=false; mq.length=0; });
+{ const tabs=await page.evaluate(()=>navItems().map(t=>t.id)); let n=0;
+  for(const t of tabs){ await page.evaluate(t=>{ S.tab=t; render(); },t); const r=await scan(); n++;
+    if(r.wide||r.bad.length)fails.push('без кресла/'+t+': '+r.bad.join(', ')); }
+  say('без кресла','проверено экранов: '+n); }
 await page.evaluate(()=>{ finish(true,'Проверка полосы.'); });
 await closeSheet();
 await page.evaluate(()=>{ S.tab='final'; render(); });
