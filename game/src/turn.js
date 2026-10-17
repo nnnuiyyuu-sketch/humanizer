@@ -1539,12 +1539,12 @@ function nbTick(){
     st.rel=clamp(st.rel+(want-st.rel)*0.09+rnd(-2.5,2.5),0,100);
   });
 }
-function nbTreaty(id){
+function nbTreaty(id,free){
   const x=NB_(id), st=nbOf(id);
   if(!fpCan()){toast('Договоры подписывает кабинет или президент');return;}
   if(st.treaty){toast('Договор уже есть');return;}
-  if(st.rel<48){toast('С таким отношением договор не подпишут');return;}
-  if(!pay({ap:1,cap:TREATY_COST},'Договор с соседями'))return;
+  if(!free&&st.rel<48){toast('С таким отношением договор не подпишут');return;}
+  if(!free&&!pay({ap:1,cap:TREATY_COST},'Договор с соседями'))return;
   // международный договор ратифицирует Сенат
   const ok=confirmSenate('treaty',{name:'с «'+x.name+'»',st:x.st},S.gov.lead);
   if(!ok){
@@ -1556,7 +1556,7 @@ function nbTreaty(id){
       acts:[{label:'Закрыть'}]});
     render(); return;
   }
-  st.treaty=true; st.rel=clamp(st.rel+14,0,100);
+  st.treaty=true; nbShift(id,14); trustShift(id,5);
   bumpRep('comp',4);
   career('Заключён договор с «'+x.name+'».');
   chron('Подписан договор с «'+x.name+'».','g');
@@ -2587,7 +2587,7 @@ function endQuarter(){
   powerTick();
   campEventTick();
   mediaTick();
-  rivalsTick(); regionsTick(); cabinetTick(); botsTick(); achvTick();
+  rivalsTick(); regionsTick(); cabinetTick(); botsTick(); dipTick(); achvTick();
   offerTick();
   pressTick();
   judgeTick();
@@ -2934,7 +2934,7 @@ const SAVE='novaria.save.v1';
    наследство до версий: проверки «если поля нет». Новое изменение
    формата — новая запись в MIGRATIONS со следующим номером; load()
    прогоняет записи новее сохранения по порядку и ставит текущую. */
-const SAVE_VER=5;
+const SAVE_VER=6;
 const MIGRATIONS=[
   {v:2, why:'списки сделок, скандалов и дел капитала', run(){
     S.deals=S.deals||[]; S.scandals=S.scandals||[]; S.bizLog=S.bizLog||[]; S.senLog=S.senLog||[]; }},
@@ -2942,6 +2942,7 @@ const MIGRATIONS=[
     if(S.probe&&!S.probe.stage)S.probe={...S.probe,stage:'check',left:1,ev:Math.round(clamp(trail()*0.5+18,5,95)),src:'trail',used:{}};
     S.rcases=S.rcases||[]; }},
   {v:4, why:'мэры, автономия, сепаратизм и суверенитет краёв', run(){ regInit(); }},
+  {v:6, why:'дипломатия: лидеры соседей, доверие, послы, договоры, саммиты', run(){ if(S.nb)nbFillAll(); }},
   {v:5, why:'министры с характером, национальные проекты, отчёт правительства', run(){
     if(S.ministers)Object.values(S.ministers).forEach(m=>minFill(m)); S.proj=S.proj||[]; S.projDone=S.projDone||[]; }},
 ];

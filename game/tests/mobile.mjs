@@ -13,7 +13,8 @@ const scan=()=>page.evaluate(()=>{
 });
 const closeSheet=()=>page.evaluate(()=>{ const m=document.getElementById('modal'); m.classList.remove('show'); mopen=false; mq.length=0; });
 const SHEETS={pm:["askDeals({k:'budget'})","bcrisisStart('gorye')","askTrade('meridia')","askNeighbour('zarech')",
-    "caseOpen({k:'министр',name:'Проверка',post:'fin'},'trail',60)"],
+    "caseOpen({k:'министр',name:'Проверка',post:'fin'},'trail',60)","askTreaties('zarech')","askEmbassies()",
+    "(()=>{ S.cap=80; nbOf('meridia').rel=80; nbOf('meridia').trust=80; trSign('meridia','visa'); })()","demandShow('zarech','border')","troubleShow&&(nbOf('gorye').trouble={kind:'refugees',until:9},troubleShow('gorye'))","askRSummit()"],
   gov:['askDesk()','askRaces()'], mayor:['askDesk()'], dep:['askBudgetLine()','askRaces()'], pres:['askDesk()']};
 for(const [role,pick] of [['pm',0],['gov',3],['mayor',0],['dep',2],['pres',0]]){
   await boot(page,{role,pick});

@@ -24,12 +24,13 @@ function fpDemand(){
     if(ourSanc(x.id))v-=x.trade*4;
     const c=crisisWith(x.id); if(c)v-=x.power*3*c.stage; });
   if(typeof projDone==='function'&&projDone('export'))v+=3;      // экспортный коридор
+  if(S.decl&&S.decl.until>S.q&&S.decl.id==='trade')v+=3;          // декларация саммита о торговле
   return r1(v);
 }
 /* горячая граница: к давлению отношений прибавляется кризис */
 function fpBorder(rid){
   const c=S.bcrisis; if(!c)return 0;
-  const x=NB_(c.nb); return x&&x.border.indexOf(rid)>=0?1.5*c.stage:0;
+  const x=NB_(c.nb); return x&&x.border.indexOf(rid)>=0?1.5*c.stage*(typeof dipBorderMul==='function'?dipBorderMul(x.id):1):0;
 }
 
 /* ─── торговое соглашение: Сенат голосует краями ────────────────── */
@@ -69,8 +70,8 @@ function askTrade(id){
       <p class="hint">Провал ратификации стоит веса. Поработайте с Сенатом заранее — лидеры сенаторских фракций договариваются.</p>`,
     opts:[{label:'Подписать и внести в Сенат',hint:'ход и '+TRADE_COST+' веса',fn:()=>tradeSign(id)},{label:'Не сейчас',hint:''}]});
 }
-function tradeSign(id){
-  if(!pay({ap:1,cap:TRADE_COST},'Торговое соглашение'))return;
+function tradeSign(id,free){
+  if(!free&&!pay({ap:1,cap:TRADE_COST},'Торговое соглашение'))return;
   const x=NB_(id), st=nbOf(id), hurt=TRADE_HURT[id], f=tradeVotes(id), ok=f.yes>=f.need;
   if(!ok){
     addCap(-4);
@@ -80,7 +81,7 @@ function tradeSign(id){
       acts:[{label:'Закрыть'}]});
     render(); return;
   }
-  st.trade=true; st.tradeQ=S.q; st.rel=clamp(st.rel+8,0,100); cnt('trade');
+  st.trade=true; st.tradeQ=S.q; nbShift(id,8); trustShift(id,3); cnt('trade');
   shiftMood(hurt,-4); shiftMood('biz',3); S.econ.invest=r1(S.econ.invest+3); bumpRep('comp',2);
   x.border.forEach(r=>S.rmod[r]=clamp(S.rmod[r]+1,-22,22));
   career('Торговое соглашение с «'+x.name+'».'); chron('Ратифицировано торговое соглашение с «'+x.name+'».','g');
@@ -205,7 +206,7 @@ function bcrisisTick(){
   if(S.bcrisisCool>S.q)return;
   // граница горит у холодных соседей, но и у тёплых бывает инцидент
   NEIGHBOURS.filter(x=>nbOf(x.id)&&x.power>=0.6).forEach(x=>{ if(S.bcrisis)return; const rel=nbOf(x.id).rel;
-    if(Math.random()<(rel<40?0.03+(40-rel)*0.006:0.004*x.power))bcrisisStart(x.id); });
+    if(Math.random()<(rel<40?0.03+(40-rel)*0.006:0.004*x.power)*dipCrisisMul(x.id))bcrisisStart(x.id); });
 }
 
 /* ─── визит: повестка и край-получатель ─────────────────────────── */
@@ -226,49 +227,25 @@ function visitGo(id,agenda){
   const x=NB_(id), st=nbOf(id), dip=hasTrait('diplo')?5:0;
   if(!pay({ap:1,gold:VISIT_COST},'Визит к соседям'))return;
   if(st.rel<30&&Math.random()<0.4){
-    st.rel=clamp(st.rel-3,0,100); bumpRep('firm',-1);
+    nbShift(id,-3); bumpRep('firm',-1);
     logMsg('Визит в «'+x.name+'» сорван протестами у посольства.',1); head(pick(PRESS),'Визит в «'+x.name+'» сорван','hb');
     render(); return;
   }
   const rid=pick(x.border);
   let txt='';
-  if(agenda==='trade'){ st.rel=clamp(st.rel+ri(6,10)+dip,0,100); S.econ.invest=r1(S.econ.invest+2); shiftMood('biz',2);
+  if(agenda==='trade'){ nbShift(id,ri(6,10)+dip); trustShift(id,2); S.econ.invest=r1(S.econ.invest+2); shiftMood('biz',2);
     S.rmod[rid]=clamp(S.rmod[rid]+2,-22,22); txt='Подписаны контракты для края '+R(rid).name+'.'; }
-  if(agenda==='border'){ st.rel=clamp(st.rel+ri(4,8)+dip,0,100); shiftMood('patr',1);
+  if(agenda==='border'){ nbShift(id,ri(4,8)+dip); trustShift(id,2); shiftMood('patr',1);
     x.border.forEach(r=>{ S.unrest[r]=clamp(S.unrest[r]-ri(3,6),0,100); S.rmod[r]=clamp(S.rmod[r]+1.5,-22,22); });
     if(typeof S.sep==='object')x.border.forEach(r=>S.sep[r]=clamp((S.sep[r]||0)-3,0,100));
     txt='Приграничные края спокойнее: '+x.border.map(r=>R(r).cap).join(', ')+'.'; }
-  if(agenda==='energy'){ st.rel=clamp(st.rel+ri(5,8)+dip,0,100); const v=ri(6,11); S.treasury=r1(S.treasury+v); shiftMood('intel',-1);
+  if(agenda==='energy'){ nbShift(id,ri(5,8)+dip); trustShift(id,2); const v=ri(6,11); S.treasury=r1(S.treasury+v); shiftMood('intel',-1);
     txt='Энергетический контракт: '+v+' млрд в казну.'; }
   bumpRep('comp',0.8);
   head(pick(PRESS),'Переговоры с «'+x.name+'»: '+txt.toLowerCase(),'');
   logMsg('Визит в «'+x.name+'»: '+txt);
   toast('Визит состоялся');
   render();
-}
-
-/* ─── лист соседа ───────────────────────────────────────────────── */
-function askNeighbour(id){
-  const x=NB_(id), st=nbOf(id), can=fpCan(), c=crisisWith(id);
-  const opts=[{label:'Визит',hint:VISIT_COST+' млрд · выбрать повестку',fn:()=>nbVisit(id)}];
-  if(c&&can)opts.push({label:'Кризис на границе',hint:'решить',fn:()=>askCrisis()});
-  opts.push({label:'Договор о дружбе',hint:st.treaty?'уже есть':TREATY_COST+' веса · нужна ратификация Сенатом',fn:()=>nbTreaty(id)});
-  opts.push({label:st.trade?'Торговое соглашение: выйти':'Торговое соглашение',hint:can?(st.trade?'рынок открыт':'Сенат голосует краями'):'только кабинет или президент',fn:()=>askTrade(id)});
-  opts.push({label:ourSanc(id)?'Снять наши санкции':'Ввести санкции',hint:can?'':'только кабинет или президент',fn:()=>askSanction(id)});
-  opts.push({label:'Ничего',hint:'сохранить квартал',fn(){}});
-  sheetOpen({eye:'Внешняя политика · '+x.name,title:nbWord(st.rel),
-    body:`<p class="lead">${x.note}</p>
-      <div class="res"><span>Отношения</span><b class="${st.rel<38?'bad':st.rel>=54?'good':''}">${Math.round(st.rel)} · ${nbWord(st.rel)}</b>
-        <span>Вес соседа</span><b>${x.power}</b>
-        <span>Торговля</span><b>${x.trade}${st.trade?' · соглашение':''}</b>
-        <span>Договор о дружбе</span><b class="w">${st.treaty?'есть':'нет'}</b>
-        ${sancOn(id)?`<span>Их санкции</span><b class="bad">до ${dateLabel(st.sanc.until)}${st.sanc.soft?' · обходим':''}</b>`:''}
-        ${ourSanc(id)?`<span>Наши санкции</span><b class="warn">до ${dateLabel(st.our)}</b>`:''}
-        ${c?`<span>Граница</span><b class="bad">${c.stage===2?'кризис':'инцидент'} у ${R(c.rid).cap}</b>`:''}
-        <span>Граничит с</span><b class="w">${x.border.map(r=>R(r).cap).join(', ')}</b></div>
-      <p class="hint">Вражда греет приграничные края: сейчас они получают
-        ${x.border.map(r=>'+'+r1(nbPressure(r))).join(', ')} к напряжённости.</p>`,
-    opts});
 }
 
 /* ─── квартал: санкции против нас и кризисы ─────────────────────── */
@@ -296,6 +273,8 @@ function regimeTick(){
     const o=st.st||x.st, n={...o};
     ['world','free','order'].forEach(a=>n[a]=clamp(r1((o[a]||0)+rnd(-1.1,1.1)),-2,2));
     st.st=n;
+    st.ld=nbLeaderNew(x.id); st.trust=Math.round((st.trust+50)/2); st.pushy=0; st.plan=null;
+    dipLog(x.id,'К власти пришёл '+st.ld.name+' ('+NT(st.ld.trait).name.toLowerCase()+').');
     const warmer=axDist(n,me().st)<axDist(o,me().st);
     logMsg('В «'+x.name+'» сменилась власть: новый курс '+(warmer?'ближе к нашему':'дальше от нашего')+'.',1);
     chron('Смена власти в «'+x.name+'».','');

@@ -351,8 +351,13 @@ function deskActs(){
       run(){ REGIONS.forEach(r=>S.unrest[r.id]=clamp(S.unrest[r.id]-3,0,100)); shiftMood('intel',2); shiftMood('patr',-1.5);
         return 'Президентское помилование к празднику.'; }});
     A({id:'abroad',name:'Государственный визит',cap:6,pick:'nb',txt:'отношения с соседом +8…13',
-      run(x){ const n=nbOf(x); if(n)n.rel=clamp(n.rel+ri(8,13),0,100); bumpRep('folk',1);
+      run(x){ nbShift(x,ri(8,13),null); trustShift(x,3); bumpRep('folk',1);
         return 'Государственный визит: '+NB_(x).name+'.'; }});
+    A({id:'host',name:'Принять главу соседнего государства',cap:6,pick:'nb',txt:'отношения +9, доверие +6; на встрече может быть согласован договор',
+      run(x){ nbShift(x,9); trustShift(x,6); bumpRep('comp',1); const o=treatyOffers(x).filter(z=>z.k!=='friend'&&z.k!=='trade')[0];
+        if(o&&Math.random()<0.5&&!S.rat.some(r=>r.id===x)){ ratQueue(x,o.k,o.v,S.gov.lead); return 'Приём главы «'+NB_(x).name+'»: согласован '+trName(o.k,o.v).toLowerCase()+' — он ушёл в Сенат.'; }
+        return 'Приём главы «'+NB_(x).name+'»: отношения теплеют.'; }});
+    A({id:'treaties',name:'Подписать договор',ap:0,pick:'nb',txt:'список доступных договоров с одним соседом',run(x){ askTreaties(x); return ''; }});
   }
   if(s==='vp'){
     A({id:'chair',name:'Вести заседание Сената',cap:4,txt:'отношение 6–10 сенаторов к вам растёт',
@@ -424,6 +429,10 @@ function deskActs(){
       run(){ d.fili=S.q; return 'Вы взяли слово в Сенате и не отдаёте его.'; }});
     A({id:'hear',name:'Слушания в комитете',cap:6,pick:'minister',txt:'министра под лупу: его цифры, ваше имя в газетах',
       run(x){ return hearing(x); }});
+    A({id:'ratify',name:'Слушания по договору',ap:0,txt:'договор на ратификации: лоббировать, провести слушания или выступить против',
+      ok:()=>(S.rat&&S.rat.length)?true:'Договоров на ратификации нет',run(){ askRat(0); return ''; }});
+    A({id:'deleg2',name:'Парламентская делегация',cap:4,pick:'nb',txt:'отношения с соседом +3…5, известность +1',
+      run(x){ const v=ri(3,5); nbShift(x,v); bumpRep('folk',1); bumpRep('comp',0.6); return 'Парламентская делегация в «'+NB_(x).name+'»: +'+v+'.'; }});
     A({id:'peers',name:'Работа с коллегами',cap:5,pick:'party',txt:'сенаторы одной фракции теплеют к вам',
       run(x){ let n=0; S.senate.forEach(z=>{ if(z.party===x&&!z.you){ z.rel=clamp(z.rel+ri(4,9),0,100); n++; } });
         return 'Разговор с сенаторами «'+P(x).name+'»: '+n+' человек.'; }});
@@ -444,6 +453,10 @@ function deskActs(){
         run(){ const v=ri(4,7); S.you.inf=clamp(S.you.inf+v,0,100); S.you.lrel=clamp(S.you.lrel+3,0,100);
           S.deputies.filter(x=>x.party===PL).slice(0,12).forEach(x=>x.rel=clamp(x.rel+1,0,100));
           return 'Работа во фракции: влияние +'+v+'.'; }});
+      A({id:'ratify',name:'Давить на ратификацию договора',ap:0,txt:'договор в Сенате: лоббировать, слушания или выступить против',
+        ok:()=>(S.rat&&S.rat.length)?true:'Договоров на ратификации нет',run(){ askRat(0); return ''; }});
+      A({id:'deleg2',name:'Парламентская делегация',cap:4,pick:'nb',txt:'отношения с соседом +3…5, известность +1',
+        run(x){ const v=ri(3,5); nbShift(x,v); bumpRep('folk',1); return 'Парламентская делегация в «'+NB_(x).name+'»: +'+v+'.'; }});
       A({id:'inquiry',name:'Депутатский запрос',cap:4,pick:'minister',txt:'неудобный вопрос министру, компетентность +2',
         run(x){ return hearing(x,true); }});
       A({id:'speech',name:'Выступление с трибуны',cap:2,txt:'известность +2, влияние +2, лидер морщится',
@@ -533,9 +546,12 @@ function minRun(id,x){
     case 'aid':{ S.unrest[x]=clamp(S.unrest[x]-6,0,100); S.rmod[x]=clamp(S.rmod[x]+3,-22,22); return 'Адресная помощь: '+R(x).name+'.'; }
     case 'funds':{ const v=ri(3,6); S.treasury=r1(S.treasury+v); bumpRep('honest',2); shiftMood('pens',-1);
       return 'Проверка фондов: '+v+' млрд вернулись в казну.'; }
-    case 'trip':{ const n=nbOf(x), v=ri(6,11); if(n)n.rel=clamp(n.rel+v,0,100); return 'Визит: '+NB_(x).name+', +'+v+'.'; }
+    case 'trip':{ const v=ri(6,11); nbShift(x,v); trustShift(x,2); return 'Визит: '+NB_(x).name+', +'+v+'.'; }
     case 'trade':{ S.world.demand=clamp(S.world.demand+4,55,142); shiftMood('biz',1.5); return 'Торговая миссия.'; }
     case 'loan':{ S.treasury=r1(S.treasury+16); S.debt=r1(S.debt+17); return 'Внешний кредит: +16 млрд.'; }
+    case 'embassy':{ const c=ambAuto(x); return 'Посол в «'+NB_(x).name+'»: '+c.name+' ('+AT(c.trait).name.toLowerCase()+').'; }
+    case 'prep':{ S.summitPrep=S.q; return 'МИД готовит региональный саммит.'; }
+    case 'lobby':{ const it=S.rat[0]; it.lob=(it.lob||0)+6; return 'МИД лоббирует ратификацию договора с «'+NB_(it.id).name+'».'; }
   }
   return '';
 }

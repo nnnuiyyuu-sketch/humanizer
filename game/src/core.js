@@ -305,7 +305,7 @@ function nbPressure(rid){
   let v=0;
   NEIGHBOURS.forEach(x=>{ const st=nbOf(x.id); if(!st)return;
     if(x.border.indexOf(rid)<0)return;
-    if(st.rel<38)v+=(38-st.rel)*0.05*x.power;
+    if(st.rel<38)v+=(38-st.rel)*0.05*x.power*(typeof dipBorderMul==='function'?dipBorderMul(x.id):1);
   });
   if(typeof fpBorder==='function')v+=fpBorder(rid);     // инцидент на границе
   return r1(v);
@@ -736,6 +736,7 @@ function seedNeighbours(){
     S.nb[x.id]={id:x.id, rel:clamp(Math.round(54-axDist(x.st,me().st)*11+rnd(-7,7)),10,90),
       treaty:false, since:S.q};
   });
+  if(typeof nbFillAll==='function')nbFillAll();
 }
 
 /* ─── карьера ────────────────────────────────────────────────────

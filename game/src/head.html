@@ -512,6 +512,27 @@ input:focus,select:focus{outline:2px solid var(--mark);outline-offset:-1px}
 .achv div.on{opacity:1;border-color:var(--ink);background:var(--surface-2)}
 .achv b{display:block;font:700 13px/1.25 var(--f-display)}
 .achv span{font-size:11.5px;color:var(--ink-3)}
+/* ── дипломатия: круг отношений и досье соседей ── */
+.dipc{width:100%;max-width:460px;height:auto;display:block;margin:0 auto}
+.dipn{cursor:pointer} .dipn:focus{outline:none}
+.dipn circle{transition:stroke-width var(--t-fast) var(--ease)} .dipn:hover circle,.dipn:focus circle{stroke-width:3.2}
+.dipn-s{font:700 15px var(--f-cond);letter-spacing:.06em;fill:var(--ink)}
+.dipn-v{font:400 15px var(--f-num);fill:var(--ink-2)} .dipn-v.good{fill:var(--good)} .dipn-v.bad{fill:var(--bad)}
+.dipn-m{font:700 11px var(--f-cond);letter-spacing:.14em;fill:var(--ink-3)}
+.dipn-c{font:700 15px var(--f-cond);letter-spacing:.2em;fill:var(--gold-2)}
+.nbgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:var(--x5);margin-bottom:var(--x6)}
+.nbc{border:1px solid var(--line-2);border-top:3px solid var(--ink-3);background:var(--surface);padding:var(--x4) var(--x5) var(--x5);display:grid;gap:5px;align-content:start;min-width:0}
+.nbc.good{border-top-color:var(--good)} .nbc.bad{border-top-color:var(--bad)}
+.nbc header{display:flex;justify-content:space-between;gap:var(--x4);align-items:baseline}
+.nbc header b{font:700 15.5px/1.2 var(--f-head)} .nbc header span{font:700 9px var(--f-cond);text-transform:uppercase;letter-spacing:.14em;color:var(--gold-3);white-space:nowrap}
+.nbc-l{margin:0;font-size:12.5px;color:var(--ink-2)} .nbc-l i{font-style:normal;color:var(--gold-3)}
+.nbc-m{display:grid;grid-template-columns:64px minmax(0,1fr) 28px;gap:var(--x4);align-items:center}
+.nbc-m span{font:700 8.5px var(--f-cond);text-transform:uppercase;letter-spacing:.14em;color:var(--ink-3)}
+.nbc-m b{text-align:right}
+.nbc-c{display:flex;flex-wrap:wrap;gap:4px;min-height:20px}
+.nbc-a{margin:0}
+.nbc footer{display:flex;gap:var(--x3);margin-top:3px}
+.dipc~.legend .chip{white-space:normal}
 @media (max-width:860px){ .paper-cols{grid-template-columns:1fr} .paper-cols section+section{border-left:0;padding-left:0;border-top:var(--hair);padding-top:var(--x5)}
   .paper-h{font-size:28px} .paper-mast b{font-size:26px} .paper{padding:var(--x5)} }
 @media (max-width:520px){ .roles{grid-template-columns:1fr} }

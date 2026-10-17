@@ -512,6 +512,27 @@ input:focus,select:focus{outline:2px solid var(--mark);outline-offset:-1px}
 .achv div.on{opacity:1;border-color:var(--ink);background:var(--surface-2)}
 .achv b{display:block;font:700 13px/1.25 var(--f-display)}
 .achv span{font-size:11.5px;color:var(--ink-3)}
+/* ── дипломатия: круг отношений и досье соседей ── */
+.dipc{width:100%;max-width:460px;height:auto;display:block;margin:0 auto}
+.dipn{cursor:pointer} .dipn:focus{outline:none}
+.dipn circle{transition:stroke-width var(--t-fast) var(--ease)} .dipn:hover circle,.dipn:focus circle{stroke-width:3.2}
+.dipn-s{font:700 15px var(--f-cond);letter-spacing:.06em;fill:var(--ink)}
+.dipn-v{font:400 15px var(--f-num);fill:var(--ink-2)} .dipn-v.good{fill:var(--good)} .dipn-v.bad{fill:var(--bad)}
+.dipn-m{font:700 11px var(--f-cond);letter-spacing:.14em;fill:var(--ink-3)}
+.dipn-c{font:700 15px var(--f-cond);letter-spacing:.2em;fill:var(--gold-2)}
+.nbgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:var(--x5);margin-bottom:var(--x6)}
+.nbc{border:1px solid var(--line-2);border-top:3px solid var(--ink-3);background:var(--surface);padding:var(--x4) var(--x5) var(--x5);display:grid;gap:5px;align-content:start;min-width:0}
+.nbc.good{border-top-color:var(--good)} .nbc.bad{border-top-color:var(--bad)}
+.nbc header{display:flex;justify-content:space-between;gap:var(--x4);align-items:baseline}
+.nbc header b{font:700 15.5px/1.2 var(--f-head)} .nbc header span{font:700 9px var(--f-cond);text-transform:uppercase;letter-spacing:.14em;color:var(--gold-3);white-space:nowrap}
+.nbc-l{margin:0;font-size:12.5px;color:var(--ink-2)} .nbc-l i{font-style:normal;color:var(--gold-3)}
+.nbc-m{display:grid;grid-template-columns:64px minmax(0,1fr) 28px;gap:var(--x4);align-items:center}
+.nbc-m span{font:700 8.5px var(--f-cond);text-transform:uppercase;letter-spacing:.14em;color:var(--ink-3)}
+.nbc-m b{text-align:right}
+.nbc-c{display:flex;flex-wrap:wrap;gap:4px;min-height:20px}
+.nbc-a{margin:0}
+.nbc footer{display:flex;gap:var(--x3);margin-top:3px}
+.dipc~.legend .chip{white-space:normal}
 @media (max-width:860px){ .paper-cols{grid-template-columns:1fr} .paper-cols section+section{border-left:0;padding-left:0;border-top:var(--hair);padding-top:var(--x5)}
   .paper-h{font-size:28px} .paper-mast b{font-size:26px} .paper{padding:var(--x5)} }
 @media (max-width:520px){ .roles{grid-template-columns:1fr} }
@@ -2213,7 +2234,11 @@ const MIN_DESK = {
   mid:{kpi:'Торговля с соседями', goal:'не в минусе', acts:[
     {id:'trip',  name:'Визит к соседу', cap:5, pick:'nb', txt:'отношения с одним соседом +6…11'},
     {id:'trade', name:'Торговая миссия', cap:6, txt:'внешний спрос +4, бизнес +1,5'},
-    {id:'loan',  name:'Кредит за рубежом', cap:4, txt:'в казну 16 млрд, долг +17'}]},
+    {id:'loan',  name:'Кредит за рубежом', cap:4, txt:'в казну 16 млрд, долг +17'},
+    {id:'embassy',name:'Назначить посла', cap:4, pick:'nb', txt:'лучший из трёх кандидатов: видит планы соседа и греет отношения'},
+    {id:'prep',  name:'Подготовить саммит', cap:5, txt:'региональный саммит в ближайшие кварталы пройдёт увереннее'},
+    {id:'lobby', name:'Лоббировать ратификацию', cap:4, txt:'договор в Сенате получает +6 голосов',
+     ok:()=>(S.rat&&S.rat.length)?true:'Договоров на ратификации нет'}]},
 };
 
 /* ════════════════════════════════════════════════════════════════
@@ -2825,7 +2850,7 @@ function nbPressure(rid){
   let v=0;
   NEIGHBOURS.forEach(x=>{ const st=nbOf(x.id); if(!st)return;
     if(x.border.indexOf(rid)<0)return;
-    if(st.rel<38)v+=(38-st.rel)*0.05*x.power;
+    if(st.rel<38)v+=(38-st.rel)*0.05*x.power*(typeof dipBorderMul==='function'?dipBorderMul(x.id):1);
   });
   if(typeof fpBorder==='function')v+=fpBorder(rid);     // инцидент на границе
   return r1(v);
@@ -3256,6 +3281,7 @@ function seedNeighbours(){
     S.nb[x.id]={id:x.id, rel:clamp(Math.round(54-axDist(x.st,me().st)*11+rnd(-7,7)),10,90),
       treaty:false, since:S.q};
   });
+  if(typeof nbFillAll==='function')nbFillAll();
 }
 
 /* ─── карьера ────────────────────────────────────────────────────
@@ -5621,12 +5647,12 @@ function nbTick(){
     st.rel=clamp(st.rel+(want-st.rel)*0.09+rnd(-2.5,2.5),0,100);
   });
 }
-function nbTreaty(id){
+function nbTreaty(id,free){
   const x=NB_(id), st=nbOf(id);
   if(!fpCan()){toast('Договоры подписывает кабинет или президент');return;}
   if(st.treaty){toast('Договор уже есть');return;}
-  if(st.rel<48){toast('С таким отношением договор не подпишут');return;}
-  if(!pay({ap:1,cap:TREATY_COST},'Договор с соседями'))return;
+  if(!free&&st.rel<48){toast('С таким отношением договор не подпишут');return;}
+  if(!free&&!pay({ap:1,cap:TREATY_COST},'Договор с соседями'))return;
   // международный договор ратифицирует Сенат
   const ok=confirmSenate('treaty',{name:'с «'+x.name+'»',st:x.st},S.gov.lead);
   if(!ok){
@@ -5638,7 +5664,7 @@ function nbTreaty(id){
       acts:[{label:'Закрыть'}]});
     render(); return;
   }
-  st.treaty=true; st.rel=clamp(st.rel+14,0,100);
+  st.treaty=true; nbShift(id,14); trustShift(id,5);
   bumpRep('comp',4);
   career('Заключён договор с «'+x.name+'».');
   chron('Подписан договор с «'+x.name+'».','g');
@@ -6669,7 +6695,7 @@ function endQuarter(){
   powerTick();
   campEventTick();
   mediaTick();
-  rivalsTick(); regionsTick(); cabinetTick(); botsTick(); achvTick();
+  rivalsTick(); regionsTick(); cabinetTick(); botsTick(); dipTick(); achvTick();
   offerTick();
   pressTick();
   judgeTick();
@@ -7016,7 +7042,7 @@ const SAVE='novaria.save.v1';
    наследство до версий: проверки «если поля нет». Новое изменение
    формата — новая запись в MIGRATIONS со следующим номером; load()
    прогоняет записи новее сохранения по порядку и ставит текущую. */
-const SAVE_VER=5;
+const SAVE_VER=6;
 const MIGRATIONS=[
   {v:2, why:'списки сделок, скандалов и дел капитала', run(){
     S.deals=S.deals||[]; S.scandals=S.scandals||[]; S.bizLog=S.bizLog||[]; S.senLog=S.senLog||[]; }},
@@ -7024,6 +7050,7 @@ const MIGRATIONS=[
     if(S.probe&&!S.probe.stage)S.probe={...S.probe,stage:'check',left:1,ev:Math.round(clamp(trail()*0.5+18,5,95)),src:'trail',used:{}};
     S.rcases=S.rcases||[]; }},
   {v:4, why:'мэры, автономия, сепаратизм и суверенитет краёв', run(){ regInit(); }},
+  {v:6, why:'дипломатия: лидеры соседей, доверие, послы, договоры, саммиты', run(){ if(S.nb)nbFillAll(); }},
   {v:5, why:'министры с характером, национальные проекты, отчёт правительства', run(){
     if(S.ministers)Object.values(S.ministers).forEach(m=>minFill(m)); S.proj=S.proj||[]; S.projDone=S.projDone||[]; }},
 ];
@@ -10017,8 +10044,13 @@ function deskActs(){
       run(){ REGIONS.forEach(r=>S.unrest[r.id]=clamp(S.unrest[r.id]-3,0,100)); shiftMood('intel',2); shiftMood('patr',-1.5);
         return 'Президентское помилование к празднику.'; }});
     A({id:'abroad',name:'Государственный визит',cap:6,pick:'nb',txt:'отношения с соседом +8…13',
-      run(x){ const n=nbOf(x); if(n)n.rel=clamp(n.rel+ri(8,13),0,100); bumpRep('folk',1);
+      run(x){ nbShift(x,ri(8,13),null); trustShift(x,3); bumpRep('folk',1);
         return 'Государственный визит: '+NB_(x).name+'.'; }});
+    A({id:'host',name:'Принять главу соседнего государства',cap:6,pick:'nb',txt:'отношения +9, доверие +6; на встрече может быть согласован договор',
+      run(x){ nbShift(x,9); trustShift(x,6); bumpRep('comp',1); const o=treatyOffers(x).filter(z=>z.k!=='friend'&&z.k!=='trade')[0];
+        if(o&&Math.random()<0.5&&!S.rat.some(r=>r.id===x)){ ratQueue(x,o.k,o.v,S.gov.lead); return 'Приём главы «'+NB_(x).name+'»: согласован '+trName(o.k,o.v).toLowerCase()+' — он ушёл в Сенат.'; }
+        return 'Приём главы «'+NB_(x).name+'»: отношения теплеют.'; }});
+    A({id:'treaties',name:'Подписать договор',ap:0,pick:'nb',txt:'список доступных договоров с одним соседом',run(x){ askTreaties(x); return ''; }});
   }
   if(s==='vp'){
     A({id:'chair',name:'Вести заседание Сената',cap:4,txt:'отношение 6–10 сенаторов к вам растёт',
@@ -10090,6 +10122,10 @@ function deskActs(){
       run(){ d.fili=S.q; return 'Вы взяли слово в Сенате и не отдаёте его.'; }});
     A({id:'hear',name:'Слушания в комитете',cap:6,pick:'minister',txt:'министра под лупу: его цифры, ваше имя в газетах',
       run(x){ return hearing(x); }});
+    A({id:'ratify',name:'Слушания по договору',ap:0,txt:'договор на ратификации: лоббировать, провести слушания или выступить против',
+      ok:()=>(S.rat&&S.rat.length)?true:'Договоров на ратификации нет',run(){ askRat(0); return ''; }});
+    A({id:'deleg2',name:'Парламентская делегация',cap:4,pick:'nb',txt:'отношения с соседом +3…5, известность +1',
+      run(x){ const v=ri(3,5); nbShift(x,v); bumpRep('folk',1); bumpRep('comp',0.6); return 'Парламентская делегация в «'+NB_(x).name+'»: +'+v+'.'; }});
     A({id:'peers',name:'Работа с коллегами',cap:5,pick:'party',txt:'сенаторы одной фракции теплеют к вам',
       run(x){ let n=0; S.senate.forEach(z=>{ if(z.party===x&&!z.you){ z.rel=clamp(z.rel+ri(4,9),0,100); n++; } });
         return 'Разговор с сенаторами «'+P(x).name+'»: '+n+' человек.'; }});
@@ -10110,6 +10146,10 @@ function deskActs(){
         run(){ const v=ri(4,7); S.you.inf=clamp(S.you.inf+v,0,100); S.you.lrel=clamp(S.you.lrel+3,0,100);
           S.deputies.filter(x=>x.party===PL).slice(0,12).forEach(x=>x.rel=clamp(x.rel+1,0,100));
           return 'Работа во фракции: влияние +'+v+'.'; }});
+      A({id:'ratify',name:'Давить на ратификацию договора',ap:0,txt:'договор в Сенате: лоббировать, слушания или выступить против',
+        ok:()=>(S.rat&&S.rat.length)?true:'Договоров на ратификации нет',run(){ askRat(0); return ''; }});
+      A({id:'deleg2',name:'Парламентская делегация',cap:4,pick:'nb',txt:'отношения с соседом +3…5, известность +1',
+        run(x){ const v=ri(3,5); nbShift(x,v); bumpRep('folk',1); return 'Парламентская делегация в «'+NB_(x).name+'»: +'+v+'.'; }});
       A({id:'inquiry',name:'Депутатский запрос',cap:4,pick:'minister',txt:'неудобный вопрос министру, компетентность +2',
         run(x){ return hearing(x,true); }});
       A({id:'speech',name:'Выступление с трибуны',cap:2,txt:'известность +2, влияние +2, лидер морщится',
@@ -10199,9 +10239,12 @@ function minRun(id,x){
     case 'aid':{ S.unrest[x]=clamp(S.unrest[x]-6,0,100); S.rmod[x]=clamp(S.rmod[x]+3,-22,22); return 'Адресная помощь: '+R(x).name+'.'; }
     case 'funds':{ const v=ri(3,6); S.treasury=r1(S.treasury+v); bumpRep('honest',2); shiftMood('pens',-1);
       return 'Проверка фондов: '+v+' млрд вернулись в казну.'; }
-    case 'trip':{ const n=nbOf(x), v=ri(6,11); if(n)n.rel=clamp(n.rel+v,0,100); return 'Визит: '+NB_(x).name+', +'+v+'.'; }
+    case 'trip':{ const v=ri(6,11); nbShift(x,v); trustShift(x,2); return 'Визит: '+NB_(x).name+', +'+v+'.'; }
     case 'trade':{ S.world.demand=clamp(S.world.demand+4,55,142); shiftMood('biz',1.5); return 'Торговая миссия.'; }
     case 'loan':{ S.treasury=r1(S.treasury+16); S.debt=r1(S.debt+17); return 'Внешний кредит: +16 млрд.'; }
+    case 'embassy':{ const c=ambAuto(x); return 'Посол в «'+NB_(x).name+'»: '+c.name+' ('+AT(c.trait).name.toLowerCase()+').'; }
+    case 'prep':{ S.summitPrep=S.q; return 'МИД готовит региональный саммит.'; }
+    case 'lobby':{ const it=S.rat[0]; it.lob=(it.lob||0)+6; return 'МИД лоббирует ратификацию договора с «'+NB_(it.id).name+'».'; }
   }
   return '';
 }
@@ -12716,12 +12759,13 @@ function fpDemand(){
     if(ourSanc(x.id))v-=x.trade*4;
     const c=crisisWith(x.id); if(c)v-=x.power*3*c.stage; });
   if(typeof projDone==='function'&&projDone('export'))v+=3;      // экспортный коридор
+  if(S.decl&&S.decl.until>S.q&&S.decl.id==='trade')v+=3;          // декларация саммита о торговле
   return r1(v);
 }
 /* горячая граница: к давлению отношений прибавляется кризис */
 function fpBorder(rid){
   const c=S.bcrisis; if(!c)return 0;
-  const x=NB_(c.nb); return x&&x.border.indexOf(rid)>=0?1.5*c.stage:0;
+  const x=NB_(c.nb); return x&&x.border.indexOf(rid)>=0?1.5*c.stage*(typeof dipBorderMul==='function'?dipBorderMul(x.id):1):0;
 }
 
 /* ─── торговое соглашение: Сенат голосует краями ────────────────── */
@@ -12761,8 +12805,8 @@ function askTrade(id){
       <p class="hint">Провал ратификации стоит веса. Поработайте с Сенатом заранее — лидеры сенаторских фракций договариваются.</p>`,
     opts:[{label:'Подписать и внести в Сенат',hint:'ход и '+TRADE_COST+' веса',fn:()=>tradeSign(id)},{label:'Не сейчас',hint:''}]});
 }
-function tradeSign(id){
-  if(!pay({ap:1,cap:TRADE_COST},'Торговое соглашение'))return;
+function tradeSign(id,free){
+  if(!free&&!pay({ap:1,cap:TRADE_COST},'Торговое соглашение'))return;
   const x=NB_(id), st=nbOf(id), hurt=TRADE_HURT[id], f=tradeVotes(id), ok=f.yes>=f.need;
   if(!ok){
     addCap(-4);
@@ -12772,7 +12816,7 @@ function tradeSign(id){
       acts:[{label:'Закрыть'}]});
     render(); return;
   }
-  st.trade=true; st.tradeQ=S.q; st.rel=clamp(st.rel+8,0,100); cnt('trade');
+  st.trade=true; st.tradeQ=S.q; nbShift(id,8); trustShift(id,3); cnt('trade');
   shiftMood(hurt,-4); shiftMood('biz',3); S.econ.invest=r1(S.econ.invest+3); bumpRep('comp',2);
   x.border.forEach(r=>S.rmod[r]=clamp(S.rmod[r]+1,-22,22));
   career('Торговое соглашение с «'+x.name+'».'); chron('Ратифицировано торговое соглашение с «'+x.name+'».','g');
@@ -12897,7 +12941,7 @@ function bcrisisTick(){
   if(S.bcrisisCool>S.q)return;
   // граница горит у холодных соседей, но и у тёплых бывает инцидент
   NEIGHBOURS.filter(x=>nbOf(x.id)&&x.power>=0.6).forEach(x=>{ if(S.bcrisis)return; const rel=nbOf(x.id).rel;
-    if(Math.random()<(rel<40?0.03+(40-rel)*0.006:0.004*x.power))bcrisisStart(x.id); });
+    if(Math.random()<(rel<40?0.03+(40-rel)*0.006:0.004*x.power)*dipCrisisMul(x.id))bcrisisStart(x.id); });
 }
 
 /* ─── визит: повестка и край-получатель ─────────────────────────── */
@@ -12918,49 +12962,25 @@ function visitGo(id,agenda){
   const x=NB_(id), st=nbOf(id), dip=hasTrait('diplo')?5:0;
   if(!pay({ap:1,gold:VISIT_COST},'Визит к соседям'))return;
   if(st.rel<30&&Math.random()<0.4){
-    st.rel=clamp(st.rel-3,0,100); bumpRep('firm',-1);
+    nbShift(id,-3); bumpRep('firm',-1);
     logMsg('Визит в «'+x.name+'» сорван протестами у посольства.',1); head(pick(PRESS),'Визит в «'+x.name+'» сорван','hb');
     render(); return;
   }
   const rid=pick(x.border);
   let txt='';
-  if(agenda==='trade'){ st.rel=clamp(st.rel+ri(6,10)+dip,0,100); S.econ.invest=r1(S.econ.invest+2); shiftMood('biz',2);
+  if(agenda==='trade'){ nbShift(id,ri(6,10)+dip); trustShift(id,2); S.econ.invest=r1(S.econ.invest+2); shiftMood('biz',2);
     S.rmod[rid]=clamp(S.rmod[rid]+2,-22,22); txt='Подписаны контракты для края '+R(rid).name+'.'; }
-  if(agenda==='border'){ st.rel=clamp(st.rel+ri(4,8)+dip,0,100); shiftMood('patr',1);
+  if(agenda==='border'){ nbShift(id,ri(4,8)+dip); trustShift(id,2); shiftMood('patr',1);
     x.border.forEach(r=>{ S.unrest[r]=clamp(S.unrest[r]-ri(3,6),0,100); S.rmod[r]=clamp(S.rmod[r]+1.5,-22,22); });
     if(typeof S.sep==='object')x.border.forEach(r=>S.sep[r]=clamp((S.sep[r]||0)-3,0,100));
     txt='Приграничные края спокойнее: '+x.border.map(r=>R(r).cap).join(', ')+'.'; }
-  if(agenda==='energy'){ st.rel=clamp(st.rel+ri(5,8)+dip,0,100); const v=ri(6,11); S.treasury=r1(S.treasury+v); shiftMood('intel',-1);
+  if(agenda==='energy'){ nbShift(id,ri(5,8)+dip); trustShift(id,2); const v=ri(6,11); S.treasury=r1(S.treasury+v); shiftMood('intel',-1);
     txt='Энергетический контракт: '+v+' млрд в казну.'; }
   bumpRep('comp',0.8);
   head(pick(PRESS),'Переговоры с «'+x.name+'»: '+txt.toLowerCase(),'');
   logMsg('Визит в «'+x.name+'»: '+txt);
   toast('Визит состоялся');
   render();
-}
-
-/* ─── лист соседа ───────────────────────────────────────────────── */
-function askNeighbour(id){
-  const x=NB_(id), st=nbOf(id), can=fpCan(), c=crisisWith(id);
-  const opts=[{label:'Визит',hint:VISIT_COST+' млрд · выбрать повестку',fn:()=>nbVisit(id)}];
-  if(c&&can)opts.push({label:'Кризис на границе',hint:'решить',fn:()=>askCrisis()});
-  opts.push({label:'Договор о дружбе',hint:st.treaty?'уже есть':TREATY_COST+' веса · нужна ратификация Сенатом',fn:()=>nbTreaty(id)});
-  opts.push({label:st.trade?'Торговое соглашение: выйти':'Торговое соглашение',hint:can?(st.trade?'рынок открыт':'Сенат голосует краями'):'только кабинет или президент',fn:()=>askTrade(id)});
-  opts.push({label:ourSanc(id)?'Снять наши санкции':'Ввести санкции',hint:can?'':'только кабинет или президент',fn:()=>askSanction(id)});
-  opts.push({label:'Ничего',hint:'сохранить квартал',fn(){}});
-  sheetOpen({eye:'Внешняя политика · '+x.name,title:nbWord(st.rel),
-    body:`<p class="lead">${x.note}</p>
-      <div class="res"><span>Отношения</span><b class="${st.rel<38?'bad':st.rel>=54?'good':''}">${Math.round(st.rel)} · ${nbWord(st.rel)}</b>
-        <span>Вес соседа</span><b>${x.power}</b>
-        <span>Торговля</span><b>${x.trade}${st.trade?' · соглашение':''}</b>
-        <span>Договор о дружбе</span><b class="w">${st.treaty?'есть':'нет'}</b>
-        ${sancOn(id)?`<span>Их санкции</span><b class="bad">до ${dateLabel(st.sanc.until)}${st.sanc.soft?' · обходим':''}</b>`:''}
-        ${ourSanc(id)?`<span>Наши санкции</span><b class="warn">до ${dateLabel(st.our)}</b>`:''}
-        ${c?`<span>Граница</span><b class="bad">${c.stage===2?'кризис':'инцидент'} у ${R(c.rid).cap}</b>`:''}
-        <span>Граничит с</span><b class="w">${x.border.map(r=>R(r).cap).join(', ')}</b></div>
-      <p class="hint">Вражда греет приграничные края: сейчас они получают
-        ${x.border.map(r=>'+'+r1(nbPressure(r))).join(', ')} к напряжённости.</p>`,
-    opts});
 }
 
 /* ─── квартал: санкции против нас и кризисы ─────────────────────── */
@@ -12988,11 +13008,847 @@ function regimeTick(){
     const o=st.st||x.st, n={...o};
     ['world','free','order'].forEach(a=>n[a]=clamp(r1((o[a]||0)+rnd(-1.1,1.1)),-2,2));
     st.st=n;
+    st.ld=nbLeaderNew(x.id); st.trust=Math.round((st.trust+50)/2); st.pushy=0; st.plan=null;
+    dipLog(x.id,'К власти пришёл '+st.ld.name+' ('+NT(st.ld.trait).name.toLowerCase()+').');
     const warmer=axDist(n,me().st)<axDist(o,me().st);
     logMsg('В «'+x.name+'» сменилась власть: новый курс '+(warmer?'ближе к нашему':'дальше от нашего')+'.',1);
     chron('Смена власти в «'+x.name+'».','');
     head(pick(PRESS),'«'+x.name+'»: новая власть — '+(warmer?'шанс на оттепель':'время холодов'),warmer?'hg':'hb');
   });
+}
+
+/* ════════════════════════════════════════════════════════════════
+   ДИПЛОМАТИЯ · основа
+   Сосед — не цифра, а государство с лидером, характером, памятью и
+   врагами. Отношения (rel) — это настроение, доверие (trust) — вера
+   вашему слову: она растёт от исполненных договоров и падает, когда
+   вы их рвёте. Соседи соперничают между собой, поэтому дружба с
+   одним охлаждает его врага. Посол — глаза в чужой столице: видит
+   планы заранее. Договоры (союз, граница, энергетика, безвиз)
+   ратифицирует Сенат не сразу, а через квартал, и за это время
+   на него можно давить — вам, оппозиции и сенаторам.
+   ════════════════════════════════════════════════════════════════ */
+const NB_TRAITS=[
+  {id:'hawk',  name:'Ястреб',     demand:1.6, prov:1.5, trade:0.7, txt:'Уважает силу. Требует, давит и отступает только перед сильным.'},
+  {id:'merch', name:'Торговец',   demand:0.7, prov:0.4, trade:1.5, txt:'Любит выгодные сделки и ненавидит санкции.'},
+  {id:'ideo',  name:'Идеолог',    demand:1.0, prov:0.9, trade:0.9, txt:'Смотрит на ваш курс: близким прощает всё, далёким — ничего.'},
+  {id:'schem', name:'Интриган',   demand:1.0, prov:1.4, trade:1.0, txt:'Играет вами против соседей, шпионит и не всегда держит слово.'},
+  {id:'prag',  name:'Прагматик',  demand:0.8, prov:0.6, trade:1.1, txt:'Ровный партнёр: взаимность за взаимность.'},
+  {id:'peace', name:'Миротворец', demand:0.4, prov:0.3, trade:1.1, txt:'Любит саммиты и посредничество, конфликтов не ищет.'},
+];
+const NT=id=>NB_TRAITS.find(t=>t.id===id)||NB_TRAITS[4];
+const NB_LEAD={ostmark:'ideo',zarech:'hawk',gorye:'schem',meridia:'merch'};
+const NB_NAMES={
+  ostmark:{f:['Эрик','Йохан','Ларс','Ингрид','Хельга','Мартин','Густав','Астрид'],l:['Бергман','Лундквист','Фальк','Хольм','Рандель','Эриксен','Нордин','Вальдер']},
+  zarech: {f:['Борис','Игнат','Мирон','Алла','Зоя','Тимур','Святослав','Раиса'],l:['Вельский','Громов','Стрельников','Каменев','Ордынцев','Ярославцев','Дорохов','Нечаев']},
+  gorye:  {f:['Давид','Заур','Нино','Тамаз','Хасан','Лейла','Гурам','Мариам'],l:['Гаспарян','Мамедов','Чхеидзе','Баграт','Какабадзе','Ашуров','Джанелидзе','Алиев']},
+  meridia:{f:['Алессандро','Лючия','Марко','Паола','Диего','Рафаэль','Серена','Лоренцо'],l:['Монтини','Ферраро','Саласар','Бьянки','Ломбарди','Кастельяно','Росси','Вителли']},
+};
+/* соперничество: плюс — враги, минус — покровитель и подопечный */
+const NB_RIV={'ostmark|zarech':0.8,'ostmark|meridia':0.3,'zarech|gorye':-0.5,'meridia|gorye':0.3,'zarech|meridia':0.2,'ostmark|gorye':0.2};
+function nbRiv(a,b){ const v=NB_RIV[a+'|'+b]; return v!==undefined?v:(NB_RIV[b+'|'+a]||0); }
+
+function nbLeaderNew(id,trait){ const n=NB_NAMES[id]; return {name:pick(n.f)+' '+pick(n.l),trait:trait||pick(NB_TRAITS).id,since:S.q}; }
+/* досье заводится у каждого соседа; старым сохранениям — при загрузке */
+function nbFill(id){
+  const st=nbOf(id); if(!st)return null;
+  if(!st.ld)st.ld=nbLeaderNew(id,NB_LEAD[id]);
+  if(st.trust==null)st.trust=55;
+  if(!st.tr)st.tr={};
+  if(st.owe==null)st.owe=0;
+  if(st.pushy==null)st.pushy=0;
+  if(st.plan===undefined)st.plan=null;
+  return st;
+}
+function nbFillAll(){ NEIGHBOURS.forEach(x=>nbFill(x.id)); S.amb=S.amb||{}; S.rat=S.rat||[]; S.dipLog=S.dipLog||[]; }
+function dipLog(id,t,k){ S.dipLog=S.dipLog||[]; S.dipLog.unshift({q:S.q,id,t,k:k||''}); if(S.dipLog.length>40)S.dipLog.pop(); }
+/* отношение с одним меняется — его враги и друзья отзываются */
+function nbShift(id,d,why,o){
+  const st=nbOf(id); if(!st)return;
+  st.rel=clamp(st.rel+d,0,100);
+  if(!(o&&o.noRipple)){
+    NEIGHBOURS.forEach(x=>{ if(x.id===id)return; const s2=nbOf(x.id), rv=nbRiv(id,x.id); if(!s2||!rv)return;
+      s2.rel=clamp(s2.rel+clamp(-d*rv*0.3,-4,4),0,100); });
+  }
+  if(why)dipLog(id,why,d>=0?'g':'b');
+}
+function trustShift(id,d){ const st=nbOf(id); if(st)st.trust=clamp(st.trust+d,0,100); }
+function trustWord(v){ return v>=75?'верит':v>=55?'доверяет':v>=38?'присматривается':v>=22?'не верит':'ни слова'; }
+
+/* ─── договоры ─────────────────────────────────────────────────────
+   Дружба и торговля живут в старых полях (treaty, trade); четыре новых
+   лежат в st.tr и имеют срок, цену и порог ратификации. */
+const TREATIES=[
+  {id:'defense',name:'Оборонный союз',cost:8,len:12,rel:62,trust:55,
+   txt:'Взаимные гарантии. Сосед защитит на границе, а его соперники похолодеют; союзник может позвать на помощь.',
+   gain:'патриоты +4, стабильность +3, кризисы на границе реже',
+   lean(s,p){ return (p.st.order||0)*5+(s.st.order||0)*3; }},
+  {id:'border',name:'Договор о границе',cost:6,len:0,rel:55,trust:50,
+   txt:'Спор о рубеже закрыт навсегда: приграничные края спокойнее, сепаратисты слабее.',
+   gain:'давление на границе втрое слабее, напряжённость −3 в краях',
+   variants:[{id:'fair',name:'Честное разграничение',rel:58,txt:'каждый остаётся при своём; требует доверия'},
+             {id:'cede',name:'Разграничение с уступками',rel:40,txt:'вы отдаёте спорный участок: сосед теплеет, патриоты в ярости'}],
+   lean(s,p,x,v){ return v&&v.id==='cede'?(p.st.reg||0)*5-8:(p.st.reg||0)*2+(x.border.indexOf(s.region)>=0?4:0); }},
+  {id:'energy',name:'Энергетический контракт',cost:6,len:8,rel:50,trust:45,
+   txt:'Сосед качает и перепродаёт: казна получает каждый квартал, но зависит от его настроения.',
+   gain:'доход в казну каждый квартал; при отношениях ниже 30 сосед режет поставки',
+   lean(s,p,x){ return (p.st.econ||0)*3+(x.border.indexOf(s.region)>=0?4:0); }},
+  {id:'visa',name:'Безвизовый режим',cost:5,len:0,rel:55,trust:50,
+   txt:'Граждане ездят свободно: молодёжь и интеллигенция довольны, силовики нервничают.',
+   gain:'молодёжь +3, интеллигенция +2, инвестиции +1,5; патриоты −2, больше шпионских дел',
+   lean(s,p){ return (p.st.free||0)*5+(p.st.world||0)*3-(p.st.order||0)*3; }},
+];
+const TRT=id=>TREATIES.find(t=>t.id===id);
+function trHas(id,k){ const st=nbOf(id); return !!(st&&st.tr&&st.tr[k]); }
+function trCount(){ return NEIGHBOURS.reduce((a,x)=>a+Object.keys((nbOf(x.id)||{tr:{}}).tr||{}).length,0); }
+function trWhy(id,k,vr){
+  const st=nbOf(id), t=TRT(k); if(!st||!t)return 'нет такого договора';
+  if(trHas(id,k))return 'уже действует';
+  if((S.rat||[]).some(r=>r.id===id&&r.k===k))return 'уже в Сенате';
+  if(sancOn(id)||ourSanc(id))return 'пока действуют санкции';
+  const need=(vr?vr.rel:t.rel)-(st.owe>0?6:0);
+  if(st.rel<need)return 'отношения ниже '+need;
+  if(st.trust<t.trust)return 'вам мало верят: доверие ниже '+t.trust;
+  if(k==='defense'&&crisisWith(id))return 'на границе кризис';
+  if(k==='defense'&&NEIGHBOURS.some(z=>z.id!==id&&nbRiv(id,z.id)>0.5&&trHas(z.id,'defense')))return 'союз с его заклятым соперником';
+  return true;
+}
+function trName(k,vid){ const t=TRT(k); if(!t)return k; const v=vid&&t.variants?t.variants.find(z=>z.id===vid):null; return t.name+(v?' · '+v.name.toLowerCase():''); }
+
+/* подписать: договор уходит в Сенат и вернётся через квартал */
+function trSign(id,k,vid,free){
+  if(!fpCan()){ toast('Договоры подписывает кабинет или президент'); return false; }
+  const t=TRT(k), vr=vid&&t.variants?t.variants.find(v=>v.id===vid):null, why=trWhy(id,k,vr);
+  if(why!==true){ toast(why); return false; }
+  if(!free&&!pay({ap:1,cap:t.cost},t.name))return false;
+  ratQueue(id,k,vid,S.gov.lead);
+  const x=NB_(id), it=S.rat[S.rat.length-1], f=ratVotes(it);
+  sheetOpen({eye:'Дипломатия · '+x.name,title:'Договор внесён в Сенат',
+    body:`<p class="lead">${trName(k,vid)} с «${x.name}» подписан и отправлен на ратификацию. Сенат решит в конце квартала.</p>
+      <div class="res"><span>Прогноз</span><b class="${f.yes>=f.need?'good':'bad'}">${f.yes} из ${f.need}</b>
+        <span>Что даст</span><b class="w">${t.gain}</b></div>
+      <p class="hint">За квартал можно давить на сенаторов: лоббирование поднимает голоса, слушания — тоже; оппозиция и сенаторы могут тянуть в обратную сторону.</p>`,
+    acts:[{label:'К ратификации',fn:()=>askRat(S.rat.length-1)},{label:'Понятно'}]});
+  render(); return true;
+}
+function ratQueue(id,k,vid,by){
+  S.rat=S.rat||[]; S.rat.push({id,k,v:vid||null,q:S.q,due:S.q+1,hear:0,by:by||S.gov.lead,lob:0,opp:0});
+  dipLog(id,'Договор «'+trName(k,vid).toLowerCase()+'» внесён в Сенат.');
+}
+function ratVotes(it){
+  const x=NB_(it.id), t=TRT(it.k), vr=it.v&&t.variants?t.variants.find(z=>z.id===it.v):null; let yes=0;
+  S.senate.forEach(s=>{ const p=P(s.party); if(!p)return;
+    let v=(s.party===it.by?14:inCoal(s.party)&&inCoal(it.by)?7:-9);
+    v+=t.lean(s,p,x,vr)+(s.rel-50)*0.1+noise(s.id+'rat'+it.k+it.id+it.q,9);
+    if(v>0)yes++; });
+  yes=clamp(yes+(it.hear||0)+(it.lob||0)-(it.opp||0),0,SEN_SEATS);
+  return {yes,need:SEN_MAJ};
+}
+function ratTick(){
+  S.rat=(S.rat||[]).filter(it=>{ if(S.q<it.due)return true; ratResolve(it); return false; });
+}
+function ratResolve(it){
+  const x=NB_(it.id), st=nbOf(it.id), f=ratVotes(it), ok=f.yes>=f.need;
+  if(ok){ trApply(it.id,it.k,it.v,it.by); return; }
+  trustShift(it.id,-3); if(it.by===S.gov.lead&&isPM())addCap(-4);
+  logMsg('Сенат не ратифицировал «'+trName(it.k,it.v).toLowerCase()+'» с «'+x.name+'» ('+f.yes+' из '+f.need+').',1);
+  dipLog(it.id,'Сенат отклонил «'+trName(it.k,it.v).toLowerCase()+'» ('+f.yes+' из '+f.need+').','b');
+  chron('Сенат отклонил договор с «'+x.name+'».','b');
+  if(fpCan())sheetOpen({eye:'Сенат · '+dateLabel(),title:'Договор не ратифицирован',
+    body:`<p class="lead">«${trName(it.k,it.v)}» с «${x.name}»: ${f.yes} голосов из ${f.need}. Сосед обижен тем, что подписанное не стало законом.</p>`,acts:[{label:'Закрыть'}]});
+  void st;
+}
+function trApply(id,k,vid,by){
+  const st=nbOf(id), x=NB_(id), t=TRT(k);
+  st.tr[k]={q:S.q,until:t.len?S.q+t.len:0,v:vid||null,by:by||S.gov.lead};
+  if(k==='defense'){ nbShift(id,10); shiftMood('patr',4); S.stab=clamp(S.stab+3,0,100);
+    NEIGHBOURS.forEach(z=>{ if(z.id!==id&&nbRiv(id,z.id)>0)nbShift(z.id,-6,null,{noRipple:true}); }); }
+  if(k==='border'){ nbShift(id,vid==='cede'?14:9);
+    if(vid==='cede'){ shiftMood('patr',-5); bumpRep('firm',-3); } else bumpRep('comp',3);
+    x.border.forEach(r=>{ S.unrest[r]=clamp(S.unrest[r]-3,0,100); if(S.sep)S.sep[r]=clamp((S.sep[r]||0)-3,0,100); });
+    if(crisisWith(id))bcrisisEnd('Договор о границе закрыл спор с «'+x.name+'».',6); }
+  if(k==='energy'){ nbShift(id,6); S.treasury=r1(S.treasury+4); shiftMood('biz',1); }
+  if(k==='visa'){ nbShift(id,7); shiftMood('youth',3); shiftMood('intel',2); shiftMood('patr',-2); S.econ.invest=r1(S.econ.invest+1.5); }
+  trustShift(id,6); cnt('pact');
+  logMsg('Договор «'+trName(k,vid).toLowerCase()+'» с «'+x.name+'» ратифицирован Сенатом.',1);
+  dipLog(id,'Ратифицирован «'+trName(k,vid).toLowerCase()+'».','g');
+  chron('Ратифицирован договор «'+trName(k,vid).toLowerCase()+'» с «'+x.name+'».','g');
+  career('Договор «'+trName(k,vid).toLowerCase()+'» с «'+x.name+'».');
+  cover({ax:'world',stance:1,good:'«'+t.name+'» с «'+x.name+'»: страна выигрывает',bad:'«'+t.name+'» с «'+x.name+'»: чем заплатим?',flat:'Сенат ратифицировал договор с «'+x.name+'»'});
+  if(fpCan()&&by===S.gov.lead)toast('Ратифицирован: '+t.name);
+}
+function trLapse(id,k,why){
+  const st=nbOf(id), x=NB_(id); if(!st||!st.tr[k])return;
+  delete st.tr[k];
+  if(why==='denounce'){ nbShift(id,k==='visa'?-8:-14); trustShift(id,-12);
+    if(k==='defense'){ shiftMood('patr',-3); S.stab=clamp(S.stab-2,0,100); } if(k==='visa'){ shiftMood('youth',-3); shiftMood('patr',1); }
+    logMsg('Новария расторгла «'+TRT(k).name.toLowerCase()+'» с «'+x.name+'».',1); dipLog(id,'Новария расторгла «'+TRT(k).name.toLowerCase()+'».','b');
+    chron('Расторгнут договор с «'+x.name+'».','b'); }
+  else { logMsg('Договор «'+TRT(k).name.toLowerCase()+'» с «'+x.name+'» истёк.',1); dipLog(id,'Истёк «'+TRT(k).name.toLowerCase()+'».',''); }
+}
+/* срок, доход и нарушения */
+function trTick(){
+  NEIGHBOURS.forEach(x=>{ const st=nbOf(x.id);
+    Object.keys(st.tr).forEach(k=>{ const rec=st.tr[k];
+      if(rec.until&&rec.until<=S.q){ if(fpCan()&&!rec.warned){ rec.until=S.q+1; rec.warned=1; askRenew(x.id,k); } else trLapse(x.id,k); return; }
+      if(k==='defense')S.stab=clamp(S.stab+0.3,0,100);
+      if(k==='visa'){ S.econ.invest=r1(S.econ.invest+0.2); shiftMood('youth',0.1,true); }
+      if(k==='energy'){
+        if(st.cut&&st.cut.until>S.q){ S.treasury=r1(S.treasury-x.trade*2); S.econ.inf=r1(S.econ.inf+0.15); }
+        else { S.treasury=r1(S.treasury+x.trade*2.6);
+          if(st.rel<30&&Math.random()<0.3){ st.cut={until:S.q+2}; logMsg('«'+x.name+'» урезала поставки по энергетическому контракту.',1); dipLog(x.id,'Сосед урезал поставки.','b'); if(fpCan())askCut(x.id); } }
+      }
+    });
+  });
+}
+function askRenew(id,k){
+  const x=NB_(id), t=TRT(k);
+  sheetOpen({eye:'Дипломатия · '+x.name,title:t.name+': срок истекает',
+    body:`<p class="lead">Договор действует ещё квартал. Продлить без нового похода в Сенат — или дать ему истечь.</p>`,
+    opts:[{label:'Продлить на '+quarters(t.len),hint:Math.round(t.cost/2)+' веса · доверие +3',fn(){ if(!payCap(Math.round(t.cost/2)))return;
+        nbOf(id).tr[k].until=S.q+t.len; delete nbOf(id).tr[k].warned; trustShift(id,3); dipLog(id,'Продлён «'+t.name.toLowerCase()+'».','g'); render(); }},
+      {label:'Пусть истечёт',hint:'отношения −3',fn(){ nbShift(id,-3); trLapse(id,k); render(); }}]});
+}
+function askCut(id){
+  const x=NB_(id);
+  sheetOpen({eye:'Энергетика · '+x.name,title:'Сосед режет поставки',
+    body:`<p class="lead">«${x.name}» сократила поставки по контракту: отношения ниже 30. На два квартала казна теряет доход, а цены растут.</p>`,
+    opts:[{label:'Договориться',hint:'4 веса · поставки вернутся, отношения +6',fn(){ if(!payCap(4))return; nbOf(id).cut=null; nbShift(id,6); render(); }},
+      {label:'Искать замену',hint:'8 млрд · удар слабее',fn(){ if(S.treasury<8){ toast('В казне нет 8 млрд'); return; } S.treasury=r1(S.treasury-8); nbOf(id).cut=null; S.econ.inf=r1(S.econ.inf+0.1); render(); }},
+      {label:'Терпеть',hint:''}]});
+}
+function askDenounce(id,k){
+  const x=NB_(id), t=TRT(k);
+  sheetOpen({eye:'Дипломатия · '+x.name,title:'Расторгнуть «'+t.name.toLowerCase()+'»?',
+    body:`<p class="lead">Расторжение ударит по доверию: «${x.name}» запомнит, что подписанное можно порвать.</p>`,
+    opts:[{label:'Расторгнуть',hint:'3 веса · отношения −'+(k==='visa'?8:14)+' · доверие −12',fn(){ if(!payCap(3))return; trLapse(id,k,'denounce'); render(); }},{label:'Оставить',hint:''}]});
+}
+
+/* ─── ратификация: давление на Сенат ──────────────────────────── */
+function askRat(i){
+  const it=(S.rat||[])[i]; if(!it){ toast('Договора на ратификации нет'); return; }
+  const x=NB_(it.id), f=ratVotes(it), mine=it.by===PL||inCoal(it.by)&&inCoal(PL);
+  sheetOpen({eye:'Сенат · ратификация',title:trName(it.k,it.v),
+    body:`<p class="lead">Договор с «${x.name}» ждёт Сената до ${dateLabel(it.due)}.</p>
+      <div class="res"><span>Прогноз «за»</span><b class="${f.yes>=f.need?'good':'bad'}">${f.yes} из ${f.need}</b>
+        <span>Внёс</span><b class="w">${P(it.by)?P(it.by).name:'кабинет'}</b>
+        <span>Слушания «за»</span><b>${it.hear>0?'+'+it.hear:'нет'}</b><span>Лоббирование</span><b>${it.lob?'+'+it.lob:'нет'}</b>
+        <span>Нажим «против»</span><b class="${it.opp?'bad':''}">${it.opp?'−'+it.opp:'нет'}</b></div>`,
+    opts:[{label:'Лоббировать ратификацию',hint:'ход и 4 веса · +6 голосов',fn:()=>ratPush(i,'lob')},
+      {label:'Слушания за договор',hint:'ход и 5 веса · +8 голосов · чем ближе вы к договору, тем честнее',fn:()=>ratPush(i,'hear')},
+      {label:'Выступить против',hint:'ход и 4 веса · −8 голосов'+(mine?' · против своих же':''),fn:()=>ratPush(i,'opp')},
+      {label:'Закрыть',hint:''}]});
+}
+function ratPush(i,how){
+  const it=(S.rat||[])[i]; if(!it)return;
+  if(it['d'+how]){ toast('Это уже делалось'); return; }
+  const cost={lob:4,hear:5,opp:4}[how];
+  if(!pay({ap:1,cap:cost},{lob:'Лоббирование договора',hear:'Слушания по договору',opp:'Выступление против договора'}[how]))return;
+  it['d'+how]=1;
+  if(how==='lob'){ it.lob=(it.lob||0)+6; S.senate.forEach(s=>{ if(Math.random()<0.15)s.rel=clamp(s.rel+3,0,100); }); }
+  if(how==='hear'){ it.hear=(it.hear||0)+8; bumpRep('comp',0.5); }
+  if(how==='opp'){ it.opp=(it.opp||0)+8; bumpRep('firm',1); if(it.by===PL||inCoal(it.by)&&inCoal(PL))S.deputies.filter(d=>d.party===PL).forEach(d=>d.loyal=clamp(d.loyal-1,0,100)); }
+  logMsg({lob:'Вы лоббируете ратификацию',hear:'Слушания по договору',opp:'Вы выступили против договора'}[how]+' «'+trName(it.k,it.v).toLowerCase()+'».');
+  render(); askRat(i);
+}
+
+/* ─── послы ───────────────────────────────────────────────────────── */
+const AMB_TRAITS=[
+  {id:'charm',name:'Обаятельный',txt:'отношения с государством растут сами'},
+  {id:'hard', name:'Жёсткий',    txt:'ультиматумов меньше, но отношения слегка остывают'},
+  {id:'spy',  name:'Разведчик',  txt:'видит планы на два квартала вперёд; рискует шпионским делом'},
+  {id:'prof', name:'Профессионал',txt:'доверие к вам растёт, договоры идут легче'},
+];
+const AT=id=>AMB_TRAITS.find(t=>t.id===id)||AMB_TRAITS[3];
+function ambOf(id){ return S.amb&&S.amb[id]||null; }
+function ambCands(id){
+  const n=NB_NAMES[id];
+  return [0,1,2].map(()=>({name:depName(),trait:pick(AMB_TRAITS).id,skill:ri(38,90)})).map(c=>({...c,foreign:!!n}));
+}
+function ambSet(id,c){
+  const old=ambOf(id); S.amb=S.amb||{}; S.amb[id]={name:c.name,trait:c.trait,skill:c.skill,q:S.q};
+  logMsg((old?'Новый посол':'Посол')+' в «'+NB_(id).name+'» — '+c.name+' ('+AT(c.trait).name.toLowerCase()+').',1);
+  dipLog(id,'Посол — '+c.name+' ('+AT(c.trait).name.toLowerCase()+').','g'); render();
+}
+function askAmbassador(id){
+  if(!fpCan()){ toast('Послов назначает кабинет или президент'); return; }
+  const x=NB_(id), cur=ambOf(id), cs=ambCands(id);
+  sheetOpen({eye:'Дипломатия · '+x.name,title:cur?'Сменить посла':'Назначить посла',
+    body:`<p class="lead">Посол — ваши глаза и руки в столице «${x.name}»: видит планы лидера заранее, греет отношения, гасит ультиматумы.
+        ${cur?'Сейчас: '+cur.name+' ('+AT(cur.trait).name.toLowerCase()+'). ':''}Содержание — полмиллиарда в квартал.</p>`,
+    opts:cs.map(c=>({label:c.name+' · '+AT(c.trait).name.toLowerCase()+' · класс '+c.skill,hint:AT(c.trait).txt,
+        fn(){ if(!pay({ap:1,cap:4},'Назначение посла'))return; ambSet(id,c); }}))
+      .concat(cur?[{label:'Отозвать посла',hint:'отношения −2 · экономия',fn(){ delete S.amb[id]; nbShift(id,-2); logMsg('Посол в «'+x.name+'» отозван.'); render(); }}]:[])
+      .concat([{label:'Не сейчас',hint:''}])});
+}
+function ambAuto(id){ const c=ambCands(id).sort((a,b)=>b.skill-a.skill)[0]; ambSet(id,c); return c; }
+function ambTick(){
+  const n=Object.keys(S.amb||{}).length; if(n&&isPM())S.treasury=r1(S.treasury-0.5*n);
+  Object.keys(S.amb||{}).forEach(id=>{ const a=S.amb[id], st=nbOf(id), x=NB_(id), k=a.skill/100;
+    if(a.trait==='charm')nbShift(id,0.8+k*0.8,null,{noRipple:true});
+    if(a.trait==='hard')nbShift(id,-0.4,null,{noRipple:true});
+    if(a.trait==='prof')trustShift(id,0.5+k*0.7);
+    if(a.trait==='spy'&&Math.random()<0.06*(NT(st.ld.trait).id==='schem'?1.6:1)){
+      nbShift(id,-5); trustShift(id,-6); delete S.amb[id];
+      logMsg('Посол '+a.name+' выслан из «'+x.name+'» по обвинению в шпионаже.',1); dipLog(id,'Посол выслан за шпионаж.','b');
+      chron('Выслан наш посол в «'+x.name+'».','b'); pressAll(-0.6); return; }
+    if(Math.random()<0.05&&fpCan()){ // донесение
+      const plan=st.plan&&st.plan.act!=='quiet'?planWord(st.plan):null;
+      dipLog(id,'Посол '+a.name+': '+(plan?'в столице говорят — '+plan.toLowerCase():'настроения спокойные')+'.','');
+      if(a.trait==='spy'&&Math.random()<0.5){ trustShift(id,-1); S.cap=clamp(S.cap+3,0,100); logMsg('Донесение посла: добыта закрытая записка «'+x.name+'» (вес +3).'); } }
+  });
+}
+/* что видит посол */
+function intelOf(id){ const a=ambOf(id); return a?(a.trait==='spy'?2:1):0; }
+function planWord(p){
+  if(!p)return 'тихо';
+  return {quiet:'тихо',propose:'готовит предложение: '+(p.k?offerName(p.k.k,p.k.v):'договор'),demand:'готовит ультиматум',provoke:'ищет повод для провокации',
+    trouble:'ждёт помощи: в стране неспокойно',summit:'готовит приглашение на саммит'}[p.act]||'тихо';
+}
+
+/* ─── эхо договоров в старых механиках ──────────────────────────── */
+function dipBorderMul(id){ return trHas(id,'border')?0.3:1; }
+function dipCrisisMul(id){
+  let m=1;
+  if(trHas(id,'border'))m*=0.2;
+  if(NEIGHBOURS.some(z=>z.id!==id&&trHas(z.id,'defense')&&nbRiv(z.id,id)>0))m*=0.6;
+  if(S.decl&&S.decl.until>S.q&&S.decl.id==='safe')m*=0.5;
+  const a=ambOf(id); if(a&&a.trait==='hard')m*=0.7;
+  return m;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   ДИПЛОМАТИЯ · инициатива соседей, саммиты, ИИ
+   Каждый квартал сосед составляет план на следующий: предложить
+   договор, выдвинуть ультиматум, устроить провокацию, попросить
+   помощи, позвать на саммит — или промолчать. План исполняется
+   через квартал; посол видит его заранее, и его можно упредить.
+   Если у власти не вы, решает чужой кабинет по курсу своей партии.
+   ════════════════════════════════════════════════════════════════ */
+function offerName(k,vid){
+  if(k==='friend')return 'договор о дружбе';
+  if(k==='trade')return 'соглашение о свободной торговле';
+  const t=TRT(k); if(!t)return k;
+  const v=vid&&t.variants?t.variants.find(z=>z.id===vid):null;
+  return t.name.toLowerCase()+(v?' — '+v.name.toLowerCase():'');
+}
+/* что сосед мог бы предложить сейчас */
+function treatyOffers(id){
+  const st=nbOf(id), out=[];
+  if(!st.treaty&&st.rel>=48)out.push({k:'friend'});
+  if(!st.trade&&st.rel>=45&&!sancOn(id)&&!ourSanc(id))out.push({k:'trade'});
+  TREATIES.forEach(t=>{
+    if(t.variants){ const v=t.variants.slice().reverse().find(z=>trWhy(id,t.id,z)===true); if(v)out.push({k:t.id,v:v.id}); }
+    else if(trWhy(id,t.id)===true)out.push({k:t.id});
+  });
+  return out;
+}
+
+/* ─── план соседа на квартал ──────────────────────────────────────── */
+function nbPlanNew(id){
+  const st=nbOf(id), x=NB_(id), t=NT(st.ld.trait), rel=st.rel, w=[{act:'quiet',v:1.6}];
+  if(S.bcrisis&&S.bcrisis.nb===id)return {act:'quiet',q:S.q};
+  const offers=treatyOffers(id);
+  if(rel>=48&&st.trust>=35&&offers.length)w.push({act:'propose',v:0.9*t.trade*(1+(rel-50)/60)*(ambOf(id)&&ambOf(id).trait==='prof'?1.3:1),k:pick(offers)});
+  if(!sancOn(id)&&(rel<48||st.ld.trait==='hawk')&&st.owe<=0){
+    const amb=ambOf(id), soft=amb&&amb.trait==='hard'?0.7:1;
+    w.push({act:'demand',v:0.7*t.demand*(1+st.pushy*0.2)*(1+(50-rel)/60)*soft});
+  }
+  if(rel<40)w.push({act:'provoke',v:0.8*t.prov*(1+(40-rel)/40)});
+  if(st.trouble)w.push({act:'trouble',v:1.6});
+  if(rel>=52&&S.q-(st.sumQ===undefined?-9:st.sumQ)>=8)w.push({act:'summit',v:0.6*(t.id==='peace'?1.6:t.id==='hawk'?0.4:1)});
+  const sum=w.reduce((a,z)=>a+z.v,0); let r=Math.random()*sum, pk=w[0];
+  for(const z of w){ r-=z.v; if(r<=0){ pk=z; break; } }
+  return {act:pk.act,k:pk.k,q:S.q};
+}
+
+function nbActTick(){
+  NEIGHBOURS.slice().sort(()=>Math.random()-0.5).forEach(x=>{
+    const st=nbOf(x.id);
+    if(!st.trouble&&Math.random()<0.025)st.trouble={kind:(x.border.length&&Math.random()<0.5)?'refugees':'aid',until:S.q+4};
+    if(st.plan&&st.plan.q<S.q){
+      if(st.plan.act!=='quiet'){
+        if(fpCan()&&S.dipEvQ===S.q&&!st.plan.late){ st.plan.late=1; return; }   // на сегодня достаточно одного лист
+        nbDo(x.id,st.plan);
+      }
+      st.plan=null;
+    }
+    if(!st.plan)st.plan=nbPlanNew(x.id);
+  });
+}
+function nbDo(id,plan){
+  const st=nbOf(id); if(!st)return;
+  if(plan.act==='propose'&&plan.k){ if(fpCan())offerShow(id,plan.k); else aiOffer(id,plan.k); }
+  if(plan.act==='demand'){ const k=demandPick(id); if(fpCan())demandShow(id,k); else demandApply(id,k,aiStance(id)==='firm'?'refuse':'yield'); }
+  if(plan.act==='provoke'){ const k=provokePick(id); if(fpCan())provokeShow(id,k); else provokeApply(id,k,aiStance(id)==='firm'?'expel':'note'); }
+  if(plan.act==='trouble'&&st.trouble){ if(fpCan())troubleShow(id); else troubleApply(id,aiStance(id)==='firm'?'refuse':'aid'); }
+  if(plan.act==='summit'){ if(fpCan())nbSummitShow(id); else nbSummitApply(id,'talk'); }
+}
+/* жёсткий или мягкий курс у чужого кабинета */
+function aiStance(id){
+  const lead=P(S.gov.lead); if(!lead)return 'soft';
+  const st=nbOf(id), hawk=(lead.st.order||0)>0.4||(lead.st.world||0)<-0.6;
+  return hawk||st.ld.trait==='hawk'&&(lead.st.order||0)>0?'firm':'soft';
+}
+
+/* ─── предложение договора ─────────────────────────────────────────── */
+function offerShow(id,o){
+  const x=NB_(id), st=nbOf(id), L=st.ld, nm=offerName(o.k,o.v);
+  S.dipEvQ=S.q; dipLog(id,L.name+' предлагает: '+nm+'.');
+  sheetOpen({eye:'Дипломатия · '+x.name,title:L.name+' предлагает договор',
+    body:`<p class="lead">${L.name} (${NT(L.trait).name.toLowerCase()}) сам пришёл с предложением: ${nm}.
+        ${o.k==='border'&&o.v==='cede'?'Но разграничение — с уступками: спорный участок перейдёт к соседу.':''}</p>
+      <div class="res"><span>Отношения</span><b>${Math.round(st.rel)} · ${nbWord(st.rel)}</b><span>Доверие</span><b>${Math.round(st.trust)} · ${trustWord(st.trust)}</b></div>`,
+    opts:[{label:'Принять предложение',hint:'без хода и веса · дальше — Сенат',fn:()=>offerAccept(id,o)},
+      {label:'Поторговаться',hint:'3 веса · 55%: условия лучше (+доверие); иначе сосед отзывает предложение',fn(){
+        if(!payCap(3))return;
+        if(Math.random()<0.55+(ambOf(id)?0.1:0)){ trustShift(id,4); nbShift(id,3); offerAccept(id,o,true); }
+        else { nbShift(id,-3); dipLog(id,'Сосед отозвал предложение после торга.','b'); render(); } }},
+      {label:'Вежливо отказать',hint:'отношения −2',fn(){ nbShift(id,-2); render(); }}]});
+}
+function offerAccept(id,o,better){
+  const x=NB_(id);
+  if(o.k==='friend'){ nbTreaty(id,true); return; }
+  if(o.k==='trade'){ tradeSign(id,true); return; }
+  const v=better&&o.k==='border'?'fair':o.v;
+  if(!trSign(id,o.k,v,true))dipLog(id,'Предложение «'+x.name+'» не удалось принять.','b');
+}
+function aiOffer(id,o){
+  const lead=P(S.gov.lead), x=NB_(id);
+  if(!lead||(lead.st.world||0)<-0.4||(o.k==='defense'&&(lead.st.order||0)<-0.4)){ nbShift(id,-2); dipLog(id,'Кабинет '+lead.leader+' отклонил предложение «'+x.name+'».'); return; }
+  if(o.k==='friend'){ const st=nbOf(id); st.treaty=true; nbShift(id,10); trustShift(id,5); logMsg('Кабинет '+lead.leader+' заключил договор о дружбе с «'+x.name+'».',1); dipLog(id,'Кабинет подписал договор о дружбе.','g'); return; }
+  if(o.k==='trade'){ const f=tradeVotes(id); if(f.yes>=f.need){ nbOf(id).trade=true; nbShift(id,8); shiftMood(TRADE_HURT[id],-3); shiftMood('biz',2); logMsg('Кабинет '+lead.leader+' подписал торговое соглашение с «'+x.name+'».',1); dipLog(id,'Кабинет подписал торговое соглашение.','g'); } return; }
+  if(trWhy(id,o.k,o.v&&TRT(o.k).variants?TRT(o.k).variants.find(z=>z.id===o.v):null)===true){ ratQueue(id,o.k,o.v,S.gov.lead); }
+}
+
+/* ─── ультиматум ──────────────────────────────────────────────────── */
+function demandPick(id){
+  const st=nbOf(id), x=NB_(id), t=NT(st.ld.trait), ks=['tariff'];
+  if(ourSanc(id))ks.push('sanc','sanc');
+  if(x.border.length&&(t.id==='hawk'||t.id==='schem'))ks.push('border');
+  if(st.rel<35||S.bcrisis)ks.push('pay');
+  return pick(ks);
+}
+const DEMANDS={
+  tariff:{name:'Снизить пошлины на их товары',lead:'Сосед требует льготных пошлин для своих товаров. Иначе — «ответные меры».',
+    yield:'отношения +8 · бизнес вам благодарен · ',cost:'рабочие/село −2'},
+  sanc:{name:'Снять наши санкции',lead:'Сосед требует снять санкции против него. Иначе обещает ответить.',yield:'санкции сняты · отношения +10',cost:'патриоты −1'},
+  border:{name:'Пересмотреть границу',lead:'Сосед требует «уточнить» линию границы в его пользу. За словами — войска у рубежа.',yield:'отношения +12',cost:'патриоты −6, твёрдость −3'},
+  pay:{name:'Выплатить компенсацию 8 млрд',lead:'Сосед требует компенсацию за «ущерб» после инцидента. Сумма названа.',yield:'отношения +6',cost:'казна −8 млрд'},
+};
+function demandShow(id,k){
+  const x=NB_(id), st=nbOf(id), L=st.ld, d=DEMANDS[k], t=NT(L.trait);
+  S.dipEvQ=S.q; dipLog(id,L.name+' выдвинул ультиматум: '+d.name.toLowerCase()+'.','b');
+  const force=S.spend.def>=3;
+  sheetOpen({eye:'Дипломатия · '+x.name,title:'Ультиматум: '+d.name.toLowerCase(),
+    body:`<p class="lead">${L.name} (${t.name.toLowerCase()}): ${d.lead}</p>
+      <div class="res"><span>Отношения</span><b class="${st.rel<38?'bad':''}">${Math.round(st.rel)} · ${nbWord(st.rel)}</b><span>Вес соседа</span><b>${x.power}</b>
+        <span>Оборона</span><b>${['нет','урезано','норма','щедро','максимум'][S.spend.def]}</b>
+        ${st.pushy?`<span>Вы уступали ему</span><b class="bad">${st.pushy} раз(а)</b>`:''}</div>
+      <p class="hint">Ястреб уважает силу и растёт на уступках: каждая новая уступка делает следующий ультиматум вероятнее.</p>`,
+    opts:[{label:'Уступить',hint:d.yield+d.cost,fn(){ demandApply(id,k,'yield'); render(); }},
+      {label:'Поторговаться',hint:'4 веса · 55%: половина цены и отношения +4',fn(){ if(!payCap(4))return; demandApply(id,k,'bargain'); render(); }},
+      {label:'Отказать',hint:'отношения −7 · '+(t.id==='hawk'?'он может ответить на границе':'сосед обидится'),fn(){ demandApply(id,k,'refuse'); render(); }},
+      {label:'Ответить силой',hint:force?'3 веса · патриоты +3 · отношения −12, но ястреб отступит':'нужна оборона не ниже «щедро»',fn(){
+        if(!force){ toast('Нужна оборона не ниже «щедро»'); return; } if(!payCap(3))return; demandApply(id,k,'force'); render(); }}]});
+}
+function demandApply(id,k,how){
+  const st=nbOf(id), x=NB_(id), t=NT(st.ld.trait), hawk=t.id==='hawk';
+  const yieldIt=half=>{
+    const m=half?0.5:1;
+    if(k==='tariff'){ nbShift(id,8*m,null); shiftMood(TRADE_HURT[id],-2*m); shiftMood('biz',1); S.econ.invest=r1(S.econ.invest-1*m); }
+    if(k==='sanc'){ st.our=0; nbShift(id,10*m); shiftMood('patr',-1); }
+    if(k==='border'){ shiftMood('patr',-6*m); bumpRep('firm',-3*m); nbShift(id,12*m); }
+    if(k==='pay'){ S.treasury=r1(S.treasury-8*m); nbShift(id,6*m); }
+  };
+  if(how==='yield'){ yieldIt(false); if(hawk||t.id==='schem')st.pushy=Math.min(6,st.pushy+1); trustShift(id,2); logMsg('Новария уступила требованию «'+x.name+'»: '+DEMANDS[k].name.toLowerCase()+'.',1); dipLog(id,'Уступили: '+DEMANDS[k].name.toLowerCase()+'.',''); }
+  if(how==='bargain'){
+    if(Math.random()<0.55+(ambOf(id)?0.1:0)){ yieldIt(true); nbShift(id,4); trustShift(id,3); logMsg('Торг по требованию «'+x.name+'»: цена вполовину.'); dipLog(id,'Торг удался: цена вполовину.','g'); }
+    else { nbShift(id,-9); logMsg('Торг сорвался: «'+x.name+'» обижена.',1); dipLog(id,'Торг сорвался.','b'); }
+  }
+  if(how==='refuse'){
+    nbShift(id,t.id==='prag'||t.id==='peace'?-4:-7); st.pushy=Math.max(0,st.pushy-1);
+    logMsg('Новария отказала «'+x.name+'»: '+DEMANDS[k].name.toLowerCase()+'.',1); dipLog(id,'Отказали: '+DEMANDS[k].name.toLowerCase()+'.','b');
+    if((hawk||t.id==='schem')&&!S.bcrisis&&Math.random()<(k==='border'?0.45:0.3)*(S.spend.def>=3?0.4:1))bcrisisStart(id);
+  }
+  if(how==='force'){
+    shiftMood('patr',3); S.stab=clamp(S.stab+2,0,100); nbShift(id,-12);
+    if(hawk&&Math.random()<0.6){ st.pushy=0; trustShift(id,4); logMsg('«'+x.name+'» отступила перед силой: ультиматум снят.',1); dipLog(id,'Отступил перед силой.','g'); }
+    else if(!S.bcrisis){ bcrisisStart(id); dipLog(id,'Ответ силой обернулся кризисом.','b'); }
+  }
+  void t;
+}
+
+/* ─── провокация ───────────────────────────────────────────────────── */
+function provokePick(id){
+  const st=nbOf(id), t=NT(st.ld.trait), ks=['spy','press'];
+  if(t.id==='hawk'||t.id==='schem')ks.push('border');
+  if(trHas(id,'visa'))ks.push('spy');
+  return pick(ks);
+}
+const PROVOKES={
+  spy:{name:'Шпионское дело',lead:'Дипломата соседа задержали с закрытыми документами — или он утверждает, что задержали зря. Газеты требуют ответа.'},
+  press:{name:'Враждебная кампания',lead:'Государственные издания соседа обвиняют Новарию во всех грехах, а его дипломаты подпевают.'},
+  border:{name:'Пограничный инцидент',lead:'У границы задержаны пограничники. Сосед обвиняет вас, вы — его.'},
+};
+function provokeShow(id,k){
+  const x=NB_(id), L=nbOf(id).ld;
+  S.dipEvQ=S.q; dipLog(id,PROVOKES[k].name+'.','b');
+  if(k==='border'){ if(!S.bcrisis)bcrisisStart(id); return; }
+  sheetOpen({eye:'Дипломатия · '+x.name,title:PROVOKES[k].name,
+    body:`<p class="lead">${L.name}: ${PROVOKES[k].lead}</p>`,
+    opts:k==='spy'
+      ?[{label:'Выслать дипломата',hint:'патриоты +2 · отношения −8 · 50%: вышлют и нашего посла',fn(){ provokeApply(id,k,'expel'); render(); }},
+        {label:'Нота протеста',hint:'отношения −3 · без последствий',fn(){ provokeApply(id,k,'note'); render(); }},
+        {label:'Замять',hint:'отношения −1 · 30%: газеты узнают и разнесут',fn(){ provokeApply(id,k,'hush'); render(); }}]
+      :[{label:'Ответить в эфире',hint:'3 веса · патриоты +2 · отношения −3',fn(){ if(!payCap(3))return; provokeApply(id,k,'reply'); render(); }},
+        {label:'Не замечать',hint:'печать −1,5',fn(){ provokeApply(id,k,'ignore'); render(); }}]});
+}
+function provokeApply(id,k,how){
+  const x=NB_(id), st=nbOf(id);
+  if(k==='border'){ if(!S.bcrisis)bcrisisStart(id); return; }
+  if(how==='expel'){ nbShift(id,-8); shiftMood('patr',2); logMsg('Новария выслала дипломата «'+x.name+'».',1); dipLog(id,'Выслали их дипломата.','b');
+    if(Math.random()<0.5&&ambOf(id)){ const a=ambOf(id); delete S.amb[id]; logMsg('В ответ выслан наш посол '+a.name+'.',1); dipLog(id,'Выслан наш посол.','b'); } }
+  if(how==='note'){ nbShift(id,-3); dipLog(id,'Нота протеста.',''); }
+  if(how==='hush'){ nbShift(id,-1); if(Math.random()<0.3){ pressAll(-1.2); head(pick(PRESS),'Шпионское дело замяли: что скрывает кабинет','hb'); } }
+  if(how==='reply'){ shiftMood('patr',2); nbShift(id,-3); }
+  if(how==='ignore'){ pressAll(-1.5); }
+  void st;
+}
+
+/* ─── беда у соседа: помощь или беженцы ──────────────────────────── */
+function troubleShow(id){
+  const x=NB_(id), st=nbOf(id), tr=st.trouble, L=st.ld, ref=tr.kind==='refugees';
+  S.dipEvQ=S.q; dipLog(id,ref?'У соседа беспорядки, к границе идут беженцы.':'Сосед просит помощи.');
+  sheetOpen({eye:'Дипломатия · '+x.name,title:ref?'Беженцы у границы':'Сосед просит помощи',
+    body:`<p class="lead">${ref?'В «'+x.name+'» беспорядки: тысячи людей идут к вашей границе.'
+        :L.name+' просит помощи: в стране засуха и пустая казна.'}</p>
+      <p class="hint">Кто помог в беде — тот получает должника: его ультиматумов меньше, договоры дешевле.</p>`,
+    opts:ref?[{label:'Принять беженцев',hint:'приграничный край +4 напряжённость, патриоты −3, интеллигенция +2 · отношения +10, доверие +6',fn(){ troubleApply(id,'accept'); render(); }},
+        {label:'Помочь деньгами на месте',hint:'8 млрд · отношения +8 · доверие +5 · сосед должен',fn(){ troubleApply(id,'aid'); render(); }},
+        {label:'Закрыть границу',hint:'отношения −8 · порядок +',fn(){ troubleApply(id,'refuse'); render(); }}]
+      :[{label:'Дать помощь',hint:'10 млрд · отношения +12 · доверие +8 · сосед должен',fn(){ troubleApply(id,'aid'); render(); }},
+        {label:'Кредит под условия',hint:'15 млрд в долг соседу: должник, но риск невозврата · отношения +6',fn(){ troubleApply(id,'loan'); render(); }},
+        {label:'Гуманитарный груз',hint:'3 млрд · отношения +5',fn(){ troubleApply(id,'small'); render(); }},
+        {label:'Отказать',hint:'отношения −6 · ястреб и интриган запомнят',fn(){ troubleApply(id,'refuse'); render(); }}]});
+}
+function troubleApply(id,how){
+  const x=NB_(id), st=nbOf(id), tr=st.trouble; if(!tr)return;
+  const pay0=n=>{ if(S.treasury<n){ toast('В казне нет '+n+' млрд'); return false; } S.treasury=r1(S.treasury-n); return true; };
+  if(how==='accept'){ nbShift(id,10); trustShift(id,6); shiftMood('patr',-3); shiftMood('intel',2); x.border.forEach(r=>S.unrest[r]=clamp(S.unrest[r]+4,0,100)); st.owe++; dipLog(id,'Приняли беженцев.','g'); }
+  if(how==='aid'){ const n=tr.kind==='refugees'?8:10; if(!pay0(n))return; nbShift(id,tr.kind==='refugees'?8:12); trustShift(id,tr.kind==='refugees'?5:8); st.owe++; shiftMood('intel',1); dipLog(id,'Дали помощь '+n+' млрд.','g'); }
+  if(how==='loan'){ if(!pay0(15))return; nbShift(id,6); st.owe++; st.loan=(st.loan||0)+15; S.debt=r1(S.debt+0); dipLog(id,'Кредит соседу — 15 млрд.',''); }
+  if(how==='small'){ if(!pay0(3))return; nbShift(id,5); dipLog(id,'Гуманитарный груз.','g'); }
+  if(how==='refuse'){ nbShift(id,tr.kind==='refugees'?-8:-6); if(tr.kind==='refugees')REGIONS.forEach(r=>{ if(x.border.indexOf(r.id)>=0)S.unrest[r.id]=clamp(S.unrest[r.id]-1,0,100); }); dipLog(id,'Отказали в помощи.','b'); }
+  st.trouble=null;
+  logMsg('«'+x.name+'»: '+{accept:'приняты беженцы',aid:'отправлена помощь',loan:'выдан кредит',small:'отправлен гуманитарный груз',refuse:'в помощи отказано'}[how]+'.',1);
+}
+/* кредит возвращается — или нет */
+function loanTick(){
+  NEIGHBOURS.forEach(x=>{ const st=nbOf(x.id); if(!(st.loan>0))return;
+    const back=Math.min(st.loan,3.5);
+    if(Math.random()<0.78-(NT(st.ld.trait).id==='schem'?0.25:0)){ st.loan=r1(st.loan-back); S.treasury=r1(S.treasury+back*1.04); if(st.loan<=0){ st.loan=0; dipLog(x.id,'Кредит возвращён.','g'); } }
+    else if(Math.random()<0.25){ logMsg('«'+x.name+'» объявила дефолт по кредиту: '+Math.round(st.loan)+' млрд не вернутся.',1); dipLog(x.id,'Дефолт по кредиту.','b'); st.loan=0; trustShift(x.id,-2); }
+  });
+}
+
+/* ─── двусторонний саммит ───────────────────────────────────────── */
+function nbSummitShow(id){
+  const x=NB_(id), L=nbOf(id).ld;
+  S.dipEvQ=S.q; nbOf(id).sumQ=S.q;
+  sheetOpen({eye:'Дипломатия · '+x.name,title:L.name+' зовёт на встречу',
+    body:`<p class="lead">${L.name} (${NT(L.trait).name.toLowerCase()}) приглашает вас на двустороннюю встречу в верхах. Повестку выбираете вы.</p>`,
+    opts:[{label:'Торговля и контракты',hint:'ход и 6 веса · отношения +8, инвестиции',fn(){ if(!pay({ap:1,cap:6},'Саммит'))return; nbSummitApply(id,'trade'); render(); }},
+      {label:'Безопасность границы',hint:'ход и 6 веса · граница спокойнее, доверие +8',fn(){ if(!pay({ap:1,cap:6},'Саммит'))return; nbSummitApply(id,'safe'); render(); }},
+      {label:'Личная встреча',hint:'ход и 4 веса · отношения +9, доверие +6',fn(){ if(!pay({ap:1,cap:4},'Саммит'))return; nbSummitApply(id,'talk'); render(); }},
+      {label:'Отказаться',hint:'отношения −3',fn(){ nbShift(id,-3); render(); }}]});
+}
+function nbSummitApply(id,how){
+  const x=NB_(id), st=nbOf(id); st.sumQ=S.q;
+  if(how==='trade'){ nbShift(id,8); trustShift(id,4); S.econ.invest=r1(S.econ.invest+2); shiftMood('biz',1.5); }
+  if(how==='safe'){ nbShift(id,5); trustShift(id,8); x.border.forEach(r=>S.unrest[r]=clamp(S.unrest[r]-3,0,100)); }
+  if(how==='talk'){ nbShift(id,9); trustShift(id,6); }
+  bumpRep('comp',1);
+  logMsg('Встреча в верхах с «'+x.name+'» ('+{trade:'торговля',safe:'безопасность',talk:'личная встреча'}[how]+'): отношения теплеют.',1);
+  dipLog(id,'Встреча в верхах: '+{trade:'торговля',safe:'безопасность',talk:'личная встреча'}[how]+'.','g');
+  // на встрече можно договориться сразу: лучший доступный договор уходит в Сенат
+  const o=treatyOffers(id).filter(z=>z.k!=='friend'&&z.k!=='trade')[0];
+  if(o&&Math.random()<0.4&&!S.rat.some(r=>r.id===id)){ ratQueue(id,o.k,o.v,S.gov.lead); dipLog(id,'На встрече согласован «'+trName(o.k,o.v).toLowerCase()+'».','g'); }
+}
+
+/* ─── региональный саммит ───────────────────────────────────────────
+   Раз в 6–8 кварталов все четыре соседа в одном зале. Вы выбираете
+   позицию и подарок; итог — декларация, которая действует два года,
+   или раскол, после которого соседи расходятся недовольными. */
+function summitDue(){ return S.sumDue!=null&&S.q>=S.sumDue&&S.q<S.sumDue+3; }
+function summitTick(){
+  if(S.sumDue==null){ S.sumDue=S.q+6; return; }
+  if(S.decl&&S.decl.until<=S.q)S.decl=null;
+  if(S.decl&&S.decl.id==='bloc'){ const p=S.decl.partner; if(p&&nbOf(p)){ nbShift(p,0.5,null,{noRipple:true}); NEIGHBOURS.forEach(z=>{ if(nbRiv(p,z.id)>0.5)nbShift(z.id,-0.5,null,{noRipple:true}); }); } }
+  if(S.q<S.sumDue)return;
+  if(fpCan()){ if(S.q===S.sumDue)askRSummit(); else if(S.q>=S.sumDue+3){ S.sumDue=S.q+6; NEIGHBOURS.forEach(x=>nbShift(x.id,-1,null,{noRipple:true})); logMsg('Региональный саммит прошёл без вас: соседи отметили ваше отсутствие.',1); } }
+  else { rSummitApply(aiSummitPos(),'none'); S.sumDue=S.q+7; }
+}
+function aiSummitPos(){
+  const lead=P(S.gov.lead); if(!lead)return 'quiet';
+  return (lead.st.world||0)>0.5?'trade':(lead.st.order||0)>0.5?'safe':'quiet';
+}
+const RS_POS=[
+  {id:'trade',name:'Торговый пакет',txt:'безбарьерный рынок: торговцы и прагматики за, ястребы равнодушны'},
+  {id:'safe', name:'Безопасность границ',txt:'совместное патрулирование и договорённость о кризисах: ястребы и миротворцы за'},
+  {id:'quiet',name:'Только протокол',txt:'без обязательств: никого не обидите и никого не вдохновите'},
+];
+function rsScore(pos,gift){
+  const out={};
+  NEIGHBOURS.forEach(x=>{ const st=nbOf(x.id), t=NT(st.ld.trait);
+    let v=(st.rel-45)*0.5+(st.trust-50)*0.2;
+    if(pos==='trade')v+=t.trade*8-6;
+    if(pos==='safe')v+=({hawk:8,schem:2,ideo:3,prag:3,merch:0,peace:7})[t.id];
+    if(pos==='quiet')v+=2;
+    if(pos.indexOf('side:')===0){ const s=pos.slice(5), rv=nbRiv(s,x.id);
+      v+=x.id===s?18:rv>0?-rv*14:rv<0?-rv*6:-2; }
+    if(gift==='credit')v+=7; if(gift==='visa')v+=4;
+    if(S.summitPrep&&S.summitPrep>=S.q-3)v+=5;
+    if(ambOf(x.id))v+=2;
+    out[x.id]=v; });
+  return out;
+}
+function askRSummit(){
+  const pos=RS_POS.concat(NEIGHBOURS.filter(x=>nbOf(x.id).rel>=45).map(x=>({id:'side:'+x.id,name:'Ставка на «'+x.short+'»',
+    txt:'партнёр получит больше всех, его соперники обидятся, союзники довольны'})));
+  S.dipEvQ=S.q;
+  sheetOpen({eye:'Региональный саммит · '+dateLabel(),title:'Все четыре соседа в одном зале',
+    body:`<p class="lead">Раз в несколько лет соседи собираются вместе. Вы выбираете позицию, а потом — подарок за столом. Если довольны трое, подпишут декларацию на два года; если нет — разъедутся недовольными.</p>
+      <div class="res">${NEIGHBOURS.map(x=>`<span>${x.short} · ${nbOf(x.id).ld.name}</span><b class="w">${NT(nbOf(x.id).ld.trait).name} · отношения ${Math.round(nbOf(x.id).rel)}</b>`).join('')}</div>`,
+    opts:pos.map(p=>({label:p.name,hint:p.txt,fn:()=>askRGift(p.id)})).concat([{label:'Не ехать',hint:'отношения −1 со всеми',fn(){ NEIGHBOURS.forEach(x=>nbShift(x.id,-1,null,{noRipple:true})); S.sumDue=S.q+6; }}])});
+}
+function askRGift(pos){
+  const sc=rsScore(pos,'none'), n=Object.values(sc).filter(v=>v>=8).length;
+  sheetOpen({eye:'Региональный саммит',title:'Подарок за столом',
+    body:`<p class="lead">Позиция выбрана. Остался жест: подарок решает, чья чаша перевесит.</p>
+      <div class="res"><span>Довольны сейчас</span><b class="${n>=3?'good':n<=1?'bad':''}">${n} из ${NEIGHBOURS.length}</b></div>`,
+    opts:[{label:'Кредит всем нуждающимся',hint:'ход, 6 веса и 8 млрд · довольных больше',fn(){ if(S.treasury<8){ toast('В казне нет 8 млрд'); return; }
+        if(!pay({ap:1,cap:6},'Саммит'))return; S.treasury=r1(S.treasury-8); rSummitApply(pos,'credit'); render(); }},
+      {label:'Односторонний безвиз для их граждан',hint:'ход и 6 веса · довольных больше, патриоты −1',fn(){ if(!pay({ap:1,cap:6},'Саммит'))return; shiftMood('patr',-1); rSummitApply(pos,'visa'); render(); }},
+      {label:'Без подарка',hint:'ход и 6 веса',fn(){ if(!pay({ap:1,cap:6},'Саммит'))return; rSummitApply(pos,'none'); render(); }}]});
+}
+function rSummitApply(pos,gift){
+  const sc=rsScore(pos,gift), good=NEIGHBOURS.filter(x=>sc[x.id]>=8).length;
+  NEIGHBOURS.forEach(x=>{ nbShift(x.id,clamp(sc[x.id]*0.35,-8,8),null,{noRipple:true}); trustShift(x.id,sc[x.id]>=8?3:-2); nbOf(x.id).sumQ=S.q; });
+  S.sumDue=S.q+(S.q<12?7:6); S.summitPrep=0;
+  const kind=good>=3?'decl':good===2?'part':'rift';
+  if(kind==='decl'){
+    const id=pos==='trade'?'trade':pos==='safe'?'safe':pos.indexOf('side:')===0?'bloc':null;
+    if(id){ S.decl={id,until:S.q+8,partner:pos.indexOf('side:')===0?pos.slice(5):null}; cnt('decl'); }
+    logMsg('Региональный саммит: подписана декларация'+(id?' — «'+({trade:'свободная торговля',safe:'безопасность границ',bloc:'партнёрство'})[id]+'»':'')+'.',1);
+    chron('Региональный саммит завершился декларацией.','g'); bumpRep('comp',3); addCap(6);
+    dipLog(null,'Саммит: декларация, довольны '+good+' из 4.','g');
+  } else if(kind==='part'){ logMsg('Региональный саммит: итоги скромные, довольны двое.',1); dipLog(null,'Саммит: итоги скромные.',''); }
+  else { logMsg('Региональный саммит закончился расколом: довольны не больше одного.',1); chron('Региональный саммит закончился ничем.','b'); bumpRep('firm',-1); dipLog(null,'Саммит: раскол.','b'); }
+  if(fpCan())toast(kind==='decl'?'Саммит: декларация':kind==='part'?'Саммит: скромные итоги':'Саммит: раскол');
+}
+
+/* ─── упредить план соседа ────────────────────────────────────────── */
+function askForestall(id){
+  const st=nbOf(id), a=ambOf(id);
+  if(!a||!st.plan||st.plan.act==='quiet'){ toast('Упреждать нечего'); return; }
+  const ch=clamp(0.45+a.skill/250,0.3,0.8);
+  sheetOpen({eye:'Дипломатия · '+NB_(id).name,title:'Упредить: '+planWord(st.plan).toLowerCase(),
+    body:`<p class="lead">Посол ${a.name} узнал, что «${NB_(id).name}» ${planWord(st.plan).toLowerCase()}. Можно поговорить заранее.</p>`,
+    opts:[{label:'Поговорить через посла',hint:'ход и 5 веса · шанс '+Math.round(ch*100)+'%',fn(){
+        if(!pay({ap:1,cap:5},'Упреждающий разговор'))return;
+        if(Math.random()<ch){ st.plan={act:'quiet',q:S.q}; trustShift(id,3); nbShift(id,2); logMsg('Посол снял напряжение: «'+NB_(id).name+'» отказалась от задуманного.',1); dipLog(id,'Упредили план: сосед передумал.','g'); }
+        else { nbShift(id,-1); logMsg('Разговор не помог.'); }
+        render(); }},{label:'Не вмешиваться',hint:''}]});
+}
+
+/* ─── чужой кабинет и свои действия ИИ ─────────────────────────────── */
+function dipAiTick(){
+  if(fpCan())return;
+  const lead=P(S.gov.lead); if(!lead)return;
+  // посол в самую холодную столицу
+  const cold=NEIGHBOURS.filter(x=>!ambOf(x.id)).sort((a,b)=>nbOf(a.id).rel-nbOf(b.id).rel)[0];
+  if(cold&&Math.random()<0.1){ const c=ambAuto(cold.id); dipLog(cold.id,'Кабинет '+lead.leader+' назначил посла: '+c.name+'.'); }
+  // сам предлагает договор
+  if(Math.random()<0.1&&!(S.rat||[]).length){
+    const world=(lead.st.world||0);
+    const cand=NEIGHBOURS.map(x=>({x,o:treatyOffers(x.id).filter(z=>z.k!=='friend'&&z.k!=='trade'&&(z.k!=='defense'||(lead.st.order||0)>0.3))[0]})).filter(z=>z.o&&world>-0.3)[0];
+    if(cand){ ratQueue(cand.x.id,cand.o.k,cand.o.v,S.gov.lead); logMsg('Кабинет '+lead.leader+' внёс в Сенат «'+trName(cand.o.k,cand.o.v).toLowerCase()+'» с «'+cand.x.name+'».'); }
+  }
+}
+
+/* ─── квартал дипломатии ──────────────────────────────────────────── */
+function dipTick(){
+  if(!S.nb||!S.you)return;
+  nbFillAll();
+  NEIGHBOURS.forEach(x=>{ const st=nbOf(x.id);
+    let tr=st.trust+(55-st.trust)*0.04;
+    if(ourSanc(x.id))tr-=1.5; if(sancOn(x.id))tr-=0.5;
+    tr+=Object.keys(st.tr).length*0.3;
+    st.trust=clamp(tr,0,100);
+    st.rel=clamp(st.rel+Object.keys(st.tr).length*0.35+(st.tr.defense?0.4:0),0,100);
+    if(st.owe>0&&S.q%6===0)st.owe--;
+    if(st.trouble&&st.trouble.until<S.q)st.trouble=null;
+    if(st.pushy>0&&S.q%8===0)st.pushy--;
+  });
+  trTick(); ambTick(); ratTick(); loanTick(); summitTick(); nbActTick(); dipAiTick();
+}
+
+/* ════════════════════════════════════════════════════════════════
+   ДИПЛОМАТИЯ · вкладка, досье соседа, круг отношений
+   ════════════════════════════════════════════════════════════════ */
+const DIP_POS={ostmark:[78,76],zarech:[342,70],gorye:[104,228],meridia:[336,226]};
+
+/* круг отношений: Новария в центре, соседи по углам, соперничество между ними */
+function dipCircle(){
+  const cx=210,cy=150;
+  const rels=[];
+  NEIGHBOURS.forEach((a,i)=>NEIGHBOURS.slice(i+1).forEach(b=>{ const rv=nbRiv(a.id,b.id); if(!rv)return;
+    const [x1,y1]=DIP_POS[a.id],[x2,y2]=DIP_POS[b.id];
+    rels.push(`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${rv>0?'var(--bad)':'var(--good)'}" stroke-width="${1+Math.abs(rv)*3}"
+      stroke-dasharray="${rv>0?'5 4':'1 4'}" opacity="${0.25+Math.abs(rv)*0.4}"><title>${a.short} — ${b.short}: ${rv>0?'соперники':'покровитель и подопечный'}</title></line>`); }));
+  const edges=NEIGHBOURS.map(x=>{ const st=nbOf(x.id), [px,py]=DIP_POS[x.id];
+    const col=st.rel<38?'var(--bad)':st.rel>=54?'var(--good)':'var(--ink-3)';
+    const w=2+x.trade*2+(st.trade?2:0)+Object.keys(st.tr).length;
+    return `<line x1="${cx}" y1="${cy}" x2="${px}" y2="${py}" stroke="${col}" stroke-width="${w}" opacity=".75" stroke-linecap="round"
+      ${sancOn(x.id)||ourSanc(x.id)?'stroke-dasharray="3 5"':''}/>`; }).join('');
+  const nodes=NEIGHBOURS.map(x=>{ const st=nbOf(x.id), [px,py]=DIP_POS[x.id], bad=st.rel<38, c=crisisWith(x.id);
+    const marks=[st.treaty?'Д':'',st.trade?'Т':'',...Object.keys(st.tr).map(k=>({defense:'С',border:'Г',energy:'Э',visa:'В'})[k])].filter(Boolean).join('');
+    return `<g class="dipn" onclick="askNeighbour('${x.id}')" tabindex="0" role="button" aria-label="${x.name}">
+      <circle cx="${px}" cy="${py}" r="30" fill="var(--surface)" stroke="${bad?'var(--bad)':'var(--ink)'}" stroke-width="${c?4:1.6}"/>
+      <text x="${px}" y="${py-2}" text-anchor="middle" class="dipn-s">${x.short}</text>
+      <text x="${px}" y="${py+14}" text-anchor="middle" class="dipn-v ${bad?'bad':st.rel>=54?'good':''}">${Math.round(st.rel)}</text>
+      <text x="${px}" y="${py+46}" text-anchor="middle" class="dipn-m">${marks||'—'}${ambOf(x.id)?' ·П':''}</text></g>`; }).join('');
+  return `<svg class="dipc" viewBox="0 0 420 300" role="img" aria-label="Отношения Новарии с соседями">
+    ${rels.join('')}${edges}
+    <circle cx="${cx}" cy="${cy}" r="34" fill="var(--band)" stroke="var(--gold)" stroke-width="2.5"/>
+    <text x="${cx}" y="${cy+5}" text-anchor="middle" class="dipn-c">НОВ</text>${nodes}</svg>`;
+}
+
+/* повестка: что требует решения или стоит внимания */
+function dipAgenda(){
+  const rows=[];
+  (S.rat||[]).forEach((it,i)=>{ const f=ratVotes(it);
+    rows.push({k:'Сенат',t:'«'+trName(it.k,it.v)+'» с «'+NB_(it.id).short+'» ждёт ратификации до '+shortDate(it.due)+': прогноз '+f.yes+' из '+f.need,b:`<button class="btn sm" onclick="askRat(${i})" ${S.ap?'':'disabled'}>Давить</button>`,c:f.yes>=f.need?'good':'bad'}); });
+  if(summitDue())rows.push({k:'Саммит',t:'Региональный саммит: соседи ждут вашей позиции',b:fpCan()?'<button class="btn sm pri" onclick="askRSummit()">Ехать</button>':'',c:''});
+  else if(S.sumDue!=null)rows.push({k:'Саммит',t:'Следующий региональный саммит — '+dateLabel(S.sumDue),b:'',c:''});
+  NEIGHBOURS.forEach(x=>{ const st=nbOf(x.id);
+    if(intelOf(x.id)&&st.plan&&st.plan.act!=='quiet')rows.push({k:x.short,t:'«'+x.name+'» '+planWord(st.plan).toLowerCase(),b:fpCan()&&st.plan.act!=='propose'&&st.plan.act!=='summit'?`<button class="btn sm" onclick="askForestall('${x.id}')">Упредить</button>`:'',c:st.plan.act==='demand'||st.plan.act==='provoke'?'bad':''});
+    Object.keys(st.tr).forEach(k=>{ const r=st.tr[k]; if(r.until&&r.until-S.q<=2)rows.push({k:x.short,t:TRT(k).name+' истекает '+shortDate(r.until),b:fpCan()?`<button class="btn sm" onclick="askRenew('${x.id}','${k}')">Продлить</button>`:'',c:''}); });
+    if(st.loan>0)rows.push({k:x.short,t:'Кредит соседу: ещё '+Math.round(st.loan)+' млрд',b:'',c:''});
+  });
+  if(S.decl&&S.decl.until>S.q)rows.push({k:'Декларация',t:'«'+({trade:'Свободная торговля',safe:'Безопасность границ',bloc:'Партнёрство'})[S.decl.id]+'» действует до '+shortDate(S.decl.until),b:'',c:'good'});
+  return panel({cls:rows.some(r=>r.c==='bad')?'warn':'',title:'Повестка',meta:rows.length?rows.length+' пунктов':'тихо',body:rows.length
+    ?rows.map(r=>`<div class="crow"><s>${r.k}</s><span class="${r.c}">${r.t}</span>${r.b}</div>`).join('')
+    :'<div class="empty">Срочного нет. Планы соседей видны только через посла — назначьте его, и повестка оживёт.</div>'});
+}
+
+function nbCard(x){
+  const st=nbOf(x.id), L=st.ld, t=NT(L.trait), a=ambOf(x.id), c=crisisWith(x.id);
+  const chips=[st.treaty?'<span class="tag g">дружба</span>':'',st.trade?'<span class="tag b">торговля</span>':'',
+    ...Object.keys(st.tr).map(k=>`<span class="tag ${k==='defense'?'y':'b'}">${TRT(k).name.split(' ')[0].toLowerCase()}</span>`),
+    sancOn(x.id)?'<span class="tag r">их санкции</span>':'',ourSanc(x.id)?'<span class="tag y">наши санкции</span>':'',c?'<span class="tag r">граница</span>':'',
+    st.owe>0?'<span class="tag g">должен вам</span>':''].filter(Boolean).join(' ');
+  return `<div class="nbc ${st.rel<38?'bad':st.rel>=54?'good':''}">
+    <header><b>${x.name}</b><span>${nbWord(st.rel)}</span></header>
+    <p class="nbc-l">${L.name} · <i>${t.name.toLowerCase()}</i></p>
+    <div class="nbc-m"><span>отношения</span><div class="meter"><i style="width:${st.rel}%;background:${st.rel<38?'var(--bad)':st.rel>=54?'var(--good)':'var(--ink-3)'}"></i></div><b class="num-s">${Math.round(st.rel)}</b></div>
+    <div class="nbc-m"><span>доверие</span><div class="meter"><i style="width:${st.trust}%;background:var(--gold)"></i></div><b class="num-s">${Math.round(st.trust)}</b></div>
+    <div class="nbc-c">${chips||'<span class="dim">связей нет</span>'}</div>
+    <p class="hint nbc-a">${a?'Посол: '+a.name+' · '+AT(a.trait).name.toLowerCase()+(st.plan&&st.plan.act!=='quiet'?'. Планы: '+planWord(st.plan).toLowerCase():''):'Посла нет — планы закрыты'}</p>
+    <footer><button class="btn sm pri" onclick="askNeighbour('${x.id}')">Досье</button>
+      <button class="btn sm" onclick="nbVisit('${x.id}')" ${S.ap&&fpCan()?'':'disabled'}>Визит<span class="cost">${VISIT_COST}</span></button></footer></div>`;
+}
+
+function tabWorld(){
+  nbFillAll();
+  const hot=REGIONS.filter(r=>nbPressure(r.id)>0.3).sort((a,b)=>nbPressure(b.id)-nbPressure(a.id));
+  const nTreat=NEIGHBOURS.reduce((a,x)=>a+(nbOf(x.id).treaty?1:0)+(nbOf(x.id).trade?1:0)+Object.keys(nbOf(x.id).tr).length,0);
+  const nAmb=Object.keys(S.amb||{}).length, avgTrust=Math.round(NEIGHBOURS.reduce((a,x)=>a+nbOf(x.id).trust,0)/NEIGHBOURS.length);
+  const cut=NEIGHBOURS.filter(x=>trHas(x.id,'energy')&&nbOf(x.id).cut&&nbOf(x.id).cut.until>S.q);
+  const crisis=S.bcrisis?panel({cls:'warn',title:S.bcrisis.stage===2?'Кризис на границе':'Пограничный инцидент',meta:NB_(S.bcrisis.nb).name,
+    body:`<p class="lead">У ${R(S.bcrisis.rid).cap}: ${S.bcrisis.stage===2?'стороны стянули силы':'задержаны пограничники'}. Осталось ${quarters(S.bcrisis.left)}, если ничего не делать.</p>`,
+    foot:fpCan()?`<button class="btn pri" onclick="askCrisis()">Решать</button><span class="hint">дипломатия, сила, посредник или уступка</span>`:''}):'';
+  return panel({cls:'lead-p',title:'Внешняя политика',meta:'четыре государства по периметру',body:
+    `<div class="cols c21"><div>${dipCircle()}
+        <div class="legend"><span class="chip">линия к соседу — отношения: <b class="good">тёплые</b> · серые · <b class="bad">холодные</b></span>
+          <span class="chip">штрих между соседями — вражда, точки — союз</span><span class="chip">Д дружба · Т торговля · С союз · Г граница · Э энергия · В безвиз · П посол</span></div></div>
+      <div>
+        <div class="stat ${nbTrade()<-6?'alert':''}"><i>торговый баланс отношений</i><div class="v">${sign(Math.round(nbTrade()))}</div><span>внешний спрос идёт за ним</span></div>
+        <div class="res" style="margin-bottom:0"><span>Внешний спрос</span><b>${Math.round(S.world.demand)}</b>
+          <span>Вклад дипломатии</span><b class="${fpDemand()<0?'bad':fpDemand()>0?'good':''}">${sign(fpDemand())}</b>
+          <span>Договоров и соглашений</span><b>${nTreat}</b><span>Послов</span><b>${nAmb} из ${NEIGHBOURS.length}</b>
+          <span>Доверие к вам в среднем</span><b class="${avgTrust<40?'bad':''}">${avgTrust}</b>
+          <span>На ратификации</span><b>${(S.rat||[]).length}</b>
+          <span>Ваш внешний курс</span><b>${sign(r1(me().st.world))}</b></div>
+      </div></div>`,
+    foot:`<button class="btn" onclick="askEmbassies()" ${fpCan()?'':'disabled'}>Посольства</button>
+      ${summitDue()&&fpCan()?'<button class="btn pri" onclick="askRSummit()">Региональный саммит</button>':''}
+      <span class="hint">${fpCan()?'Договоры подписывает кабинет или президент.':'Вы вне власти: давите на ратификацию, ездите в составе парламентских делегаций, критикуйте.'}</span>`})
+  +(cut.length?panel({cls:'warn',title:'Поставки урезаны',body:`<p class="lead">«${cut.map(x=>x.name).join('», «')}» режет поставки по энергетическому контракту.</p>`,
+      foot:fpCan()?`<button class="btn" onclick="askCut('${cut[0].id}')">Решать</button>`:''}):'')
+  +crisis+dipAgenda()
+  +`<div class="nbgrid">${NEIGHBOURS.map(nbCard).join('')}</div>`
+  +(hot.length?panel({cls:'warn',title:'Граница',meta:'края под внешним давлением',flush:true,
+    body:`<table class="tight"><tbody>${hot.map(r=>
+      `<tr><td><b>${r.name}</b><div class="sub2">${r.cap}</div></td>
+        <td class="n">${Math.round(S.unrest[r.id])}</td><td class="n bad">+${r1(nbPressure(r.id))}</td>
+        <td class="r"><button class="btn sm" onclick="openRegion('${r.id}')">Карточка</button></td></tr>`).join('')}</tbody></table>`}):'')
+  +panel({title:'Дипломатическая хроника',meta:(S.dipLog||[]).length+' записей',body:(S.dipLog||[]).slice(0,10).map(l=>{
+      const x=l.id?NB_(l.id):null;
+      return `<div class="crow"><s>${shortDate(l.q)}</s><span class="${l.k==='b'?'bad':l.k==='g'?'good':''}">${x?'<b>'+x.short+'</b> ':''}${l.t}</span></div>`; }).join('')
+    ||'<div class="empty">Дипломатия только начинается.</div>'});
+}
+
+/* досье соседа */
+function askNeighbour(id){
+  const x=NB_(id), st=nbFill(id), L=st.ld, t=NT(L.trait), a=ambOf(id), can=fpCan(), c=crisisWith(id);
+  const opts=[{label:'Визит с повесткой',hint:VISIT_COST+' млрд · выбрать повестку',fn:()=>nbVisit(id)},
+    {label:'Договоры и соглашения',hint:'дружба, торговля, союз, граница, энергия, безвиз'+(S.rat.some(r=>r.id===id)?' · один в Сенате':''),fn:()=>askTreaties(id)},
+    {label:a?'Сменить посла':'Назначить посла',hint:a?a.name+' · '+AT(a.trait).name.toLowerCase():'видит планы соседа заранее',fn:()=>askAmbassador(id)}];
+  if(c&&can)opts.push({label:'Кризис на границе',hint:'решить',fn:()=>askCrisis()});
+  if(a&&st.plan&&st.plan.act!=='quiet'&&can)opts.push({label:'Упредить план',hint:planWord(st.plan),fn:()=>askForestall(id)});
+  opts.push({label:ourSanc(id)?'Снять наши санкции':'Ввести санкции',hint:can?'':'только кабинет или президент',fn:()=>askSanction(id)});
+  opts.push({label:'Закрыть',hint:'',fn(){}});
+  sheetOpen({eye:'Дипломатия · '+x.name,title:L.name,
+    body:`<p class="lead">${x.note} ${t.name}: ${t.txt}</p>
+      <div class="res"><span>Отношения</span><b class="${st.rel<38?'bad':st.rel>=54?'good':''}">${Math.round(st.rel)} · ${nbWord(st.rel)}</b>
+        <span>Доверие к вам</span><b class="${st.trust<38?'bad':''}">${Math.round(st.trust)} · ${trustWord(st.trust)}</b>
+        <span>Вес · торговля</span><b>${x.power} · ${x.trade}${st.trade?' · соглашение':''}</b>
+        <span>Договоры</span><b class="w">${[st.treaty?'дружба':'',...Object.keys(st.tr).map(k=>TRT(k).name.toLowerCase())].filter(Boolean).join(', ')||'нет'}</b>
+        ${st.owe>0?`<span>Должен вам</span><b class="good">${st.owe}× — ультиматумов не будет, договоры дешевле</b>`:''}
+        ${st.loan>0?`<span>Кредит</span><b>${Math.round(st.loan)} млрд</b>`:''}
+        ${st.pushy?`<span>Вы уступали ему</span><b class="bad">${st.pushy}</b>`:''}
+        ${sancOn(id)?`<span>Их санкции</span><b class="bad">до ${dateLabel(st.sanc.until)}</b>`:''}${ourSanc(id)?`<span>Наши санкции</span><b class="warn">до ${dateLabel(st.our)}</b>`:''}
+        <span>Посол</span><b class="w">${a?a.name+' · '+AT(a.trait).name.toLowerCase():'нет'}</b>
+        <span>Планы</span><b class="w">${intelOf(id)?planWord(st.plan):'закрыты — нет посла'}</b>
+        <span>Граничит с</span><b class="w">${x.border.map(r=>R(r).cap).join(', ')}</b></div>
+      <p class="hint">Вражда греет приграничные края: сейчас они получают ${x.border.map(r=>'+'+r1(nbPressure(r))).join(', ')} к напряжённости.
+        ${NEIGHBOURS.filter(z=>z.id!==id&&nbRiv(id,z.id)).map(z=>z.short+(nbRiv(id,z.id)>0?' — враг':' — друг')).join(', ')?'Враги и друзья: '+NEIGHBOURS.filter(z=>z.id!==id&&nbRiv(id,z.id)).map(z=>'«'+z.short+'» '+(nbRiv(id,z.id)>0?'(враг)':'(друг)')).join(', ')+'.':''}</p>`,
+    opts});
+}
+function askTreaties(id){
+  const x=NB_(id), st=nbOf(id), can=fpCan();
+  const rows=[];
+  rows.push({label:'Договор о дружбе'+(st.treaty?' · действует':''),hint:st.treaty?'отношения тянутся выше':TREATY_COST+' веса · от отношений 48',fn:()=>nbTreaty(id)});
+  rows.push({label:'Торговое соглашение'+(st.trade?' · действует':''),hint:st.trade?'можно выйти':'Сенат голосует краями',fn:()=>askTrade(id)});
+  TREATIES.forEach(t=>{
+    if(trHas(id,t.id)){ rows.push({label:t.name+' · действует'+(st.tr[t.id].until?' до '+shortDate(st.tr[t.id].until):''),hint:'расторгнуть: доверие −12',fn:()=>askDenounce(id,t.id)}); return; }
+    if(t.variants){ t.variants.forEach(v=>{ const w=trWhy(id,t.id,v);
+      rows.push({label:t.name+' — '+v.name.toLowerCase(),hint:w===true?t.cost+' веса · '+v.txt:w,fn(){ if(w!==true){ toast(w); return askTreaties(id); } trSign(id,t.id,v.id); }}); }); return; }
+    const w=trWhy(id,t.id);
+    rows.push({label:t.name,hint:w===true?t.cost+' веса · '+t.gain:w,fn(){ if(w!==true){ toast(w); return askTreaties(id); } trSign(id,t.id); }});
+  });
+  sheetOpen({eye:'Дипломатия · '+x.name,title:'Договоры и соглашения',
+    body:`<p class="lead">Новые договоры идут в Сенат и возвращаются через квартал: за это время на сенаторов можно давить. ${can?'':'Подписывает кабинет — вы можете только давить на ратификацию.'}</p>`,
+    opts:rows.concat((S.rat||[]).map((it,i)=>it.id===id?{label:'В Сенате: '+trName(it.k,it.v),hint:'лоббировать, слушания или выступить против',fn:()=>askRat(i)}:null).filter(Boolean))
+      .concat([{label:'Назад к досье',hint:'',fn:()=>askNeighbour(id)}])});
+}
+function askEmbassies(){
+  sheetOpen({eye:'Дипломатия',title:'Посольства',
+    body:`<p class="lead">Посол видит планы соседа за квартал вперёд, греет отношения и гасит ультиматумы. Каждый стоит полмиллиарда в квартал.</p>`,
+    opts:NEIGHBOURS.map(x=>{ const a=ambOf(x.id); return {label:x.name+' · '+(a?a.name+' ('+AT(a.trait).name.toLowerCase()+')':'посла нет'),
+      hint:a?'планы: '+planWord(nbOf(x.id).plan).toLowerCase():'назначить',fn:()=>askAmbassador(x.id)}; }).concat([{label:'Закрыть',hint:''}])});
 }
 
 /* ════════════════════════════════════════════════════════════════
@@ -13033,6 +13889,8 @@ const ACHV=[
   {id:'clean',   grp:'Путь', name:'Чистые руки', txt:'Десять лет в политике, а след от сделок почти не виден.', ok:()=>S.q>=40&&trail()<10},
   {id:'fire',    grp:'Путь', name:'Пожар потушен', txt:'Скандал горел пожаром, а одобрение вернулось к половине.', ok:()=>cntOf('fire')>=1&&!scMine().some(x=>x.heat>=50)&&approval()>=50},
   {id:'acquit',  grp:'Путь', name:'Оправдательный приговор', txt:'Дело против вас дошло до суда — и развалилось.', ok:()=>cntOf('acquit')>=1},
+  {id:'pact',    grp:'Палаты', name:'Союзник', txt:'Сенат ратифицировал три договора с соседями.', ok:()=>cntOf('pact')>=3},
+  {id:'decl',    grp:'Путь', name:'Декларация', txt:'Региональный саммит закончился декларацией.', ok:()=>cntOf('decl')>=1},
   {id:'peace',   grp:'Путь', name:'Миротворец', txt:'Кризис на границе закончился переговорами.', ok:()=>cntOf('peace')>=1},
   {id:'union',   grp:'Путь', name:'Страна едина', txt:'Десять лет — и ни один край не стоит на грани.', ok:()=>S.q>=40&&REGIONS.every(r=>regSep(r.id)<25&&!regSov(r.id))},
   {id:'three',   grp:'Путь', name:'Три созыва', txt:'Вы дошли до конституционного предела.', ok:()=>S.term>=3},
@@ -14348,7 +15206,7 @@ const TABS=[
   {id:'society',name:'Общество',     n:()=>Math.round(approval())+'%'},
   {id:'press',  name:'Печать',       n:()=>sign(Math.round(pressTone())), dot:()=>pressTone()<-14},
   {id:'firms',  name:'Бизнес',       n:()=>captureLevel(), dot:()=>captureLevel()>CAP_HIGH},
-  {id:'world',  name:'Соседи',       n:()=>Math.round(nbTrade())},
+  {id:'world',  name:'Дипломатия',   n:()=>Math.round(nbTrade())},
   {id:'camp',   name:'Кампания',     n:()=>Math.round(S.funds), only:()=>!!S.camp},
   {id:'arch',   name:'Летопись',     grp:'Прочее', n:()=>S.chron.length},
   {id:'final',  name:'Последняя полоса',short:'Полоса', icon:'press', n:()=>'', only:()=>!!S.over},
@@ -14465,6 +15323,9 @@ function apSlots(){
 function nextSteps(){
   const out=[], add=(t,why,label,js,go)=>{ if(out.length<4)out.push({t,why,label,js,go}); };
   const m=S.motion, cr=S.crisis, imp=S.imp;
+  if(summitDue()&&fpCan())add('Региональный саммит','Все четыре соседа ждут вашей позиции. Довольны трое — подпишут декларацию на два года; нет — разъедутся недовольными.','Ехать','askRSummit()');
+  if((S.rat||[]).length)add('Договор в Сенате','«'+trName(S.rat[0].k,S.rat[0].v)+'» ждёт ратификации: на сенаторов можно давить, пока не закончился квартал.','Давить','askRat(0)');
+  if(fpCan()&&Object.keys(S.amb||{}).length<2&&S.q>=2)add('Назначьте посла','Посол видит планы соседа заранее: ультиматум можно упредить, договор — подготовить.','Посольства','askEmbassies()');
   if(S.bcrisis&&fpCan())add(S.bcrisis.stage===2?'Кризис на границе':'Инцидент на границе','«'+NB_(S.bcrisis.nb).name+'» у '+R(S.bcrisis.rid).cap+'. Край горячеет, внешний спрос проседает.','Решать','askCrisis()');
   const snc=NEIGHBOURS.find(x=>sancOn(x.id));
   if(snc&&fpCan())add('Санкции «'+snc.short+'»','«'+snc.name+'» держит санкции до '+dateLabel(nbOf(snc.id).sanc.until)+'. Уступка, обход или визит поднимут отношения.','Соседи','',"world");
@@ -16161,56 +17022,7 @@ function tabParty(){
   +`</div></div>`;
 }
 
-/* ─── Соседи ─────────────────────────────────────────────────────
-   Четыре государства по периметру. Их отношение держит внешний спрос
-   и греет те края, с которыми они граничат. */
-function tabWorld(){
-  const rows=NEIGHBOURS.map(x=>{const st=nbOf(x.id);
-    return `<tr><td><b>${x.name}</b><div class="sub2">${x.note}</div></td>
-      <td class="n ${st.rel<38?'bad':st.rel>=54?'good':''}">${Math.round(st.rel)}</td>
-      <td class="hide-s dim">${nbWord(st.rel)}</td>
-      <td class="n">${[st.treaty?'<span class="tag g">договор</span>':'',st.trade?'<span class="tag b">торговля</span>':'',
-        sancOn(x.id)?'<span class="tag r">их санкции</span>':'',ourSanc(x.id)?'<span class="tag y">наши санкции</span>':'',
-        crisisWith(x.id)?'<span class="tag r">граница</span>':''].filter(Boolean).join(' ')||'<span class="dim">нет</span>'}</td>
-      <td class="n ${x.border.some(r=>nbPressure(r)>0.4)?'bad':''}">${
-        r1(x.border.reduce((a,r)=>a+nbPressure(r),0))}</td>
-      <td class="r"><button class="btn sm" onclick="askNeighbour('${x.id}')" ${S.ap?'':'disabled'}>Открыть</button></td></tr>`;}).join('');
-  const hot=REGIONS.filter(r=>nbPressure(r.id)>0.3)
-    .sort((a,b)=>nbPressure(b.id)-nbPressure(a.id));
-
-  return panel({cls:'lead-p',title:'Внешние дела',meta:'торговля и граница',body:
-    `<div class="cols c12"><div>
-      <div class="stat ${nbTrade()<-6?'alert':''}"><i>торговый баланс отношений</i>
-        <div class="v">${sign(Math.round(nbTrade()))}</div>
-        <span>внешний спрос идёт за ним</span></div>
-     </div><div>
-      <p class="lead">Внешний спрос и цены на сырьё больше не случайность: их держат отношения с четырьмя
-        государствами по периметру. Договор надо ратифицировать в Сенате, а вражда греет приграничные края.</p>
-      <div class="res" style="margin-bottom:0"><span>Внешний спрос</span><b>${Math.round(S.world.demand)}</b>
-        <span>Цены на сырьё</span><b>${Math.round(S.world.res)}</b>
-        <span>Договоров</span><b>${NEIGHBOURS.filter(x=>nbOf(x.id).treaty).length} из ${NEIGHBOURS.length}</b>
-        <span>Торговых соглашений</span><b>${NEIGHBOURS.filter(x=>nbOf(x.id).trade).length}</b>
-        <span>Вклад во внешний спрос</span><b class="${fpDemand()<0?'bad':fpDemand()>0?'good':''}">${sign(fpDemand())}</b>
-        <span>Ваш внешний курс</span><b>${sign(r1(me().st.world))}</b></div>
-     </div></div>`})
-  +panel({title:'Государства',flush:true,
-    body:`<div class="scrollx"><table><thead><tr><th>Сосед</th><th class="n">Отношения</th>
-      <th class="hide-s">Тон</th><th class="n">Связи</th><th class="n">Давление</th><th></th></tr></thead>
-      <tbody>${rows}</tbody>
-      <caption>Давление — сколько напряжённости сосед добавляет своим приграничным краям за квартал.
-        Оно растёт, когда отношения падают ниже 38.</caption></table></div>`})
-  +(S.bcrisis?panel({cls:'warn',title:S.bcrisis.stage===2?'Кризис на границе':'Пограничный инцидент',meta:NB_(S.bcrisis.nb).name,
-    body:`<p class="lead">У ${R(S.bcrisis.rid).cap}: ${S.bcrisis.stage===2?'стороны стянули силы':'задержаны пограничники'}. Осталось ${quarters(S.bcrisis.left)}, если ничего не делать.</p>`,
-    foot:fpCan()?`<button class="btn pri" onclick="askCrisis()">Решать</button><span class="hint">дипломатия, сила, посредник или уступка</span>`:''}):'')
-  +(hot.length?panel({cls:'warn',title:'Граница',meta:'края под внешним давлением',flush:true,
-    body:`<table class="tight"><tbody>${hot.map(r=>
-      `<tr><td><b>${r.name}</b><div class="sub2">${r.cap}</div></td>
-        <td class="n">${Math.round(S.unrest[r.id])}</td>
-        <td class="n bad">+${r1(nbPressure(r.id))}</td>
-        <td class="r"><button class="btn sm" onclick="openRegion('${r.id}')">Карточка</button></td></tr>`).join('')}
-      </tbody></table>`})
-    :panel({title:'Граница',body:'<div class="empty">Ни один сосед не давит на приграничные края.</div>'}));
-}
+/* вкладка «Дипломатия» — в dipui.js */
 
 /* ─── 8 · Регионы ────────────────────────────────────────────── */
 const MAPMODE=[['sup','Поддержка'],['unrest','Напряжённость'],['govs','Главы'],['seats','Мандаты'],['dev','Развитие'],['sep','Сепаратизм']];
@@ -16684,6 +17496,18 @@ function helpBody(){
       а при независимой прокуратуре или суде может обернуться новым скандалом. Если дело против вас, а в регламенте есть
       неприкосновенность, палата сначала решает, снимать ли её. Приговор вам — потеря кресла и мандата и запрет выдвигаться
       на восемь кварталов; апелляция — один раз. Громкие скандалы соперников тоже доходят до суда, и власть может их подтолкнуть.</p>
+    <h3 class="sub">Дипломатия: соседи, договоры, послы, саммиты</h3>
+    <p>У каждого соседа свой лидер с характером (ястреб, торговец, идеолог, интриган, прагматик, миротворец), отношения и доверие.
+      Отношения — настроение, доверие — вера вашему слову: оно растёт от исполненных договоров и падает от расторжений и торга впустую.
+      Соседи соперничают: дружба с одним охлаждает его врага и греет подопечных, круг на вкладке показывает это штрихами.
+      Новые договоры — оборонный союз, договор о границе (честный или с уступками), энергетический контракт, безвиз — подписывает
+      кабинет или президент, но Сенат ратифицирует через квартал, и за это время на него можно давить: лоббирование, слушания, выступление
+      против (доступно и оппозиции, сенаторам, депутатам). Договоры со сроком надо продлевать, энергетика зависит от отношений,
+      граница снимает давление на края навсегда. Посол видит планы соседа за квартал вперёд, греет отношения и гасит ультиматумы;
+      без посла планы закрыты. Каждый квартал сосед сам что-то делает: предлагает договор, выдвигает ультиматум (уступить, торговаться,
+      отказать или ответить силой — ястреб растёт на уступках и отступает перед силой), устраивает провокацию, просит помощи (помощь создаёт должника,
+      кредит — риск дефолта) или зовёт на встречу. Раз в 6–8 кварталов — региональный саммит всех четырёх: позиция, подарок и декларация
+      на два года или раскол. Если у власти не вы, всё решает чужой кабинет по курсу своей партии.</p>
     <h3 class="sub">Штабы соперников</h3>
     <p>У каждой партии ИИ свой штаб и ход-полтора в квартал: компромат на главного соперника (на вас — тем вероятнее,
       чем длиннее след; заказ может раскрыться), поездки по краям, где власть слаба, кампании в печати, агитация за права
@@ -16706,7 +17530,7 @@ function helpBody(){
       Президент чужой партии раздаёт кабинету поручения. Министр и вице-премьер видят ту же кухню изнутри: свой проект,
       интрига, спор на заседании, координация и контроль проектов.</p>
     <h3 class="sub">Наследие: достижения, биография, последняя полоса</h3>
-    <p>Двадцать одно достижение собрано по креслам: кабинет, президентство, край и город, палаты, путь. Они открываются сами,
+    <p>Двадцать три достижения собраны по креслам: кабинет, президентство, край и город, палаты, путь. Они открываются сами,
       а список с отметками — в «Моём политике» рядом с биографией, которая пишется из карьеры и летописи.
       Когда карьера заканчивается, выходит последняя полоса: заголовок, биография, цифры эпохи, что о вас писали,
       достижения. Зал славы на этом устройстве помнит все прожитые партии; он виден и в «Статистике» на титульном экране.</p>
