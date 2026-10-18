@@ -6,7 +6,7 @@ const fails=[];
 const scan=()=>page.evaluate(()=>{
   const vw=document.documentElement.clientWidth;
   const bad=[...document.querySelectorAll('#view *, #msheet *')].filter(e=>{ const b=e.getBoundingClientRect();
-    return b.width&&!e.closest('.scrollx,.seg')&&b.right>vw+1; });
+    return b.width&&!e.closest('.scrollx,.seg')&&(e.tagName==='svg'||!e.closest('svg'))&&b.right>vw+1; });
   const leaves=bad.filter(e=>![...e.children].some(c=>bad.includes(c)));
   return {wide:document.documentElement.scrollWidth>vw, bad:leaves.slice(0,2).map(e=>e.tagName.toLowerCase()+
     '.'+[...e.classList].join('.')+' «'+(e.textContent||'').trim().slice(0,24)+'»')};
@@ -33,6 +33,14 @@ for(const [role,pick] of [['pm',0],['gov',3],['mayor',0],['dep',2],['pres',0]]){
   }
   say(role,'проверено экранов: '+n);
 }
+/* титульный экран на телефоне: коллаж, меню и подвал укладываются в ширину */
+await page.evaluate(()=>{ showMenu(); });
+{ const r=await page.evaluate(()=>{ const vw=document.documentElement.clientWidth;
+    const bad=[...document.querySelectorAll('#menu *')].filter(e=>{ const b=e.getBoundingClientRect(); return b.width&&(e.tagName==='svg'||!e.closest('svg'))&&b.right>vw+1; });
+    return {wide:document.documentElement.scrollWidth>vw, bad:bad.slice(0,3).map(e=>e.tagName.toLowerCase()+'.'+[...e.classList].join('.'))}; });
+  say('титульный экран',r.wide||r.bad.length?'выпирает: '+r.bad.join(', '):'в ширину экрана');
+  if(r.wide||r.bad.length)fails.push('титул: '+r.bad.join(', ')); }
+await page.evaluate(()=>{ hideMenu(); });
 /* без кресла: погашенные кнопки несут подпись причины и не должны выпирать */
 await boot(page,{role:'dep',pick:2});
 await page.evaluate(()=>{ setSeat('none','проверка'); const m=document.getElementById('modal'); m.classList.remove('show'); mopen=false; mq.length=0; });

@@ -147,7 +147,8 @@ function tabFinal(){
     <h1 class="paper-h">${finalHead()}</h1>
     <p class="paper-dek">${S.ended||''}</p>
     <div class="paper-cols">
-      <section><h3>Биография</h3>${bio.slice(0,-1).map(x=>`<p>${x}</p>`).join('')}</section>
+      <section><h3>Биография</h3>${photo({pres:'palace',vp:'palace',pm:'chamber',vice:'chamber',dep:'chamber',lead:'chamber',sen:'chamber',min:'factory',gov:'city',mayor:'city'}[topSeat()]||'crowd',
+        'финал-'+S.q+'-'+S.you.name,(SEATS_YOU[topSeat()]||{name:''}).name,{cls:'bio'})}${bio.slice(0,-1).map(x=>`<p>${x}</p>`).join('')}</section>
       <section><h3>Цифры эпохи</h3>
         <div class="res" style="margin-top:0"><span>Очки</span><b>${s}</b>
           <span>Высшее кресло</span><b class="w">${(SEATS_YOU[topSeat()]||{name:topSeat()}).name}</b>

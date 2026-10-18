@@ -1007,7 +1007,7 @@ function factionPanel(house){
     const n=dealsLive().filter(d=>d.pid===p.id&&d.house===house).length;
     const me_=p.id===PL;
     return `<tr class="${me_?'mine':''}"><td>${emblem(p,20)}</td>
-      <td><b>${L.name}</b><div class="sub2">«${p.short}» · ${me_?(chief()&&house==='h'?'это вы':'ваша фракция'):FT(L.trait).name.toLowerCase()}${inCoal(p.id)?' · в коалиции':''}</div></td>
+      <td><div class="who2">${face(L.name,30)}<div><b>${L.name}</b><div class="sub2">«${p.short}» · ${me_?(chief()&&house==='h'?'это вы':'ваша фракция'):FT(L.trait).name.toLowerCase()}${inCoal(p.id)?' · в коалиции':''}</div></div></div></td>
       <td class="n">${flSeats(p.id,house)}</td>
       <td class="n ${me_?'':L.rel>=60?'good':L.rel<35?'bad':''}">${me_?'—':Math.round(L.rel)}</td>
       <td class="n hide-s ${L.trust<40?'bad':''}">${me_?'—':Math.round(L.trust)}</td>
@@ -1299,9 +1299,8 @@ function tabSelf(){
 
   return panel({cls:'lead-p',title:'Личное дело',meta:role,body:
     `<div class="cols c12"><div>
-      <div class="stat"><i>${or0?or0.name:'политик'}</i><div class="v">${y.name}</div>
-        <span>«${p.name}» · ${Math.round(y.age)} ${plural(Math.round(y.age),'год','года','лет').split(' ')[1]}</span></div>
-      <p class="hint" style="margin-top:8px">${or0?or0.desc:''}</p>
+      ${pcard(y.name,or0?or0.name:'политик','«'+p.name+'» · '+Math.round(y.age)+' '+plural(Math.round(y.age),'год','года','лет').split(' ')[1],{age:Math.round(y.age),big:1})}
+      <p class="hint" style="margin-top:10px">${or0?or0.desc:''}</p>
      </div><div>
       <h3 class="sub" style="margin-top:0">Молва</h3>
       ${REPS.map(r=>repBar(r.id)).join('')}
@@ -1351,6 +1350,19 @@ function tabSelf(){
    Деньги не сидят в палате, но платят тем, кто сидит. Раздел
    показывает не только, кто сколько дал, но и сколько власти
    при этом ушло — захват и есть цена всех этих щедростей. */
+/* структура хозяйства: кольцо по весу групп капитала */
+function econPie(){
+  const cols=['#4B3A24','#8A6F3F','#B8985E','#6C7E58','#97493A','#4D6277','#A99C7E','#765A6E'];
+  const rows=FIRMS.filter(d=>firmOf(d.id)).map(d=>({d,w:Math.max(.1,firmWeight(firmOf(d.id)))}));
+  const tot=rows.reduce((a,x)=>a+x.w,0)||1; let a0=-Math.PI/2;
+  const pt=(a,rr)=>[(80+Math.cos(a)*rr).toFixed(1),(80+Math.sin(a)*rr).toFixed(1)];
+  const arcs=rows.map((x,i)=>{ const f=x.w/tot, a1=a0+f*2*Math.PI, R=72, r=42, big=f>.5?1:0;
+    const [x0,y0]=pt(a0,R),[x1,y1]=pt(a1-.014,R),[x2,y2]=pt(a1-.014,r),[x3,y3]=pt(a0,r); a0=a1;
+    return `<path d="M${x0} ${y0}A${R} ${R} 0 ${big} 1 ${x1} ${y1}L${x2} ${y2}A${r} ${r} 0 ${big} 0 ${x3} ${y3}z" fill="${cols[i%cols.length]}"><title>${x.d.name}</title></path>`; }).join('');
+  return `<div class="pie"><svg viewBox="0 0 160 160" role="img" aria-label="Структура хозяйства">${arcs}
+      <text x="80" y="78" text-anchor="middle" class="pie-k">вес</text><text x="80" y="94" text-anchor="middle" class="pie-v">${rows.length} групп</text></svg>
+    <ul>${rows.map((x,i)=>`<li><s style="background:${cols[i%cols.length]}"></s>${x.d.name}<b>${Math.round(x.w/tot*100)}%</b></li>`).join('')}</ul></div>`;
+}
 function tabFirms(){
   const cap=captureLevel();
   const rows=FIRMS.map(d=>{
@@ -1398,6 +1410,7 @@ function tabFirms(){
       <caption>Деньги не покупают убеждений — они покупают внимание депутатов того края,
         где корпорация работает. Обещанный и непроведённый закон помнят четыре квартала.</caption></table></div>`})
   +`</div><div>`
+  +panel({title:'Структура хозяйства',meta:'кому принадлежит вес в экономике',body:econPie()})
   +panel({cls:FIRMS.some(d=>{const o=firmOf(d.id);return o&&o.owed&&firmOwed(o)&&firmOwed(o).left<=2;})?'warn':'',
     title:'Долги по обещаниям',meta:'что и кому обещано',flush:true,
     body:`<table class="tight"><tbody>${owedList}</tbody></table>`})
@@ -1781,7 +1794,7 @@ function tabGov(){
   const allies=coalition().filter(x=>x!==PL).map(id=>{
     const st=S.partners[id]||{anger:0}, p=P(id);
     const got=Object.values(S.gov.posts).filter(x=>x===id).length;
-    return `<div class="dep"><div class="who"><b>${p.name}</b><span>${mandates(seatsOf(id))} · ${got} из ${partyPrice(id)} портфелей · расхождение ${axDist(p.st,me().st).toFixed(1)}</span></div>
+    return `<div class="dep">${face(p.leader,32)}<div class="who"><b>${p.name}</b><span>${mandates(seatsOf(id))} · ${got} из ${partyPrice(id)} портфелей · расхождение ${axDist(p.st,me().st).toFixed(1)}</span></div>
       ${st.anger>=3?'<span class="tag r">на грани</span>':st.anger>=2?'<span class="tag y">недовольны</span>':'<span class="tag g">лояльны</span>'}</div>`;}).join('')
     ||'<p class="hint">Союзников нет: правительство однопартийное.</p>';
   const outside=S.parties.filter(p=>p.id!==PL&&!inCoal(p.id)).map(p=>
@@ -1830,8 +1843,8 @@ function tabPM(){
   const p=S.pm, mine=isPM(), power=cabinetPower(), coh=cohesion();
   const fv=S.fvp&&minOf(S.fvp);
   const rows=POSTS.map(x=>{ const m=minOf(x.id), pw=minPower(x.id), old=S.q-m.since>MIN_TERM, ec=minComp(m);
-    return `<tr><td><b>${m.you?'Вы · ':''}${m.name}</b>${S.fvp===x.id?' <span class="tag y">1-й вице</span>':''}
-        <div class="sub2">${x.name}${m.you?'':' · '+MT(m.trait).name.toLowerCase()}</div></td>
+    return `<tr><td><div class="who2">${face(m.name,32)}<div><b>${m.you?'Вы · ':''}${m.name}</b>${S.fvp===x.id?' <span class="tag y">1-й вице</span>':''}
+        <div class="sub2">${x.name}${m.you?'':' · '+MT(m.trait).name.toLowerCase()}</div></div></div></td>
       <td>${chip(P(m.party))}</td>
       <td class="n ${ec<40?'bad':ec>=72?'good':''}">${ec}</td>
       <td class="n ${m.you?'':m.loyal<35?'bad':m.loyal>=70?'good':''}">${m.you?'—':m.loyal}<div class="sub2">${m.you?'':loyalWord(m.loyal)}</div></td>
@@ -1880,8 +1893,7 @@ function tabPM(){
   return panel({cls:mine?'lead-p':'info',title:mine?'Правительство под вашим началом':'Кабинет ведёт не ваша партия',
     meta:'мандат от Собрания',body:
     `<div class="cols c12"><div>
-      <div class="stat"><i>${P(p.party).name}</i><div class="v" style="font-family:var(--f-head);font-size:24px;letter-spacing:0">${p.name}</div>
-        <span>премьер-министр · ${quarters(S.q-p.since)} в должности</span></div>
+      ${pcard(p.name,'премьер-министр · '+P(p.party).name,quarters(S.q-p.since)+' в должности',{big:1})}
       <div class="stat"><i>сплочённость кабинета</i><div class="v ${coh<35?'bad':''}">${coh}<u>${cohWord(coh)}</u></div>
         <span>средняя верность министров премьеру</span></div>
      </div><div>
@@ -1922,13 +1934,11 @@ function tabPres(){
   const ticket=panel({cls:mine?'lead-p':'info',title:mine?'Президент — это вы':'Глава государства',
     meta:'полномочия до: '+dateLabel(S.pres.until),body:
     `<div class="cols c11"><div>
-      <div class="stat"><i>${p.name}${S.pres.succeeded?' · принял полномочия досрочно':''}</i>
-        <div class="v" style="font-family:var(--f-display);font-size:26px;letter-spacing:0">${S.pres.name}</div>
-        <span>${mine?'ваш мандат — от всей страны':'мандат от всей страны, не от Собрания'}</span></div>
+      ${pcard(S.pres.name,'президент · '+p.name+(S.pres.succeeded?' · принял полномочия досрочно':''),
+        mine?'ваш мандат — от всей страны':'мандат от всей страны, не от Собрания',{big:1})}
      </div><div>
-      <div class="stat"><i>${vparty?vparty.name:''} · вице-президент</i>
-        <div class="v" style="font-family:var(--f-display);font-size:26px;letter-spacing:0">${v?v.name:'—'}</div>
-        <span>${vmine?'ваш человек председательствует в Сенате':'председательствует в Сенате'}</span></div>
+      ${v?pcard(v.name,'вице-президент · '+(vparty?vparty.name:''),vmine?'ваш человек председательствует в Сенате':'председательствует в Сенате',{big:1}):
+        `<div class="stat"><i>вице-президент</i><div class="v">—</div><span>кресло пусто</span></div>`}
      </div></div>
      <div class="res">
        <span>Осталось в кресле</span><b>${quarters(presLeft())}</b>
@@ -2250,10 +2260,17 @@ function tabParty(){
 /* вкладка «Дипломатия» — в dipui.js */
 
 /* ─── 8 · Регионы ────────────────────────────────────────────── */
-const MAPMODE=[['sup','Поддержка'],['unrest','Напряжённость'],['govs','Главы'],['seats','Мандаты'],['dev','Развитие'],['sep','Сепаратизм']];
+const MAPMODE=[['reg','Карта'],['sup','Поддержка'],['unrest','Напряжённость'],['govs','Главы'],['seats','Мандаты'],['dev','Развитие'],['sep','Сепаратизм']];
 const RAMP_SUP=['#7B2018','#B4744A','#C9B98F','#6E8F5E','#2C6547'];
 const RAMP_UNR=['#E7E0CE','#D9C08A','#C08A3E','#A85A2A','#7B2018'];
+/* краски карты-раскраски: у каждого субъекта своя, как на школьной карте */
+const REG_TINT={centr:'#E3AE5B',nw:'#86A56F',balt:'#8CA9D2',volga:'#9DB57F',povolzh:'#AE90C8',south:'#D98795',
+  kavkaz:'#6DB6AE',ural:'#E48F63',sib:'#7DA35F',dv:'#8F82C6',arctic:'#9FBFD8'};
+/* что снимать для карточки края */
+const REG_VIEW={centr:'palace',nw:'field',balt:'city',volga:'field',povolzh:'factory',south:'port',
+  kavkaz:'field',ural:'factory',sib:'city',dv:'port',arctic:'port'};
 function regionFill(r){
+  if(S.mapMode==='reg')return REG_TINT[r.id]||'#C9B98F';
   if(S.mapMode==='unrest'){ const v=S.unrest[r.id];
     return RAMP_UNR[v<12?0:v<24?1:v<38?2:v<55?3:4]; }
   if(S.mapMode==='dev')return ['#4A3B26','#6B5533','#9A7211','#C2A24A'][clamp(r.dev,0,3)];
@@ -2268,14 +2285,48 @@ function regionFill(r){
   const v=shown(regApproval(r.id),r.id);
   return RAMP_SUP[v<38?0:v<46?1:v<52?2:v<60?3:4];
 }
+/* центр тяжести контура: подпись встаёт в тело края, а не в его бухту */
+const GEO_MID={};
+function geoMid(id){
+  if(GEO_MID[id])return GEO_MID[id];
+  const sub=GEO[id].d.split('M').filter(Boolean).sort((a,b)=>b.length-a.length)[0];
+  const p=(sub.match(/-?[\d.]+,-?[\d.]+/g)||[]).map(q=>q.split(',').map(Number));
+  let A=0,cx=0,cy=0;
+  for(let i=0;i<p.length;i++){ const [x0,y0]=p[i],[x1,y1]=p[(i+1)%p.length], f=x0*y1-x1*y0; A+=f; cx+=(x0+x1)*f; cy+=(y0+y1)*f; }
+  return GEO_MID[id]=A?[cx/(3*A),cy/(3*A)]:GEO[id].c;
+}
+const SEA_NAMES=[['Северное море',170,120,-8],['Западное море',-30,380,-90],['Южное море',440,690,0],['Восточный океан',950,580,-68]];
 function mapSVG(){
-  const paths=REGIONS.map(r=>{const g=GEO[r.id];
+  const order=REGIONS.slice().sort((a,b)=>(S.sel===a.id)-(S.sel===b.id));
+  const shore=REGIONS.map(r=>`<path d="${GEO[r.id].d}"/>`).join('');
+  const paths=order.map(r=>{const g=GEO[r.id];
     return `<path class="rgn ${S.sel===r.id?'sel':''}" d="${g.d}" fill="${regionFill(r)}" data-r="${r.id}"><title>${r.name}</title></path>`;}).join('');
-  const labels=REGIONS.map(r=>{const g=GEO[r.id];
-    return `<text class="caplbl" x="${g.c[0]}" y="${g.c[1]+40}" text-anchor="middle">${r.cap}</text>`;}).join('');
-  return `<div class="mapbox"><svg class="mapsvg" viewBox="0 0 920 ${MAP_H}">${paths}${labels}</svg></div>`;
+  const labels=REGIONS.map(r=>{const m=geoMid(r.id), g=GEO[r.id], words=r.name.split(' ');
+    const two=r.name.length>12&&words.length>1, l1=two?words[0]:r.name, l2=two?words.slice(1).join(' '):'';
+    const big=r.pop>=14?23:20;
+    return `<g class="rl" pointer-events="none"><text class="rname" x="${m[0].toFixed(0)}" y="${(m[1]-(two?8:-4)).toFixed(0)}" text-anchor="middle" style="font-size:${big}px">${l1}${l2?`<tspan x="${m[0].toFixed(0)}" dy="${big+2}">${l2}</tspan>`:''}</text>`+
+      (r.capital?`<path class="star" transform="translate(${g.c[0].toFixed(0)} ${(g.c[1]+30).toFixed(0)}) scale(1.6)" d="M0-9 2.6-3 9-2.6 4.1 1.6 5.6 8 0 4.6-5.6 8-4.1 1.6-9-2.6-2.6-3z"/>`:'')+
+      `<text class="rcap" x="${g.c[0].toFixed(0)}" y="${(g.c[1]+(r.capital?60:30)).toFixed(0)}" text-anchor="middle">${r.cap}</text></g>`; }).join('');
+  const sea=SEA_NAMES.map(([t,x,y,a])=>`<text class="sea" x="${x}" y="${y}" text-anchor="middle" transform="rotate(${a} ${x} ${y})">${t}</text>`).join('');
+  const grid=Array.from({length:9},(_,i)=>`<path d="M${-70+i*140} -50V720"/>`).join('')+Array.from({length:6},(_,i)=>`<path d="M-70 ${i*140-20}H1070"/>`).join('');
+  return `<div class="mapbox"><svg class="mapsvg" viewBox="-70 -50 1140 770" role="img" aria-label="Карта республики">
+    <defs>
+      <radialGradient id="seaG" cx=".48" cy=".46" r=".75"><stop offset="0" stop-color="#27465F"/><stop offset=".6" stop-color="#16293A"/><stop offset="1" stop-color="#0B141D"/></radialGradient>
+      <pattern id="wave" width="46" height="18" patternUnits="userSpaceOnUse"><path d="M0 9Q11.5 2 23 9T46 9" fill="none" stroke="#9DC0D6" stroke-width=".8" opacity=".16"/></pattern>
+      <filter id="shore" x="-5%" y="-5%" width="110%" height="110%"><feGaussianBlur stdDeviation="9"/></filter>
+      <filter id="mapgr" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".75" numOctaves="2" seed="9"/><feColorMatrix values="0 0 0 0 .18 0 0 0 0 .12 0 0 0 0 .05 0 0 0 .55 -.14"/></filter>
+    </defs>
+    <rect x="-70" y="-50" width="1140" height="770" fill="url(#seaG)"/>
+    <rect x="-70" y="-50" width="1140" height="770" fill="url(#wave)"/>
+    <g class="grid">${grid}</g>
+    <g class="shore" filter="url(#shore)">${shore}</g>
+    ${paths}${labels}${sea}
+    <rect x="-70" y="-50" width="1140" height="770" filter="url(#mapgr)" style="mix-blend-mode:multiply" pointer-events="none"/>
+    <path class="compass" transform="translate(990 90)" d="M0-34 7-7 34 0 7 7 0 34-7 7-34 0-7-7z"/>
+  </svg></div>`;
 }
 function mapLegend(){
+  if(S.mapMode==='reg')return '<span class="chip">цвет различает субъекты, а не оценивает их</span><span class="chip">★ столица республики</span><span class="chip dim">остальное — в режимах выше</span>';
   if(S.mapMode==='seats')return S.parties.map(p=>`<span class="chip">${emblem(p,15)}${p.short}</span>`).join('');
   if(S.mapMode==='govs')return S.parties.map(p=>{
     const n=REGIONS.filter(r=>{const g=govOf(r.id);return g&&g.party===p.id;}).length;
@@ -2291,7 +2342,7 @@ function mapLegend(){
     `<span class="chip"><s style="background:${RAMP_SUP[i]}"></s>${t}</span>`).join('');
 }
 function tabCountry(){
-  if(!S.mapMode)S.mapMode='sup';
+  if(!S.mapMode)S.mapMode='reg';
   const sel=S.sel?R(S.sel):null;
   const rows=REGIONS.slice().sort((a,b)=>S.unrest[b.id]-S.unrest[a.id]).map(r=>{
     const sup=shown(regApproval(r.id),r.id);
@@ -2306,7 +2357,8 @@ function tabCountry(){
       <td class="r"><button class="btn sm" onclick="openRegion('${r.id}')">Карточка</button></td></tr>`;}).join('');
 
   const card=sel?panel({cls:'lead-p',title:sel.name,meta:sel.cap+(sel.capital?' · столица':''),body:
-    `<div class="res" style="margin-top:0">
+    `${photo(REG_VIEW[sel.id]||'city',sel.id,sel.cap+(sel.capital?' · столица':''),{cls:'rcard'})}
+    <div class="res" style="margin-top:12px">
       <span>Поддержка правительства</span><b class="${regApproval(sel.id)<46?'bad':'good'}">${est(Math.round(shown(regApproval(sel.id),sel.id))+'%',polled())}</b>
       <span>Напряжённость</span><b class="${S.unrest[sel.id]>34?'bad':''}">${Math.round(S.unrest[sel.id])} · ${unrestWord(S.unrest[sel.id])}</b>
       <span>Население</span><b>${sel.pop} млн</b>
@@ -2336,7 +2388,7 @@ function tabCountry(){
 
   return `<div class="cols c21">
     ${panel({title:'Карта Республики',meta:polled()?'данные свежего опроса':'оценка без опроса, ±3 пункта',body:
-      `<div class="row" style="margin-bottom:var(--x4)"><div class="seg">${MAPMODE.map(m=>
+      `<div class="row" style="margin-bottom:var(--x4)"><div class="seg wrap">${MAPMODE.map(m=>
         `<button class="${S.mapMode===m[0]?'on':''}" onclick="S.mapMode='${m[0]}';render()">${m[1]}</button>`).join('')}</div>
         <button class="btn sm ghost" data-act="poll" style="margin-left:auto" ${S.ap&&S.funds>=9&&!polled()?'':'disabled'}>Заказать опрос<span class="cost">9 млн</span></button></div>
        ${mapSVG()}<div class="legend">${mapLegend()}</div>`})}
@@ -2502,11 +2554,34 @@ function spark(key,color,title,fmt){
     <div style="display:flex;justify-content:space-between" class="t-micro">
       <span>${shortDate(S.hist[0].q)}</span><span>мин ${r1(mn)} · макс ${r1(mx)}</span></div></div>`;
 }
+/* ─── газета: запись хроники как передовица ──────────────────────── */
+function newsKind(t){
+  t=String(t||'').toLowerCase();
+  if(/выбор|президент|избран|съезд|партия/.test(t))return 'crowd';
+  if(/закон|поправк|собрани|вотум|кабинет|правительств/.test(t))return 'chamber';
+  if(/эконом|рост|бюджет|налог|завод|капитал|нацпроект/.test(t))return 'factory';
+  if(/договор|сосед|границ|посол|саммит|санкци/.test(t))return 'port';
+  if(/край|регион|област|город|мэр|губернатор/.test(t))return 'city';
+  return 'palace';
+}
+function paperCard(){
+  const c=S.chron||[], last=c[c.length-1];
+  const head=last?last.t:'Страна ждёт первых решений', kind=newsKind(head);
+  const more=c.slice(-4,-1).reverse();
+  return `<div class="npr"><div class="npr-mast"><b>Новарийские вести</b><span>${dateLabel()} · выпуск ${S.q}</span></div>
+    <div class="npr-body"><div><h3>${head.replace(/\.$/,'')}</h3>
+      <p>Кабинет ${P(S.gov.lead).leader}: ${coalSeats()} мандатов из ${MAJ} нужных. Одобрение ${Math.round(approval())}%, рост ВВП ${sign(S.econ.growth)}%, безработица ${S.econ.unemp}%. ${
+        S.treasury<25?'Казна на исходе.':S.treasury>120?'В казне запас.':'Казна держится.'}</p>
+      ${more.length?`<ul class="npr-more">${more.map(m=>`<li><b>${m.y}</b>${m.t}</li>`).join('')}</ul>`:''}</div>
+      <figure class="npr-ph">${engrave(kind,'газета-'+S.q)}<figcaption>${({crowd:'У избирателей',chamber:'В зале Собрания',factory:'На производстве',port:'У границы',city:'В регионах',palace:'У здания Собрания'})[kind]}</figcaption></figure></div>
+    </div>`;
+}
+
 function tabArch(){
   const ch=S.chron.slice().reverse().map(c=>
     `<div class="chron ${c.kind}"><span class="y">${c.y}</span><span>${c.t}</span></div>`).join('')
     ||'<div class="empty">История ещё не написана.</div>';
-  return `<div class="cols c11">
+  return paperCard()+`<div class="cols c11">
     ${panel({title:'Показатели правления',meta:quarters(S.hist.length),body:
       spark('ap','var(--bad)','Одобрение, %',v=>Math.round(v)+'%')+
       spark('seats','var(--info)','Мандаты фракции')+
@@ -3097,77 +3172,17 @@ const MICON={
 };
 const mi=k=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">${MICON[k]||''}</svg>`;
 
-/* ─── карта страны гравюрой ───────────────────────────────────────
-   Та же геометрия, что в разделе регионов, но без игровых цветов:
-   на титуле страна ещё никем не управляется, и красить её нечем.
-   Тон задаёт только освоенность края. */
-function menuMap(){
-  const paths=REGIONS.map(r=>{const g=GEO[r.id];
-    return `<path class="rg d${r.dev}" d="${g.d}"><title>${r.name} · ${r.cap} · ${r.pop} млн</title></path>`;}).join('');
-  const marks=REGIONS.map(r=>{const g=GEO[r.id];
-    return `<circle class="dot" cx="${g.c[0]}" cy="${g.c[1]}" r="${r.capital?6:3.6}"/>`+
-      (r.capital?`<circle class="dot" cx="${g.c[0]}" cy="${g.c[1]}" r="11" fill="none" stroke="var(--ink)" stroke-width="1.1"/>`:'');}).join('');
-  const labels=REGIONS.map(r=>{const g=GEO[r.id];
-    return `<text class="cap" x="${g.c[0]}" y="${g.c[1]+30}" text-anchor="middle">${r.cap}</text>`;}).join('');
-  return `<div class="mn-map"><svg viewBox="0 0 920 ${MAP_H}" preserveAspectRatio="xMidYMid meet"
-    aria-label="Карта Новарии">
-    ${paths}${marks}${labels}</svg></div>`;
-}
-/* ─── виньетки нижних колонок ─────────────────────────────────────
-   Штриховые, без заливок: газета печатает гравюру, а не фотографию. */
-function cardArt(kind){
-  const st='fill="none" stroke="var(--ink)" stroke-width="1.3" stroke-linejoin="round"';
-  const art={
-    gov:`<g ${st}><path d="M100 14 56 36h88z"/><path d="M60 36v44M76 36v44M92 36v44M108 36v44M124 36v44M140 36v44"/>
-      <path d="M50 80h100M46 86h108"/><path d="M100 14v-6"/><circle cx="100" cy="5" r="3"/>
-      <path d="M20 86h160"/></g>
-      <g stroke="var(--ink-3)" stroke-width=".7"><path d="M64 44v28M80 44v28M96 44v28M112 44v28M128 44v28"/></g>`,
-    rise:`<g ${st}><path d="M18 84h164"/><path d="M26 72l30-26 22 18 30-38 26 30 34-34"/>
-      <circle cx="26" cy="72" r="3"/><circle cx="56" cy="46" r="3"/><circle cx="78" cy="64" r="3"/>
-      <circle cx="108" cy="26" r="3"/><circle cx="134" cy="56" r="3"/><circle cx="168" cy="22" r="3"/>
-      <path d="M150 22h18v18"/></g>
-      <g stroke="var(--ink-3)" stroke-width=".7"><path d="M18 62h164M18 42h164"/></g>`,
-    people:`<g ${st}>${Array.from({length:7},(_,i)=>{
-        const x=24+i*25, h=30+((i*9)%18);
-        return `<circle cx="${x}" cy="${76-h-9}" r="7"/><path d="M${x-9} 76v-${h}a9 9 0 0 1 18 0v${h}z"/>`;
-      }).join('')}<path d="M10 86h180"/></g>`,
-    star:`<g ${st}><path d="M100 10 112 44l36 .5-28.5 21.5 10.5 34L100 79l-30 21 10.5-34L52 44.5l36-.5z"/>
-      <path d="M18 86h164"/><path d="M34 86V64M50 86V52M66 86V70M134 86V58M150 86V72M166 86V62"/></g>
-      <g stroke="var(--ink-3)" stroke-width=".7"><path d="M26 78h148"/></g>`,
-  }[kind]||'';
-  return `<svg class="art" viewBox="0 0 200 92" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${art}</svg>`;
-}
-
-/* ─── сборка полосы ──────────────────────────────────────────── */
-const MN_CARDS=[
-  {k:'gov',   t:'Управляй',  p:'Развивай регионы, принимай решения, меняй страну.'},
-  {k:'rise',  t:'Развивай',  p:'Экономика, инфраструктура, образование, технологии.'},
-  {k:'people',t:'Объединяй', p:REGIONS.length+' регионов — одна сильная Новария.'},
-  {k:'star',  t:'Создавай будущее', p:'Твои решения формируют историю.'},
-];
 function menuItem(n,ic,title,sub,fn,on,off){
   return `<button class="mn-btn ${on?'on':''} ${off?'off':''}" ${off?'disabled':''} onclick="${fn}">
     <em>${n}</em><span><b>${title}</b><s>${sub}</s></span>${mi(ic)}</button>`;
-}
-/* Виньетка карты обрезается по фактическим границам страны: исходный
-   бокс рассчитан на разворот с легендой, и на полосе от него остаётся
-   пустое поле вокруг. Меряем после вставки — своей же геометрией. */
-function fitMenuMap(){
-  const svg=document.querySelector('.mn-map svg'); if(!svg)return;
-  try{
-    const b=svg.getBBox(); if(!b.width||!b.height)return;
-    const m=10;
-    svg.setAttribute('viewBox',
-      (b.x-m).toFixed(1)+' '+(b.y-m).toFixed(1)+' '+(b.width+m*2).toFixed(1)+' '+(b.height+m*2).toFixed(1));
-  }catch(e){}
 }
 function showMenu(){
   const el=document.getElementById('menu'); if(!el)return;
   const has=hasSave();
   el.hidden=false; el.classList.remove('gone');
-  el.innerHTML=`<div class="mn-sheet">
-    <div class="mn-top">
-      <span>Государственный кабинет · зима 2029</span>
+  el.innerHTML=`<div class="ar-sheet">
+    <div class="ar-top">
+      <span>Государственный архив · зима 2029</span>
       <div class="mn-tools"><span class="mn-ver">v ${GAME_VER}</span>
         <button title="Разделы игры" onclick="menuAbout()">${mi('grid')}</button>
         <button title="Показатели" onclick="menuStats()">${mi('stat')}</button>
@@ -3175,70 +3190,60 @@ function showMenu(){
         <button title="Настройки" onclick="menuSettings()">${mi('gear')}</button></div>
     </div>
 
-    <div class="mn-head">
-      <img class="mn-flag" src="${FLAG}" alt="Флаг Республики Новария">
-      <div class="mn-name"><i>Республика</i><h1>НОВАРИЯ</h1>
-        <div class="mn-orn"><i></i>✦<i></i></div>
-        <u>Единая страна. Сильные регионы.</u></div>
-      <div class="mn-est">Политический симулятор полупрезидентской республики</div>
+    <div class="ar-board">
+      <div class="ar-hero">
+        <div class="ar-head">
+          <img class="mn-flag" src="${FLAG}" alt="Флаг Республики Новария">
+          <div class="ar-name"><i>Республика</i><h1>Новария</h1>
+            <u>Единая страна. Сильные регионы.</u></div>
+          <ul class="ar-vals"><li>Люди</li><li>Развитие</li><li>Стабильность</li><li>Будущее.</li></ul>
+        </div>
+        <div class="ar-stage">
+          <div class="ar-photo">${engrave('palace','титул',{par:'xMidYMin slice'})}</div>
+          <nav class="ar-menu">
+            ${has?menuItem('01','play','Продолжить игру',savedName()+' · последнее сохранение','menuContinue()',true)
+                :menuItem('01','play','Новая игра','Начните путь к развитию страны','menuNew()',true)}
+            ${has?menuItem('02','load','Новая игра','Начать с чистого листа','menuNew()')
+                :menuItem('02','load','Продолжить','Сохранения пока нет','menuContinue()',false,true)}
+            ${menuItem('03','book','О стране','История, регионы, экономика','menuAbout()')}
+            ${menuItem('04','stat','Статистика','Показатели и достижения','menuStats()')}
+            ${menuItem('05','gear','Настройки','Интерфейс и сохранение','menuSettings()')}
+            ${menuItem('06','exit','Выход','До новых встреч','menuExit()')}
+          </nav>
+          <div class="ar-quote">«Сильная страна — это не территория, а люди, которые в неё верят.»
+            <span class="sig">Н. Градов</span></div>
+        </div>
+      </div>
+      <aside class="ar-strip">
+        ${photo('crowd','титул-1','Республика в движении',{tilt:-1.4,text:'НОВАРИЯ — СТРАНА ВОЗМОЖНОСТЕЙ'})}
+        ${photo('city','титул-2','Столица',{tilt:1})}
+        ${photo('factory','титул-3','Промышленность',{tilt:-.7})}
+      </aside>
     </div>
 
-    <div class="mn-body">
-      <div class="mn-col">
-        <div class="mn-cap">Приёмная</div>
-        ${menuItem('01','play','Новая игра','Начните путь к развитию страны','menuNew()',true)}
-        ${menuItem('02','load','Продолжить',has?'Загрузить последнее сохранение':'Сохранения пока нет','menuContinue()',false,!has)}
-        ${menuItem('03','book','О стране','История, регионы, экономика','menuAbout()')}
-        ${menuItem('04','stat','Статистика','Показатели и достижения','menuStats()')}
-        ${menuItem('05','gear','Настройки','Интерфейс и сохранение','menuSettings()')}
-        ${menuItem('06','exit','Выход','До новых встреч','menuExit()')}
-        <div class="mn-keys"><i>Управление</i>
-          <div><span>Разделы</span><b>1—9</b></div>
-          <div><span>Листать разделы</span><b>← →</b></div>
-          <div><span>Завершить квартал</span><b>Q</b></div>
-          <div><span>Действий в квартале</span><b>3</b></div></div>
-      </div>
-
-      <div class="mn-col">
-        <div class="mn-cap">Обращение к нации</div>
-        <p class="mn-lead">Большие возможности начинаются здесь.</p>
-        <p class="mn-dek">Одиннадцать субъектов от Балтики до Тихоокеанска, две палаты, президент
-          со своим сроком и правительство, отвечающее перед нижней палатой. Власть здесь намеренно
-          не сходится в одних руках: большинство в одной палате почти никогда не означает
-          большинства в другой.</p>
-        <div class="mn-quote">«Сильная страна — это не территория, а люди, которые в неё верят»
-          <b>надпись на гранитной плите у Собрания</b></div>
-        ${menuMap()}
-      </div>
-
-      <div class="mn-col">
-        <div class="mn-cap">Государство в цифрах</div>
+    <div class="ar-foot">
+      <div><i>Государство в цифрах</i>
         <div class="mn-facts">
           <div><span>Субъектов</span><b>${REGIONS.length}</b></div>
           <div><span>Народное собрание</span><b>${SEATS}</b></div>
           <div><span>Сенат</span><b>${SEN_SEATS}</b></div>
           <div><span>Созыв</span><b>${TERM} кв.</b></div>
           <div><span>Президентский срок</span><b>${PTERM} кв.</b></div>
-          <div><span>Групп избирателей</span><b>${GROUPS.length}</b></div>
           <div><span>Тем законов</span><b>${TOPICS.length}</b></div>
           <div><span>Поправок к конституции</span><b>${CONSTS.length}</b></div>
-          <div><span>Групп капитала</span><b>${FIRMS.length}</b></div>
-          <div><span>Разделов</span><b>${TABS.length}</b></div>
-        </div>
-        ${has?`<div class="mn-save"><i>В памяти</i><b>${savedName()}</b>
-          <s>Продолжить можно вторым пунктом указателя.</s></div>`
-        :`<div class="mn-save"><i>В памяти</i><b>Пусто</b>
-          <s>Сохранение появится после первого квартала.</s></div>`}
-      </div>
+          <div><span>Групп капитала</span><b>${FIRMS.length}</b></div></div></div>
+      <div><i>Управление</i>
+        <div class="mn-keys" style="border:0;margin:0;padding:0">
+          <div><span>Разделы</span><b>1—9</b></div>
+          <div><span>Листать разделы</span><b>← →</b></div>
+          <div><span>Завершить квартал</span><b>Q</b></div>
+          <div><span>Действий в квартале</span><b>3</b></div></div></div>
+      <div><i>В памяти</i>
+        ${has?`<div class="mn-save"><b>${savedName()}</b><s>Продолжить можно первым пунктом указателя.</s></div>`
+        :`<div class="mn-save"><b>Пусто</b><s>Сохранение появится после первого квартала.</s></div>`}
+        <p class="ar-note">Республика Новария · стратегия развития. Сегодня — решения. Завтра — сильная Новария.</p></div>
     </div>
-
-    <div class="mn-cards">${MN_CARDS.map(c=>`<div class="mn-card">${cardArt(c.k)}
-      <b>${c.t}</b><p>${c.p}</p></div>`).join('')}</div>
-
-    <div class="mn-foot"><span>Республика Новария · стратегия развития</span>
-      <span>Сегодня — решения. Завтра — сильная Новария.</span></div>
   </div>`;
-  fitMenuMap();
 }
 function hideMenu(){
   const el=document.getElementById('menu'); if(!el)return;

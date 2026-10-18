@@ -6,7 +6,7 @@
 <title>НОВАРИЯ — правительственный терминал</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Forum&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=PT+Sans+Narrow:wght@400;700&family=PT+Sans:ital,wght@0,400;0,700;1,400&family=PT+Serif:ital,wght@0,400;0,700;1,400&family=PT+Mono&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Forum&family=Marck+Script&family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=PT+Sans+Narrow:wght@400;700&family=PT+Sans:ital,wght@0,400;0,700;1,400&family=PT+Serif:ital,wght@0,400;0,700;1,400&family=PT+Mono&display=swap" rel="stylesheet">
 <style>
 /* ═══════════════════════════════════════════════════════════════
    NOVARIA UI · токены. Полное описание системы — в game/ui.html.
@@ -1212,6 +1212,320 @@ tr.hd td{border-top:2px solid var(--gold)}
   .mn-card+.mn-card{border-left:1px solid rgba(217,190,122,.28);border-top:1px solid rgba(217,190,122,.28)}
   .mn-name h1{font-size:clamp(42px,13vw,64px)} }
 /* ══ конец парадной редакции ══ */
+/* ══ четвёртая редакция: государственный архив ════════════════════
+   Рабочий стол из тёмного сукна, на нём — листы старой бумаги с
+   тиснёной линейкой. Шапка и указатель разделов набраны на угольном
+   поле; выбранный раздел — бумажная закладка с красной окантовкой.
+   Красная печать — теперь и цвет главного действия. Бумага, пятна и
+   зерно нарисованы шумом SVG, картинок и файлов нет. Блок стоит
+   последним: меняет цвет, поверхность и линии, раскладку не трогает. */
+:root{
+  --desk:#1B1916; --desk-2:#25221E; --desk-3:#322E28;
+  --bg:#1B1916; --surface:#E8DCBE; --surface-2:#DFD0A9; --surface-3:#CFBD93;
+  --band:#1B1916; --band-2:#2B2824;
+  --ink:#2A2017; --ink-2:#4F3F2B; --ink-3:#7C6847; --ink-inv:#F0E5C9; --ink-inv-2:#B9A87F;
+  --line:#2A2017; --line-2:#B3A07A; --line-3:#CBBA90;
+  --gold:#A5844A; --gold-2:#D1B77F; --gold-3:#75592A;
+  --wine:#7B2820; --wine-2:#98382B; --wine-3:#531913;
+  --act:#2A2017; --mark:#8A261E; --bad:#8A261E; --good:#35683F; --info:#2D4F70;
+  --mark-bg:#E8CDBF; --bad-bg:#E9CFC1; --good-bg:#D6DDBF;
+  --p1:#9A7211; --p2:#8A2A22; --p3:#2D4F70; --p4:#2E6A5E; --p5:#58702B; --p6:#6A4378;
+  --hair:1px solid var(--line-2); --hair-2:1px solid var(--line-3);
+  --rule-gold:3px double var(--gold);
+  --shadow:0 22px 54px rgba(0,0,0,.62);
+  --f-serif:'Old Standard TT','PT Serif',Georgia,serif;
+  --f-hand:'Marck Script','Segoe Script',cursive;
+  --paper:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .33 0 0 0 0 .24 0 0 0 0 .12 0 0 0 .3 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --stain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='900'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.004 .006' numOctaves='3' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .52 0 0 0 0 .36 0 0 0 0 .15 0 0 0 .95 -.36'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23s)'/%3E%3C/svg%3E");
+  --grain-d:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .8 0 0 0 0 .7 0 0 0 0 .5 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  --sheet:var(--stain),var(--paper),linear-gradient(var(--surface),var(--surface));
+}
+html{scrollbar-color:#6B5A3A var(--desk)}
+body{background:var(--desk);background-image:var(--grain-d)}
+::selection{background:var(--wine);color:#F6E9CF}
+
+/* шапка и указатель: угольное поле, латунная линейка */
+#top{background:linear-gradient(180deg,#26231F,var(--desk));border-bottom:2px solid var(--gold);
+  box-shadow:0 1px 0 #000,0 8px 22px rgba(0,0,0,.5)}
+#top .brand{border-right:1px solid rgba(209,183,127,.22)}
+#top .brand b{font:900 21px/1 var(--f-head);letter-spacing:.05em;color:#EFE2C2}
+#top .brand span{color:var(--gold-2);letter-spacing:.3em}
+.sv{border-left:1px solid rgba(209,183,127,.16)}
+.sv i{color:#B79F6E;opacity:1}
+.sv b{color:var(--ink-inv)}
+.sv b.warn{color:#E2BE6A} .sv b.bad{color:#EC8F86} .sv b.good{color:#9CD0A5}
+.sv.act{background:linear-gradient(180deg,var(--wine-2),var(--wine))}
+.sv.act i{color:#EBC9B8} .sv.act b{color:#FBEFD6}
+.sv.act.apcell:hover{background:var(--wine-2)}
+.sv.apcell:hover{background:var(--desk-3)}
+#shell{background:transparent;border:0}
+#side{background:transparent;background-image:none;border-right:1px solid rgba(209,183,127,.14);padding-top:var(--x5)}
+.navsec{color:var(--gold-2);border-bottom:1px solid rgba(209,183,127,.22);letter-spacing:.28em;margin:var(--x4) var(--x4) var(--x2);padding-left:var(--x2)}
+.nav{color:#D2C4A1;border-bottom:0;border-radius:3px;margin:1px var(--x4);width:calc(100% - var(--x4)*2);
+  padding:9px var(--x4);font:400 13.5px var(--f-cond)}
+.nav:hover{background:rgba(209,183,127,.09);color:var(--ink-inv)}
+.nav .ic{color:#C4A877;opacity:.9}
+.nav.on{background:var(--sheet);color:var(--ink);font-weight:700;
+  box-shadow:inset 0 0 0 2px var(--wine),0 3px 10px -2px rgba(0,0,0,.7)}
+.nav.on .ic{color:var(--wine);opacity:1}
+.nav u{color:#8D7F5E}
+.nav.on u{color:var(--wine-3)}
+.nav .dot{background:#E06A5C;border-radius:50%}
+.nav.on .dot{background:var(--wine-2)}
+.navkeys{color:#8D7F5E;border-top:1px solid rgba(209,183,127,.22);margin:var(--x5) var(--x4) 0;padding-left:var(--x2)}
+.navkeys b{border-color:rgba(209,183,127,.3);color:#D2C4A1}
+@media(min-width:901px){ .nav,.nav.on{box-shadow:none} .nav.on{box-shadow:inset 0 0 0 2px var(--wine),0 3px 10px -2px rgba(0,0,0,.7)} }
+@media(max-width:900px){
+  #side{background:var(--desk);border-top:2px solid var(--gold);border-right:0;padding-top:0}
+  .nav{margin:0;width:auto;border-radius:0;color:#C9BD9D}
+  .nav.on{background:var(--desk-3);box-shadow:inset 0 3px 0 var(--wine);color:var(--ink-inv)}
+  .nav.on .ic{color:var(--gold-2)} .nav.on u{color:var(--gold-2)}
+}
+
+/* бумага: лист на сукне — пятна, зерно, подпалённые края */
+.panel,.tut,.course,.pin,.nbgrid>*{background:var(--sheet)}
+.panel{border:1px solid #84704A;border-top:1px solid #84704A;border-radius:2px;
+  box-shadow:inset 0 0 0 1px rgba(255,248,226,.5),inset 0 0 38px rgba(105,76,32,.3),0 12px 26px -14px rgba(0,0,0,.85)}
+.panel>header{background:transparent;border-bottom:3px double var(--gold)}
+.panel>header h4{font:700 17.5px/1.15 var(--f-head);color:var(--ink)}
+.panel>header h4::before{width:5px;height:5px;background:var(--wine);margin:0 9px 3px 1px}
+.panel>header .meta{color:var(--gold-3)}
+.panel>footer{background:rgba(112,82,36,.1);border-top:1px solid var(--line-2)}
+.panel.lead-p{border-top:1px solid #84704A}
+.panel.lead-p>header{background:linear-gradient(180deg,#2C2924,var(--desk));border-bottom:3px double var(--gold)}
+.panel.lead-p>header h4{color:var(--ink-inv)}
+.panel.lead-p>header h4::before{background:var(--gold-2)}
+.panel.lead-p>header .meta{color:var(--gold-2)}
+.panel.warn{border-top:1px solid #84704A;box-shadow:inset 0 3px 0 var(--bad),inset 0 0 38px rgba(105,76,32,.3),0 12px 26px -14px rgba(0,0,0,.85)}
+.panel.calm{border-top:1px solid #84704A;box-shadow:inset 0 3px 0 var(--good),inset 0 0 38px rgba(105,76,32,.3),0 12px 26px -14px rgba(0,0,0,.85)}
+.panel.info{border-top:1px solid #84704A;box-shadow:inset 0 3px 0 var(--info),inset 0 0 38px rgba(105,76,32,.3),0 12px 26px -14px rgba(0,0,0,.85)}
+.panel.warn>header h4::before{background:var(--bad)} .panel.calm>header h4::before{background:var(--good)} .panel.info>header h4::before{background:var(--info)}
+.tut,.course,.pin{border:1px solid #84704A;box-shadow:inset 0 0 0 1px rgba(255,248,226,.5),inset 0 0 30px rgba(105,76,32,.28),0 10px 22px -14px rgba(0,0,0,.8)}
+.pin{border-left:3px solid var(--wine);padding:9px 14px}
+h3.sub{border-bottom:1px solid var(--gold);font-family:var(--f-head)}
+
+/* таблицы: шапка красной тушью, строки — карандашные линии */
+th{color:var(--wine-3);border-top:1px solid var(--ink-2);border-bottom:1px solid var(--gold)}
+td{border-bottom-color:rgba(122,92,44,.25)}
+tbody tr:hover{background:rgba(122,92,44,.1)}
+tr.sel td,tr.mine td:first-child{box-shadow:inset 3px 0 0 var(--wine)}
+tr.hd td{border-top:2px solid var(--gold)}
+.res{border-top:1px solid var(--gold)}
+.stat,.whip{border-top:1px solid var(--gold)}
+.stat .k,.stat i{color:var(--gold-3)}
+.lever{border-top:3px solid var(--ink)}
+.lever.on{box-shadow:inset 3px 0 0 var(--wine)}
+.gates{border:1px solid var(--ink-2)}
+.chip{background:rgba(255,250,232,.4);border-color:var(--line-2)}
+.up,.t-micro{color:var(--gold-3)}
+.dep:hover{background:rgba(122,92,44,.08)}
+
+/* кнопки: контур карандашом, на главном — красная сургучная печать */
+.btn,.b{background:rgba(255,250,232,.42);border:1px solid var(--ink-2);color:var(--ink);border-radius:2px;
+  box-shadow:inset 0 1px 0 rgba(255,250,235,.55)}
+.btn:hover:not(:disabled),.b:hover:not(:disabled){background:var(--ink);color:var(--ink-inv);border-color:var(--ink)}
+.btn.pri,.b.pri{background:linear-gradient(180deg,var(--wine-2),var(--wine));color:#FBEFD6;border-color:var(--wine-3);
+  box-shadow:inset 0 0 0 1px rgba(255,214,176,.3),0 3px 8px -3px rgba(60,10,6,.7)}
+.btn.pri:hover:not(:disabled),.b.pri:hover:not(:disabled){background:linear-gradient(180deg,#A9442F,var(--wine-2));color:#fff;border-color:var(--wine-3);box-shadow:inset 0 0 0 1px rgba(255,214,176,.4)}
+.btn.dark{background:linear-gradient(180deg,#3A352E,var(--desk));color:var(--ink-inv);border-color:#0E0D0B}
+.btn.dark::after{content:'→';margin-left:12px;color:var(--gold-2)}
+.btn.dark:hover:not(:disabled){background:linear-gradient(180deg,var(--wine-2),var(--wine));color:#fff}
+.btn.danger{border-color:var(--wine);color:var(--wine)}
+.btn.danger:hover:not(:disabled){background:var(--wine);color:#fff}
+.btn.ghost{border-color:var(--line-2);color:var(--ink-2);background:transparent}
+.btn.sel{background:var(--ink);border-color:var(--ink);color:var(--ink-inv)}
+.seg{border:1px solid var(--ink-2)}
+.seg button.on,.axr button.on,.scale button.on,.steps button.on{background:var(--ink);color:var(--ink-inv)}
+.axr,.scale{border:1px solid var(--ink-2)}
+input:focus,select:focus{outline:2px solid var(--wine)}
+input,select,textarea{background:rgba(255,250,232,.55)}
+
+/* лист решения и плашки */
+#modal{background:rgba(7,6,4,.8)}
+#msheet{background:var(--sheet);border:1px solid #84704A;border-top:0;box-shadow:var(--shadow),0 0 0 4px rgba(165,132,74,.16)}
+#msheet .mh{background:linear-gradient(180deg,#2C2924,var(--desk));border-bottom:3px double var(--gold)}
+#msheet .mh i{color:var(--gold-2)}
+#msheet .mh h2{color:var(--ink-inv);font-family:var(--f-head)}
+#msheet .mf{background:rgba(112,82,36,.12);border-top:1px solid var(--line-2)}
+.opt{background:transparent;border-top:1px solid var(--line-2)}
+.opt:last-child{border-bottom:1px solid var(--line-2)}
+.opt:hover{background:rgba(255,250,232,.5);box-shadow:inset 3px 0 0 var(--wine)}
+.opt b .ic{color:var(--wine)}
+.opt.off:hover{background:transparent;box-shadow:none}
+.toast{background:var(--desk);color:var(--ink-inv);border-left:3px solid var(--wine);box-shadow:0 8px 22px rgba(0,0,0,.6)}
+#splash{background:radial-gradient(ellipse at 50% 38%,#34302A 0%,var(--desk) 62%,#0C0B09 100%);color:var(--ink-inv)}
+#splash h1{color:var(--gold-2);border-color:var(--gold)}
+#splash .load i{background:var(--gold-2)}
+
+/* карта, полосы, достижения */
+.paper{border-top:3px solid var(--ink);border-bottom:3px solid var(--ink);background:var(--sheet);
+  box-shadow:inset 0 0 0 6px transparent,inset 0 0 40px rgba(105,76,32,.3)}
+.paper-cols h3{color:var(--wine-3)}
+.achv div.on{border-color:var(--gold);background:rgba(255,250,232,.45)}
+.chron.g{box-shadow:inset 3px 0 0 var(--good)} .chron.b{box-shadow:inset 3px 0 0 var(--wine)}
+.log div.key{border-left-color:var(--wine)}
+.mapbox{border:1px solid var(--gold);background:var(--surface-2);box-shadow:none}
+.vb{border-top:var(--rule-gold)}
+.vb-sc{background:var(--desk)}
+.vb-sc div.on{background:var(--desk-3)}
+.stamp{color:var(--wine);border-color:var(--wine)}
+
+/* снимки и лица: сепия на белой кайме, как отпечатки в папке архива */
+.eng,.pt{display:block;width:100%;height:100%}
+.photo{margin:0;background:#F3EAD0;padding:6px 6px 0;position:relative;transform:rotate(var(--tilt,0deg));
+  box-shadow:0 10px 20px -8px rgba(0,0,0,.75),0 0 0 1px rgba(70,48,18,.4)}
+.photo .eng{height:auto;aspect-ratio:3/2}
+.photo.sq .eng{aspect-ratio:1/1}
+.photo figcaption{font:italic 400 12px/1.3 var(--f-serif);color:var(--ink-2);padding:6px 4px 7px;text-align:center}
+.face{display:inline-block;flex:none;vertical-align:middle;overflow:hidden;background:#5d4e34;
+  border:2px solid #F3EAD0;box-shadow:0 0 0 1px rgba(70,48,18,.5),0 3px 7px -3px rgba(0,0,0,.65)}
+.dep .face,.who2 .face{margin-right:0}
+.who2{display:flex;align-items:center;gap:10px;min-width:0}
+.who2>div{min-width:0}
+.pcard{display:flex;gap:14px;align-items:flex-start;min-width:0}
+.pc-face{width:92px;height:110px;flex:none;overflow:hidden;background:#5d4e34;border:4px solid #F3EAD0;
+  box-shadow:0 0 0 1px rgba(70,48,18,.5),0 8px 16px -8px rgba(0,0,0,.7)}
+.pcard.big .pc-face{width:132px;height:158px}
+.pc-b{min-width:0;flex:1}
+.pc-b i{display:block;font:700 9px var(--f-cond);letter-spacing:.2em;text-transform:uppercase;color:var(--gold-3);font-style:normal}
+.pc-b b{display:block;font:700 22px/1.15 var(--f-head);color:var(--ink);margin:3px 0 4px}
+.pc-b span{display:block;font-size:12.5px;color:var(--ink-3)}
+.pc-b q{display:block;margin-top:9px;font:italic 400 14px/1.45 var(--f-serif);color:var(--ink-2);quotes:'«' '»'}
+@media(max-width:520px){ .pc-face{width:72px;height:86px} .pcard.big .pc-face{width:96px;height:115px} .pc-b b{font-size:19px} }
+
+/* титульный экран: папка с отпечатками. Бумажная доска на сукне,
+   большой снимок дворца с указателем поверх, справа — три отпечатка. */
+#menu{--surface:#E8DCBE; --surface-2:#DFD0A9; --surface-3:#CFBD93;
+  --ink:#2A2017; --ink-2:#4F3F2B; --ink-3:#7C6847; --ink-inv:#F0E5C9; --ink-inv-2:#B9A87F;
+  --line-2:#B3A07A; --line-3:#CBBA90; --rule:2px solid var(--ink); --rule-thin:1px solid var(--ink-2);
+  background:var(--desk);background-image:var(--grain-d),radial-gradient(ellipse at 50% 20%,#2D2A25 0%,var(--desk) 70%);
+  background-attachment:fixed}
+.ar-sheet{max-width:1240px;margin:0 auto;padding:14px clamp(10px,2vw,28px) 26px;display:flex;flex-direction:column;gap:12px;min-height:100%}
+.ar-top{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;
+  color:var(--gold-2);font:700 9.5px var(--f-cond);letter-spacing:.26em;text-transform:uppercase}
+.ar-top .mn-tools{border:1px solid rgba(209,183,127,.4);border-radius:2px}
+.ar-top .mn-ver{color:#B9A87F;border-right:1px solid rgba(209,183,127,.3)}
+.ar-top .mn-tools button{color:var(--gold-2);border-right:1px solid rgba(209,183,127,.25)}
+.ar-top .mn-tools button:hover{background:var(--wine);color:#fff}
+.ar-board{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:16px;padding:16px;
+  background:var(--sheet);border:1px solid #84704A;border-radius:2px;
+  box-shadow:inset 0 0 0 1px rgba(255,248,226,.5),inset 0 0 56px rgba(105,76,32,.38),0 26px 56px -22px rgba(0,0,0,.95)}
+.ar-hero{display:flex;flex-direction:column;gap:14px;min-width:0}
+.ar-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:clamp(14px,2.4vw,32px);align-items:center;padding:2px 4px 0}
+.ar-head .mn-flag{width:clamp(88px,9.4vw,136px);height:auto;filter:drop-shadow(0 4px 6px rgba(40,25,8,.45));border:0;padding:0;background:none}
+.ar-name{min-width:0}
+.ar-name i{display:block;font:700 clamp(11px,1.2vw,15px) var(--f-cond);letter-spacing:.56em;text-transform:uppercase;color:var(--ink-3);font-style:normal;margin:0 0 4px 3px}
+.ar-name h1{margin:0;font:900 clamp(48px,7.6vw,100px)/.86 var(--f-head);letter-spacing:.005em;text-transform:uppercase;color:var(--ink);
+  text-shadow:0 1px 0 rgba(255,248,226,.6),0 2px 3px rgba(70,48,18,.25);background:none;-webkit-background-clip:border-box;background-clip:border-box;filter:none}
+.ar-name u{display:block;text-decoration:none;margin-top:10px;font:italic 400 clamp(14px,1.5vw,19px) var(--f-serif);color:var(--ink-2)}
+.ar-vals{list-style:none;margin:0;padding:0 0 0 clamp(10px,2vw,28px);border-left:1px solid var(--line-2);
+  font:italic 400 clamp(16px,1.7vw,22px)/1.5 var(--f-serif);color:var(--ink-3)}
+.ar-stage{position:relative;flex:1;min-height:clamp(320px,46vh,480px);padding:6px;background:#F3EAD0;
+  box-shadow:0 12px 22px -10px rgba(0,0,0,.75),0 0 0 1px rgba(70,48,18,.45);overflow:hidden}
+.ar-photo{position:absolute;inset:6px}
+.ar-photo::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,rgba(20,14,6,0) 28%,rgba(20,14,6,.62) 100%),linear-gradient(0deg,rgba(20,14,6,.6),transparent 38%)}
+.ar-menu{position:absolute;z-index:2;right:22px;top:20px;bottom:20px;width:min(340px,46%);display:flex;flex-direction:column;gap:7px;justify-content:center}
+.ar-menu .mn-btn{display:flex;align-items:center;gap:13px;padding:11px 14px;border-radius:2px;
+  background:linear-gradient(180deg,rgba(58,52,44,.95),rgba(26,23,19,.97));color:var(--ink-inv);
+  border:1px solid #0d0b08;box-shadow:inset 0 0 0 1px rgba(209,183,127,.16),0 4px 10px -4px rgba(0,0,0,.7)}
+.ar-menu .mn-btn:hover{background:linear-gradient(180deg,#4a443a,#2a2621);padding-left:14px}
+.ar-menu .mn-btn.on{background:linear-gradient(180deg,var(--wine-2),var(--wine));border-color:var(--wine-3);
+  box-shadow:inset 0 0 0 1px rgba(255,214,176,.3),0 5px 12px -4px rgba(60,10,6,.8)}
+.ar-menu .mn-btn.on:hover{background:linear-gradient(180deg,#A9442F,var(--wine-2))}
+.ar-menu .mn-btn.off{opacity:.4}
+.ar-menu .mn-btn.off:hover{background:linear-gradient(180deg,rgba(58,52,44,.95),rgba(26,23,19,.97))}
+.ar-menu .mn-btn em{display:none}
+.ar-menu .mn-btn svg{order:-1;width:19px;height:19px;color:var(--gold-2)}
+.ar-menu .mn-btn.on svg{color:#FBE9CF}
+.ar-menu .mn-btn b{font:700 16px/1.1 var(--f-text);letter-spacing:0;text-transform:none}
+.ar-menu .mn-btn s{color:var(--ink-inv-2);font-size:11px}
+.ar-menu .mn-btn.on s{color:#EBC9B8}
+.ar-menu .mn-btn::after{content:'›';font:400 22px/1 var(--f-text);color:var(--gold-2);margin-left:auto}
+.ar-menu .mn-btn.on::after{color:#FBE9CF}
+.ar-quote{position:absolute;z-index:2;left:24px;bottom:16px;max-width:min(380px,40%);color:#F6ECD0;
+  font:italic 400 clamp(13px,1.3vw,17px)/1.45 var(--f-serif);text-shadow:0 1px 8px rgba(0,0,0,.85)}
+.ar-quote .sig{display:block;font:400 28px/1 var(--f-hand);color:#EFE2C2;margin-top:8px;transform:rotate(-3deg);transform-origin:left}
+.ar-strip{display:flex;flex-direction:column;gap:16px;min-width:0}
+.ar-strip .photo{flex:1;display:flex;flex-direction:column}
+.ar-strip .photo .eng{flex:1;aspect-ratio:auto;min-height:130px}
+.ar-foot{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:clamp(12px,2vw,28px);color:var(--ink-inv)}
+.ar-foot>div{background:rgba(255,255,255,.035);border:1px solid rgba(209,183,127,.2);padding:12px 16px 14px}
+.ar-foot i{display:block;font:700 9px var(--f-cond);letter-spacing:.26em;text-transform:uppercase;color:var(--gold-2);font-style:normal;margin-bottom:6px}
+.ar-foot .mn-facts{display:grid;grid-template-columns:1fr 1fr;column-gap:20px;border:0}
+.ar-foot .mn-facts div,.ar-foot .mn-keys div{display:flex;justify-content:space-between;gap:10px;padding:4px 0;font-size:12px;
+  color:#CDBF9D;border-bottom:1px solid rgba(209,183,127,.14)}
+.ar-foot .mn-facts b,.ar-foot .mn-keys b{color:var(--ink-inv);font:400 13px var(--f-num)}
+.ar-foot .mn-save{margin:0;border:0;background:none;padding:0}
+.ar-foot .mn-save b{font:700 16px var(--f-head);color:var(--ink-inv);display:block}
+.ar-foot .mn-save s{display:block;text-decoration:none;color:#B9A87F;font-size:11.5px;margin-top:3px}
+.ar-note{margin:12px 0 0;font:italic 400 12px/1.5 var(--f-serif);color:#B9A87F}
+@media(max-width:1020px){
+  .ar-board{grid-template-columns:minmax(0,1fr) 190px}
+  .ar-foot{grid-template-columns:1fr 1fr}.ar-foot>div:first-child{grid-column:1/-1}
+  .ar-vals{display:none} .ar-head{grid-template-columns:auto minmax(0,1fr)}
+}
+@media(max-width:760px){
+  .ar-board{grid-template-columns:1fr;padding:10px;gap:12px}
+  .ar-strip{flex-direction:row;gap:8px}
+  .ar-strip .photo{padding:4px 4px 0}.ar-strip .photo figcaption{display:none}
+  .ar-strip .photo .eng{min-height:70px}
+  .ar-stage{min-height:0;display:flex;flex-direction:column;padding:0;background:var(--desk-2)}
+  .ar-photo{position:relative;inset:auto;height:150px;margin:6px 6px 0}
+  .ar-photo::after{background:linear-gradient(0deg,rgba(20,14,6,.55),transparent 50%)}
+  .ar-menu{position:static;width:auto;padding:10px 8px 6px}
+  .ar-quote{position:static;max-width:none;padding:6px 14px 14px;color:#DACDA9;text-shadow:none}
+  .ar-foot{grid-template-columns:1fr}
+  .ar-head{gap:12px}.ar-head .mn-flag{width:62px}
+  .ar-name h1{font-size:clamp(28px,9.4vw,58px)}.ar-name i{letter-spacing:.4em}
+}
+
+/* карта: тёмное море, цветные области, подписи гравёром */
+.mapbox{padding:0;background:#0B141D;border:2px solid var(--gold);max-width:none;
+  box-shadow:inset 0 0 0 1px #000,0 0 0 1px rgba(0,0,0,.6),0 10px 20px -10px rgba(0,0,0,.8)}
+.mapsvg .grid path{stroke:#9DC0D6;stroke-width:.6;opacity:.1;fill:none}
+.mapsvg .shore path{fill:#C7B98C;stroke:#C7B98C;stroke-width:12;opacity:.55}
+.rgn{stroke:#F1E7C8;stroke-width:1.3;stroke-linejoin:round;opacity:.97}
+.rgn:hover{filter:brightness(1.1)}
+.rgn.sel{stroke:#FFF4CC;stroke-width:4;opacity:1}
+.rname{font-family:var(--f-head);font-weight:700;fill:#2A2017;paint-order:stroke;stroke:rgba(244,234,205,.85);stroke-width:5px;stroke-linejoin:round}
+.rcap{font:italic 400 16px var(--f-serif);fill:#3D2F1D;paint-order:stroke;stroke:rgba(244,234,205,.8);stroke-width:4px}
+.star{fill:#2A2017;stroke:#F4EACD;stroke-width:1.4;paint-order:stroke}
+.sea{font:italic 400 34px var(--f-serif);fill:#9DBAD0;opacity:.78;letter-spacing:.06em}
+.compass{fill:#C9B98F;opacity:.55;stroke:#0B141D;stroke-width:1}
+.caplbl{display:none}
+.seg.wrap{flex-wrap:wrap}
+.photo.rcard{margin:0 0 4px}
+.photo.rcard .eng{aspect-ratio:16/9}
+
+/* газета и кольцо хозяйства */
+.npr{background:var(--sheet);border:1px solid #84704A;padding:10px 18px 14px;margin-bottom:var(--x6);
+  box-shadow:inset 0 0 0 1px rgba(255,248,226,.5),inset 0 0 36px rgba(105,76,32,.32),0 12px 26px -14px rgba(0,0,0,.85)}
+.npr-mast{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:3px solid var(--ink);border-bottom:1px solid var(--ink);padding:6px 0 5px;margin-bottom:12px}
+.npr-mast b{font:900 clamp(22px,3vw,34px)/1 var(--f-head);text-transform:uppercase;letter-spacing:.02em;color:var(--ink)}
+.npr-mast span{font:700 10px var(--f-cond);letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3)}
+.npr-body{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:18px;align-items:start}
+.npr h3{margin:0 0 9px;font:900 clamp(20px,2.4vw,28px)/1.1 var(--f-head);text-transform:uppercase;color:var(--ink);border:0;padding:0}
+.npr p{font:400 13.5px/1.55 var(--f-serif);color:var(--ink-2)}
+.npr-ph{margin:0;border:1px solid #6E5A38;box-shadow:0 0 0 3px #F3EAD0}
+.npr-ph .eng{aspect-ratio:3/2;height:auto}
+.npr-ph figcaption{font:italic 11px var(--f-serif);color:var(--ink-3);padding:4px 2px 0;background:#F3EAD0;margin:0 -3px -3px;padding:4px 6px 5px}
+.npr-more{list-style:none;margin:14px 0 0;padding:0;border-top:1px solid var(--ink)}
+.npr-more li{padding:6px 0;border-bottom:1px solid var(--line-2);font:400 12.5px/1.4 var(--f-serif);color:var(--ink-2)}
+.npr-more li b{font:700 9px var(--f-cond);letter-spacing:.16em;color:var(--wine-3);margin-right:9px}
+@media(max-width:700px){.npr-body{grid-template-columns:1fr}}
+.pie{display:flex;gap:16px;align-items:center}
+.pie svg{width:150px;flex:none}
+.pie svg path{stroke:#E8DCBE;stroke-width:1.2}
+.pie-k{font:700 9px var(--f-cond);letter-spacing:.2em;text-transform:uppercase;fill:var(--ink-3)}
+.pie-v{font:700 14px var(--f-head);fill:var(--ink)}
+.pie ul{list-style:none;margin:0;padding:0;flex:1;min-width:0;font-size:12.5px}
+.pie li{display:flex;gap:8px;align-items:center;padding:3px 0;border-bottom:1px solid var(--line-3)}
+.pie li s{width:10px;height:10px;display:inline-block;flex:none}
+.pie li b{margin-left:auto;font:400 12px var(--f-num)}
+@media(max-width:520px){.pie{flex-direction:column;align-items:stretch}.pie svg{width:130px;margin:0 auto}}
+.paper-cols .photo{margin:0 0 12px}
+/* ══ конец архивной редакции ══ */
 </style>
 </head>
 <body>
@@ -13793,7 +14107,7 @@ function nbCard(x){
     st.owe>0?'<span class="tag g">должен вам</span>':''].filter(Boolean).join(' ');
   return `<div class="nbc ${st.rel<38?'bad':st.rel>=54?'good':''}">
     <header><b>${x.name}</b><span>${nbWord(st.rel)}</span></header>
-    <p class="nbc-l">${L.name} · <i>${t.name.toLowerCase()}</i></p>
+    <div class="nbc-l who2">${face(L.name,34)}<p>${L.name} · <i>${t.name.toLowerCase()}</i></p></div>
     <div class="nbc-m"><span>отношения</span><div class="meter"><i style="width:${st.rel}%;background:${st.rel<38?'var(--bad)':st.rel>=54?'var(--good)':'var(--ink-3)'}"></i></div><b class="num-s">${Math.round(st.rel)}</b></div>
     <div class="nbc-m"><span>доверие</span><div class="meter"><i style="width:${st.trust}%;background:var(--gold)"></i></div><b class="num-s">${Math.round(st.trust)}</b></div>
     <div class="nbc-c">${chips||'<span class="dim">связей нет</span>'}</div>
@@ -14041,7 +14355,8 @@ function tabFinal(){
     <h1 class="paper-h">${finalHead()}</h1>
     <p class="paper-dek">${S.ended||''}</p>
     <div class="paper-cols">
-      <section><h3>Биография</h3>${bio.slice(0,-1).map(x=>`<p>${x}</p>`).join('')}</section>
+      <section><h3>Биография</h3>${photo({pres:'palace',vp:'palace',pm:'chamber',vice:'chamber',dep:'chamber',lead:'chamber',sen:'chamber',min:'factory',gov:'city',mayor:'city'}[topSeat()]||'crowd',
+        'финал-'+S.q+'-'+S.you.name,(SEATS_YOU[topSeat()]||{name:''}).name,{cls:'bio'})}${bio.slice(0,-1).map(x=>`<p>${x}</p>`).join('')}</section>
       <section><h3>Цифры эпохи</h3>
         <div class="res" style="margin-top:0"><span>Очки</span><b>${s}</b>
           <span>Высшее кресло</span><b class="w">${(SEATS_YOU[topSeat()]||{name:topSeat()}).name}</b>
@@ -15109,6 +15424,320 @@ function powerNote(){
     ${hasMandate()?'':'Мандат возвращают довыборы или следующий созыв. '}Кнопки на вкладках погашены и подписаны.</p>`;
 }
 /* ════════════════════════════════════════════════════════════════
+   ГРАВЮРЫ И ПОРТРЕТЫ
+   Четвёртая редакция держится на «фотографиях из архива»: дворец, город,
+   толпа, завод, порт. Файлов нет — всё рисуется здесь же, из seed:
+   тот же ключ даёт ту же карточку, чужой ключ — другую. Сепия,
+   полутоновая сетка, зерно и виньетка делают из векторных силуэтов
+   старый снимок. Портреты строятся из имени так же: один человек —
+   одно лицо в любой вкладке. */
+let ART_N=0;
+function artRand(seed){
+  let h=2166136261; String(seed).split('').forEach(c=>{ h^=c.charCodeAt(0); h=Math.imul(h,16777619); });
+  return ()=>{ h+=0x6D2B79F5; let t=h; t=Math.imul(t^t>>>15,t|1); t^=t+Math.imul(t^t>>>7,t|61); return((t^t>>>14)>>>0)/4294967296; };
+}
+const SEP={d0:'#1d140a',d1:'#352513',d2:'#56421f',d3:'#7d6840',d4:'#a99468',d5:'#cdbb91',d6:'#e6d8b3',d7:'#f3eacf'};
+
+/* рамка снимка: небо, зерно, виньетка, полутоновые сетки для теней */
+function engSvg(n,body,o){
+  o=o||{};
+  const sky=o.sky||['#7d6a47','#bda982','#e8dab5'];
+  return `<svg class="eng" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice" role="img" aria-hidden="true">
+  <defs>
+    <linearGradient id="sk${n}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sky[0]}"/><stop offset=".55" stop-color="${sky[1]}"/><stop offset="1" stop-color="${sky[2]}"/></linearGradient>
+    <radialGradient id="vg${n}" cx=".5" cy=".5" r=".78"><stop offset=".5" stop-color="#241a0c" stop-opacity="0"/><stop offset="1" stop-color="#241a0c" stop-opacity=".7"/></radialGradient>
+    <linearGradient id="gd${n}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c3b088"/><stop offset="1" stop-color="#6e5a38"/></linearGradient>
+    <pattern id="ht${n}" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(32)"><circle cx="1.5" cy="1.5" r=".85" fill="#22180b" opacity=".6"/></pattern>
+    <pattern id="hc${n}" width="3.4" height="3.4" patternUnits="userSpaceOnUse" patternTransform="rotate(-38)"><path d="M0 1.7H3.4" stroke="#2a1d0e" stroke-width=".7" opacity=".5"/></pattern>
+    <filter id="gr${n}" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="${n%90}"/><feColorMatrix values="0 0 0 0 .13 0 0 0 0 .09 0 0 0 0 .04 0 0 0 .7 -.2"/></filter>
+    <filter id="bl${n}" x="-30%" y="-60%" width="160%" height="220%"><feGaussianBlur stdDeviation="3.2"/></filter>
+    <filter id="bs${n}"><feGaussianBlur stdDeviation=".45"/></filter>
+  </defs>
+  <rect width="400" height="260" fill="url(#sk${n})"/>
+  <g filter="url(#bs${n})">${body}</g>
+  <rect width="400" height="260" filter="url(#gr${n})"/>
+  <rect width="400" height="260" fill="url(#vg${n})"/>
+</svg>`;
+}
+const eRect=(x,y,w,h,f,x2)=>`<rect x="${(+x).toFixed(1)}" y="${(+y).toFixed(1)}" width="${(+w).toFixed(1)}" height="${(+h).toFixed(1)}" fill="${f}"${x2||''}/>`;
+/* облака: размытые светлые пятна */
+function engClouds(r,n,k,y0,y1,op){
+  let s=''; for(let i=0;i<k;i++)s+=`<ellipse cx="${(r()*420-10).toFixed(0)}" cy="${(y0+r()*(y1-y0)).toFixed(0)}" rx="${(36+r()*70).toFixed(0)}" ry="${(7+r()*13).toFixed(0)}" fill="#f6eed3" opacity="${op||.4}" filter="url(#bl${n})"/>`;
+  return s;
+}
+/* окна: сетка прямоугольников или арок */
+function engWins(x,y,cols,rows,gx,gy,w,h,fill,arch){
+  let s='';
+  for(let j=0;j<rows;j++)for(let i=0;i<cols;i++){
+    const px=x+i*gx, py=y+j*gy;
+    s+=arch?`<path d="M${px} ${py+h}V${py+w/2}a${w/2} ${w/2} 0 0 1 ${w} 0V${py+h}z" fill="${fill}"/>`:eRect(px,py,w,h,fill);
+  }
+  return s;
+}
+/* силуэты людей: голова и плечи, с разбросом роста */
+function engFolk(r,x0,x1,y,k,fill,sc){
+  let s=''; for(let i=0;i<k;i++){ const x=x0+r()*(x1-x0), z=(sc||1)*(.8+r()*.5);
+    s+=`<g fill="${fill}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${z.toFixed(2)})"><circle cy="-9" r="2.4"/><path d="M-3.4 0V-5a3.4 3.4 0 0 1 6.8 0V0z"/></g>`; }
+  return s;
+}
+
+/* ─── дворец: колоннады, купол, флаг ───────────────────────────── */
+function engPalace(r,n){
+  const C=SEP; let s=engClouds(r,n,5,14,78,.42);
+  // дальний план: низкие кварталы и шпили
+  for(let x=-4;x<404;){ const w=12+r()*20, h=18+r()*34; s+=eRect(x,162-h,w,h,C.d4,' opacity=".7"'); if(r()<.25)s+=`<path d="M${x+w/2-1.2} ${162-h}V${150-h-r()*14}l1.2-6 1.2 6V${162-h}z" fill="${C.d3}" opacity=".8"/>`; x+=w+r()*3; }
+  // крылья
+  s+=eRect(26,142,126,54,C.d4)+eRect(248,142,126,54,C.d4)+eRect(22,137,134,6,C.d3)+eRect(244,137,134,6,C.d3);
+  s+=engWins(36,150,7,2,15.6,22,7,13,C.d1,true)+engWins(258,150,7,2,15.6,22,7,13,C.d1,true);
+  s+=eRect(248,142,126,54,`url(#ht${n})`,' opacity=".55"');
+  // портик
+  s+=eRect(148,126,104,70,C.d5)+eRect(142,118,116,9,C.d3)+eRect(146,127,108,3,C.d2);
+  s+=`<path d="M138 118 200 90l62 28z" fill="${C.d4}" stroke="${C.d2}" stroke-width="1.2"/><path d="M200 94 253 118H147z" fill="url(#hc${n})" opacity=".7"/>`;
+  for(let i=0;i<6;i++){ const x=154+i*17.2; s+=eRect(x,130,7.2,60,C.d6)+eRect(x+4.6,130,2.6,60,C.d3,' opacity=".75"')+eRect(x-1.4,128,10,3,C.d3)+eRect(x-1.4,188,10,3,C.d3); }
+  s+=eRect(188,152,24,38,C.d1)+`<path d="M188 152a12 12 0 0 1 24 0z" fill="${C.d1}"/>`;
+  // барабан и купол
+  s+=eRect(172,72,56,22,C.d5)+eRect(168,92,64,4,C.d3);
+  for(let i=0;i<7;i++)s+=eRect(175+i*8,74,3,18,C.d3,' opacity=".8"');
+  s+=`<path d="M168 72Q200 6 232 72z" fill="${C.d3}"/>`;
+  for(let k=-3;k<=3;k++)s+=`<path d="M200 22Q${200+k*9} 44 ${200+k*10.4} 72" stroke="${C.d1}" stroke-width=".9" fill="none" opacity=".8"/>`;
+  s+=`<path d="M200 72Q222 40 232 72z" fill="url(#ht${n})" opacity=".55"/>`+eRect(195.5,18,9,9,C.d4)+`<path d="M200 18V2" stroke="${C.d1}" stroke-width="1.4"/>`+
+     `<path d="M200 2q11-4 21 1v9q-10-5-21-1z" fill="${C.d1}"/>`;
+  // ступени и площадь
+  for(let i=0;i<5;i++)s+=eRect(136-i*4,190+i*5,128+i*8,5,i%2?C.d4:C.d5);
+  s+=`<rect y="214" width="400" height="46" fill="url(#gd${n})"/>`;
+  for(let i=0;i<3;i++){ const x=40+i*160+r()*20; s+=eRect(x,196,1.6,26,C.d1)+`<circle cx="${(x+.8).toFixed(1)}" cy="195" r="3.4" fill="${C.d6}" stroke="${C.d1}" stroke-width=".8"/>`; }
+  s+=engFolk(r,30,370,236,26,C.d0,1.5);
+  // деревья по краям
+  for(const x of [10,392])for(let i=0;i<5;i++)s+=`<circle cx="${(x+(r()-.5)*26).toFixed(0)}" cy="${(170+r()*40).toFixed(0)}" r="${(10+r()*10).toFixed(0)}" fill="${C.d1}" opacity=".85"/>`;
+  return engSvg(n,s);
+}
+
+/* ─── город: башни и шпили над набережной ──────────────────────── */
+function engCity(r,n){
+  const C=SEP; let s=engClouds(r,n,6,10,90,.38);
+  for(let x=-6;x<406;){ const w=14+r()*24, h=30+r()*50; s+=eRect(x,168-h,w,h,C.d4,' opacity=".6"')+engWins(x+3,168-h+6,Math.floor(w/6),Math.floor(h/10),6,9,2.6,4,C.d3); x+=w+r()*2; }
+  // высотная башня уступами
+  const tx=130+r()*140; let y=170, w=44;
+  for(let t=0;t<5;t++){ const h=30+t*3; s+=eRect(tx-w/2,y-h,w,h,t%2?C.d3:C.d2)+engWins(tx-w/2+4,y-h+5,Math.floor((w-6)/8),Math.floor((h-8)/9),8,9,3,5,C.d6); s+=eRect(tx-w/2-2,y-h-2,w+4,3,C.d1); y-=h; w-=7; }
+  s+=eRect(tx-3,y-26,6,26,C.d2)+`<path d="M${tx-3} ${y-26}L${tx} ${y-58} ${tx+3} ${y-26}z" fill="${C.d1}"/><path d="M${tx} ${y-58}V${y-72}" stroke="${C.d1}" stroke-width="1.2"/>`+
+     `<path d="M${tx} ${y-72} ${tx+2} ${y-67} ${tx+7} ${y-67} ${tx+3} ${y-64} ${tx+5} ${y-59} ${tx} ${y-62} ${tx-5} ${y-59} ${tx-3} ${y-64} ${tx-7} ${y-67} ${tx-2} ${y-67}z" fill="${C.d0}" transform="translate(0 6)"/>`;
+  // башня с часами
+  const cx=tx+(r()<.5?-1:1)*(90+r()*30);
+  s+=eRect(cx-12,86,24,84,C.d2)+eRect(cx-14,82,28,6,C.d1)+`<circle cx="${cx.toFixed(1)}" cy="100" r="7" fill="${C.d6}" stroke="${C.d0}" stroke-width="1.2"/><path d="M${cx} 100V95M${cx} 100h3" stroke="${C.d0}" stroke-width="1"/>`+
+     `<path d="M${cx-14} 82 ${cx} 46 ${cx+14} 82z" fill="${C.d1}"/><path d="M${cx} 46V30" stroke="${C.d1}" stroke-width="1.2"/>`;
+  s+=eRect(tx-w/2-30,128,100,42,`url(#ht${n})`,' opacity=".35"');
+  // набережная и вода
+  s+=eRect(0,170,400,12,C.d2)+eRect(0,182,400,78,C.d4)+`<rect y="182" width="400" height="78" fill="url(#hc${n})" opacity=".55"/>`;
+  for(let i=0;i<22;i++)s+=`<path d="M${(r()*390).toFixed(0)} ${(188+r()*66).toFixed(0)}h${(10+r()*22).toFixed(0)}" stroke="${C.d6}" stroke-width=".9" opacity=".6"/>`;
+  // мост
+  s+=`<path d="M0 200Q100 176 200 200T400 200V206Q300 186 200 206T0 206z" fill="${C.d1}" opacity=".85"/>`;
+  s+=engFolk(r,20,380,176,12,C.d0,1.1);
+  return engSvg(n,s);
+}
+
+/* ─── толпа: флаги, транспарант, лица ──────────────────────────── */
+function engCrowd(r,n,o){
+  const C=SEP; o=o||{}; let s=engClouds(r,n,4,10,50,.3);
+  // фасад позади
+  s+=eRect(0,60,400,110,C.d4,' opacity=".75"')+engWins(8,70,24,5,16.5,19,7,12,C.d2);
+  s+=eRect(0,60,400,110,`url(#hc${n})`,' opacity=".45"');
+  // флаги на древках
+  for(let i=0;i<7;i++){ const x=20+i*56+r()*20, h=40+r()*40; s+=eRect(x,110-h,1.6,h+40,C.d1)+
+    `<path d="M${x+1.6} ${110-h}q16-7 30 0v20q-14-7-30 0z" fill="${i%2?C.d1:C.d2}"/><path d="M${x+1.6} ${120-h}q15-6 30 0" stroke="${C.d6}" stroke-width="1.8" fill="none" opacity=".7"/>`; }
+  // транспарант
+  const t=o.text||'НОВАРИЯ — СТРАНА ВОЗМОЖНОСТЕЙ';
+  s+=`<g transform="rotate(-2.2 200 128)">${eRect(70,112,260,34,C.d7)}${eRect(70,112,260,3,C.d2)}${eRect(70,143,260,3,C.d2)}
+    <text x="200" y="134.5" text-anchor="middle" textLength="${Math.min(236,t.length*8.4)}" lengthAdjust="spacingAndGlyphs" font-family="PT Sans Narrow,Arial Narrow,sans-serif" font-weight="700" font-size="15" fill="${C.d0}">${t}</text>
+    ${eRect(98,146,1.6,26,C.d1)}${eRect(300,146,1.6,26,C.d1)}</g>`;
+  // ряды толпы: лица светлее, одежда темнее; ближние ряды крупнее и темнее
+  const rows=[[170,2.1,'#6f5b39',C.d4,48],[186,2.9,'#4a3820',C.d4,40],[206,4,'#2c1f10',C.d3,32],[232,5.6,'#170f06',C.d3,24]];
+  rows.forEach(([y,sc,f,face,k])=>{ for(let i=0;i<k;i++){ const x=-6+i*(412/k)+r()*8, z=sc*(.85+r()*.35);
+    s+=`<g transform="translate(${x.toFixed(1)} ${(y+r()*5).toFixed(1)}) scale(${z.toFixed(2)})"><path d="M-5.4 16V1a5.4 5.4 0 0 1 10.8 0V16z" fill="${f}"/><ellipse cy="-8.6" rx="3" ry="3.5" fill="${face}"/><path d="M-3.2 -9.6a3.2 3.2 0 0 1 6.4 0c-1.6-1.4-4.8-1.4-6.4 0z" fill="${r()<.5?C.d0:C.d2}"/>${r()<.12?`<path d="M3 -1l7-12" stroke="${f}" stroke-width="1.5"/><path d="M10 -13l8 -2v6z" fill="${f}"/>`:''}</g>`; } });
+  return engSvg(n,s,{sky:['#8a7650','#c4b087','#e6d7b1']});
+}
+
+/* ─── завод: трубы, дым, пилообразные крыши ────────────────────── */
+function engFactory(r,n){
+  const C=SEP; let s=engClouds(r,n,3,8,40,.3);
+  for(let i=0;i<5;i++){ const x=20+r()*360; s+=`<ellipse cx="${x.toFixed(0)}" cy="${(30+r()*30).toFixed(0)}" rx="${(30+r()*40).toFixed(0)}" ry="${(14+r()*16).toFixed(0)}" fill="${C.d2}" opacity="${(.28+r()*.2).toFixed(2)}" filter="url(#bl${n})"/>`; }
+  for(let x=0;x<400;){ const w=24+r()*30, h=22+r()*30; s+=eRect(x,160-h,w,h,C.d4,' opacity=".6"'); x+=w+r()*3; }
+  // трубы
+  const chim=[70,150,252,330].map(x=>x+r()*20);
+  chim.forEach((x,i)=>{ const h=100+r()*50; s+=`<path d="M${x-7} 172 ${x-4.5} ${172-h} ${x+4.5} ${172-h} ${x+7} 172z" fill="${C.d1}"/>`+eRect(x-5,172-h+10,10,3,C.d5)+eRect(x-5.6,172-h+26,11.2,3,C.d5)+eRect(x-4.8,172-h-3,9.6,4,C.d0);
+    s+=`<ellipse cx="${(x+8).toFixed(0)}" cy="${(172-h-14).toFixed(0)}" rx="14" ry="9" fill="${C.d1}" opacity=".6" filter="url(#bl${n})"/><ellipse cx="${(x+24).toFixed(0)}" cy="${(172-h-30).toFixed(0)}" rx="22" ry="12" fill="${C.d1}" opacity=".4" filter="url(#bl${n})"/>`; });
+  // цеха с пилообразной кровлей
+  for(let k=0;k<3;k++){ const x=10+k*130, w=120; s+=eRect(x,150,w,38,C.d3)+engWins(x+6,158,9,1,12.4,10,7,16,C.d6);
+    for(let j=0;j<6;j++)s+=`<path d="M${x+j*20} 150l0-14 20 14z" fill="${C.d2}"/>`; s+=eRect(x,150,w,38,`url(#ht${n})`,' opacity=".3"'); }
+  // кран и ж/д
+  s+=`<path d="M300 188V110h46l-6 9M300 118h50" stroke="${C.d0}" stroke-width="2.6" fill="none"/><path d="M346 119V150" stroke="${C.d0}"/>${eRect(341,150,10,7,C.d0)}`;
+  s+=`<rect y="188" width="400" height="72" fill="url(#gd${n})"/>`;
+  for(let i=0;i<2;i++){ const y=206+i*18; s+=`<path d="M0 ${y}H400" stroke="${C.d1}" stroke-width="2.2"/>`; for(let x=(i?6:0);x<400;x+=14)s+=eRect(x,y-3,5,8,C.d1,' opacity=".6"'); }
+  s+=engFolk(r,20,380,228,8,C.d0,1.3);
+  return engSvg(n,s,{sky:['#7a6b52','#b7a681','#dccdA8']});
+}
+
+/* ─── поле и элеватор ──────────────────────────────────────────── */
+function engField(r,n){
+  const C=SEP; let s=engClouds(r,n,7,8,80,.5);
+  s+=`<path d="M0 150Q80 128 170 146T400 138V260H0z" fill="${C.d4}"/><path d="M0 170Q100 150 220 168T400 160V260H0z" fill="${C.d3}"/>`;
+  // силосы
+  const sx=230+r()*60;
+  for(let i=0;i<4;i++){ const x=sx+i*17; s+=eRect(x,118-i%2*6,14,52,C.d5)+`<path d="M${x} ${118-i%2*6}a7 5 0 0 1 14 0z" fill="${C.d3}"/>`+eRect(x+8,118-i%2*6,6,52,`url(#ht${n})`,' opacity=".5"'); }
+  s+=eRect(sx-6,128,84,6,C.d2)+eRect(sx-4,134,2,36,C.d2)+eRect(sx+76,134,2,36,C.d2);
+  // опоры ЛЭП
+  for(let i=0;i<4;i++){ const x=30+i*70, y=150+i*2; s+=`<path d="M${x} ${y}l8-46 8 46M${x+3} ${y-22}h10M${x-4} ${y-44}h24" stroke="${C.d0}" stroke-width="1.4" fill="none"/>`; }
+  s+=`<path d="M26 106Q64 114 102 108T170 110T240 112" stroke="${C.d0}" stroke-width=".6" fill="none" opacity=".8"/>`;
+  // борозды в перспективе
+  for(let i=-16;i<=16;i++)s+=`<path d="M${200+i*6} 178L${200+i*34} 260" stroke="${C.d1}" stroke-width="1.3" opacity=".55"/>`;
+  for(let i=0;i<4;i++)s+=`<path d="M0 ${186+i*18}Q200 ${178+i*14} 400 ${186+i*18}" stroke="${C.d6}" stroke-width=".9" opacity=".35" fill="none"/>`;
+  // трактор
+  const tx=50+r()*60; s+=eRect(tx,206,26,11,C.d0)+eRect(tx+6,198,12,9,C.d1)+`<circle cx="${tx+5}" cy="220" r="8" fill="${C.d0}"/><circle cx="${tx+23}" cy="222" r="5" fill="${C.d0}"/>`;
+  return engSvg(n,s,{sky:['#8b7a58','#c8b88e','#ebdfbd']});
+}
+
+/* ─── порт: краны, суда, маяк ──────────────────────────────────── */
+function engPort(r,n){
+  const C=SEP; let s=engClouds(r,n,5,10,70,.4);
+  s+=`<rect y="150" width="400" height="110" fill="${C.d3}"/>`;
+  for(let i=0;i<46;i++)s+=`<path d="M${(r()*380).toFixed(0)} ${(154+r()*100).toFixed(0)}h${(14+r()*40).toFixed(0)}" stroke="${C.d6}" stroke-width="1" opacity="${(.2+r()*.4).toFixed(2)}"/>`;
+  // дальний берег и маяк
+  s+=`<path d="M0 150Q60 138 140 148T260 146 400 150z" fill="${C.d4}"/>`+`<path d="M360 148l5-48h8l5 48z" fill="${C.d6}" stroke="${C.d2}"/>`+eRect(363,86,12,14,C.d1)+`<path d="M361 86h16l-8-9z" fill="${C.d0}"/>`;
+  // портальные краны
+  for(let i=0;i<3;i++){ const x=30+i*86+r()*14;
+    s+=`<path d="M${x} 190V120h54M${x+4} 120V190M${x+46} 120V190M${x-6} 120l10-12h48l8 12" stroke="${C.d0}" stroke-width="2.2" fill="none"/><path d="M${x+40} 120V164" stroke="${C.d0}" stroke-width="1"/>${eRect(x+34,164,12,9,C.d1)}`; }
+  // судно
+  const bx=90+r()*140;
+  s+=`<path d="M${bx} 178h150l-14 22H${bx+14}z" fill="${C.d0}"/>`+eRect(bx+90,150,36,28,C.d5)+eRect(bx+96,138,14,12,C.d6)+eRect(bx+108,128,8,22,C.d1)+
+     engWins(bx+94,156,5,1,7,8,4,7,C.d1)+`<path d="M${bx+20} 178V150M${bx+50} 178V146" stroke="${C.d1}" stroke-width="1.6"/>`;
+  for(let i=0;i<9;i++)s+=eRect(bx+22+i*9,166,7,12,[C.d2,C.d3,C.d1][Math.floor(r()*3)]);
+  // причал
+  s+=eRect(0,196,400,64,`url(#gd${n})`)+eRect(0,194,400,4,C.d1);
+  for(let x=4;x<400;x+=22)s+=eRect(x,198,3,14,C.d1,' opacity=".6"');
+  s+=engFolk(r,20,380,226,10,C.d0,1.4);
+  return engSvg(n,s,{sky:['#7f6f4f','#bfae86','#e4d6b0']});
+}
+
+/* ─── зал заседаний: ряды, трибуна, люстра ─────────────────────── */
+function engChamber(r,n){
+  const C=SEP; let s='';
+  s+=eRect(0,0,400,260,C.d2)+`<rect x="0" y="0" width="400" height="260" fill="url(#hc${n})" opacity=".4"/>`;
+  // арки окон
+  for(let i=0;i<5;i++){ const x=30+i*76; s+=`<path d="M${x} 118V54a22 22 0 0 1 44 0V118z" fill="${C.d6}"/><path d="M${x+22} 32V118M${x} 76H${x+44}" stroke="${C.d3}" stroke-width="1.4"/><path d="M${x} 118V54a22 22 0 0 1 44 0V118z" fill="url(#ht${n})" opacity=".3"/>`; }
+  s+=eRect(0,114,400,8,C.d1);
+  // колоны
+  for(let i=0;i<6;i++){ const x=8+i*76; s+=eRect(x,40,9,78,C.d4)+eRect(x+5,40,4,78,C.d2,' opacity=".7"'); }
+  // люстра
+  s+=`<path d="M200 0V26" stroke="${C.d0}"/><path d="M168 38Q200 22 232 38L224 48H176z" fill="${C.d6}" stroke="${C.d1}"/>`;
+  for(let i=0;i<9;i++)s+=`<circle cx="${(172+i*7).toFixed(0)}" cy="52" r="2.2" fill="${C.d7}"/>`;
+  // трибуна и президиум
+  s+=eRect(160,122,80,20,C.d1)+eRect(150,118,100,6,C.d3)+eRect(188,100,24,22,C.d0)+`<circle cx="200" cy="94" r="5.4" fill="${C.d0}"/>`;
+  // ряды: дуги из голов
+  for(let row=0;row<8;row++){ const y=150+row*13, k=22+row*3, sc=.9+row*.2;
+    s+=eRect(0,y+4,400,5,row%2?C.d1:C.d0,' opacity=".85"');
+    for(let i=0;i<k;i++){ const x=(i+.5)*(400/k)+(r()-.5)*5; s+=`<g fill="${row%2?C.d1:C.d0}" transform="translate(${x.toFixed(1)} ${y+4}) scale(${sc.toFixed(2)})"><circle cy="-8" r="2.6"/><path d="M-4 1V-4a4 4 0 0 1 8 0V1z"/></g>`; } }
+  return engSvg(n,s,{sky:['#4c3b22','#6f5a38','#8e7a52']});
+}
+
+const ENG={palace:engPalace,city:engCity,crowd:engCrowd,factory:engFactory,field:engField,port:engPort,chamber:engChamber};
+const ENG_KINDS=Object.keys(ENG);
+/* снимок по ключу: kind определяет сюжет, seed — вариацию */
+function engrave(kind,seed,o){
+  const f=ENG[kind]||ENG.palace, n=++ART_N; o=o||{};
+  const svg=f(artRand(kind+':'+seed),n,o);
+  return o.par?svg.replace('preserveAspectRatio="xMidYMid slice"','preserveAspectRatio="'+o.par+'"'):svg;
+}
+/* карточка-фото: белая кайма, подпись, лёгкий наклон для коллажа */
+function photo(kind,seed,cap,o){
+  o=o||{};
+  return `<figure class="photo ${o.cls||''}" ${o.tilt?`style="--tilt:${o.tilt}deg"`:''}>${engrave(kind,seed,o)}${cap?`<figcaption>${cap}</figcaption>`:''}</figure>`;
+}
+
+/* ─── портрет: голова и плечи из имени ─────────────────────────────
+   Лицо собирается из ключа: пол по имени, возраст от o.age, причёска,
+   очки, усы и борода — по случайному ряду. Общие градиенты и зерно
+   лежат в одном скрытом SVG (artDefs), чтобы список из тридцати лиц
+   не тащил тридцать наборов фильтров. */
+function artDefs(){
+  return `<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+    <radialGradient id="pvg" cx=".5" cy=".45" r=".75"><stop offset=".5" stop-color="#1f150a" stop-opacity="0"/><stop offset="1" stop-color="#1f150a" stop-opacity=".66"/></radialGradient>
+    <radialGradient id="pfc" cx=".4" cy=".35" r=".8"><stop offset="0" stop-color="#fff4d6" stop-opacity=".5"/><stop offset=".6" stop-color="#fff4d6" stop-opacity="0"/><stop offset="1" stop-color="#2a1b08" stop-opacity=".38"/></radialGradient>
+    <filter id="pgr" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".95" numOctaves="2" seed="5"/><feColorMatrix values="0 0 0 0 .13 0 0 0 0 .09 0 0 0 0 .04 0 0 0 .5 -.14"/></filter>
+  </defs></svg>`;
+}
+function artFem(name){
+  const f=String(name||'').split(' ')[0];
+  if(typeof NAME_F!=='undefined'&&NAME_F.indexOf(f)>=0)return true;
+  if(typeof NAME_M!=='undefined'&&NAME_M.indexOf(f)>=0)return false;
+  return /[ая]$/.test(f)&&!/(Никита|Илья|Кузьма|Фома|Лука)$/.test(f);
+}
+function portrait(name,o){
+  o=o||{}; const r=artRand('pt:'+name), fem=o.fem!==undefined?o.fem:artFem(name);
+  const age=o.age||(38+Math.floor(r()*30)), old=age>=58, mid=age>=46;
+  const skin=['#cdb48a','#c6ab7e','#d4bf98','#bfa476'][Math.floor(r()*4)];
+  const skin2=skin.replace(/[0-9a-f]{2}/gi,h=>Math.max(0,parseInt(h,16)-42).toString(16).padStart(2,'0'));
+  const hairs=old?['#8f8a7c','#b3ad9d','#6d675a']:mid?['#3b2c18','#5a4528','#7d776a']:['#1d140a','#33240f','#4a3720'];
+  const hair=hairs[Math.floor(r()*hairs.length)], bg=['#8a7550','#6e5c3c','#9a8660','#5d4e34'][Math.floor(r()*4)];
+  const jacket=['#2a2118','#3b3225','#1f1a14','#4a4136'][Math.floor(r()*4)];
+  const rx=17.5+r()*3.5, ry=23+r()*2.5, hy=51;
+  let s=`<rect width="100" height="120" fill="${bg}"/><rect width="100" height="120" fill="url(#pvg)" opacity=".55"/>`;
+  // волосы за головой (длинные у женщин)
+  const style=fem?['bob','bun','long','wave'][Math.floor(r()*4)]:['side','short','bald','crop','curl'][Math.floor(r()*5)];
+  if(fem&&(style==='long'||style==='wave'))s+=`<path d="M26 56Q24 22 50 20Q76 22 74 56L78 100H22z" fill="${hair}"/>`;
+  // плечи и костюм
+  s+=`<path d="M4 120Q6 94 33 87L50 98 67 87Q94 94 96 120z" fill="${jacket}"/>`;
+  s+=fem?`<path d="M36 88Q50 108 64 88L58 86Q50 96 42 86z" fill="${['#cfc3a6','#b79d73','#8b3a2f'][Math.floor(r()*3)]}"/>`
+        :`<path d="M38 87L50 108 62 87 56 85 50 91 44 85z" fill="#e4d8b8"/><path d="M50 95l-3.4 4.6L50 116l3.4-16.4z" fill="${['#3b1c14','#1d2a3a','#4b3b14'][Math.floor(r()*3)]}"/>`;
+  s+=`<path d="M33 87L45 120M67 87L55 120" stroke="#0e0904" stroke-width=".8" opacity=".6"/>`;
+  if(fem&&r()<.6)s+=`<circle cx="${r()<.5?38:62}" cy="98" r="2.1" fill="#d8c48a" stroke="#6b5426" stroke-width=".5"/>`;
+  // шея и голова
+  s+=`<path d="M42 70h16v20Q50 96 42 90z" fill="${skin2}"/>`;
+  s+=`<ellipse cx="${50-rx}" cy="${hy+3}" rx="3.4" ry="5" fill="${skin}"/><ellipse cx="${50+rx}" cy="${hy+3}" rx="3.4" ry="5" fill="${skin2}"/>`;
+  s+=`<ellipse cx="50" cy="${hy}" rx="${rx.toFixed(1)}" ry="${ry.toFixed(1)}" fill="${skin}"/><ellipse cx="50" cy="${hy}" rx="${rx.toFixed(1)}" ry="${ry.toFixed(1)}" fill="url(#pfc)"/>`;
+  // причёска
+  const top=hy-ry;
+  if(!fem){
+    if(style==='side')s+=`<path d="M${50-rx-1} ${hy-6}Q${50-rx} ${top-2} 50 ${top-3}Q${50+rx} ${top-2} ${50+rx+1} ${hy-6}Q${50+rx-3} ${top+8} 50 ${top+6}Q${50-rx+4} ${top+4} ${50-rx-1} ${hy-6}z" fill="${hair}"/><path d="M${50-rx+3} ${top+8}Q42 ${top+3} 58 ${top+7}" stroke="${skin}" stroke-width=".8" fill="none" opacity=".7"/>`;
+    if(style==='short'||style==='crop')s+=`<path d="M${50-rx-1} ${hy-4}Q${50-rx-1} ${top-2} 50 ${top-3}Q${50+rx+1} ${top-2} ${50+rx+1} ${hy-4}Q${50+rx-2} ${top+9} 50 ${top+9}Q${50-rx+2} ${top+9} ${50-rx-1} ${hy-4}z" fill="${hair}"/>`;
+    if(style==='curl'){ for(let i=0;i<9;i++){ const a=Math.PI*(1.05+i*.113); s+=`<circle cx="${(50+Math.cos(a)*(rx+1.2)).toFixed(1)}" cy="${(hy-4+Math.sin(a)*(ry+1)).toFixed(1)}" r="4.4" fill="${hair}"/>`; } }
+    if(style==='bald')s+=`<path d="M${50-rx-.5} ${hy-2}Q${50-rx-2} ${hy-14} ${50-rx+4} ${hy-18}Q${50-rx+1} ${hy-10} ${50-rx+3} ${hy}z" fill="${hair}"/><path d="M${50+rx+.5} ${hy-2}Q${50+rx+2} ${hy-14} ${50+rx-4} ${hy-18}Q${50+rx-1} ${hy-10} ${50+rx-3} ${hy}z" fill="${hair}"/>`;
+  } else {
+    if(style==='bob'||style==='long'||style==='wave')s+=`<path d="M${50-rx-3} ${hy+10}Q${50-rx-6} ${top-4} 50 ${top-4}Q${50+rx+6} ${top-4} ${50+rx+3} ${hy+10}Q${50+rx+1} ${top+10} 50 ${top+8}Q${50-rx-1} ${top+10} ${50-rx-3} ${hy+10}z" fill="${hair}"/>`;
+    if(style==='bob')s+=`<path d="M${50-rx-3} ${hy+10}Q${50-rx-4} ${hy+22} ${50-rx+2} ${hy+24}L${50-rx+3} ${hy+6}z M${50+rx+3} ${hy+10}Q${50+rx+4} ${hy+22} ${50+rx-2} ${hy+24}L${50+rx-3} ${hy+6}z" fill="${hair}"/>`;
+    if(style==='bun')s+=`<path d="M${50-rx-1} ${hy-4}Q${50-rx-1} ${top-2} 50 ${top-3}Q${50+rx+1} ${top-2} ${50+rx+1} ${hy-4}Q${50+rx-2} ${top+9} 50 ${top+8}Q${50-rx+2} ${top+9} ${50-rx-1} ${hy-4}z" fill="${hair}"/><circle cx="50" cy="${top-6}" r="7" fill="${hair}"/>`;
+  }
+  // лицо: брови, глаза, нос, рот
+  const ey=hy-4, ex=7.2+r()*1.2, bw=1+(fem?0:.7);
+  s+=`<path d="M${50-ex-5} ${ey-5.4}Q${50-ex} ${ey-7.4} ${50-ex+5} ${ey-5.2}" stroke="${old&&!fem?'#8c8678':hair}" stroke-width="${bw}" fill="none" stroke-linecap="round"/><path d="M${50+ex-5} ${ey-5.2}Q${50+ex} ${ey-7.4} ${50+ex+5} ${ey-5.4}" stroke="${old&&!fem?'#8c8678':hair}" stroke-width="${bw}" fill="none" stroke-linecap="round"/>`;
+  [-1,1].forEach(d=>{ const cx=50+d*ex; s+=`<ellipse cx="${cx}" cy="${ey}" rx="3.5" ry="1.9" fill="#f0e6cc"/><circle cx="${cx+d*.3}" cy="${ey}" r="1.5" fill="#1d140a"/><path d="M${cx-3.8} ${ey-.3}Q${cx} ${ey-3} ${cx+3.8} ${ey-.3}" stroke="#2a1d0e" stroke-width=".7" fill="none"/>`; });
+  if(old)s+=`<path d="M${50-ex-6} ${ey+3}q2 1.5 4 .6M${50+ex+2} ${ey+3.6}q2 .9 4-.6M${50-9} ${hy-17}h18" stroke="#6b5426" stroke-width=".5" fill="none" opacity=".55"/>`;
+  s+=`<path d="M50 ${ey+2}Q47.4 ${ey+10} 46.4 ${ey+11.5}Q50 ${ey+13.6} 53.6 ${ey+11.5}" stroke="#5b4420" stroke-width=".8" fill="none" opacity=".8"/>`;
+  const my=hy+13;
+  s+=`<path d="M${50-5} ${my}Q50 ${my+(fem?2.4:1.4)} ${50+5} ${my}" stroke="${fem?'#6b2d22':'#3d2415'}" stroke-width="${fem?1.5:1.1}" fill="none" stroke-linecap="round"/>`;
+  // усы, борода, очки
+  if(!fem&&r()<.34)s+=`<path d="M${50-6.5} ${my-3}Q50 ${my-6} ${50+6.5} ${my-3}Q50 ${my-1.2} ${50-6.5} ${my-3}z" fill="${hair}"/>`;
+  if(!fem&&r()<.18)s+=`<path d="M${50-rx+1} ${hy+8}Q${50-rx} ${hy+ry} 50 ${hy+ry+3}Q${50+rx} ${hy+ry} ${50+rx-1} ${hy+8}Q50 ${hy+16} ${50-rx+1} ${hy+8}z" fill="${hair}" opacity=".92"/>`;
+  const gl=r();
+  if(gl<.38)s+=`<g fill="none" stroke="#1d140a" stroke-width="1"><${gl<.2?'circle':'rect'} ${gl<.2?`cx="${50-ex}" cy="${ey}" r="6.4"`:`x="${50-ex-6.4}" y="${ey-4.6}" width="12.8" height="9.2" rx="2"`}/><${gl<.2?'circle':'rect'} ${gl<.2?`cx="${50+ex}" cy="${ey}" r="6.4"`:`x="${50+ex-6.4}" y="${ey-4.6}" width="12.8" height="9.2" rx="2"`}/><path d="M${50-ex+6.4} ${ey-1}H${50+ex-6.4}M${50-ex-6.4} ${ey-1}L${50-rx-1} ${ey-2}M${50+ex+6.4} ${ey-1}L${50+rx+1} ${ey-2}"/></g><g fill="#f6eed2" opacity=".14"><ellipse cx="${50-ex}" cy="${ey}" rx="5.6" ry="4.2"/><ellipse cx="${50+ex}" cy="${ey}" rx="5.6" ry="4.2"/></g>`;
+  // снимок: зерно и виньетка
+  s+=`<rect width="100" height="120" filter="url(#pgr)"/><rect width="100" height="120" fill="url(#pvg)"/>`;
+  return `<svg class="pt" viewBox="0 0 100 120" preserveAspectRatio="xMidYMid slice" role="img" aria-label="${String(name||'').replace(/"/g,'')}">${s}</svg>`;
+}
+/* лицо в рамке для списка: s — ширина в пикселях */
+function face(name,s,o){
+  s=s||36; return `<span class="face" style="width:${s}px;height:${Math.round(s*1.2)}px">${portrait(name,o)}</span>`;
+}
+
+/* карточка человека: портрет в рамке, должность, имя, строка под ним, при желании — цитата */
+function pcard(name,role,sub,o){
+  o=o||{};
+  return `<div class="pcard${o.big?' big':''}"><div class="pc-face">${portrait(name,{age:o.age,fem:o.fem})}</div>
+    <div class="pc-b"><i>${role}</i><b>${name}</b>${sub?`<span>${sub}</span>`:''}${o.quote?`<q>${o.quote}</q>`:''}</div></div>`;
+}
+/* общие градиенты и зерно портретов лежат в документе один раз */
+if(typeof document!=='undefined'&&!document.getElementById('artdefs')){
+  const d=document.createElement('div'); d.id='artdefs'; d.innerHTML=artDefs(); document.body.insertBefore(d,document.body.firstChild);
+}
+/* ════════════════════════════════════════════════════════════════
    Интерфейс. Вся разметка собрана из компонентов дизайн-системы
    (game/ui.html): panel, btn, table, stat, meter, chip, tag, stamp.
    Игровая логика в этот файл не заходит.
@@ -16117,7 +16746,7 @@ function factionPanel(house){
     const n=dealsLive().filter(d=>d.pid===p.id&&d.house===house).length;
     const me_=p.id===PL;
     return `<tr class="${me_?'mine':''}"><td>${emblem(p,20)}</td>
-      <td><b>${L.name}</b><div class="sub2">«${p.short}» · ${me_?(chief()&&house==='h'?'это вы':'ваша фракция'):FT(L.trait).name.toLowerCase()}${inCoal(p.id)?' · в коалиции':''}</div></td>
+      <td><div class="who2">${face(L.name,30)}<div><b>${L.name}</b><div class="sub2">«${p.short}» · ${me_?(chief()&&house==='h'?'это вы':'ваша фракция'):FT(L.trait).name.toLowerCase()}${inCoal(p.id)?' · в коалиции':''}</div></div></div></td>
       <td class="n">${flSeats(p.id,house)}</td>
       <td class="n ${me_?'':L.rel>=60?'good':L.rel<35?'bad':''}">${me_?'—':Math.round(L.rel)}</td>
       <td class="n hide-s ${L.trust<40?'bad':''}">${me_?'—':Math.round(L.trust)}</td>
@@ -16409,9 +17038,8 @@ function tabSelf(){
 
   return panel({cls:'lead-p',title:'Личное дело',meta:role,body:
     `<div class="cols c12"><div>
-      <div class="stat"><i>${or0?or0.name:'политик'}</i><div class="v">${y.name}</div>
-        <span>«${p.name}» · ${Math.round(y.age)} ${plural(Math.round(y.age),'год','года','лет').split(' ')[1]}</span></div>
-      <p class="hint" style="margin-top:8px">${or0?or0.desc:''}</p>
+      ${pcard(y.name,or0?or0.name:'политик','«'+p.name+'» · '+Math.round(y.age)+' '+plural(Math.round(y.age),'год','года','лет').split(' ')[1],{age:Math.round(y.age),big:1})}
+      <p class="hint" style="margin-top:10px">${or0?or0.desc:''}</p>
      </div><div>
       <h3 class="sub" style="margin-top:0">Молва</h3>
       ${REPS.map(r=>repBar(r.id)).join('')}
@@ -16461,6 +17089,19 @@ function tabSelf(){
    Деньги не сидят в палате, но платят тем, кто сидит. Раздел
    показывает не только, кто сколько дал, но и сколько власти
    при этом ушло — захват и есть цена всех этих щедростей. */
+/* структура хозяйства: кольцо по весу групп капитала */
+function econPie(){
+  const cols=['#4B3A24','#8A6F3F','#B8985E','#6C7E58','#97493A','#4D6277','#A99C7E','#765A6E'];
+  const rows=FIRMS.filter(d=>firmOf(d.id)).map(d=>({d,w:Math.max(.1,firmWeight(firmOf(d.id)))}));
+  const tot=rows.reduce((a,x)=>a+x.w,0)||1; let a0=-Math.PI/2;
+  const pt=(a,rr)=>[(80+Math.cos(a)*rr).toFixed(1),(80+Math.sin(a)*rr).toFixed(1)];
+  const arcs=rows.map((x,i)=>{ const f=x.w/tot, a1=a0+f*2*Math.PI, R=72, r=42, big=f>.5?1:0;
+    const [x0,y0]=pt(a0,R),[x1,y1]=pt(a1-.014,R),[x2,y2]=pt(a1-.014,r),[x3,y3]=pt(a0,r); a0=a1;
+    return `<path d="M${x0} ${y0}A${R} ${R} 0 ${big} 1 ${x1} ${y1}L${x2} ${y2}A${r} ${r} 0 ${big} 0 ${x3} ${y3}z" fill="${cols[i%cols.length]}"><title>${x.d.name}</title></path>`; }).join('');
+  return `<div class="pie"><svg viewBox="0 0 160 160" role="img" aria-label="Структура хозяйства">${arcs}
+      <text x="80" y="78" text-anchor="middle" class="pie-k">вес</text><text x="80" y="94" text-anchor="middle" class="pie-v">${rows.length} групп</text></svg>
+    <ul>${rows.map((x,i)=>`<li><s style="background:${cols[i%cols.length]}"></s>${x.d.name}<b>${Math.round(x.w/tot*100)}%</b></li>`).join('')}</ul></div>`;
+}
 function tabFirms(){
   const cap=captureLevel();
   const rows=FIRMS.map(d=>{
@@ -16508,6 +17149,7 @@ function tabFirms(){
       <caption>Деньги не покупают убеждений — они покупают внимание депутатов того края,
         где корпорация работает. Обещанный и непроведённый закон помнят четыре квартала.</caption></table></div>`})
   +`</div><div>`
+  +panel({title:'Структура хозяйства',meta:'кому принадлежит вес в экономике',body:econPie()})
   +panel({cls:FIRMS.some(d=>{const o=firmOf(d.id);return o&&o.owed&&firmOwed(o)&&firmOwed(o).left<=2;})?'warn':'',
     title:'Долги по обещаниям',meta:'что и кому обещано',flush:true,
     body:`<table class="tight"><tbody>${owedList}</tbody></table>`})
@@ -16891,7 +17533,7 @@ function tabGov(){
   const allies=coalition().filter(x=>x!==PL).map(id=>{
     const st=S.partners[id]||{anger:0}, p=P(id);
     const got=Object.values(S.gov.posts).filter(x=>x===id).length;
-    return `<div class="dep"><div class="who"><b>${p.name}</b><span>${mandates(seatsOf(id))} · ${got} из ${partyPrice(id)} портфелей · расхождение ${axDist(p.st,me().st).toFixed(1)}</span></div>
+    return `<div class="dep">${face(p.leader,32)}<div class="who"><b>${p.name}</b><span>${mandates(seatsOf(id))} · ${got} из ${partyPrice(id)} портфелей · расхождение ${axDist(p.st,me().st).toFixed(1)}</span></div>
       ${st.anger>=3?'<span class="tag r">на грани</span>':st.anger>=2?'<span class="tag y">недовольны</span>':'<span class="tag g">лояльны</span>'}</div>`;}).join('')
     ||'<p class="hint">Союзников нет: правительство однопартийное.</p>';
   const outside=S.parties.filter(p=>p.id!==PL&&!inCoal(p.id)).map(p=>
@@ -16940,8 +17582,8 @@ function tabPM(){
   const p=S.pm, mine=isPM(), power=cabinetPower(), coh=cohesion();
   const fv=S.fvp&&minOf(S.fvp);
   const rows=POSTS.map(x=>{ const m=minOf(x.id), pw=minPower(x.id), old=S.q-m.since>MIN_TERM, ec=minComp(m);
-    return `<tr><td><b>${m.you?'Вы · ':''}${m.name}</b>${S.fvp===x.id?' <span class="tag y">1-й вице</span>':''}
-        <div class="sub2">${x.name}${m.you?'':' · '+MT(m.trait).name.toLowerCase()}</div></td>
+    return `<tr><td><div class="who2">${face(m.name,32)}<div><b>${m.you?'Вы · ':''}${m.name}</b>${S.fvp===x.id?' <span class="tag y">1-й вице</span>':''}
+        <div class="sub2">${x.name}${m.you?'':' · '+MT(m.trait).name.toLowerCase()}</div></div></div></td>
       <td>${chip(P(m.party))}</td>
       <td class="n ${ec<40?'bad':ec>=72?'good':''}">${ec}</td>
       <td class="n ${m.you?'':m.loyal<35?'bad':m.loyal>=70?'good':''}">${m.you?'—':m.loyal}<div class="sub2">${m.you?'':loyalWord(m.loyal)}</div></td>
@@ -16990,8 +17632,7 @@ function tabPM(){
   return panel({cls:mine?'lead-p':'info',title:mine?'Правительство под вашим началом':'Кабинет ведёт не ваша партия',
     meta:'мандат от Собрания',body:
     `<div class="cols c12"><div>
-      <div class="stat"><i>${P(p.party).name}</i><div class="v" style="font-family:var(--f-head);font-size:24px;letter-spacing:0">${p.name}</div>
-        <span>премьер-министр · ${quarters(S.q-p.since)} в должности</span></div>
+      ${pcard(p.name,'премьер-министр · '+P(p.party).name,quarters(S.q-p.since)+' в должности',{big:1})}
       <div class="stat"><i>сплочённость кабинета</i><div class="v ${coh<35?'bad':''}">${coh}<u>${cohWord(coh)}</u></div>
         <span>средняя верность министров премьеру</span></div>
      </div><div>
@@ -17032,13 +17673,11 @@ function tabPres(){
   const ticket=panel({cls:mine?'lead-p':'info',title:mine?'Президент — это вы':'Глава государства',
     meta:'полномочия до: '+dateLabel(S.pres.until),body:
     `<div class="cols c11"><div>
-      <div class="stat"><i>${p.name}${S.pres.succeeded?' · принял полномочия досрочно':''}</i>
-        <div class="v" style="font-family:var(--f-display);font-size:26px;letter-spacing:0">${S.pres.name}</div>
-        <span>${mine?'ваш мандат — от всей страны':'мандат от всей страны, не от Собрания'}</span></div>
+      ${pcard(S.pres.name,'президент · '+p.name+(S.pres.succeeded?' · принял полномочия досрочно':''),
+        mine?'ваш мандат — от всей страны':'мандат от всей страны, не от Собрания',{big:1})}
      </div><div>
-      <div class="stat"><i>${vparty?vparty.name:''} · вице-президент</i>
-        <div class="v" style="font-family:var(--f-display);font-size:26px;letter-spacing:0">${v?v.name:'—'}</div>
-        <span>${vmine?'ваш человек председательствует в Сенате':'председательствует в Сенате'}</span></div>
+      ${v?pcard(v.name,'вице-президент · '+(vparty?vparty.name:''),vmine?'ваш человек председательствует в Сенате':'председательствует в Сенате',{big:1}):
+        `<div class="stat"><i>вице-президент</i><div class="v">—</div><span>кресло пусто</span></div>`}
      </div></div>
      <div class="res">
        <span>Осталось в кресле</span><b>${quarters(presLeft())}</b>
@@ -17360,10 +17999,17 @@ function tabParty(){
 /* вкладка «Дипломатия» — в dipui.js */
 
 /* ─── 8 · Регионы ────────────────────────────────────────────── */
-const MAPMODE=[['sup','Поддержка'],['unrest','Напряжённость'],['govs','Главы'],['seats','Мандаты'],['dev','Развитие'],['sep','Сепаратизм']];
+const MAPMODE=[['reg','Карта'],['sup','Поддержка'],['unrest','Напряжённость'],['govs','Главы'],['seats','Мандаты'],['dev','Развитие'],['sep','Сепаратизм']];
 const RAMP_SUP=['#7B2018','#B4744A','#C9B98F','#6E8F5E','#2C6547'];
 const RAMP_UNR=['#E7E0CE','#D9C08A','#C08A3E','#A85A2A','#7B2018'];
+/* краски карты-раскраски: у каждого субъекта своя, как на школьной карте */
+const REG_TINT={centr:'#E3AE5B',nw:'#86A56F',balt:'#8CA9D2',volga:'#9DB57F',povolzh:'#AE90C8',south:'#D98795',
+  kavkaz:'#6DB6AE',ural:'#E48F63',sib:'#7DA35F',dv:'#8F82C6',arctic:'#9FBFD8'};
+/* что снимать для карточки края */
+const REG_VIEW={centr:'palace',nw:'field',balt:'city',volga:'field',povolzh:'factory',south:'port',
+  kavkaz:'field',ural:'factory',sib:'city',dv:'port',arctic:'port'};
 function regionFill(r){
+  if(S.mapMode==='reg')return REG_TINT[r.id]||'#C9B98F';
   if(S.mapMode==='unrest'){ const v=S.unrest[r.id];
     return RAMP_UNR[v<12?0:v<24?1:v<38?2:v<55?3:4]; }
   if(S.mapMode==='dev')return ['#4A3B26','#6B5533','#9A7211','#C2A24A'][clamp(r.dev,0,3)];
@@ -17378,14 +18024,48 @@ function regionFill(r){
   const v=shown(regApproval(r.id),r.id);
   return RAMP_SUP[v<38?0:v<46?1:v<52?2:v<60?3:4];
 }
+/* центр тяжести контура: подпись встаёт в тело края, а не в его бухту */
+const GEO_MID={};
+function geoMid(id){
+  if(GEO_MID[id])return GEO_MID[id];
+  const sub=GEO[id].d.split('M').filter(Boolean).sort((a,b)=>b.length-a.length)[0];
+  const p=(sub.match(/-?[\d.]+,-?[\d.]+/g)||[]).map(q=>q.split(',').map(Number));
+  let A=0,cx=0,cy=0;
+  for(let i=0;i<p.length;i++){ const [x0,y0]=p[i],[x1,y1]=p[(i+1)%p.length], f=x0*y1-x1*y0; A+=f; cx+=(x0+x1)*f; cy+=(y0+y1)*f; }
+  return GEO_MID[id]=A?[cx/(3*A),cy/(3*A)]:GEO[id].c;
+}
+const SEA_NAMES=[['Северное море',170,120,-8],['Западное море',-30,380,-90],['Южное море',440,690,0],['Восточный океан',950,580,-68]];
 function mapSVG(){
-  const paths=REGIONS.map(r=>{const g=GEO[r.id];
+  const order=REGIONS.slice().sort((a,b)=>(S.sel===a.id)-(S.sel===b.id));
+  const shore=REGIONS.map(r=>`<path d="${GEO[r.id].d}"/>`).join('');
+  const paths=order.map(r=>{const g=GEO[r.id];
     return `<path class="rgn ${S.sel===r.id?'sel':''}" d="${g.d}" fill="${regionFill(r)}" data-r="${r.id}"><title>${r.name}</title></path>`;}).join('');
-  const labels=REGIONS.map(r=>{const g=GEO[r.id];
-    return `<text class="caplbl" x="${g.c[0]}" y="${g.c[1]+40}" text-anchor="middle">${r.cap}</text>`;}).join('');
-  return `<div class="mapbox"><svg class="mapsvg" viewBox="0 0 920 ${MAP_H}">${paths}${labels}</svg></div>`;
+  const labels=REGIONS.map(r=>{const m=geoMid(r.id), g=GEO[r.id], words=r.name.split(' ');
+    const two=r.name.length>12&&words.length>1, l1=two?words[0]:r.name, l2=two?words.slice(1).join(' '):'';
+    const big=r.pop>=14?23:20;
+    return `<g class="rl" pointer-events="none"><text class="rname" x="${m[0].toFixed(0)}" y="${(m[1]-(two?8:-4)).toFixed(0)}" text-anchor="middle" style="font-size:${big}px">${l1}${l2?`<tspan x="${m[0].toFixed(0)}" dy="${big+2}">${l2}</tspan>`:''}</text>`+
+      (r.capital?`<path class="star" transform="translate(${g.c[0].toFixed(0)} ${(g.c[1]+30).toFixed(0)}) scale(1.6)" d="M0-9 2.6-3 9-2.6 4.1 1.6 5.6 8 0 4.6-5.6 8-4.1 1.6-9-2.6-2.6-3z"/>`:'')+
+      `<text class="rcap" x="${g.c[0].toFixed(0)}" y="${(g.c[1]+(r.capital?60:30)).toFixed(0)}" text-anchor="middle">${r.cap}</text></g>`; }).join('');
+  const sea=SEA_NAMES.map(([t,x,y,a])=>`<text class="sea" x="${x}" y="${y}" text-anchor="middle" transform="rotate(${a} ${x} ${y})">${t}</text>`).join('');
+  const grid=Array.from({length:9},(_,i)=>`<path d="M${-70+i*140} -50V720"/>`).join('')+Array.from({length:6},(_,i)=>`<path d="M-70 ${i*140-20}H1070"/>`).join('');
+  return `<div class="mapbox"><svg class="mapsvg" viewBox="-70 -50 1140 770" role="img" aria-label="Карта республики">
+    <defs>
+      <radialGradient id="seaG" cx=".48" cy=".46" r=".75"><stop offset="0" stop-color="#27465F"/><stop offset=".6" stop-color="#16293A"/><stop offset="1" stop-color="#0B141D"/></radialGradient>
+      <pattern id="wave" width="46" height="18" patternUnits="userSpaceOnUse"><path d="M0 9Q11.5 2 23 9T46 9" fill="none" stroke="#9DC0D6" stroke-width=".8" opacity=".16"/></pattern>
+      <filter id="shore" x="-5%" y="-5%" width="110%" height="110%"><feGaussianBlur stdDeviation="9"/></filter>
+      <filter id="mapgr" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".75" numOctaves="2" seed="9"/><feColorMatrix values="0 0 0 0 .18 0 0 0 0 .12 0 0 0 0 .05 0 0 0 .55 -.14"/></filter>
+    </defs>
+    <rect x="-70" y="-50" width="1140" height="770" fill="url(#seaG)"/>
+    <rect x="-70" y="-50" width="1140" height="770" fill="url(#wave)"/>
+    <g class="grid">${grid}</g>
+    <g class="shore" filter="url(#shore)">${shore}</g>
+    ${paths}${labels}${sea}
+    <rect x="-70" y="-50" width="1140" height="770" filter="url(#mapgr)" style="mix-blend-mode:multiply" pointer-events="none"/>
+    <path class="compass" transform="translate(990 90)" d="M0-34 7-7 34 0 7 7 0 34-7 7-34 0-7-7z"/>
+  </svg></div>`;
 }
 function mapLegend(){
+  if(S.mapMode==='reg')return '<span class="chip">цвет различает субъекты, а не оценивает их</span><span class="chip">★ столица республики</span><span class="chip dim">остальное — в режимах выше</span>';
   if(S.mapMode==='seats')return S.parties.map(p=>`<span class="chip">${emblem(p,15)}${p.short}</span>`).join('');
   if(S.mapMode==='govs')return S.parties.map(p=>{
     const n=REGIONS.filter(r=>{const g=govOf(r.id);return g&&g.party===p.id;}).length;
@@ -17401,7 +18081,7 @@ function mapLegend(){
     `<span class="chip"><s style="background:${RAMP_SUP[i]}"></s>${t}</span>`).join('');
 }
 function tabCountry(){
-  if(!S.mapMode)S.mapMode='sup';
+  if(!S.mapMode)S.mapMode='reg';
   const sel=S.sel?R(S.sel):null;
   const rows=REGIONS.slice().sort((a,b)=>S.unrest[b.id]-S.unrest[a.id]).map(r=>{
     const sup=shown(regApproval(r.id),r.id);
@@ -17416,7 +18096,8 @@ function tabCountry(){
       <td class="r"><button class="btn sm" onclick="openRegion('${r.id}')">Карточка</button></td></tr>`;}).join('');
 
   const card=sel?panel({cls:'lead-p',title:sel.name,meta:sel.cap+(sel.capital?' · столица':''),body:
-    `<div class="res" style="margin-top:0">
+    `${photo(REG_VIEW[sel.id]||'city',sel.id,sel.cap+(sel.capital?' · столица':''),{cls:'rcard'})}
+    <div class="res" style="margin-top:12px">
       <span>Поддержка правительства</span><b class="${regApproval(sel.id)<46?'bad':'good'}">${est(Math.round(shown(regApproval(sel.id),sel.id))+'%',polled())}</b>
       <span>Напряжённость</span><b class="${S.unrest[sel.id]>34?'bad':''}">${Math.round(S.unrest[sel.id])} · ${unrestWord(S.unrest[sel.id])}</b>
       <span>Население</span><b>${sel.pop} млн</b>
@@ -17446,7 +18127,7 @@ function tabCountry(){
 
   return `<div class="cols c21">
     ${panel({title:'Карта Республики',meta:polled()?'данные свежего опроса':'оценка без опроса, ±3 пункта',body:
-      `<div class="row" style="margin-bottom:var(--x4)"><div class="seg">${MAPMODE.map(m=>
+      `<div class="row" style="margin-bottom:var(--x4)"><div class="seg wrap">${MAPMODE.map(m=>
         `<button class="${S.mapMode===m[0]?'on':''}" onclick="S.mapMode='${m[0]}';render()">${m[1]}</button>`).join('')}</div>
         <button class="btn sm ghost" data-act="poll" style="margin-left:auto" ${S.ap&&S.funds>=9&&!polled()?'':'disabled'}>Заказать опрос<span class="cost">9 млн</span></button></div>
        ${mapSVG()}<div class="legend">${mapLegend()}</div>`})}
@@ -17612,11 +18293,34 @@ function spark(key,color,title,fmt){
     <div style="display:flex;justify-content:space-between" class="t-micro">
       <span>${shortDate(S.hist[0].q)}</span><span>мин ${r1(mn)} · макс ${r1(mx)}</span></div></div>`;
 }
+/* ─── газета: запись хроники как передовица ──────────────────────── */
+function newsKind(t){
+  t=String(t||'').toLowerCase();
+  if(/выбор|президент|избран|съезд|партия/.test(t))return 'crowd';
+  if(/закон|поправк|собрани|вотум|кабинет|правительств/.test(t))return 'chamber';
+  if(/эконом|рост|бюджет|налог|завод|капитал|нацпроект/.test(t))return 'factory';
+  if(/договор|сосед|границ|посол|саммит|санкци/.test(t))return 'port';
+  if(/край|регион|област|город|мэр|губернатор/.test(t))return 'city';
+  return 'palace';
+}
+function paperCard(){
+  const c=S.chron||[], last=c[c.length-1];
+  const head=last?last.t:'Страна ждёт первых решений', kind=newsKind(head);
+  const more=c.slice(-4,-1).reverse();
+  return `<div class="npr"><div class="npr-mast"><b>Новарийские вести</b><span>${dateLabel()} · выпуск ${S.q}</span></div>
+    <div class="npr-body"><div><h3>${head.replace(/\.$/,'')}</h3>
+      <p>Кабинет ${P(S.gov.lead).leader}: ${coalSeats()} мандатов из ${MAJ} нужных. Одобрение ${Math.round(approval())}%, рост ВВП ${sign(S.econ.growth)}%, безработица ${S.econ.unemp}%. ${
+        S.treasury<25?'Казна на исходе.':S.treasury>120?'В казне запас.':'Казна держится.'}</p>
+      ${more.length?`<ul class="npr-more">${more.map(m=>`<li><b>${m.y}</b>${m.t}</li>`).join('')}</ul>`:''}</div>
+      <figure class="npr-ph">${engrave(kind,'газета-'+S.q)}<figcaption>${({crowd:'У избирателей',chamber:'В зале Собрания',factory:'На производстве',port:'У границы',city:'В регионах',palace:'У здания Собрания'})[kind]}</figcaption></figure></div>
+    </div>`;
+}
+
 function tabArch(){
   const ch=S.chron.slice().reverse().map(c=>
     `<div class="chron ${c.kind}"><span class="y">${c.y}</span><span>${c.t}</span></div>`).join('')
     ||'<div class="empty">История ещё не написана.</div>';
-  return `<div class="cols c11">
+  return paperCard()+`<div class="cols c11">
     ${panel({title:'Показатели правления',meta:quarters(S.hist.length),body:
       spark('ap','var(--bad)','Одобрение, %',v=>Math.round(v)+'%')+
       spark('seats','var(--info)','Мандаты фракции')+
@@ -18207,77 +18911,17 @@ const MICON={
 };
 const mi=k=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">${MICON[k]||''}</svg>`;
 
-/* ─── карта страны гравюрой ───────────────────────────────────────
-   Та же геометрия, что в разделе регионов, но без игровых цветов:
-   на титуле страна ещё никем не управляется, и красить её нечем.
-   Тон задаёт только освоенность края. */
-function menuMap(){
-  const paths=REGIONS.map(r=>{const g=GEO[r.id];
-    return `<path class="rg d${r.dev}" d="${g.d}"><title>${r.name} · ${r.cap} · ${r.pop} млн</title></path>`;}).join('');
-  const marks=REGIONS.map(r=>{const g=GEO[r.id];
-    return `<circle class="dot" cx="${g.c[0]}" cy="${g.c[1]}" r="${r.capital?6:3.6}"/>`+
-      (r.capital?`<circle class="dot" cx="${g.c[0]}" cy="${g.c[1]}" r="11" fill="none" stroke="var(--ink)" stroke-width="1.1"/>`:'');}).join('');
-  const labels=REGIONS.map(r=>{const g=GEO[r.id];
-    return `<text class="cap" x="${g.c[0]}" y="${g.c[1]+30}" text-anchor="middle">${r.cap}</text>`;}).join('');
-  return `<div class="mn-map"><svg viewBox="0 0 920 ${MAP_H}" preserveAspectRatio="xMidYMid meet"
-    aria-label="Карта Новарии">
-    ${paths}${marks}${labels}</svg></div>`;
-}
-/* ─── виньетки нижних колонок ─────────────────────────────────────
-   Штриховые, без заливок: газета печатает гравюру, а не фотографию. */
-function cardArt(kind){
-  const st='fill="none" stroke="var(--ink)" stroke-width="1.3" stroke-linejoin="round"';
-  const art={
-    gov:`<g ${st}><path d="M100 14 56 36h88z"/><path d="M60 36v44M76 36v44M92 36v44M108 36v44M124 36v44M140 36v44"/>
-      <path d="M50 80h100M46 86h108"/><path d="M100 14v-6"/><circle cx="100" cy="5" r="3"/>
-      <path d="M20 86h160"/></g>
-      <g stroke="var(--ink-3)" stroke-width=".7"><path d="M64 44v28M80 44v28M96 44v28M112 44v28M128 44v28"/></g>`,
-    rise:`<g ${st}><path d="M18 84h164"/><path d="M26 72l30-26 22 18 30-38 26 30 34-34"/>
-      <circle cx="26" cy="72" r="3"/><circle cx="56" cy="46" r="3"/><circle cx="78" cy="64" r="3"/>
-      <circle cx="108" cy="26" r="3"/><circle cx="134" cy="56" r="3"/><circle cx="168" cy="22" r="3"/>
-      <path d="M150 22h18v18"/></g>
-      <g stroke="var(--ink-3)" stroke-width=".7"><path d="M18 62h164M18 42h164"/></g>`,
-    people:`<g ${st}>${Array.from({length:7},(_,i)=>{
-        const x=24+i*25, h=30+((i*9)%18);
-        return `<circle cx="${x}" cy="${76-h-9}" r="7"/><path d="M${x-9} 76v-${h}a9 9 0 0 1 18 0v${h}z"/>`;
-      }).join('')}<path d="M10 86h180"/></g>`,
-    star:`<g ${st}><path d="M100 10 112 44l36 .5-28.5 21.5 10.5 34L100 79l-30 21 10.5-34L52 44.5l36-.5z"/>
-      <path d="M18 86h164"/><path d="M34 86V64M50 86V52M66 86V70M134 86V58M150 86V72M166 86V62"/></g>
-      <g stroke="var(--ink-3)" stroke-width=".7"><path d="M26 78h148"/></g>`,
-  }[kind]||'';
-  return `<svg class="art" viewBox="0 0 200 92" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${art}</svg>`;
-}
-
-/* ─── сборка полосы ──────────────────────────────────────────── */
-const MN_CARDS=[
-  {k:'gov',   t:'Управляй',  p:'Развивай регионы, принимай решения, меняй страну.'},
-  {k:'rise',  t:'Развивай',  p:'Экономика, инфраструктура, образование, технологии.'},
-  {k:'people',t:'Объединяй', p:REGIONS.length+' регионов — одна сильная Новария.'},
-  {k:'star',  t:'Создавай будущее', p:'Твои решения формируют историю.'},
-];
 function menuItem(n,ic,title,sub,fn,on,off){
   return `<button class="mn-btn ${on?'on':''} ${off?'off':''}" ${off?'disabled':''} onclick="${fn}">
     <em>${n}</em><span><b>${title}</b><s>${sub}</s></span>${mi(ic)}</button>`;
-}
-/* Виньетка карты обрезается по фактическим границам страны: исходный
-   бокс рассчитан на разворот с легендой, и на полосе от него остаётся
-   пустое поле вокруг. Меряем после вставки — своей же геометрией. */
-function fitMenuMap(){
-  const svg=document.querySelector('.mn-map svg'); if(!svg)return;
-  try{
-    const b=svg.getBBox(); if(!b.width||!b.height)return;
-    const m=10;
-    svg.setAttribute('viewBox',
-      (b.x-m).toFixed(1)+' '+(b.y-m).toFixed(1)+' '+(b.width+m*2).toFixed(1)+' '+(b.height+m*2).toFixed(1));
-  }catch(e){}
 }
 function showMenu(){
   const el=document.getElementById('menu'); if(!el)return;
   const has=hasSave();
   el.hidden=false; el.classList.remove('gone');
-  el.innerHTML=`<div class="mn-sheet">
-    <div class="mn-top">
-      <span>Государственный кабинет · зима 2029</span>
+  el.innerHTML=`<div class="ar-sheet">
+    <div class="ar-top">
+      <span>Государственный архив · зима 2029</span>
       <div class="mn-tools"><span class="mn-ver">v ${GAME_VER}</span>
         <button title="Разделы игры" onclick="menuAbout()">${mi('grid')}</button>
         <button title="Показатели" onclick="menuStats()">${mi('stat')}</button>
@@ -18285,70 +18929,60 @@ function showMenu(){
         <button title="Настройки" onclick="menuSettings()">${mi('gear')}</button></div>
     </div>
 
-    <div class="mn-head">
-      <img class="mn-flag" src="${FLAG}" alt="Флаг Республики Новария">
-      <div class="mn-name"><i>Республика</i><h1>НОВАРИЯ</h1>
-        <div class="mn-orn"><i></i>✦<i></i></div>
-        <u>Единая страна. Сильные регионы.</u></div>
-      <div class="mn-est">Политический симулятор полупрезидентской республики</div>
+    <div class="ar-board">
+      <div class="ar-hero">
+        <div class="ar-head">
+          <img class="mn-flag" src="${FLAG}" alt="Флаг Республики Новария">
+          <div class="ar-name"><i>Республика</i><h1>Новария</h1>
+            <u>Единая страна. Сильные регионы.</u></div>
+          <ul class="ar-vals"><li>Люди</li><li>Развитие</li><li>Стабильность</li><li>Будущее.</li></ul>
+        </div>
+        <div class="ar-stage">
+          <div class="ar-photo">${engrave('palace','титул',{par:'xMidYMin slice'})}</div>
+          <nav class="ar-menu">
+            ${has?menuItem('01','play','Продолжить игру',savedName()+' · последнее сохранение','menuContinue()',true)
+                :menuItem('01','play','Новая игра','Начните путь к развитию страны','menuNew()',true)}
+            ${has?menuItem('02','load','Новая игра','Начать с чистого листа','menuNew()')
+                :menuItem('02','load','Продолжить','Сохранения пока нет','menuContinue()',false,true)}
+            ${menuItem('03','book','О стране','История, регионы, экономика','menuAbout()')}
+            ${menuItem('04','stat','Статистика','Показатели и достижения','menuStats()')}
+            ${menuItem('05','gear','Настройки','Интерфейс и сохранение','menuSettings()')}
+            ${menuItem('06','exit','Выход','До новых встреч','menuExit()')}
+          </nav>
+          <div class="ar-quote">«Сильная страна — это не территория, а люди, которые в неё верят.»
+            <span class="sig">Н. Градов</span></div>
+        </div>
+      </div>
+      <aside class="ar-strip">
+        ${photo('crowd','титул-1','Республика в движении',{tilt:-1.4,text:'НОВАРИЯ — СТРАНА ВОЗМОЖНОСТЕЙ'})}
+        ${photo('city','титул-2','Столица',{tilt:1})}
+        ${photo('factory','титул-3','Промышленность',{tilt:-.7})}
+      </aside>
     </div>
 
-    <div class="mn-body">
-      <div class="mn-col">
-        <div class="mn-cap">Приёмная</div>
-        ${menuItem('01','play','Новая игра','Начните путь к развитию страны','menuNew()',true)}
-        ${menuItem('02','load','Продолжить',has?'Загрузить последнее сохранение':'Сохранения пока нет','menuContinue()',false,!has)}
-        ${menuItem('03','book','О стране','История, регионы, экономика','menuAbout()')}
-        ${menuItem('04','stat','Статистика','Показатели и достижения','menuStats()')}
-        ${menuItem('05','gear','Настройки','Интерфейс и сохранение','menuSettings()')}
-        ${menuItem('06','exit','Выход','До новых встреч','menuExit()')}
-        <div class="mn-keys"><i>Управление</i>
-          <div><span>Разделы</span><b>1—9</b></div>
-          <div><span>Листать разделы</span><b>← →</b></div>
-          <div><span>Завершить квартал</span><b>Q</b></div>
-          <div><span>Действий в квартале</span><b>3</b></div></div>
-      </div>
-
-      <div class="mn-col">
-        <div class="mn-cap">Обращение к нации</div>
-        <p class="mn-lead">Большие возможности начинаются здесь.</p>
-        <p class="mn-dek">Одиннадцать субъектов от Балтики до Тихоокеанска, две палаты, президент
-          со своим сроком и правительство, отвечающее перед нижней палатой. Власть здесь намеренно
-          не сходится в одних руках: большинство в одной палате почти никогда не означает
-          большинства в другой.</p>
-        <div class="mn-quote">«Сильная страна — это не территория, а люди, которые в неё верят»
-          <b>надпись на гранитной плите у Собрания</b></div>
-        ${menuMap()}
-      </div>
-
-      <div class="mn-col">
-        <div class="mn-cap">Государство в цифрах</div>
+    <div class="ar-foot">
+      <div><i>Государство в цифрах</i>
         <div class="mn-facts">
           <div><span>Субъектов</span><b>${REGIONS.length}</b></div>
           <div><span>Народное собрание</span><b>${SEATS}</b></div>
           <div><span>Сенат</span><b>${SEN_SEATS}</b></div>
           <div><span>Созыв</span><b>${TERM} кв.</b></div>
           <div><span>Президентский срок</span><b>${PTERM} кв.</b></div>
-          <div><span>Групп избирателей</span><b>${GROUPS.length}</b></div>
           <div><span>Тем законов</span><b>${TOPICS.length}</b></div>
           <div><span>Поправок к конституции</span><b>${CONSTS.length}</b></div>
-          <div><span>Групп капитала</span><b>${FIRMS.length}</b></div>
-          <div><span>Разделов</span><b>${TABS.length}</b></div>
-        </div>
-        ${has?`<div class="mn-save"><i>В памяти</i><b>${savedName()}</b>
-          <s>Продолжить можно вторым пунктом указателя.</s></div>`
-        :`<div class="mn-save"><i>В памяти</i><b>Пусто</b>
-          <s>Сохранение появится после первого квартала.</s></div>`}
-      </div>
+          <div><span>Групп капитала</span><b>${FIRMS.length}</b></div></div></div>
+      <div><i>Управление</i>
+        <div class="mn-keys" style="border:0;margin:0;padding:0">
+          <div><span>Разделы</span><b>1—9</b></div>
+          <div><span>Листать разделы</span><b>← →</b></div>
+          <div><span>Завершить квартал</span><b>Q</b></div>
+          <div><span>Действий в квартале</span><b>3</b></div></div></div>
+      <div><i>В памяти</i>
+        ${has?`<div class="mn-save"><b>${savedName()}</b><s>Продолжить можно первым пунктом указателя.</s></div>`
+        :`<div class="mn-save"><b>Пусто</b><s>Сохранение появится после первого квартала.</s></div>`}
+        <p class="ar-note">Республика Новария · стратегия развития. Сегодня — решения. Завтра — сильная Новария.</p></div>
     </div>
-
-    <div class="mn-cards">${MN_CARDS.map(c=>`<div class="mn-card">${cardArt(c.k)}
-      <b>${c.t}</b><p>${c.p}</p></div>`).join('')}</div>
-
-    <div class="mn-foot"><span>Республика Новария · стратегия развития</span>
-      <span>Сегодня — решения. Завтра — сильная Новария.</span></div>
   </div>`;
-  fitMenuMap();
 }
 function hideMenu(){
   const el=document.getElementById('menu'); if(!el)return;

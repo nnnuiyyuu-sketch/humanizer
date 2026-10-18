@@ -347,4 +347,24 @@ pw=await ev(()=>{ S.ap=3; S.cap=80; const had=can('dropVP')&&can('bizCouncil');
 check('полномочия: проигравший президент', pw.had&&pw.pmSeat&&pw.fb==='pm'&&pw.pm1&&!pw.strict&&!pw.drop&&!pw.council,
   'кабинет партии вернулся лидеру; без кабинета — ни указов, ни совета');
 await settle(page);
+
+/* ─── архивная редакция: снимки, лица, карта, газета ─── */
+await settle(page);
+await boot(page,{role:'pm'});
+let ar=await ev(()=>{ const kinds=ENG_KINDS.map(k=>({k,ok:/^<svg class="eng"/.test(engrave(k,'t'))&&engrave(k,'t').length>1500}));
+  const same=portrait('Анна Громова')===portrait('Анна Громова'), diff=portrait('Анна Громова')!==portrait('Пётр Бакулин');
+  return {kinds:kinds.filter(x=>!x.ok).map(x=>x.k), n:ENG_KINDS.length, same, diff, fem:artFem('Анна Громова'), mal:!artFem('Пётр Бакулин')}; });
+check('архив: семь снимков и лица по имени', ar.n===7&&!ar.kinds.length&&ar.same&&ar.diff&&ar.fem&&ar.mal, 'снимков '+ar.n+' · лицо стабильно, пол по имени');
+ar=await ev(()=>{ S.tab='country'; S.sel='ural'; render(); const v=document.getElementById('view');
+  return {names:v.querySelectorAll('.rname').length, sea:v.querySelectorAll('.sea').length, star:!!v.querySelector('.star'), photo:!!v.querySelector('.photo.rcard .eng'), fills:new Set([...v.querySelectorAll('.rgn')].map(p=>p.getAttribute('fill'))).size}; });
+check('архив: карта с подписями и морем', ar.names===11&&ar.sea===4&&ar.star&&ar.photo&&ar.fills===11, 'названий '+ar.names+' · морей '+ar.sea+' · красок '+ar.fills);
+ar=await ev(()=>{ S.tab='arch'; render(); const v=document.getElementById('view'); return {npr:!!v.querySelector('.npr .npr-ph .eng'), mast:/Новарийские вести/.test(v.textContent)}; });
+check('архив: газетная карточка в летописи', ar.npr&&ar.mast, 'передовица со снимком');
+ar=await ev(()=>{ S.tab='pm'; render(); const a=document.querySelectorAll('#view .face').length;
+  S.tab='pres'; render(); const b=document.querySelectorAll('#view .pc-face').length;
+  S.tab='self'; render(); const c=document.querySelectorAll('#view .pc-face').length; return {a,b,c}; });
+check('архив: лица в министрах, президенте и досье', ar.a>=6&&ar.b>=1&&ar.c===1, 'министры '+ar.a+' · президент '+ar.b+' · досье '+ar.c);
+ar=await ev(()=>{ showMenu(); const m=document.getElementById('menu'); const r={btns:m.querySelectorAll('.ar-menu .mn-btn').length, photos:m.querySelectorAll('.ar-strip .photo').length, hero:!!m.querySelector('.ar-photo .eng')}; hideMenu(); return r; });
+check('архив: титульный коллаж', ar.btns===6&&ar.photos===3&&ar.hero, 'пунктов '+ar.btns+' · снимков в ленте '+ar.photos);
+await settle(page);
 await done(browser,errors,fails);

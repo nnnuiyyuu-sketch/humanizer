@@ -56,7 +56,7 @@ function nbCard(x){
     st.owe>0?'<span class="tag g">должен вам</span>':''].filter(Boolean).join(' ');
   return `<div class="nbc ${st.rel<38?'bad':st.rel>=54?'good':''}">
     <header><b>${x.name}</b><span>${nbWord(st.rel)}</span></header>
-    <p class="nbc-l">${L.name} · <i>${t.name.toLowerCase()}</i></p>
+    <div class="nbc-l who2">${face(L.name,34)}<p>${L.name} · <i>${t.name.toLowerCase()}</i></p></div>
     <div class="nbc-m"><span>отношения</span><div class="meter"><i style="width:${st.rel}%;background:${st.rel<38?'var(--bad)':st.rel>=54?'var(--good)':'var(--ink-3)'}"></i></div><b class="num-s">${Math.round(st.rel)}</b></div>
     <div class="nbc-m"><span>доверие</span><div class="meter"><i style="width:${st.trust}%;background:var(--gold)"></i></div><b class="num-s">${Math.round(st.trust)}</b></div>
     <div class="nbc-c">${chips||'<span class="dim">связей нет</span>'}</div>

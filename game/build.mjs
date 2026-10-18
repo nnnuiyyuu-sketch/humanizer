@@ -17,7 +17,7 @@ import {fileURLToPath} from 'node:url';
 const here = dirname(fileURLToPath(import.meta.url));
 /* порядок важен: данные раньше ядра, ядро раньше хода, интерфейс в конце */
 export const PARTS = ['head.html','assets.js','icons.js','data.js','core.js','turn.js','parl.js',
-  'roles.js','factions.js','power.js','media.js','rivals.js','budget.js','cases.js','regions.js','foreign.js','dipl.js','dipact.js','dipui.js','legacy.js','cabinet.js','bots.js','clout.js','powers.js','ui.js','boot.js'];
+  'roles.js','factions.js','power.js','media.js','rivals.js','budget.js','cases.js','regions.js','foreign.js','dipl.js','dipact.js','dipui.js','legacy.js','cabinet.js','bots.js','clout.js','powers.js','art.js','ui.js','boot.js'];
 const TAIL = '</script>\n</body>\n</html>\n';
 
 export function assemble(){
@@ -48,6 +48,8 @@ function checkParity(html){
     ['объект ICON', 'const ICON={', '\n};'],
     ['блок кресла и фракций', '/* ── кресло: выбор на старте и стол в «Кабинете»', '@media (max-width:520px){ .roles{grid-template-columns:1fr} }'],
     ['парадная редакция', '/* ══ третья редакция: парадный госстиль', '/* ══ конец парадной редакции ══ */'],
+    ['архивная редакция', '/* ══ четвёртая редакция: государственный архив', '/* ══ конец архивной редакции ══ */'],
+    ['гравюры и портреты', 'let ART_N=0;', 'document.body.insertBefore(d,document.body.firstChild);\n}'],
   ];
   const bad=[];
   pairs.forEach(([name,s,e])=>{ const g=block(html,s,e), u=block(ui,s,e);
