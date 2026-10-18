@@ -1,0 +1,350 @@
+/* Системы по очереди: сделки, комитеты, поправка через сделки, Сенат,
+   кампания и ночь выборов, выдвижение, смена вице, скандалы, капитал. */
+import {open,boot,say,done,settle} from './lib.mjs';
+const {browser,page,errors}=await open();
+const fails=[];
+const check=(name,ok,v)=>{ say(name,v); if(!ok)fails.push(name+': '+v); };
+const ev=f=>page.evaluate(f);
+await boot(page);
+
+let r=await ev(()=>{ S.tab='brief'; render(); const c=document.querySelector('#view .course');
+  const n0=courseList().filter(x=>x.done()).length; goTab('fac'); goTab('press'); goTab('senate'); goTab('brief');
+  return {has:!!c, n0, n1:courseList().filter(x=>x.done()).length, all:courseList().length}; });
+check('курс молодого политика', r.has&&r.n1>r.n0, r.n0+' → '+r.n1+' из '+r.all);
+await page.evaluate(()=>goTab('help'));
+await page.fill('#helpq','клотур');
+r=await ev(()=>({shown:document.querySelectorAll('#view section.help-s:not([hidden])').length,all:document.querySelectorAll('#view section.help-s').length,
+  focus:document.activeElement&&document.activeElement.id}));
+check('поиск в справке', r.shown>0&&r.shown<r.all&&r.focus==='helpq', r.shown+' из '+r.all+' · фокус '+r.focus);
+await ev(()=>{ HELPQ=''; goTab('brief'); });
+
+r=await ev(()=>{ let best=null; TOPICS.filter(z=>!z.special).forEach(t=>[-2,-1,1,2].forEach(st=>{ newBill(t.id); S.bill.stance=st;
+    const y=tally(S.bill).yes; if(y>=165&&y<MAJ&&(!best||Math.abs(y-195)<Math.abs(best.y-195)))best={t:t.id,st,y}; }));
+  newBill(best.t); S.bill.stance=best.st; const sb={k:'b',topic:S.bill.topic,stance:S.bill.stance,bill:S.bill};
+  // договариваемся с той фракцией, у которой больше всего голосов «не за»: с уже согласной сделка ничего не прибавит
+  const notYes=pid=>tally(S.bill).list.filter(z=>z.d.party===pid&&z.st!=='yes').length;
+  const x=S.parties.filter(z=>z.id!==PL&&dealDemand(z.id,'h',sb)!==null).sort((a,b)=>notYes(b.id)-notYes(a.id))[0];
+  S.deals.push({id:1,pid:x.id,house:'h',key:subjKey(sb),due:S.q+3,trait:'drill',renege:false,q:S.q});
+  return {y0:best.y,y1:tally(S.bill).yes}; });
+check('сделка по закону', r.y1>r.y0, r.y0+' → '+r.y1+' из 218');
+
+r=await ev(()=>{ const c=cnList()[0], f0=cnForecast(c);
+  S.parties.filter(x=>x.id!==PL).sort(bySeats).forEach((x,i)=>['h','s'].forEach(h=>S.deals.push({id:10+i,pid:x.id,house:h,key:'c:'+c.id,due:S.q+3,trait:'drill',renege:false,q:S.q})));
+  const f1=cnForecast(c); return {a:f0.h+'/'+f0.s, b:f1.h+'/'+f1.s, ok:f1.ok}; });
+check('поправка через сделки', r.ok, r.a+' → '+r.b);
+
+r=await ev(()=>({n:AX.filter(a=>commChair(a)).length, m:commMembers('econ').length, uniq:new Set(AX.map(a=>S.comm[a])).size}));
+check('комитеты', r.n===6&&r.m===13&&r.uniq===6, r.n+' председателей · '+r.m+' членов · разных '+r.uniq);
+
+r=await ev(()=>{ for(let i=0;i<40;i++){ commTick(); senAgendaTick(); } return {h:(S.hearLog||[]).length,s:(S.senLog||[]).length}; });
+check('слушания и повестка Сената', r.s>0, 'слушаний '+r.h+' · записей Сената '+r.s);
+
+r=await ev(()=>{ campaignStart(); const m=document.getElementById('modal');m.classList.remove('show');mopen=false;mq.length=0;
+  for(let i=0;i<3;i++){ S.q++; campPoll(); } S.q=S.termStart+aTerm()+1; election();
+  return {polls:S.camp?S.camp.polls.length:-1,title:document.querySelector('#msheet h2').textContent}; });
+check('ночь выборов', r.title==='Подсчёт голосов', r.title);
+await settle(page);
+
+await boot(page,{role:'none',pick:2});
+r=await ev(()=>{ S.ap=3;S.cap=60;S.funds=60; registerCand('sen',S.you.home,nextSenQ());
+  const rr=Math.random; S.senCls=S.senate.find(s=>s.region===S.you.home).cls; Math.random=()=>0.01; senateElection(); Math.random=rr;
+  return mySeat(); });
+check('выдвижение в Сенат', r==='sen', r);
+await settle(page);
+
+await boot(page,{role:'pres'});
+r=await ev(()=>{ S.ap=3;S.cap=60; const old=S.vp.name; askReplaceVP(); const rr=Math.random; Math.random=()=>0.01;
+  document.querySelector('#msheet .opt').click(); Math.random=rr; return {old,now:S.vp.name,ex:!!S.exVP}; });
+check('смена вице', r.old!==r.now&&r.ex, r.old+' → '+r.now);
+await settle(page);
+
+r=await ev(()=>{ const sc=scOpenYou('firm',55,80); document.querySelector('#msheet .opt').click();
+  const h0=sc.heat; const rr=Math.random; Math.random=()=>0.1; scandalTick(); Math.random=rr; return {h0,h1:Math.round(sc.heat),back:!!sc.back}; });
+check('скандал: отрицание при документах', r.back, r.h0+' → '+r.h1);
+await settle(page);
+
+r=await ev(()=>{ const f=firmOf('neft'), r0=f.rel; enact({topic:'corp',stance:-2,riders:[],by:PL}); return {r0,r1:f.rel}; });
+check('капитал отвечает на закон', r.r1<r.r0, Math.round(r.r0)+' → '+Math.round(r.r1));
+
+r=await ev(()=>{ S.tab='fac'; render(); return document.querySelectorAll('#view .fac-ax').length; });
+check('вкладка «Фракции»', r>=30, 'осей '+r);
+
+await boot(page,{role:'pm'});
+r=await ev(()=>{ const big=S.parties.filter(p=>p.id!==PL).sort(bySeats)[0], n0=S.parties.length;
+  const np=splitParty(big.id); if(!np)return {ok:false};
+  const hs=S.parties.reduce((a,p)=>a+seatsOf(p.id),0), ss=S.parties.reduce((a,p)=>a+senSeatsOf(p.id),0);
+  const dOk=S.parties.every(p=>S.deputies.filter(d=>d.party===p.id).length===seatsOf(p.id));
+  const sOk=S.parties.every(p=>S.senate.filter(x=>x.party===p.id).length===senSeatsOf(p.id));
+  return {ok:S.parties.length===n0+1&&hs===SEATS&&dOk&&sOk&&!!flLeader(np.id,'h'), v:big.short+' → '+np.name+' · '+seatsOf(np.id)+' деп. · '+hs+'/'+ss}; });
+check('раскол партии', r.ok, r.v);
+r=await ev(()=>{ const opp=S.parties.filter(p=>p.id!==PL&&!inCoal(p.id)).sort(bySeats).slice(0,2).map(p=>p.id);
+  S.bloc={members:opp.slice(),since:S.q,until:S.q+8,lead:opp[0]};
+  newBill(TOPICS.find(t=>!t.special).id); const line=leaderLine(opp[0],S.bill);
+  const rr=Math.random; Math.random=()=>0.1; blocDealBreak(opp[1]); Math.random=rr;
+  return {line,after:S.bloc?S.bloc.members.length:0}; });
+check('оппозиционный блок', r.line===-1&&r.after<2, 'линия '+r.line+' · после сделки в блоке '+r.after);
+r=await ev(()=>{ S.bill=null; campaignStart(); const m=document.getElementById('modal');m.classList.remove('show');mopen=false;mq.length=0;
+  rivalCampTick(); const t=S.camp.themes||{}; return {n:Object.keys(t).length, all:S.parties.length-1}; });
+check('кампании соперников', r.n===r.all, 'тем '+r.n+' из '+r.all);
+await settle(page);
+
+r=await ev(()=>{ const p=S.parties.filter(x=>x.id!==PL&&!bAskMet(bAsk(x.id))).sort(bySeats)[0]; if(!p)return {ok:false};
+  const a=bAsk(p.id), y0=budgetTally().yes, d0=dealDemand(p.id,'h',{k:'budget'}); bAskAccept(p.id);
+  const y1=budgetTally().yes, d1=dealDemand(p.id,'h',{k:'budget'});
+  const L=S.fl[p.id].h, tr0=L.trust; if(a.kind==='spend')S.spend[a.id]=1; else S.tax[a.id]=4; bPromTick();
+  return {ok:y1>y0&&d1<d0&&L.trust<tr0, v:y0+' → '+y1+' за · цена '+d0+' → '+d1+' · доверие '+tr0+' → '+L.trust}; });
+check('бюджет: строка фракции', r.ok, r.v);
+await boot(page,{role:'dep',pick:2});
+r=await ev(()=>{ S.ap=3; S.cap=60; askBudgetLine(); const o=document.querySelector('#msheet .opt'); const rr=Math.random; Math.random=()=>0.01;
+  o.click(); Math.random=rr; const t=document.querySelector('#msheet h2').textContent; return {t,again:bReqOpen()}; });
+check('бюджет: требование строки у кабинета', r.t==='Строка вписана'&&!r.again, r.t);
+await settle(page);
+
+await boot(page,{role:'pm'});
+r=await ev(()=>{ S.ap=3; S.cap=90; S.funds=90; const path=[];
+  caseOpen({k:'министр',name:minOf('fin').name,post:'fin'},'trail',60); path.push(S.probe.stage);
+  const m=document.getElementById('modal');m.classList.remove('show');mopen=false;mq.length=0;
+  const rr=Math.random; Math.random=()=>0.5;
+  let ev0=-1,ev1=-1,l0=legit();
+  for(let i=0;i<3&&S.probe;i++){ caseStep(); m.classList.remove('show');mopen=false;mq.length=0; if(S.probe)path.push(S.probe.stage);
+    if(S.probe&&S.probe.stage==='search'){ ev0=S.probe.ev; caseDo('press'); ev1=S.probe.ev; m.classList.remove('show');mopen=false;mq.length=0; } }
+  Math.random=rr;
+  return {path:path.join('→'),ev0,ev1,l0,l1:legit()}; });
+check('дело: ступени и давление', r.path==='check→search→charge→court'&&r.ev1<r.ev0&&r.l1<r.l0, r.path+' · улики '+r.ev0+' → '+r.ev1+' · легитимность '+r.l0+' → '+r.l1);
+r=await ev(()=>{ const rr=Math.random; Math.random=()=>0.01; caseVerdict(); Math.random=rr;
+  const t=document.querySelector('#msheet h2').textContent; return {t,probe:!!S.probe}; });
+check('дело: приговор', r.t==='Виновен'&&!r.probe, r.t);
+await settle(page);
+r=await ev(()=>{ S.ap=3; S.cap=90; S.funds=90; caseOpen({k:'политик',name:S.you.name,you:true},'scandal',80);
+  const m=document.getElementById('modal');m.classList.remove('show');mopen=false;mq.length=0;
+  S.probe.stage='court'; S.probe.left=1; const rr=Math.random; Math.random=()=>0.01; caseVerdict(); Math.random=rr;
+  document.querySelectorAll('#msheet .opt')[1].click();
+  return {seat:mySeat(),conv:convicted(),gov:S.gov.lead===PL}; });
+check('дело: приговор вам', r.seat==='none'&&r.conv&&!r.gov, 'кресло '+r.seat+' · запрет '+r.conv);
+await settle(page);
+r=await ev(()=>{ const p=S.parties.find(x=>x.id!==PL); S.rcases=[{sc:0,pid:p.id,name:p.leader,stage:3,left:1,ev:90,q:S.q}];
+  const L0=p.leader, rr=Math.random; Math.random=()=>0.01; rcaseTick(); Math.random=rr; return {L0,L1:p.leader,done:S.rcases[0].done}; });
+check('дело соперника', r.done==='guilty'&&r.L0!==r.L1, r.L0+' → '+r.L1);
+
+await boot(page,{role:'pm'});
+r=await ev(()=>{ regInit(); S.ap=3; S.cap=60; S.treasury=100; const rid='ural', g=govOf(rid), m=S.mayors[rid];
+  m.party=S.parties.find(p=>p.id!==g.party).id; m.feud=70; m.you=false; feudFlare(rid);
+  const t=document.querySelector('#msheet h2').textContent; document.querySelector('#msheet .opt').click();
+  return {t,f:m.feud}; });
+check('края: мэр против губернатора', r.t==='Мэр против губернатора'&&r.f<40, r.t+' · вражда 70 → '+r.f);
+await settle(page);
+r=await ev(()=>{ const rid='sib', g=govOf(rid); g.you=false; const t0=S.treasury, r0=g.rel; greqAsk(rid,'money');
+  document.querySelector('#msheet .opt').click(); return {dt:Math.round(t0-S.treasury), dr:Math.round(g.rel-r0)}; });
+check('края: просьба главы', r.dt>0&&r.dr>0, 'казна −'+r.dt+' · отношение +'+r.dr);
+await settle(page);
+r=await ev(()=>{ const rid='kavkaz'; S.sep[rid]=80; S.auto[rid]=1; S.unrest[rid]=45; const c0=regRevenueCut();
+  rrefStart(rid,'sov','край'); const m=document.getElementById('modal'); document.querySelector('#msheet .opt').click();
+  m.classList.remove('show');mopen=false;mq.length=0;
+  S.q=S.rref.due; const rr=Math.random; Math.random=()=>0.99; rrefResolve(); Math.random=rr;
+  const sov=regSov(rid), c1=regRevenueCut();
+  const os=[...document.querySelectorAll('#msheet .opt')]; S.treasury=100; os[0].click();
+  return {sov,c0:Math.round(c0*100),c1:Math.round(c1*100),after:regSov(rid),auto:regAuto(rid)}; });
+check('края: референдум о суверенитете и договор', r.sov&&r.c1>r.c0&&!r.after&&r.auto===2, 'доходы −'+r.c1+'% · после договора автономия '+r.auto);
+await settle(page);
+await boot(page,{role:'gov',pick:3});
+r=await ev(()=>{ S.ap=3; S.cap=60; const a=deskActs().find(x=>x.id==='autoref'); if(!a)return {ok:false};
+  deskAct('autoref'); return {ok:!!S.rref&&S.rref.by==='you', rid:S.rref&&S.rref.rid}; });
+check('края: губернатор назначает референдум', r.ok, r.rid);
+await settle(page);
+
+await boot(page,{role:'pm'});
+r=await ev(()=>{ S.ap=3; S.cap=60; const id='meridia', st=nbOf(id); st.rel=60;
+  S.senate.forEach(s=>{ s.rel=90; }); const f=tradeVotes(id); const rr=Math.random;
+  tradeSign(id); const m=document.getElementById('modal');m.classList.remove('show');mopen=false;mq.length=0;
+  return {f:f.yes+'/'+f.need, trade:st.trade, fp:fpDemand()}; });
+check('внешняя: торговое соглашение через Сенат', r.trade===(+r.f.split('/')[0]>=+r.f.split('/')[1])&&(!r.trade||r.fp>0), r.f+' · соглашение '+r.trade+' · спрос '+r.fp);
+r=await ev(()=>{ S.ap=3; S.cap=60; const id='zarech', st=nbOf(id); st.rel=20; const d0=fpDemand(); sancImpose(id,'тест');
+  const t=document.querySelector('#msheet h2').textContent; const d1=fpDemand(); document.querySelectorAll('#msheet .opt')[1].click();
+  return {t,d0,d1,after:sancOn(id)}; });
+check('внешняя: санкции и уступка', r.t==='Санкции против нас'&&r.d1<r.d0&&!r.after, 'спрос '+r.d0+' → '+r.d1+' · после уступки санкции '+r.after);
+await settle(page);
+r=await ev(()=>{ S.ap=3; S.cap=60; bcrisisStart('gorye'); const t=document.querySelector('#msheet h2').textContent;
+  const p0=nbPressure(S.bcrisis.rid), rr=Math.random; Math.random=()=>0.01; document.querySelector('#msheet .opt').click(); Math.random=rr;
+  return {t,p0,left:!!S.bcrisis}; });
+check('внешняя: инцидент на границе', r.t==='Пограничный инцидент'&&r.p0>0&&!r.left, r.t+' · давление '+r.p0+' · снят дипломатией');
+await settle(page);
+r=await ev(()=>{ S.ap=3; nbVisit('meridia'); const os=[...document.querySelectorAll('#msheet .opt')].map(o=>o.textContent);
+  const t0=S.treasury; const rr=Math.random; Math.random=()=>0.5; document.querySelectorAll('#msheet .opt')[2].click(); Math.random=rr;
+  return {n:os.length, gain:Math.round(S.treasury-t0)}; });
+check('внешняя: визит с повесткой', r.n===4&&r.gain>0, 'повесток '+(r.n-1)+' · казна '+(r.gain>0?'+':'')+r.gain);
+await settle(page);
+
+r=await ev(()=>{ localStorage.removeItem(REC_KEY); S.held={pm:1}; S.startSeat='none'; S.held.pres=S.q; S.cnt={deals:10};
+  achvTick(); const got=Object.keys(S.achv);
+  finish(true,'Проверка финала.'); const m=document.getElementById('modal');m.classList.remove('show');mopen=false;mq.length=0;
+  S.tab='final'; render();
+  return {got:got.join(','), paper:!!document.querySelector('#view .paper'), rec:records().length, bio:bioText().length,
+    head:(document.querySelector('#view .paper-h')||{}).textContent}; });
+check('наследие: достижения, полоса, зал славы', /climb/.test(r.got)&&/dealer/.test(r.got)&&r.paper&&r.rec===1&&r.bio>=3, r.got+' · '+r.head);
+
+await boot(page,{role:'pm'});
+r=await ev(()=>{ const ms=npcMins(); return {n:ms.length, ok:ms.every(m=>m.trait&&m.loyal!=null&&m.amb!=null&&m.integ!=null), coh:cohesion()}; });
+check('правительство: министры с характером', r.n===6&&r.ok&&r.coh>0, r.n+' министров · сплочённость '+r.coh);
+r=await ev(()=>{ S.cabIssue={id:'cuts',q:S.q,left:1}; const f0=minOf('fin').loyal, s0=minOf('soc').loyal; cabDecide('A');
+  return {f:minOf('fin').loyal-f0, s:minOf('soc').loyal-s0, left:!!S.cabIssue}; });
+check('правительство: спор министров', r.f>0&&r.s<0&&!r.left, 'финансы '+(r.f>0?'+':'')+r.f+' · соцзащита '+r.s);
+r=await ev(()=>{ S.ap=3; S.cap=60; S.treasury=200; const i0=S.econ.invest; const ok=projStart('roads');
+  const p=projLive('roads'); p.prog=95; projTick(); const m=document.getElementById('modal'); m.classList.remove('show'); mopen=false; mq.length=0;
+  return {ok, done:projDone('roads'), inv:Math.round(S.econ.invest-i0), live:projs().length}; });
+check('правительство: национальный проект', r.ok&&r.done&&r.inv>=8&&r.live===0, 'сдан · инвестиции +'+r.inv);
+r=await ev(()=>{ S.repDue=S.q; askReport(); const t=document.querySelector('#msheet h2').textContent; document.querySelector('#msheet .opt').click();
+  return {t, due:S.repDue-S.q, n:cntOf('report')}; });
+check('правительство: отчёт перед Собранием', r.t==='Отчёт правительства'&&r.due===4&&r.n===1, r.t+' · следующий через '+r.due);
+r=await ev(()=>{ const other=S.parties.find(p=>p.id!==PL); S.pres.party=other.id; S.presRel=40;
+  S.presDir={k:'spend',id:'def',q:S.q}; const d0=S.spend.def; askPresDir(); document.querySelector('#msheet .opt').click();
+  return {d:S.spend.def-d0, rel:S.presRel, cohab:cohab()}; });
+check('правительство: поручение президента', r.cohab&&r.d===1&&r.rel===50, 'оборона +'+r.d+' · отношения '+r.rel);
+r=await ev(()=>{ const m=npcMins()[0]; S.cap=60; askFvp(); document.querySelector('#msheet .opt').click(); return {fvp:S.fvp, coh:cohesion()}; });
+check('правительство: первый вице-премьер', !!r.fvp, r.fvp+' · сплочённость '+r.coh);
+await settle(page);
+await boot(page,{role:'min',pick:1});
+r=await ev(()=>deskActs().map(a=>a.id).filter(id=>id==='myproj'||id==='intrigue').length);
+check('правительство: стол министра', r===2, 'новых рычагов '+r);
+r=await ev(()=>{ S.you.seat='vice'; S.desk=null; return deskActs().map(a=>a.id).join(','); });
+check('правительство: стол вице-премьера', /coord/.test(r)&&/curate/.test(r)&&/mediate/.test(r), r);
+
+await settle(page);
+await boot(page,{role:'pm'});
+r=await ev(()=>{ S.botLog=[]; for(let i=0;i<6;i++){ botsTick(); const m=document.getElementById('modal'); m.classList.remove('show'); mopen=false; mq.length=0; S.q++; }
+  return {n:(S.botLog||[]).length, feed:(()=>{ S.tab='fac'; render(); return /Ход соперников/.test(document.getElementById('view').textContent); })()}; });
+check('боты: штабы ходят', r.n>=3&&r.feed, 'ходов за 6 кварталов '+r.n);
+r=await ev(()=>{ let best=null; TOPICS.filter(z=>!z.special).forEach(t=>[-2,-1,1,2].forEach(st=>{ newBill(t.id); S.bill.stance=st;
+    const y=tally(S.bill).yes; if(y>=MAJ-40&&y<MAJ&&(!best||y>best.y))best={t:t.id,st,y}; }));
+  if(!best)return {skip:true};
+  newBill(best.t); S.bill.stance=best.st; S.botOfferQ=null; const rr=Math.random; Math.random=()=>0.1; botOffer(); Math.random=rr;
+  const t=(document.querySelector('#msheet h2')||{}).textContent||''; return {t, disc:!!S.dealDisc}; });
+check('боты: лидер сам предлагает сделку', r.skip||(/предлагает сделку/.test(r.t)&&r.disc), r.skip?'нет подходящего проекта':r.t);
+await settle(page);
+r=await ev(()=>{ S.bill=null; const p=S.parties.filter(x=>x.id!==PL).sort(bySeats)[0]; p.askedQ=null; S.botAskQ=null; botAsk(p);
+  const t=(document.querySelector('#msheet h2')||{}).textContent||''; return {t, asked:p.askedQ===S.q}; });
+check('боты: просьба о голосах', !r.asked||r.t==='Просьба о голосах', r.asked?r.t:'ваши голоса не решают');
+await settle(page);
+await boot(page,{role:'dep',pick:2});
+r=await ev(()=>{ S.trail=80; S.probe=null; const rr=Math.random; Math.random=()=>0.01; botGovTick(); Math.random=rr;
+  const m=document.getElementById('modal'); m.classList.remove('show'); mopen=false; mq.length=0; return {probe:!!S.probe, inCoal:inCoal(PL)}; });
+check('боты: кабинет натравливает прокуратуру', r.inCoal||r.probe, r.inCoal?'вы в коалиции':'дело открыто');
+
+await settle(page);
+await boot(page,{role:'pm'});
+let dm=await ev(()=>{ nbFillAll(); const x=NEIGHBOURS.every(z=>{ const st=nbOf(z.id); return st.ld&&st.ld.name&&st.ld.trait&&st.trust!=null&&st.tr; });
+  const z0=nbOf('zarech').rel; nbShift('ostmark',10); const z1=nbOf('zarech').rel; const g0=nbOf('gorye').rel; nbShift('zarech',10); const g1=nbOf('gorye').rel;
+  return {x, jeal:Math.round((z0-z1)*10)/10, ally:Math.round((g1-g0)*10)/10}; });
+check('дипломатия: досье и эхо соперничества', dm.x&&dm.jeal>0&&dm.ally>0, 'враг соседа холодеет на '+dm.jeal+', подопечный теплеет на '+dm.ally);
+dm=await ev(()=>{ S.ap=3; S.cap=80; const id='meridia', st=nbOf(id); st.rel=75; st.trust=75; S.senate.forEach(s=>{ s.rel=90; s.party=S.gov.lead; });
+  const ok=trSign(id,'visa'); const m=document.getElementById('modal'); m.classList.remove('show'); mopen=false; mq.length=0;
+  const queued=S.rat.length; ratPush(0,'lob'); m.classList.remove('show'); mopen=false; mq.length=0;
+  const y0=ratVotes(S.rat[0]).yes; S.q=S.rat[0].due; ratTick(); m.classList.remove('show'); mopen=false; mq.length=0;
+  return {ok,queued,left:S.rat.length,has:trHas(id,'visa'),y0}; });
+check('дипломатия: договор через очередь ратификации', dm.ok&&dm.queued===1&&dm.left===0&&dm.has, 'голосов '+dm.y0+' · безвиз действует '+dm.has);
+dm=await ev(()=>{ const id='zarech'; ambAuto(id); const a=ambOf(id); nbOf(id).plan={act:'demand',q:S.q};
+  return {a:!!a, intel:intelOf(id), w:planWord(nbOf(id).plan)}; });
+check('дипломатия: посол видит планы', dm.a&&dm.intel>0&&/ультиматум/.test(dm.w), dm.w);
+dm=await ev(()=>{ const id='zarech', st=nbOf(id); st.ld.trait='hawk'; st.pushy=0; const r0=st.rel; demandApply(id,'tariff','yield'); const p1=st.pushy;
+  const rr=Math.random; Math.random=()=>0.99; demandApply(id,'tariff','refuse'); Math.random=rr; const m=document.getElementById('modal'); m.classList.remove('show'); mopen=false; mq.length=0;
+  return {p1,p2:st.pushy,r:Math.round(st.rel-r0)}; });
+check('дипломатия: ультиматум ястреба', dm.p1===1&&dm.p2===0, 'уступка → давление '+dm.p1+', отказ → '+dm.p2);
+dm=await ev(()=>{ const id='gorye', st=nbOf(id); st.trouble={kind:'aid',until:S.q+3}; S.treasury=100; const o0=st.owe, r0=st.rel; troubleApply(id,'aid'); return {owe:st.owe-o0,r:Math.round(st.rel-r0),gone:!st.trouble}; });
+check('дипломатия: помощь соседу создаёт должника', dm.owe===1&&dm.r>0&&dm.gone, 'должок +'+dm.owe+' · отношения +'+dm.r);
+dm=await ev(()=>{ NEIGHBOURS.forEach(x=>{ const st=nbOf(x.id); st.rel=70; st.trust=70; }); S.sumDue=S.q; rSummitApply('trade','credit'); const m=document.getElementById('modal'); m.classList.remove('show'); mopen=false; mq.length=0;
+  return {decl:S.decl&&S.decl.id, dem:fpDemand()}; });
+check('дипломатия: региональный саммит', dm.decl==='trade'&&dm.dem>=3, 'декларация '+dm.decl+' · вклад в спрос '+dm.dem);
+dm=await ev(()=>{ S.tab='world'; render(); const v=document.getElementById('view'); return {svg:!!v.querySelector('svg.dipc'), cards:v.querySelectorAll('.nbc').length, agenda:/Повестка/.test(v.textContent)}; });
+check('дипломатия: вкладка', dm.svg&&dm.cards===4&&dm.agenda, 'карточек '+dm.cards);
+dm=await ev(()=>{ askNeighbour('ostmark'); const t=document.querySelector('#msheet h2').textContent, n=document.querySelectorAll('#msheet .opt').length; return {t,n}; });
+check('дипломатия: досье соседа', dm.n>=5, dm.t+' · пунктов '+dm.n);
+await settle(page);
+await boot(page,{role:'min',pick:1});
+dm=await ev(()=>{ S.you.post='mid'; S.gov.posts.mid=PL; S.ministers.mid={post:'mid',party:PL,name:S.you.name,comp:60,since:S.q,you:true}; S.desk=newDesk('min',{post:'mid'});
+  return deskActs().map(a=>a.id).filter(id=>['embassy','prep','lobby'].indexOf(id)>=0).length; });
+check('дипломатия: рычаги МИД', dm===3, 'новых рычагов '+dm);
+await boot(page,{role:'sen',pick:5});
+dm=await ev(()=>deskActs().map(a=>a.id).filter(id=>id==='ratify'||id==='deleg2').length);
+check('дипломатия: рычаги сенатора', dm===2, 'новых рычагов '+dm);
+
+await settle(page);
+await boot(page,{role:'dep',pick:2});
+let cl=await ev(()=>{ S.you.inf=10; const a=infAdd(10); S.you.inf=85; const b=infAdd(10); S.you.inf=100; infTick(); const c=S.you.inf;
+  S.you.inf=45; return {a,b,c,t:infTier(45).name}; });
+check('влияние: убывающая отдача и содержание', cl.a>9&&cl.b<3&&cl.c<98, 'на 10: +'+cl.a+' · на 85: +'+cl.b+' · со 100 за квартал → '+cl.c);
+cl=await ev(()=>{ S.you.inf=40; const d0=dealDemand(S.parties.find(p=>p.id!==PL).id,'h',{k:'budget'}); S.you.inf=85; const d1=dealDemand(S.parties.find(p=>p.id!==PL).id,'h',{k:'budget'});
+  S.you.inf=20; const v0=ratVotes({id:'meridia',k:'visa',v:null,q:S.q,by:S.gov.lead,hear:0,lob:0,opp:0}).yes; S.you.inf=90; const v1=ratVotes({id:'meridia',k:'visa',v:null,q:S.q,by:S.gov.lead,hear:0,lob:0,opp:0}).yes;
+  return {d0,d1,v0,v1}; });
+check('влияние: цена сделки и ратификация', cl.d1<cl.d0&&cl.v1>=cl.v0, 'цена '+cl.d0+' → '+cl.d1+' · голосов '+cl.v0+' → '+cl.v1);
+cl=await ev(()=>{ S.ap=3; S.cap=60; S.you.inf=80; const sc=scOpenYou('life',60,60); const m=document.getElementById('modal'); m.classList.remove('show'); mopen=false; mq.length=0;
+  const h0=sc.heat, i0=S.you.inf; cloutDo('cover'); return {dh:Math.round(h0-sc.heat), di:Math.round(i0-S.you.inf)}; });
+check('влияние: ход «Прикрыть своего»', cl.dh>=20&&cl.di>=11, 'скандал −'+cl.dh+' · влияние −'+cl.di);
+cl=await ev(()=>{ S.you.inf=90; S.you.envyQ=-9; const rr=Math.random; Math.random=()=>0.01; infEnvyTick(); Math.random=rr; const t=(document.querySelector('#msheet h2')||{}).textContent||''; return {t}; });
+check('влияние: завистники на вершине', cl.t==='Завистники', cl.t);
+await settle(page);
+await boot(page,{role:'pm'});
+cl=await ev(()=>{ S.ap=3; S.you.inf=70; S.challenge={id:'x',name:'Н',wing:'left',ax:'econ',left:2}; cloutDo('guard'); return {ch:!!S.challenge, g:S.you.guard>S.q}; });
+check('влияние: лидер закрепляет фракцию', !cl.ch&&cl.g, 'вызов снят, защита на год');
+cl=await ev(()=>{ S.ap=3; S.you.inf=70; const c0=minOf('fin').comp, wk=POSTS.map(p=>p.id).sort((a,b)=>minComp(minOf(a))-minComp(minOf(b)))[0]; const old=minOf(wk).name; cloutDo('own'); return {changed:minOf(wk).name!==old, comp:minOf(wk).comp}; });
+check('влияние: свой человек в кабинет', cl.changed&&cl.comp>=68, 'компетентность '+cl.comp);
+cl=await ev(()=>{ S.tab='self'; render(); const v=document.getElementById('view'); return {panel:/Влияние/.test(v.textContent)&&!!v.querySelector('.infbar')}; });
+check('влияние: панель в «Моём политике»', cl.panel, 'шкала с уровнями');
+
+/* ─── потеря кресла: функции только по реальным полномочиям ─── */
+await settle(page);
+await boot(page,{role:'dep',pick:2});
+let pw=await ev(()=>{ S.ap=3; S.cap=80; S.funds=80;
+  const had=['motion','impeach','reg','hearing','budgetLine'].every(k=>can(k));
+  newBill(TOPICS.find(t=>!t.special).id); const m0=document.getElementById('modal'); m0.classList.remove('show'); mopen=false; mq.length=0;
+  setSeat('none','проверка');
+  return {had, shut:S.you.shift&&S.you.shift.shut.length, mand:hasMandate(), note:/Вне ваших полномочий/.test(powerNote())}; });
+check('полномочия: депутат до и после потери', pw.had&&pw.shut>=5&&!pw.mand&&pw.note, 'закрылось '+pw.shut+' рычагов');
+pw=await ev(()=>{ S.ap=3; S.cap=80; S.funds=80; const out=[];
+  const m=document.getElementById('modal'); const close=()=>{ m.classList.remove('show'); mopen=false; mq.length=0; };
+  [['askMotion()',()=>askMotion()],['askImpeach()',()=>askImpeach()],['askReg()',()=>askReg()],['askHearing',()=>askHearing('econ')],
+   ['askBudgetLine()',()=>askBudgetLine()],['askAmend()',()=>askAmend()],['askConvene()',()=>askConvene()],['askInquiry()',()=>askInquiry()],
+   ['ACT.talk',()=>ACT.talk('svk')],['ACT.whip',()=>ACT.whip()],['bizCouncil()',()=>bizCouncil()],['dropVP()',()=>dropVP()],
+   ['askNukeSolo()',()=>askNukeSolo()],['askPetition()',()=>askPetition()],['askLead→сделка',()=>{ askLead(); const o=document.querySelector('#msheet .opt'); if(o&&!o.disabled)o.click(); }]]
+  .forEach(([n,f])=>{ const ap=S.ap, cap=S.cap, fu=S.funds; close(); try{ f(); }catch(e){ out.push(n+': '+e.message); }
+    if(m.classList.contains('show')&&!/askLead/.test(n))out.push(n+': открыл лист');
+    if(S.ap!==ap||S.cap!==cap||S.funds!==fu)out.push(n+': списало'); close(); });
+  return out; });
+check('полномочия: без мандата рычаги отказывают', pw.length===0, pw.join(' · ')||'15 из 15 отказывают, ничего не списано');
+pw=await ev(()=>{ const out={};
+  S.tab='parl'; render(); const v=document.getElementById('view');
+  const lockedOf=re=>[...v.querySelectorAll('button')].filter(b=>re.test(b.getAttribute('onclick')||''));
+  out.motion=lockedOf(/askMotion/).every(b=>b.disabled&&b.classList.contains('lock'));
+  out.reg=lockedOf(/askReg/).length>0&&lockedOf(/askReg/).every(b=>b.disabled);
+  out.hear=lockedOf(/askHearing/).length>0&&lockedOf(/askHearing/).every(b=>b.disabled&&!!b.title);
+  out.cost=!!v.querySelector('button.lock .cost');
+  S.tab='self'; render(); const bb=document.querySelector('#view button[onclick="byElection()"]');
+  out.by=!!bb&&!bb.disabled;
+  return out; });
+check('полномочия: кнопки на вкладках погашены', pw.motion&&pw.reg&&pw.hear&&pw.cost, 'вотум, регламент, слушания · подпись причины');
+check('полномочия: довыборы открыты безместному', pw.by, 'кнопка на месте');
+pw=await ev(()=>{ S.ap=3; S.cap=80; S.funds=80; const rr=Math.random; Math.random=()=>0.01; byElection(); Math.random=rr;
+  const m=document.getElementById('modal'); m.classList.remove('show'); mopen=false; mq.length=0;
+  return {seat:mySeat(), motion:can('motion'), by:can('byElection')}; });
+check('полномочия: довыборы возвращают рычаги', pw.seat==='dep'&&pw.motion&&!pw.by, pw.seat+' · вотум открыт, довыборы закрыты');
+await settle(page);
+await boot(page,{role:'pm'});
+pw=await ev(()=>{ S.ap=3; S.cap=80;
+  const pm0={council:can('bizCouncil'), mot:can('motion'), drop:can('dropVP')};
+  const w=S.parties.find(p=>p.id!==PL); S.gov={lead:w.id,coal:[w.id],posts:{}}; S.partners={}; S.role='opp'; syncCabinet(); setSeat('lead','x');
+  const m=document.getElementById('modal'); m.classList.remove('show'); mopen=false; mq.length=0;
+  const ap=S.ap; bizCouncil(); const council=S.ap===ap;
+  return {pm0, council, mot:can('motion'), coal:can('coalition'), shut:S.you.shift.shut, open:S.you.shift.open}; });
+check('полномочия: премьер → лидер оппозиции', pw.pm0.council&&pw.council&&pw.mot&&pw.coal&&pw.shut.indexOf('деловой совет')>=0,
+  'закрыто: '+pw.shut.join(', ')+' · остаётся мандат');
+await settle(page);
+await boot(page,{role:'pres'});
+pw=await ev(()=>{ S.ap=3; S.cap=80; const had=can('dropVP')&&can('bizCouncil');
+  S.gov.lead=PL; S.gov.coal=[PL]; const pmSeat=isPM();             // два кресла: президент и хозяин кабинета
+  S.pres={party:S.parties.find(p=>p.id!==PL).id,name:'Другой',since:S.q,until:S.q+16,term:1,vetoes:0,decrees:0};
+  const fb=fallbackSeat(); setSeat(fb,'проверка');
+  const pm1=isPM(), pm2=mySeat();
+  S.gov.lead=S.parties.find(p=>p.id!==PL).id; S.gov.coal=[S.gov.lead]; setSeat('none','проверка'); const strict=isPM();
+  return {had, pmSeat, fb, pm1, pm2, strict, drop:can('dropVP'), council:can('bizCouncil')}; });
+check('полномочия: проигравший президент', pw.had&&pw.pmSeat&&pw.fb==='pm'&&pw.pm1&&!pw.strict&&!pw.drop&&!pw.council,
+  'кабинет партии вернулся лидеру; без кабинета — ни указов, ни совета');
+await settle(page);
+await done(browser,errors,fails);
